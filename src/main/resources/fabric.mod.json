@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "supertntmod",
+  "version": "1.0.0",
+  "name": "Super TNT Mod",
+  "description": "7 özel TNT türü: Elmas, Altın, Bedrock, Zümrüt, Yıldırım, Nükleer, Dondurucu",
+  "authors": ["Muhammed"],
+  "license": "MIT",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["com.supertntmod.SuperTntMod"],
+    "client": ["com.supertntmod.SuperTntModClient"]
+  },
+  "mixins": [],
+  "depends": {
+    "fabricloader": ">=0.15.0",
+    "minecraft": "~1.21",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}

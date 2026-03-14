@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["MMM", "MTM", "MMM"],
+  "key": {
+    "M": "minecraft:obsidian",
+    "T": "minecraft:tnt"
+  },
+  "result": {
+    "id": "supertntmod:bedrock_tnt",
+    "count": 1
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "block.supertntmod.diamond_tnt":   "Diamond TNT",
+  "block.supertntmod.gold_tnt":      "Gold TNT",
+  "block.supertntmod.bedrock_tnt":   "Bedrock TNT",
+  "block.supertntmod.emerald_tnt":   "Emerald TNT",
+  "block.supertntmod.lightning_tnt": "Lightning TNT",
+  "block.supertntmod.nuclear_tnt":   "Nuclear TNT",
+  "block.supertntmod.freeze_tnt":    "Freeze TNT"
+}

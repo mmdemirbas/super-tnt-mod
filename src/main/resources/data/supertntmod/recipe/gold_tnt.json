@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["MMM", "MTM", "MMM"],
+  "key": {
+    "M": "minecraft:gold_ingot",
+    "T": "minecraft:tnt"
+  },
+  "result": {
+    "id": "supertntmod:gold_tnt",
+    "count": 1
+  }
+}

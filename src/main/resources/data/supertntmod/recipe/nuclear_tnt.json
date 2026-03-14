@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["MMM", "MTM", "MMM"],
+  "key": {
+    "M": "minecraft:nether_star",
+    "T": "minecraft:tnt"
+  },
+  "result": {
+    "id": "supertntmod:nuclear_tnt",
+    "count": 1
+  }
+}
