@@ -87,6 +87,11 @@ public class ModEntities {
                     (type, world) -> new RainbowTntEntity(type, world), SpawnGroup.MISC)
                     .dimensions(0.98f, 0.98f));
 
+    public static final EntityType<LegoTntEntity> LEGO_TNT = regTnt("lego_tnt",
+            EntityType.Builder.<LegoTntEntity>create(
+                    (type, world) -> new LegoTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
     private static <T extends TntEntity> EntityType<T> regTnt(String name, EntityType.Builder<T> builder) {
         Identifier id = Identifier.of(SuperTntMod.MOD_ID, name);
         EntityType<T> type = builder.build(RegistryKey.of(RegistryKeys.ENTITY_TYPE, id));

@@ -81,6 +81,10 @@ public class ModBlocks {
     public static final RainbowTntBlock RAINBOW_TNT = reg("rainbow_tnt",
             new RainbowTntBlock(tntSettings("rainbow_tnt")));
 
+    // 🧱 Lego TNT - Blokları renkli beton bloklarına dönüştürür
+    public static final LegoTntBlock LEGO_TNT = reg("lego_tnt",
+            new LegoTntBlock(tntSettings("lego_tnt")));
+
     private static <T extends Block> T reg(String name, T block) {
         Identifier id = Identifier.of(SuperTntMod.MOD_ID, name);
         Registry.register(Registries.BLOCK, id, block);

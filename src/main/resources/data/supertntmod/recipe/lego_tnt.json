@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["MMM", "MTM", "MMM"],
+  "key": {
+    "M": "minecraft:brick",
+    "T": "minecraft:tnt"
+  },
+  "result": {
+    "id": "supertntmod:lego_tnt",
+    "count": 1
+  }
+}

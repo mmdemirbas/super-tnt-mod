@@ -14,5 +14,6 @@
   "block.supertntmod.mob_freeze_tnt":        "Mob Dondurma TNT",
   "block.supertntmod.water_tnt":             "Su TNT",
   "block.supertntmod.rainbow_tnt":           "Gökkuşağı Dinamit",
+  "block.supertntmod.lego_tnt":             "Lego TNT",
   "item.supertntmod.tnt_frisbee":            "TNT Frizbi"
 }

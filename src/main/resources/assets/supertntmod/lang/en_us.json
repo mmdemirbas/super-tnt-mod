@@ -14,5 +14,6 @@
   "block.supertntmod.mob_freeze_tnt":        "Mob Freeze TNT",
   "block.supertntmod.water_tnt":             "Water TNT",
   "block.supertntmod.rainbow_tnt":           "Rainbow TNT",
+  "block.supertntmod.lego_tnt":             "Lego TNT",
   "item.supertntmod.tnt_frisbee":            "TNT Frisbee"
 }
