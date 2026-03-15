@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["MMM", "MTM", "MMM"],
+  "key": {
+    "M": "minecraft:tnt",
+    "T": "minecraft:ender_eye"
+  },
+  "result": {
+    "id": "supertntmod:walking_tnt",
+    "count": 1
+  }
+}

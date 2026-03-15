@@ -3,7 +3,7 @@
   "id": "supertntmod",
   "version": "1.0.0",
   "name": "Super TNT Mod",
-  "description": "7 özel TNT türü: Elmas, Altın, Bedrock, Zümrüt, Yıldırım, Nükleer, Dondurucu",
+  "description": "15 özel TNT türü: Elmas, Altın, Bedrock, Zümrüt, Yıldırım, Nükleer, Dondurucu, Odun, Komut Bloğu, TNT Kapı, Şifreli Sandık, Yürüyen TNT, TNT Frizbi, Mob Dondurma, Gökkuşağı",
   "authors": ["Muhammed"],
   "license": "MIT",
   "environment": "*",

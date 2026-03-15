@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["MMM", "MTM", "MMM"],
+  "key": {
+    "M": "minecraft:iron_ingot",
+    "T": "minecraft:tnt"
+  },
+  "result": {
+    "id": "supertntmod:encrypted_tnt_chest",
+    "count": 1
+  }
+}

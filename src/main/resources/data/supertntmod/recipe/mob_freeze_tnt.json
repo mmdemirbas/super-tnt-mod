@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["MMM", "MTM", "MMM"],
+  "key": {
+    "M": "minecraft:blue_ice",
+    "T": "minecraft:tnt"
+  },
+  "result": {
+    "id": "supertntmod:mob_freeze_tnt",
+    "count": 1
+  }
+}

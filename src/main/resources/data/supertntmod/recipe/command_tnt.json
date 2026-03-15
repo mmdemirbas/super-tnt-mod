@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["MMM", "MTM", "MMM"],
+  "key": {
+    "M": "minecraft:command_block",
+    "T": "minecraft:tnt"
+  },
+  "result": {
+    "id": "supertntmod:command_tnt",
+    "count": 1
+  }
+}

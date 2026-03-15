@@ -1,9 +1,17 @@
 {
-  "block.supertntmod.diamond_tnt":   "Diamond TNT",
-  "block.supertntmod.gold_tnt":      "Gold TNT",
-  "block.supertntmod.bedrock_tnt":   "Bedrock TNT",
-  "block.supertntmod.emerald_tnt":   "Emerald TNT",
-  "block.supertntmod.lightning_tnt": "Lightning TNT",
-  "block.supertntmod.nuclear_tnt":   "Nuclear TNT",
-  "block.supertntmod.freeze_tnt":    "Freeze TNT"
+  "block.supertntmod.diamond_tnt":           "Diamond TNT",
+  "block.supertntmod.gold_tnt":              "Gold TNT",
+  "block.supertntmod.bedrock_tnt":           "Bedrock TNT",
+  "block.supertntmod.emerald_tnt":           "Emerald TNT",
+  "block.supertntmod.lightning_tnt":         "Lightning TNT",
+  "block.supertntmod.nuclear_tnt":           "Nuclear TNT",
+  "block.supertntmod.freeze_tnt":            "Freeze TNT",
+  "block.supertntmod.wood_tnt":              "Wood TNT",
+  "block.supertntmod.command_tnt":           "Command Block TNT",
+  "block.supertntmod.tnt_door":              "TNT Door",
+  "block.supertntmod.encrypted_tnt_chest":   "Encrypted TNT Chest",
+  "block.supertntmod.walking_tnt":           "Walking TNT",
+  "block.supertntmod.mob_freeze_tnt":        "Mob Freeze TNT",
+  "block.supertntmod.rainbow_tnt":           "Rainbow TNT",
+  "item.supertntmod.tnt_frisbee":            "TNT Frisbee"
 }

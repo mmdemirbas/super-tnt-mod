@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["TT", "IT", "IT"],
+  "key": {
+    "T": "minecraft:tnt",
+    "I": "minecraft:iron_ingot"
+  },
+  "result": {
+    "id": "supertntmod:tnt_door",
+    "count": 1
+  }
+}

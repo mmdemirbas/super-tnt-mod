@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["MMM", "MTM", "MMM"],
+  "key": {
+    "M": "minecraft:white_wool",
+    "T": "minecraft:tnt"
+  },
+  "result": {
+    "id": "supertntmod:rainbow_tnt",
+    "count": 1
+  }
+}

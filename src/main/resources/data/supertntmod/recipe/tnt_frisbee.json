@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["FTF", " I "],
+  "key": {
+    "F": "minecraft:feather",
+    "T": "minecraft:tnt",
+    "I": "minecraft:iron_ingot"
+  },
+  "result": {
+    "id": "supertntmod:tnt_frisbee",
+    "count": 1
+  }
+}

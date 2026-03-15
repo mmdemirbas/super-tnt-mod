@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["MMM", "MTM", "MMM"],
+  "key": {
+    "M": "minecraft:oak_log",
+    "T": "minecraft:tnt"
+  },
+  "result": {
+    "id": "supertntmod:wood_tnt",
+    "count": 1
+  }
+}
