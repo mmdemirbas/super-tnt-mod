@@ -56,6 +56,7 @@ public class SuperTntMod implements ModInitializer {
                             entries.add(ModBlocks.ENCRYPTED_TNT_CHEST);
                             entries.add(ModBlocks.WALKING_TNT);
                             entries.add(ModBlocks.MOB_FREEZE_TNT);
+                            entries.add(ModBlocks.WATER_TNT);
                             entries.add(ModBlocks.RAINBOW_TNT);
                             // Item'ler
                             entries.add(ModItems.TNT_FRISBEE);

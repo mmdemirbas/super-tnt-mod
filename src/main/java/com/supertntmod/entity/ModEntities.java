@@ -77,6 +77,11 @@ public class ModEntities {
                     (type, world) -> new MobFreezeTntEntity(type, world), SpawnGroup.MISC)
                     .dimensions(0.98f, 0.98f));
 
+    public static final EntityType<WaterTntEntity> WATER_TNT = regTnt("water_tnt",
+            EntityType.Builder.<WaterTntEntity>create(
+                    (type, world) -> new WaterTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
     public static final EntityType<RainbowTntEntity> RAINBOW_TNT = regTnt("rainbow_tnt",
             EntityType.Builder.<RainbowTntEntity>create(
                     (type, world) -> new RainbowTntEntity(type, world), SpawnGroup.MISC)

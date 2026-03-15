@@ -1,1 +1,6 @@
-{ "parent": "minecraft:block/cube_all" }
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "supertntmod:block/encrypted_tnt_chest"
+  }
+}

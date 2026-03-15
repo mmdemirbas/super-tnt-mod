@@ -9,14 +9,18 @@ import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.UUID;
 
 /**
  * Yürüyen TNT Blok: Enderman gibi göz göze gelince yaklaşır.
- * En çok hasar vereceği noktada patlar. 30 blok yarıçap.
+ * Koyan kişiyi görmezden gelir, sadece başkalarına saldırır.
  */
 public class WalkingTntEntity extends PathAwareEntity {
     private PlayerEntity target = null;
     private boolean exploded = false;
+    private @Nullable UUID ownerUuid = null;
     private static final double EXPLOSION_DISTANCE = 2.0;
     private static final float EXPLOSION_POWER = 8.0f;
     private static final int DETECTION_RANGE = 30;
@@ -28,6 +32,10 @@ public class WalkingTntEntity extends PathAwareEntity {
     public WalkingTntEntity(World world, double x, double y, double z) {
         super(ModEntities.WALKING_TNT, world);
         this.setPosition(x, y, z);
+    }
+
+    public void setOwnerUuid(@Nullable UUID uuid) {
+        this.ownerUuid = uuid;
     }
 
     public static DefaultAttributeContainer.Builder createAttributes() {
@@ -64,10 +72,13 @@ public class WalkingTntEntity extends PathAwareEntity {
     /**
      * Enderman gibi: Oyuncunun bakış yönünü kontrol et.
      * Oyuncu bu entity'ye bakıyorsa (göz göze gelme), hedefe al.
+     * Sahibini (koyan kişiyi) görmezden gelir.
      */
     private void findLookingPlayer() {
         for (PlayerEntity player : this.getEntityWorld().getPlayers()) {
             if (player.isSpectator() || !player.isAlive()) continue;
+            // Sahibini atla
+            if (ownerUuid != null && player.getUuid().equals(ownerUuid)) continue;
             if (this.squaredDistanceTo(player) > DETECTION_RANGE * DETECTION_RANGE) continue;
 
             // Oyuncunun bakış yönünü kontrol et
@@ -78,9 +89,7 @@ public class WalkingTntEntity extends PathAwareEntity {
             // Bakış açısı 10 dereceden azsa (dot product > ~0.985)
             double dot = playerLook.dotProduct(dirToEntity);
             if (dot > 0.985) {
-                // Göz göze geldik!
                 this.target = player;
-                // Kızgın ses efekti
                 this.getEntityWorld().playSound(null, this.getX(), this.getY(), this.getZ(),
                         SoundEvents.ENTITY_ENDERMAN_STARE, SoundCategory.HOSTILE, 1.0f, 0.5f);
                 break;
@@ -97,7 +106,6 @@ public class WalkingTntEntity extends PathAwareEntity {
 
         this.discard();
 
-        // 30 blok yarıçapında patlama
         world.createExplosion(null, x, y, z, EXPLOSION_POWER, true,
                 World.ExplosionSourceType.TNT);
     }

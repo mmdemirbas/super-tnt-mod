@@ -1,1 +1,7 @@
-{ "parent": "minecraft:block/iron_door_bottom" }
+{
+  "parent": "minecraft:block/door_bottom_left",
+  "textures": {
+    "bottom": "supertntmod:block/tnt_door_bottom",
+    "top": "supertntmod:block/tnt_door_top"
+  }
+}

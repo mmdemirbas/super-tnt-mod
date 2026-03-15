@@ -1,1 +1,8 @@
-{ "parent": "minecraft:block/tnt" }
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "bottom": "supertntmod:block/command_tnt_bottom",
+    "side": "supertntmod:block/command_tnt_side",
+    "top": "supertntmod:block/command_tnt_top"
+  }
+}

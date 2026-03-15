@@ -28,6 +28,9 @@ public class WalkingTntBlock extends Block {
             // Bloğu kaldır ve entity spawn et
             world.removeBlock(pos, false);
             WalkingTntEntity entity = new WalkingTntEntity(world, pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
+            if (placer instanceof PlayerEntity player) {
+                entity.setOwnerUuid(player.getUuid());
+            }
             world.spawnEntity(entity);
         }
     }

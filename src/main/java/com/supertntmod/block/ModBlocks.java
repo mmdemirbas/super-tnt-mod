@@ -73,6 +73,10 @@ public class ModBlocks {
     public static final MobFreezeTntBlock MOB_FREEZE_TNT = reg("mob_freeze_tnt",
             new MobFreezeTntBlock(tntSettings("mob_freeze_tnt")));
 
+    // 💧 Su TNT - Ateşleri söndürür
+    public static final WaterTntBlock WATER_TNT = reg("water_tnt",
+            new WaterTntBlock(tntSettings("water_tnt")));
+
     // 🌈 Rainbow Dinamit - Blokları renkli yüne dönüştürür
     public static final RainbowTntBlock RAINBOW_TNT = reg("rainbow_tnt",
             new RainbowTntBlock(tntSettings("rainbow_tnt")));

@@ -1,1 +1,6 @@
-{ "parent": "minecraft:item/snowball" }
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "supertntmod:item/tnt_frisbee"
+  }
+}

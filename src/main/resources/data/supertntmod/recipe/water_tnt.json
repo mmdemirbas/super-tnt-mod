@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["MMM", "MTM", "MMM"],
+  "key": {
+    "M": "minecraft:water_bucket",
+    "T": "minecraft:tnt"
+  },
+  "result": {
+    "id": "supertntmod:water_tnt",
+    "count": 1
+  }
+}
