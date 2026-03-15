@@ -1,0 +1,167 @@
+{
+  "textures": {
+    "all": "supertntmod:block/lego_brick_pink",
+    "particle": "supertntmod:block/lego_brick_pink"
+  },
+  "elements": [
+    {
+      "__comment": "Ana g\u00f6vde",
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ],
+      "faces": {
+        "down": {
+          "texture": "#all",
+          "cullface": "down"
+        },
+        "up": {
+          "texture": "#all",
+          "cullface": "up"
+        },
+        "north": {
+          "texture": "#all",
+          "cullface": "north"
+        },
+        "south": {
+          "texture": "#all",
+          "cullface": "south"
+        },
+        "west": {
+          "texture": "#all",
+          "cullface": "west"
+        },
+        "east": {
+          "texture": "#all",
+          "cullface": "east"
+        }
+      }
+    },
+    {
+      "__comment": "Sol \u00f6n \u00e7\u0131k\u0131nt\u0131",
+      "from": [
+        2,
+        16,
+        2
+      ],
+      "to": [
+        7,
+        18,
+        7
+      ],
+      "faces": {
+        "up": {
+          "texture": "#all"
+        },
+        "north": {
+          "texture": "#all"
+        },
+        "south": {
+          "texture": "#all"
+        },
+        "west": {
+          "texture": "#all"
+        },
+        "east": {
+          "texture": "#all"
+        }
+      }
+    },
+    {
+      "__comment": "Sa\u011f \u00f6n \u00e7\u0131k\u0131nt\u0131",
+      "from": [
+        9,
+        16,
+        2
+      ],
+      "to": [
+        14,
+        18,
+        7
+      ],
+      "faces": {
+        "up": {
+          "texture": "#all"
+        },
+        "north": {
+          "texture": "#all"
+        },
+        "south": {
+          "texture": "#all"
+        },
+        "west": {
+          "texture": "#all"
+        },
+        "east": {
+          "texture": "#all"
+        }
+      }
+    },
+    {
+      "__comment": "Sol arka \u00e7\u0131k\u0131nt\u0131",
+      "from": [
+        2,
+        16,
+        9
+      ],
+      "to": [
+        7,
+        18,
+        14
+      ],
+      "faces": {
+        "up": {
+          "texture": "#all"
+        },
+        "north": {
+          "texture": "#all"
+        },
+        "south": {
+          "texture": "#all"
+        },
+        "west": {
+          "texture": "#all"
+        },
+        "east": {
+          "texture": "#all"
+        }
+      }
+    },
+    {
+      "__comment": "Sa\u011f arka \u00e7\u0131k\u0131nt\u0131",
+      "from": [
+        9,
+        16,
+        9
+      ],
+      "to": [
+        14,
+        18,
+        14
+      ],
+      "faces": {
+        "up": {
+          "texture": "#all"
+        },
+        "north": {
+          "texture": "#all"
+        },
+        "south": {
+          "texture": "#all"
+        },
+        "west": {
+          "texture": "#all"
+        },
+        "east": {
+          "texture": "#all"
+        }
+      }
+    }
+  ]
+}

@@ -96,9 +96,22 @@ public class ModBlocks {
     public static final RainbowTntBlock RAINBOW_TNT = reg("rainbow_tnt",
             new RainbowTntBlock(tntSettings("rainbow_tnt")));
 
-    // 🧱 Lego TNT - Blokları renkli beton bloklarına dönüştürür
+    // 🧱 Lego TNT - Lego yapıları inşa eder
     public static final LegoTntBlock LEGO_TNT = reg("lego_tnt",
             new LegoTntBlock(tntSettings("lego_tnt")));
+
+    // 🧱 Lego Tuğla - Lego TNT tarafından oluşturulan dekoratif blok (16 renk)
+    public static final LegoBrickBlock LEGO_BRICK = regBlockOnly("lego_brick",
+            new LegoBrickBlock(AbstractBlock.Settings.copy(Blocks.STONE)
+                    .registryKey(RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(SuperTntMod.MOD_ID, "lego_brick")))));
+
+
+    // Sadece blok kaydı (item olmadan) - entity tarafından oluşturulan bloklar için
+    private static <T extends Block> T regBlockOnly(String name, T block) {
+        Identifier id = Identifier.of(SuperTntMod.MOD_ID, name);
+        Registry.register(Registries.BLOCK, id, block);
+        return block;
+    }
 
     private static <T extends Block> T reg(String name, T block) {
         Identifier id = Identifier.of(SuperTntMod.MOD_ID, name);

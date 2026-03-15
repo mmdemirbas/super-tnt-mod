@@ -1,0 +1,52 @@
+{
+  "variants": {
+    "color=0": {
+      "model": "supertntmod:block/lego_brick_white"
+    },
+    "color=1": {
+      "model": "supertntmod:block/lego_brick_orange"
+    },
+    "color=2": {
+      "model": "supertntmod:block/lego_brick_magenta"
+    },
+    "color=3": {
+      "model": "supertntmod:block/lego_brick_light_blue"
+    },
+    "color=4": {
+      "model": "supertntmod:block/lego_brick_yellow"
+    },
+    "color=5": {
+      "model": "supertntmod:block/lego_brick_lime"
+    },
+    "color=6": {
+      "model": "supertntmod:block/lego_brick_pink"
+    },
+    "color=7": {
+      "model": "supertntmod:block/lego_brick_gray"
+    },
+    "color=8": {
+      "model": "supertntmod:block/lego_brick_light_gray"
+    },
+    "color=9": {
+      "model": "supertntmod:block/lego_brick_cyan"
+    },
+    "color=10": {
+      "model": "supertntmod:block/lego_brick_purple"
+    },
+    "color=11": {
+      "model": "supertntmod:block/lego_brick_blue"
+    },
+    "color=12": {
+      "model": "supertntmod:block/lego_brick_brown"
+    },
+    "color=13": {
+      "model": "supertntmod:block/lego_brick_green"
+    },
+    "color=14": {
+      "model": "supertntmod:block/lego_brick_red"
+    },
+    "color=15": {
+      "model": "supertntmod:block/lego_brick_black"
+    }
+  }
+}

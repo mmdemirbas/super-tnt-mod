@@ -16,10 +16,10 @@ import org.jetbrains.annotations.Nullable;
  * 🪨 Bedrock TNT
  * Blast resistance hesaba katmadan her bloğu kırar.
  * Bedrock, obsidian, taş - hepsi gider.
- * Toz ve moloz partikülleri.
+ * 25 blok yarıçapında dünyayı yok eder.
  */
 public class BedrockTntEntity extends TntEntity {
-    private static final int RADIUS = 7;
+    private static final int RADIUS = 25;
     private boolean done = false;
 
     public BedrockTntEntity(EntityType<? extends TntEntity> type, World world) {
@@ -42,11 +42,13 @@ public class BedrockTntEntity extends TntEntity {
             World world = getEntityWorld();
             this.discard();
 
-            // Ağır kırılma sesi
+            // Dünya yıkım sesi
             world.playSound(null, center.getX(), center.getY(), center.getZ(),
-                    SoundEvents.ENTITY_ENDER_DRAGON_GROWL, SoundCategory.BLOCKS, 1.5f, 0.5f);
+                    SoundEvents.ENTITY_ENDER_DRAGON_GROWL, SoundCategory.BLOCKS, 3.0f, 0.3f);
+            world.playSound(null, center.getX(), center.getY(), center.getZ(),
+                    SoundEvents.ENTITY_WITHER_BREAK_BLOCK, SoundCategory.BLOCKS, 2.0f, 0.5f);
 
-            // Blast resistance'ı tamamen atla, doğrudan kır
+            // Blast resistance'ı tamamen atla, doğrudan kır (25 blok yarıçap = 50 blok çap!)
             for (BlockPos pos : BlockPos.iterateOutwards(center, RADIUS, RADIUS, RADIUS)) {
                 if (pos.isWithinDistance(center, RADIUS)) {
                     if (!world.getBlockState(pos).isOf(Blocks.AIR)) {
@@ -55,19 +57,22 @@ public class BedrockTntEntity extends TntEntity {
                 }
             }
 
-            // Toz ve moloz partikülleri
+            // Devasa toz ve moloz bulutu
             if (world instanceof ServerWorld serverWorld) {
                 serverWorld.spawnParticles(ParticleTypes.CAMPFIRE_COSY_SMOKE,
-                        center.getX() + 0.5, center.getY() + 1, center.getZ() + 0.5,
-                        150, 4.0, 2.0, 4.0, 0.02);
+                        center.getX() + 0.5, center.getY() + 5, center.getZ() + 0.5,
+                        500, 12.0, 8.0, 12.0, 0.02);
                 serverWorld.spawnParticles(ParticleTypes.ASH,
-                        center.getX() + 0.5, center.getY() + 3, center.getZ() + 0.5,
-                        200, 5.0, 4.0, 5.0, 0.01);
+                        center.getX() + 0.5, center.getY() + 10, center.getZ() + 0.5,
+                        500, 15.0, 10.0, 15.0, 0.01);
+                serverWorld.spawnParticles(ParticleTypes.EXPLOSION_EMITTER,
+                        center.getX() + 0.5, center.getY() + 2, center.getZ() + 0.5,
+                        10, 5.0, 3.0, 5.0, 0.0);
             }
 
-            // Görsel patlama efekti
+            // Devasa görsel patlama efekti
             world.createExplosion(null, center.getX() + 0.5, center.getY(),
-                    center.getZ() + 0.5, 6.0f, false, World.ExplosionSourceType.TNT);
+                    center.getZ() + 0.5, 12.0f, false, World.ExplosionSourceType.TNT);
             return;
         }
         if (!done) super.tick();

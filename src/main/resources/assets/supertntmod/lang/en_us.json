@@ -15,11 +15,12 @@
   "block.supertntmod.water_tnt":             "Water TNT",
   "block.supertntmod.rainbow_tnt":           "Rainbow TNT",
   "block.supertntmod.lego_tnt":              "Lego TNT",
+  "block.supertntmod.lego_brick":            "Lego Brick",
   "item.supertntmod.tnt_frisbee":            "TNT Frisbee",
 
   "block.supertntmod.diamond_tnt.tooltip":           "2.5x explosion power - creates massive craters",
   "block.supertntmod.gold_tnt.tooltip":              "Scatters 5 secondary blast waves",
-  "block.supertntmod.bedrock_tnt.tooltip":           "Ignores blast resistance - breaks EVERYTHING",
+  "block.supertntmod.bedrock_tnt.tooltip":           "Destroys EVERYTHING in 25 block radius - even bedrock!",
   "block.supertntmod.emerald_tnt.tooltip":           "Rains emeralds, diamonds, gold and lapis",
   "block.supertntmod.lightning_tnt.tooltip":          "Summons 20 lightning bolts in a storm",
   "block.supertntmod.nuclear_tnt.tooltip":           "Massive blast + radiation poisoning",
@@ -35,7 +36,7 @@
   "block.supertntmod.mob_freeze_tnt.tooltip":        "Freezes ALL hostile mobs for 10 minutes",
   "block.supertntmod.water_tnt.tooltip":             "Extinguishes fires, pushes entities with water wave",
   "block.supertntmod.rainbow_tnt.tooltip":           "Transforms blocks into colorful wool (30 block radius)",
-  "block.supertntmod.lego_tnt.tooltip":              "Builds random colorful structures like Lego!",
+  "block.supertntmod.lego_tnt.tooltip":              "Builds structures from real Lego bricks with studs!",
   "item.supertntmod.tnt_frisbee.tooltip":            "Throwable TNT - destroys in + pattern, returns to you",
 
   "advancement.supertntmod.root.title":              "Super TNT World",
