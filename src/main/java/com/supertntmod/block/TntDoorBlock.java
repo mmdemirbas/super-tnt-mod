@@ -5,28 +5,22 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.DoorBlock;
 import net.minecraft.block.enums.DoubleBlockHalf;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
+import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
-import net.minecraft.state.StateManager;
-import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.Identifier;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraft.world.explosion.Explosion;
-import net.minecraft.block.AbstractBlock;
-import net.minecraft.block.Blocks;
 import net.minecraft.block.BlockSetType;
+
+import java.util.List;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -39,9 +33,17 @@ import java.util.UUID;
 public class TntDoorBlock extends DoorBlock {
     // Kapının sahibini takip eden map (pozisyon -> oyuncu UUID)
     private static final Map<BlockPos, UUID> OWNERS = new HashMap<>();
+    // Uyarı alan oyuncular (ikinci denemede patlar)
+    private static final Map<UUID, BlockPos> WARNED_PLAYERS = new HashMap<>();
 
     public TntDoorBlock(Settings settings) {
         super(BlockSetType.IRON, settings);
+    }
+
+    @Override
+    public void appendTooltip(ItemStack stack, Item.TooltipContext context, List<Text> tooltip, TooltipType options) {
+        tooltip.add(Text.translatable("block.supertntmod.tnt_door.tooltip").formatted(Formatting.GRAY));
+        tooltip.add(Text.translatable("block.supertntmod.tnt_door.tooltip2").formatted(Formatting.RED));
     }
 
     @Override
@@ -74,16 +76,26 @@ public class TntDoorBlock extends DoorBlock {
                     SoundCategory.BLOCKS, 1.0f, 1.0f);
             return ActionResult.SUCCESS;
         } else {
-            // Başkası: patla! (sadece oyuncuya zarar, bloklara değil)
+            // Başkası: ilk seferde uyar, ikinci seferde patla!
+            BlockPos warnedPos = WARNED_PLAYERS.get(player.getUuid());
+            if (warnedPos == null || !warnedPos.equals(basePos)) {
+                // İlk deneme: uyarı ver
+                WARNED_PLAYERS.put(player.getUuid(), basePos);
+                world.playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
+                        SoundEvents.BLOCK_NOTE_BLOCK_BASS.value(), SoundCategory.BLOCKS, 1.0f, 0.5f);
+                player.sendMessage(Text.literal("§c⚠ DİKKAT: Bu kapı sana ait değil! Tekrar denerseniz patlayacak!"), false);
+                return ActionResult.SUCCESS;
+            }
+            // İkinci deneme: patla!
+            WARNED_PLAYERS.remove(player.getUuid());
             if (world instanceof ServerWorld serverWorld) {
-                player.damage(serverWorld, world.getDamageSources().explosion(null, null), 20.0f);
+                player.damage(serverWorld, world.getDamageSources().explosion(null, null), 14.0f);
             }
             world.playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
                     SoundEvents.ENTITY_GENERIC_EXPLODE.value(), SoundCategory.BLOCKS, 1.0f, 1.0f);
-            // Görsel patlama efekti (bloklara zarar vermez)
             world.createExplosion(null, pos.getX() + 0.5, pos.getY() + 0.5,
                     pos.getZ() + 0.5, 0.0f, false, World.ExplosionSourceType.NONE);
-            player.sendMessage(Text.literal("Bu kapı sana ait değil!"), true);
+            player.sendMessage(Text.literal("§c💥 Bu kapı sana ait değil! BOOM!"), false);
             return ActionResult.SUCCESS;
         }
     }

@@ -1,0 +1,19 @@
+{
+  "display": {
+    "icon": { "id": "supertntmod:walking_tnt" },
+    "title": { "translate": "advancement.supertntmod.walking_danger.title" },
+    "description": { "translate": "advancement.supertntmod.walking_danger.description" },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "parent": "supertntmod:root",
+  "criteria": {
+    "placed_walking_tnt": {
+      "trigger": "minecraft:placed_block",
+      "conditions": {
+        "block": "supertntmod:walking_tnt"
+      }
+    }
+  }
+}

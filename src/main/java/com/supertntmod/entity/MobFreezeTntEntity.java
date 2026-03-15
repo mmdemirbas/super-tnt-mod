@@ -7,6 +7,7 @@ import net.minecraft.entity.TntEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.mob.HostileEntity;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
@@ -45,6 +46,16 @@ public class MobFreezeTntEntity extends TntEntity {
             // Görsel efekt (bloklara zarar vermez)
             world.playSound(null, getX(), getY(), getZ(),
                     SoundEvents.BLOCK_GLASS_BREAK, SoundCategory.BLOCKS, 2.0f, 0.5f);
+            world.playSound(null, getX(), getY(), getZ(),
+                    SoundEvents.ENTITY_SNOW_GOLEM_AMBIENT, SoundCategory.BLOCKS, 1.5f, 0.8f);
+
+            // Buz partikülleri
+            if (world instanceof ServerWorld sw) {
+                sw.spawnParticles(ParticleTypes.SNOWFLAKE,
+                        getX(), getY() + 2, getZ(), 500, 10.0, 5.0, 10.0, 0.1);
+                sw.spawnParticles(ParticleTypes.WHITE_ASH,
+                        getX(), getY() + 3, getZ(), 200, 8.0, 6.0, 8.0, 0.02);
+            }
 
             if (world instanceof ServerWorld serverWorld) {
                 // Tüm yüklü chunk'lardaki düşman mobları dondur

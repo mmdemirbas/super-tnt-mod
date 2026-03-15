@@ -14,14 +14,29 @@ import net.minecraft.util.Identifier;
 
 public class ModBlocks {
 
+    // Normal TNT sertliği
     private static AbstractBlock.Settings tntSettings(String name) {
         return AbstractBlock.Settings.copy(Blocks.TNT)
                 .registryKey(RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(SuperTntMod.MOD_ID, name)));
     }
 
+    // Güçlü TNT: daha sert, kırılması daha uzun sürer
+    private static AbstractBlock.Settings hardTntSettings(String name) {
+        return AbstractBlock.Settings.copy(Blocks.TNT)
+                .registryKey(RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(SuperTntMod.MOD_ID, name)))
+                .hardness(2.0f).resistance(0.0f);
+    }
+
+    // Çok güçlü TNT: en sert
+    private static AbstractBlock.Settings veryHardTntSettings(String name) {
+        return AbstractBlock.Settings.copy(Blocks.TNT)
+                .registryKey(RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(SuperTntMod.MOD_ID, name)))
+                .hardness(4.0f).resistance(0.0f);
+    }
+
     // 💎 Elmas TNT - Dev patlama
     public static final DiamondTntBlock DIAMOND_TNT = reg("diamond_tnt",
-            new DiamondTntBlock(tntSettings("diamond_tnt")));
+            new DiamondTntBlock(hardTntSettings("diamond_tnt")));
 
     // 🥇 Altın TNT - 5 küçük patlama dalgası
     public static final GoldTntBlock GOLD_TNT = reg("gold_tnt",
@@ -29,19 +44,19 @@ public class ModBlocks {
 
     // 🪨 Bedrock TNT - Bedrock dahil her şeyi kırar
     public static final BedrockTntBlock BEDROCK_TNT = reg("bedrock_tnt",
-            new BedrockTntBlock(tntSettings("bedrock_tnt")));
+            new BedrockTntBlock(hardTntSettings("bedrock_tnt")));
 
-    // 💚 Zümrüt TNT - Emerald yağmuru
+    // 💚 Zümrüt TNT - Hazine yağmuru
     public static final EmeraldTntBlock EMERALD_TNT = reg("emerald_tnt",
             new EmeraldTntBlock(tntSettings("emerald_tnt")));
 
     // ⚡ Yıldırım TNT - 20 yıldırım fırtınası
     public static final LightningTntBlock LIGHTNING_TNT = reg("lightning_tnt",
-            new LightningTntBlock(tntSettings("lightning_tnt")));
+            new LightningTntBlock(hardTntSettings("lightning_tnt")));
 
-    // ☢ Nükleer TNT - Dev patlama + zehir efekti
+    // ☢ Nükleer TNT - Dev patlama + radyasyon
     public static final NuclearTntBlock NUCLEAR_TNT = reg("nuclear_tnt",
-            new NuclearTntBlock(tntSettings("nuclear_tnt")));
+            new NuclearTntBlock(veryHardTntSettings("nuclear_tnt")));
 
     // ❄ Dondurucu TNT - Etrafı buzla kaplar
     public static final FreezeTntBlock FREEZE_TNT = reg("freeze_tnt",
@@ -53,7 +68,7 @@ public class ModBlocks {
 
     // 🎮 Komut Bloğu TNT - Seçilen blok türünü patlatır
     public static final CommandTntBlock COMMAND_TNT = reg("command_tnt",
-            new CommandTntBlock(tntSettings("command_tnt")));
+            new CommandTntBlock(hardTntSettings("command_tnt")));
 
     // 🚪 TNT Kapı - Başkalarını patlatır
     public static final TntDoorBlock TNT_DOOR = regDoor("tnt_door",
@@ -104,6 +119,6 @@ public class ModBlocks {
     }
 
     public static void register() {
-        SuperTntMod.LOGGER.info("15 blok kaydedildi.");
+        SuperTntMod.LOGGER.info("16 blok kaydedildi.");
     }
 }

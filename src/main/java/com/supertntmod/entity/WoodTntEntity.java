@@ -2,21 +2,26 @@ package com.supertntmod.entity;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
-import net.minecraft.block.LeavesBlock;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.TntEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Odun TNT: Patlatınca 10 blok yakınındaki ağaçlar yok olur.
@@ -87,43 +92,70 @@ public class WoodTntEntity extends TntEntity {
                 world.setBlockState(pos, Blocks.AIR.getDefaultState());
             }
 
+            // Yaprak partikülleri ve odun kırılma sesi
+            if (world instanceof ServerWorld serverWorld) {
+                serverWorld.spawnParticles(ParticleTypes.CHERRY_LEAVES,
+                        center.getX() + 0.5, center.getY() + 5, center.getZ() + 0.5,
+                        200, 5.0, 4.0, 5.0, 0.05);
+                serverWorld.spawnParticles(ParticleTypes.CAMPFIRE_COSY_SMOKE,
+                        center.getX() + 0.5, center.getY() + 2, center.getZ() + 0.5,
+                        50, 3.0, 2.0, 3.0, 0.01);
+            }
+            world.playSound(null, center.getX(), center.getY(), center.getZ(),
+                    SoundEvents.BLOCK_WOOD_BREAK, SoundCategory.BLOCKS, 2.0f, 0.8f);
+
             // Küçük patlama efekti
             world.createExplosion(null, center.getX() + 0.5, center.getY(),
                     center.getZ() + 0.5, 2.0f, false, World.ExplosionSourceType.NONE);
 
             // 1 dakika sonra ağaçları geri getir
             if (world instanceof ServerWorld serverWorld) {
-                serverWorld.getServer().execute(() -> {
-                    // Delayed task - schedule for later
-                    scheduleRestore(serverWorld, savedBlocks, RESTORE_DELAY);
-                });
+                pendingRestores.add(new PendingRestore(serverWorld, savedBlocks, RESTORE_DELAY));
             }
             return;
         }
         if (!done) super.tick();
     }
 
-    private static void scheduleRestore(ServerWorld world, Map<BlockPos, BlockState> savedBlocks, int ticksRemaining) {
-        // ServerTickEvents kullanarak geri yükleme zamanlayıcısı
-        // Basit yaklaşım: tick sayacı ile
-        final int[] counter = {ticksRemaining};
+    // Bekleyen geri yükleme görevleri (thread-safe)
+    private static final List<PendingRestore> pendingRestores = new CopyOnWriteArrayList<>();
 
-        net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents.END_SERVER_TICK.register(server -> {
-            if (counter[0] > 0) {
-                counter[0]--;
-                return;
+    private record PendingRestore(ServerWorld world, Map<BlockPos, BlockState> savedBlocks, int ticksRemaining) {
+        PendingRestore tick() {
+            return new PendingRestore(world, savedBlocks, ticksRemaining - 1);
+        }
+    }
+
+    /**
+     * SuperTntMod.onInitialize() içinde ServerTickEvents.END_SERVER_TICK ile
+     * bir kez kaydedilmeli. Her tick'te bekleyen geri yüklemeleri işler.
+     */
+    public static void tickRestores() {
+        if (pendingRestores.isEmpty()) return;
+
+        List<PendingRestore> completed = new ArrayList<>();
+        List<PendingRestore> updated = new ArrayList<>();
+
+        for (PendingRestore restore : pendingRestores) {
+            if (restore.ticksRemaining() <= 0) {
+                completed.add(restore);
+            } else {
+                updated.add(restore.tick());
             }
-            if (counter[0] == 0) {
-                counter[0] = -1; // Bir kez çalıştır
-                for (Map.Entry<BlockPos, BlockState> entry : savedBlocks.entrySet()) {
-                    BlockPos pos = entry.getKey();
-                    BlockState state = entry.getValue();
-                    // Sadece hava olan yerlere geri koy (oyuncu başka blok koymuşsa dokunma)
-                    if (world.getBlockState(pos).isOf(Blocks.AIR)) {
-                        world.setBlockState(pos, state);
-                    }
+        }
+
+        for (PendingRestore restore : completed) {
+            for (Map.Entry<BlockPos, BlockState> entry : restore.savedBlocks().entrySet()) {
+                BlockPos pos = entry.getKey();
+                BlockState state = entry.getValue();
+                // Sadece hava olan yerlere geri koy (oyuncu başka blok koymuşsa dokunma)
+                if (restore.world().getBlockState(pos).isOf(Blocks.AIR)) {
+                    restore.world().setBlockState(pos, state);
                 }
             }
-        });
+        }
+
+        pendingRestores.clear();
+        pendingRestores.addAll(updated);
     }
 }

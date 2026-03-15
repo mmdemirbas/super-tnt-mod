@@ -12,12 +12,14 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Su TNT: 10 blok yarıçapındaki ateşleri söndürür.
- * Bloklara zarar vermez.
+ * Yakındaki entity'leri su dalgasıyla iter.
+ * Geçici su birikintileri oluşturur.
  */
 public class WaterTntEntity extends TntEntity {
     private static final int RADIUS = 10;
@@ -43,35 +45,59 @@ public class WaterTntEntity extends TntEntity {
             World world = getEntityWorld();
             this.discard();
 
-            int extinguished = 0;
-
+            // Ateş bloklarını söndür
             for (BlockPos pos : BlockPos.iterateOutwards(center, RADIUS, RADIUS, RADIUS)) {
                 if (!pos.isWithinDistance(center, RADIUS)) continue;
 
                 BlockState state = world.getBlockState(pos);
 
-                // Ateş bloklarını söndür
                 if (state.isOf(Blocks.FIRE) || state.isOf(Blocks.SOUL_FIRE)) {
                     world.setBlockState(pos, Blocks.AIR.getDefaultState());
-                    extinguished++;
-                }
-                // Kamp ateşini söndür
-                else if (state.isIn(BlockTags.CAMPFIRES) && state.get(CampfireBlock.LIT)) {
+                } else if (state.isIn(BlockTags.CAMPFIRES) && state.get(CampfireBlock.LIT)) {
                     world.setBlockState(pos, state.with(CampfireBlock.LIT, false));
-                    extinguished++;
                 }
             }
 
-            // Su sıçrama efekti
+            // Yakın çevreye su birikintileri (%30 şans, 5 blok yarıçap, sadece yüzeyde)
+            for (BlockPos pos : BlockPos.iterateOutwards(center, 5, 5, 5)) {
+                if (!pos.isWithinDistance(center, 5)) continue;
+                if (world.getBlockState(pos).isOf(Blocks.AIR) &&
+                    world.getBlockState(pos.down()).isSolid() &&
+                    world.random.nextFloat() < 0.3f) {
+                    world.setBlockState(pos, Blocks.WATER.getDefaultState());
+                }
+            }
+
+            // Yakındaki entity'leri it (su dalgası)
+            world.getEntitiesByClass(LivingEntity.class,
+                    new net.minecraft.util.math.Box(center).expand(RADIUS),
+                    e -> true
+            ).forEach(entity -> {
+                Vec3d pushDir = entity.getPos().subtract(Vec3d.ofCenter(center)).normalize();
+                entity.addVelocity(pushDir.x * 1.5, 0.5, pushDir.z * 1.5);
+                entity.velocityModified = true;
+                // Ateş söndür
+                entity.extinguish();
+            });
+
+            // Su sıçrama efekti (güçlendirilmiş)
             if (world instanceof ServerWorld serverWorld) {
                 serverWorld.spawnParticles(ParticleTypes.SPLASH,
                         center.getX() + 0.5, center.getY() + 1, center.getZ() + 0.5,
-                        100, 3.0, 2.0, 3.0, 0.1);
+                        300, 5.0, 2.0, 5.0, 0.2);
+                serverWorld.spawnParticles(ParticleTypes.FALLING_WATER,
+                        center.getX() + 0.5, center.getY() + 5, center.getZ() + 0.5,
+                        100, 4.0, 1.0, 4.0, 0.0);
+                serverWorld.spawnParticles(ParticleTypes.BUBBLE,
+                        center.getX() + 0.5, center.getY() + 1, center.getZ() + 0.5,
+                        50, 3.0, 1.0, 3.0, 0.1);
             }
 
-            // Söndürme sesi
+            // Söndürme sesi + dalga sesi
             world.playSound(null, center.getX(), center.getY(), center.getZ(),
                     SoundEvents.ENTITY_GENERIC_EXTINGUISH_FIRE, SoundCategory.BLOCKS, 2.0f, 1.0f);
+            world.playSound(null, center.getX(), center.getY(), center.getZ(),
+                    SoundEvents.ENTITY_GENERIC_SPLASH, SoundCategory.BLOCKS, 2.0f, 0.8f);
 
             return;
         }

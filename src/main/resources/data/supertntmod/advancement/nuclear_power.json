@@ -1,0 +1,19 @@
+{
+  "display": {
+    "icon": { "id": "supertntmod:nuclear_tnt" },
+    "title": { "translate": "advancement.supertntmod.nuclear_power.title" },
+    "description": { "translate": "advancement.supertntmod.nuclear_power.description" },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "parent": "supertntmod:root",
+  "criteria": {
+    "has_nuclear_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [{ "items": "supertntmod:nuclear_tnt" }]
+      }
+    }
+  }
+}

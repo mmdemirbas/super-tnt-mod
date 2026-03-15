@@ -4,8 +4,10 @@ import com.supertntmod.block.EncryptedTntChestBlock;
 import com.supertntmod.block.ModBlocks;
 import com.supertntmod.entity.ModEntities;
 import com.supertntmod.entity.WalkingTntEntity;
+import com.supertntmod.entity.WoodTntEntity;
 import com.supertntmod.item.ModItems;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
@@ -58,22 +60,29 @@ public class SuperTntMod implements ModInitializer {
                             entries.add(ModBlocks.MOB_FREEZE_TNT);
                             entries.add(ModBlocks.WATER_TNT);
                             entries.add(ModBlocks.RAINBOW_TNT);
+                            entries.add(ModBlocks.LEGO_TNT);
                             // Item'ler
                             entries.add(ModItems.TNT_FRISBEE);
                         })
                         .build());
 
+        // Odun TNT geri yükleme zamanlayıcısı (tek bir listener)
+        ServerTickEvents.END_SERVER_TICK.register(server -> WoodTntEntity.tickRestores());
+
         // Yürüyen TNT entity özelliklerini kaydet
         FabricDefaultAttributeRegistry.register(ModEntities.WALKING_TNT, WalkingTntEntity.createAttributes());
 
         // Şifreli TNT sandık için chat mesajı dinleyicisi
-        ServerMessageEvents.CHAT_MESSAGE.register((message, sender, params) -> {
+        // ALLOW_CHAT_MESSAGE: şifre mesajını iptal edip diğer oyunculara göstermez
+        ServerMessageEvents.ALLOW_CHAT_MESSAGE.register((message, sender, params) -> {
             String text = message.getContent().getString();
             if (sender instanceof ServerPlayerEntity player) {
-                EncryptedTntChestBlock.handleChatMessage(player, text);
+                boolean handled = EncryptedTntChestBlock.handleChatMessage(player, text);
+                if (handled) return false; // Şifre mesajını iptal et, kimse görmesin
             }
+            return true; // Normal mesaj, devam et
         });
 
-        LOGGER.info("Super TNT Modu yüklendi! 15 yeni TNT/blok türü hazır.");
+        LOGGER.info("Super TNT Modu yüklendi! 16 blok + 1 item hazır.");
     }
 }

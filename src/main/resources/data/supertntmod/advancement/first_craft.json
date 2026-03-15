@@ -1,0 +1,94 @@
+{
+  "display": {
+    "icon": { "id": "supertntmod:gold_tnt" },
+    "title": { "translate": "advancement.supertntmod.first_craft.title" },
+    "description": { "translate": "advancement.supertntmod.first_craft.description" },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "parent": "supertntmod:root",
+  "criteria": {
+    "diamond": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "supertntmod:diamond_tnt"
+      }
+    },
+    "gold": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "supertntmod:gold_tnt"
+      }
+    },
+    "bedrock": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "supertntmod:bedrock_tnt"
+      }
+    },
+    "emerald": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "supertntmod:emerald_tnt"
+      }
+    },
+    "lightning": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "supertntmod:lightning_tnt"
+      }
+    },
+    "nuclear": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "supertntmod:nuclear_tnt"
+      }
+    },
+    "freeze": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "supertntmod:freeze_tnt"
+      }
+    },
+    "wood": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "supertntmod:wood_tnt"
+      }
+    },
+    "command": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "supertntmod:command_tnt"
+      }
+    },
+    "mob_freeze": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "supertntmod:mob_freeze_tnt"
+      }
+    },
+    "water": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "supertntmod:water_tnt"
+      }
+    },
+    "rainbow": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "supertntmod:rainbow_tnt"
+      }
+    },
+    "lego": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "supertntmod:lego_tnt"
+      }
+    }
+  },
+  "requirements": [
+    ["diamond", "gold", "bedrock", "emerald", "lightning", "nuclear", "freeze", "wood", "command", "mob_freeze", "water", "rainbow", "lego"]
+  ]
+}

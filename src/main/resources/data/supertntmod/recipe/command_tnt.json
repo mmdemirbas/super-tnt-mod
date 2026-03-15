@@ -2,7 +2,7 @@
   "type": "minecraft:crafting_shaped",
   "pattern": ["MMM", "MTM", "MMM"],
   "key": {
-    "M": "minecraft:command_block",
+    "M": "minecraft:redstone_block",
     "T": "minecraft:tnt"
   },
   "result": {

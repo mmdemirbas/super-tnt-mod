@@ -5,6 +5,8 @@ import net.minecraft.block.Blocks;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.TntEntity;
+import net.minecraft.particle.ParticleTypes;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.math.BlockPos;
@@ -79,8 +81,20 @@ public class RainbowTntEntity extends TntEntity {
             world.createExplosion(null, center.getX() + 0.5, center.getY(),
                     center.getZ() + 0.5, 0.0f, false, World.ExplosionSourceType.NONE);
 
+            // Gökkuşağı partikülleri
+            if (world instanceof ServerWorld serverWorld) {
+                serverWorld.spawnParticles(ParticleTypes.FIREWORK,
+                        center.getX() + 0.5, center.getY() + 5, center.getZ() + 0.5,
+                        300, 8.0, 5.0, 8.0, 0.5);
+                serverWorld.spawnParticles(ParticleTypes.END_ROD,
+                        center.getX() + 0.5, center.getY() + 3, center.getZ() + 0.5,
+                        100, 6.0, 4.0, 6.0, 0.1);
+            }
+
             world.playSound(null, center.getX(), center.getY(), center.getZ(),
                     SoundEvents.ENTITY_FIREWORK_ROCKET_BLAST, SoundCategory.BLOCKS, 2.0f, 1.0f);
+            world.playSound(null, center.getX(), center.getY(), center.getZ(),
+                    SoundEvents.ENTITY_FIREWORK_ROCKET_TWINKLE, SoundCategory.BLOCKS, 1.5f, 1.2f);
             return;
         }
         if (!done) super.tick();

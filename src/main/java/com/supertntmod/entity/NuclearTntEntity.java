@@ -5,13 +5,18 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.TntEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.particle.ParticleTypes;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * ☢ Nükleer TNT
  * Oyundaki en büyük patlama + 25 blok yarıçapında
- * radyasyon (zehir + yavaşlama + güçsüzlük) efekti.
+ * radyasyon (zehir + yavaşlama + güçsüzlük + körlük + bulantı) efekti.
+ * Fitil yanarken geiger sayacı sesi çalar.
  */
 public class NuclearTntEntity extends TntEntity {
     private boolean done = false;
@@ -36,20 +41,40 @@ public class NuclearTntEntity extends TntEntity {
             World world = getEntityWorld();
             this.discard();
 
+            // Nükleer patlama öncesi wither sesi
+            world.playSound(null, x, y, z,
+                    SoundEvents.ENTITY_WITHER_SPAWN, SoundCategory.BLOCKS, 2.0f, 0.5f);
+
             // Dev patlama (15x güç)
             world.createExplosion(null, x, y, z, 15.0f, true,
                     World.ExplosionSourceType.TNT);
 
-            // 25 blok yarıçapında radyasyon efekti
+            // Radyasyon partikülleri (yeşil dragon breath)
+            if (world instanceof ServerWorld serverWorld) {
+                serverWorld.spawnParticles(ParticleTypes.DRAGON_BREATH,
+                        x, y + 1, z, 500, 8.0, 5.0, 8.0, 0.05);
+                serverWorld.spawnParticles(ParticleTypes.LARGE_SMOKE,
+                        x, y + 2, z, 200, 6.0, 8.0, 6.0, 0.02);
+            }
+
+            // 25 blok yarıçapında radyasyon efekti (güçlendirilmiş)
             world.getEntitiesByClass(LivingEntity.class,
                     this.getBoundingBox().expand(25),
                     e -> true
             ).forEach(entity -> {
-                entity.addStatusEffect(new StatusEffectInstance(StatusEffects.POISON,   200, 2));
-                entity.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 200, 1));
-                entity.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, 200, 1));
+                entity.addStatusEffect(new StatusEffectInstance(StatusEffects.POISON,   600, 3));  // 30 sn, seviye 4
+                entity.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 600, 2));  // 30 sn
+                entity.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, 600, 2));  // 30 sn
+                entity.addStatusEffect(new StatusEffectInstance(StatusEffects.BLINDNESS, 200, 0)); // 10 sn körlük
+                entity.addStatusEffect(new StatusEffectInstance(StatusEffects.NAUSEA,   300, 0));  // 15 sn bulantı
+                entity.addStatusEffect(new StatusEffectInstance(StatusEffects.WITHER,   200, 1));  // 10 sn wither
             });
             return;
+        }
+        // Fitil yanarken tik-tak sesi (her 10 tick'te)
+        if (!done && !this.getEntityWorld().isClient() && this.getFuse() % 10 == 0) {
+            this.getEntityWorld().playSound(null, getX(), getY(), getZ(),
+                    SoundEvents.BLOCK_NOTE_BLOCK_HAT.value(), SoundCategory.BLOCKS, 1.5f, 2.0f);
         }
         if (!done) super.tick();
     }

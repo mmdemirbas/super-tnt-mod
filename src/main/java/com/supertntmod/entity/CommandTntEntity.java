@@ -6,6 +6,8 @@ import net.minecraft.block.Blocks;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.TntEntity;
+import net.minecraft.particle.ParticleTypes;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.math.BlockPos;
@@ -68,6 +70,13 @@ public class CommandTntEntity extends TntEntity {
 
             world.playSound(null, center.getX(), center.getY(), center.getZ(),
                     SoundEvents.ENTITY_GENERIC_EXPLODE, SoundCategory.BLOCKS, 1.0f, 1.0f);
+
+            // Redstone partikülleri (komut bloğu teması)
+            if (world instanceof ServerWorld serverWorld) {
+                serverWorld.spawnParticles(ParticleTypes.DUST_PLUME,
+                        center.getX() + 0.5, center.getY() + 1, center.getZ() + 0.5,
+                        100, 5.0, 3.0, 5.0, 0.1);
+            }
             return;
         }
         if (!done) super.tick();

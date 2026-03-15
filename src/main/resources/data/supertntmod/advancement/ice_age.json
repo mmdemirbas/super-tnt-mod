@@ -1,0 +1,25 @@
+{
+  "display": {
+    "icon": { "id": "supertntmod:freeze_tnt" },
+    "title": { "translate": "advancement.supertntmod.ice_age.title" },
+    "description": { "translate": "advancement.supertntmod.ice_age.description" },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "parent": "supertntmod:root",
+  "criteria": {
+    "has_freeze_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [{ "items": "supertntmod:freeze_tnt" }]
+      }
+    },
+    "has_mob_freeze_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [{ "items": "supertntmod:mob_freeze_tnt" }]
+      }
+    }
+  }
+}

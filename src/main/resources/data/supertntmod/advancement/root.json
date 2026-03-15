@@ -1,0 +1,18 @@
+{
+  "display": {
+    "icon": { "id": "supertntmod:diamond_tnt" },
+    "title": { "translate": "advancement.supertntmod.root.title" },
+    "description": { "translate": "advancement.supertntmod.root.description" },
+    "background": "minecraft:textures/block/tnt_side.png",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "has_super_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [{ "items": "supertntmod:diamond_tnt" }]
+      }
+    }
+  }
+}

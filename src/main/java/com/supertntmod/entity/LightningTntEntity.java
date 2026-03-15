@@ -4,13 +4,17 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.LightningEntity;
 import net.minecraft.entity.TntEntity;
+import net.minecraft.particle.ParticleTypes;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * ⚡ Yıldırım TNT
  * Patladığında geniş alana 20 yıldırım çakar.
- * Ormanı yakar, mobları çarpar!
+ * Elektrik kıvılcımları ve gök gürültüsü.
  */
 public class LightningTntEntity extends TntEntity {
     private boolean done = false;
@@ -35,9 +39,21 @@ public class LightningTntEntity extends TntEntity {
             World world = getEntityWorld();
             this.discard();
 
+            // Gök gürültüsü sesi
+            world.playSound(null, x, y, z,
+                    SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, SoundCategory.WEATHER, 3.0f, 0.8f);
+
             // Küçük patlama
             world.createExplosion(null, x, y, z, 3.0f, true,
                     World.ExplosionSourceType.TNT);
+
+            // Elektrik kıvılcımları
+            if (world instanceof ServerWorld serverWorld) {
+                serverWorld.spawnParticles(ParticleTypes.ELECTRIC_SPARK,
+                        x, y + 1, z, 200, 5.0, 3.0, 5.0, 0.5);
+                serverWorld.spawnParticles(ParticleTypes.FLASH,
+                        x, y + 5, z, 3, 0.0, 0.0, 0.0, 0.0);
+            }
 
             // 20 yıldırım 20 blok yarıçapına
             for (int i = 0; i < 20; i++) {
@@ -49,6 +65,13 @@ public class LightningTntEntity extends TntEntity {
                 world.spawnEntity(bolt);
             }
             return;
+        }
+        // Fitil yanarken elektrik çatırtısı (her 15 tick'te)
+        if (!done && !this.getEntityWorld().isClient() && this.getFuse() % 15 == 0) {
+            if (this.getEntityWorld() instanceof ServerWorld serverWorld) {
+                serverWorld.spawnParticles(ParticleTypes.ELECTRIC_SPARK,
+                        getX(), getY() + 1, getZ(), 10, 0.3, 0.5, 0.3, 0.1);
+            }
         }
         if (!done) super.tick();
     }
