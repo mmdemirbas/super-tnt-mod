@@ -74,9 +74,13 @@ public class WaterTntEntity extends TntEntity {
                     e -> true
             ).forEach(entity -> {
                 Vec3d entityPos = new Vec3d(entity.getX(), entity.getY(), entity.getZ());
-                Vec3d pushDir = entityPos.subtract(Vec3d.ofCenter(center)).normalize();
-                entity.addVelocity(pushDir.x * 1.5, 0.5, pushDir.z * 1.5);
-                entity.velocityDirty = true;
+                Vec3d diff = entityPos.subtract(Vec3d.ofCenter(center));
+                double len = diff.length();
+                if (len > 0.1) {
+                    Vec3d pushDir = diff.multiply(1.0 / len);
+                    entity.addVelocity(pushDir.x * 1.5, 0.5, pushDir.z * 1.5);
+                    entity.velocityDirty = true;
+                }
                 // Ateş söndür
                 entity.extinguish();
             });
