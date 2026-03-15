@@ -49,12 +49,14 @@ public class NuclearTntEntity extends TntEntity {
             world.createExplosion(null, x, y, z, 15.0f, true,
                     World.ExplosionSourceType.TNT);
 
-            // Radyasyon partikülleri (yeşil dragon breath)
+            // Radyasyon partikülleri (mantar bulutu)
             if (world instanceof ServerWorld serverWorld) {
-                serverWorld.spawnParticles(ParticleTypes.DRAGON_BREATH,
-                        x, y + 1, z, 500, 8.0, 5.0, 8.0, 0.05);
+                serverWorld.spawnParticles(ParticleTypes.CAMPFIRE_COSY_SMOKE,
+                        x, y + 5, z, 300, 5.0, 8.0, 5.0, 0.02);
                 serverWorld.spawnParticles(ParticleTypes.LARGE_SMOKE,
                         x, y + 2, z, 200, 6.0, 8.0, 6.0, 0.02);
+                serverWorld.spawnParticles(ParticleTypes.WITCH,
+                        x, y + 1, z, 200, 8.0, 3.0, 8.0, 0.05);
             }
 
             // 25 blok yarıçapında radyasyon efekti (güçlendirilmiş)

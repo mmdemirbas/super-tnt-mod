@@ -1,6 +1,7 @@
 package com.supertntmod.item;
 
 import com.supertntmod.entity.TntFrisbeeEntity;
+import net.minecraft.component.type.TooltipDisplayComponent;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -13,7 +14,7 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
 import net.minecraft.world.World;
 
-import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * TNT Frizbi: Atıldığında havada döner, + şeklinde patlama yapar,
@@ -26,8 +27,11 @@ public class TntFrisbeeItem extends Item {
     }
 
     @Override
-    public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
-        tooltip.add(Text.translatable("item.supertntmod.tnt_frisbee.tooltip").formatted(Formatting.GRAY));
+    public void appendTooltip(ItemStack stack, Item.TooltipContext context,
+                              TooltipDisplayComponent displayComponent,
+                              Consumer<Text> textConsumer, TooltipType type) {
+        super.appendTooltip(stack, context, displayComponent, textConsumer, type);
+        textConsumer.accept(Text.translatable("item.supertntmod.tnt_frisbee.tooltip").formatted(Formatting.GRAY));
     }
 
     @Override

@@ -1,10 +1,10 @@
 package com.supertntmod.block;
 
 import com.supertntmod.SuperTntMod;
+import com.supertntmod.item.TooltipBlockItem;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
-import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
@@ -104,7 +104,7 @@ public class ModBlocks {
         Identifier id = Identifier.of(SuperTntMod.MOD_ID, name);
         Registry.register(Registries.BLOCK, id, block);
         Registry.register(Registries.ITEM, id,
-                new BlockItem(block, new Item.Settings()
+                new TooltipBlockItem(block, new Item.Settings()
                         .registryKey(RegistryKey.of(RegistryKeys.ITEM, id))));
         return block;
     }
@@ -113,7 +113,7 @@ public class ModBlocks {
         Identifier id = Identifier.of(SuperTntMod.MOD_ID, name);
         Registry.register(Registries.BLOCK, id, block);
         Registry.register(Registries.ITEM, id,
-                new BlockItem(block, new Item.Settings()
+                new TooltipBlockItem(block, new Item.Settings()
                         .registryKey(RegistryKey.of(RegistryKeys.ITEM, id))));
         return block;
     }

@@ -73,9 +73,10 @@ public class WaterTntEntity extends TntEntity {
                     new net.minecraft.util.math.Box(center).expand(RADIUS),
                     e -> true
             ).forEach(entity -> {
-                Vec3d pushDir = entity.getPos().subtract(Vec3d.ofCenter(center)).normalize();
+                Vec3d entityPos = new Vec3d(entity.getX(), entity.getY(), entity.getZ());
+                Vec3d pushDir = entityPos.subtract(Vec3d.ofCenter(center)).normalize();
                 entity.addVelocity(pushDir.x * 1.5, 0.5, pushDir.z * 1.5);
-                entity.velocityModified = true;
+                entity.velocityDirty = true;
                 // Ateş söndür
                 entity.extinguish();
             });

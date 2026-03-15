@@ -49,10 +49,10 @@ public class LightningTntEntity extends TntEntity {
 
             // Elektrik kıvılcımları
             if (world instanceof ServerWorld serverWorld) {
-                serverWorld.spawnParticles(ParticleTypes.ELECTRIC_SPARK,
+                serverWorld.spawnParticles(ParticleTypes.END_ROD,
                         x, y + 1, z, 200, 5.0, 3.0, 5.0, 0.5);
-                serverWorld.spawnParticles(ParticleTypes.FLASH,
-                        x, y + 5, z, 3, 0.0, 0.0, 0.0, 0.0);
+                serverWorld.spawnParticles(ParticleTypes.CRIT,
+                        x, y + 2, z, 100, 4.0, 3.0, 4.0, 0.3);
             }
 
             // 20 yıldırım 20 blok yarıçapına
@@ -69,7 +69,7 @@ public class LightningTntEntity extends TntEntity {
         // Fitil yanarken elektrik çatırtısı (her 15 tick'te)
         if (!done && !this.getEntityWorld().isClient() && this.getFuse() % 15 == 0) {
             if (this.getEntityWorld() instanceof ServerWorld serverWorld) {
-                serverWorld.spawnParticles(ParticleTypes.ELECTRIC_SPARK,
+                serverWorld.spawnParticles(ParticleTypes.END_ROD,
                         getX(), getY() + 1, getZ(), 10, 0.3, 0.5, 0.3, 0.1);
             }
         }

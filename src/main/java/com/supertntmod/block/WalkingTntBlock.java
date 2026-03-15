@@ -5,16 +5,10 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.tooltip.TooltipType;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * Yürüyen TNT Blok: Yerleştirildiğinde entity'ye dönüşür.
@@ -24,12 +18,6 @@ public class WalkingTntBlock extends Block {
 
     public WalkingTntBlock(Settings settings) {
         super(settings);
-    }
-
-    @Override
-    public void appendTooltip(ItemStack stack, Item.TooltipContext context, List<Text> tooltip, TooltipType options) {
-        tooltip.add(Text.translatable("block.supertntmod.walking_tnt.tooltip").formatted(Formatting.GRAY));
-        tooltip.add(Text.translatable("block.supertntmod.walking_tnt.tooltip2").formatted(Formatting.RED));
     }
 
     @Override
