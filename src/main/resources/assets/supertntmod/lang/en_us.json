@@ -16,6 +16,8 @@
   "block.supertntmod.rainbow_tnt":           "Rainbow TNT",
   "block.supertntmod.lego_tnt":              "Lego TNT",
   "block.supertntmod.lego_brick":            "Lego Brick",
+  "block.supertntmod.makarna_tnt":           "Pasta TNT",
+  "block.supertntmod.seker_tnt":             "Candy TNT",
   "item.supertntmod.tnt_frisbee":            "TNT Frisbee",
 
   "block.supertntmod.diamond_tnt.tooltip":           "2.5x explosion power - creates massive craters",
@@ -37,6 +39,8 @@
   "block.supertntmod.water_tnt.tooltip":             "Extinguishes fires, pushes entities with water wave",
   "block.supertntmod.rainbow_tnt.tooltip":           "Transforms blocks into colorful wool (30 block radius)",
   "block.supertntmod.lego_tnt.tooltip":              "Builds structures from real Lego bricks with studs!",
+  "block.supertntmod.makarna_tnt.tooltip":           "Transforms blocks into edible food blocks - bon appetit!",
+  "block.supertntmod.seker_tnt.tooltip":             "Creates a candy & chocolate world + speed boost!",
   "item.supertntmod.tnt_frisbee.tooltip":            "Throwable TNT - destroys in + pattern, returns to you",
 
   "advancement.supertntmod.root.title":              "Super TNT World",

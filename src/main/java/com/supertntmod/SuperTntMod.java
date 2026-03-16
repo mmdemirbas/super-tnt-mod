@@ -61,6 +61,8 @@ public class SuperTntMod implements ModInitializer {
                             entries.add(ModBlocks.WATER_TNT);
                             entries.add(ModBlocks.RAINBOW_TNT);
                             entries.add(ModBlocks.LEGO_TNT);
+                            entries.add(ModBlocks.MAKARNA_TNT);
+                            entries.add(ModBlocks.SEKER_TNT);
                             // Item'ler
                             entries.add(ModItems.TNT_FRISBEE);
                         })

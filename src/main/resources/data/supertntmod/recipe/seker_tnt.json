@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "MMM",
+    "MTM",
+    "MMM"
+  ],
+  "key": {
+    "M": "minecraft:sugar",
+    "T": "minecraft:tnt"
+  },
+  "result": {
+    "id": "supertntmod:seker_tnt",
+    "count": 1
+  }
+}

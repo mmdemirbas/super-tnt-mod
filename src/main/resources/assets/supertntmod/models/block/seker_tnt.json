@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "bottom": "supertntmod:block/seker_tnt_bottom",
+    "side": "supertntmod:block/seker_tnt_side",
+    "top": "supertntmod:block/seker_tnt_top"
+  }
+}

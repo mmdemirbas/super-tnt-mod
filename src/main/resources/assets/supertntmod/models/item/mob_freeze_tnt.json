@@ -1,1 +1,6 @@
-{ "parent": "supertntmod:block/mob_freeze_tnt" }
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "supertntmod:item/mob_freeze_tnt"
+  }
+}

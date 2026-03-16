@@ -100,6 +100,14 @@ public class ModBlocks {
     public static final LegoTntBlock LEGO_TNT = reg("lego_tnt",
             new LegoTntBlock(tntSettings("lego_tnt")));
 
+    // 🍝 Makarna TNT - Blokları yenilebilen bloklara dönüştürür
+    public static final MakarnaTntBlock MAKARNA_TNT = reg("makarna_tnt",
+            new MakarnaTntBlock(tntSettings("makarna_tnt")));
+
+    // 🍬 Şeker TNT - Blokları çikolata ve şekere dönüştürür
+    public static final SekerTntBlock SEKER_TNT = reg("seker_tnt",
+            new SekerTntBlock(tntSettings("seker_tnt")));
+
     // 🧱 Lego Tuğla - Lego TNT tarafından oluşturulan dekoratif blok (16 renk)
     public static final LegoBrickBlock LEGO_BRICK = regBlockOnly("lego_brick",
             new LegoBrickBlock(AbstractBlock.Settings.copy(Blocks.STONE)

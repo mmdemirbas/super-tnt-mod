@@ -1,1 +1,6 @@
-{ "parent": "supertntmod:block/gold_tnt" }
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "supertntmod:item/gold_tnt"
+  }
+}

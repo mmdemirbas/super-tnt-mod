@@ -92,6 +92,16 @@ public class ModEntities {
                     (type, world) -> new LegoTntEntity(type, world), SpawnGroup.MISC)
                     .dimensions(0.98f, 0.98f));
 
+    public static final EntityType<MakarnaTntEntity> MAKARNA_TNT = regTnt("makarna_tnt",
+            EntityType.Builder.<MakarnaTntEntity>create(
+                    (type, world) -> new MakarnaTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    public static final EntityType<SekerTntEntity> SEKER_TNT = regTnt("seker_tnt",
+            EntityType.Builder.<SekerTntEntity>create(
+                    (type, world) -> new SekerTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
     private static <T extends TntEntity> EntityType<T> regTnt(String name, EntityType.Builder<T> builder) {
         Identifier id = Identifier.of(SuperTntMod.MOD_ID, name);
         EntityType<T> type = builder.build(RegistryKey.of(RegistryKeys.ENTITY_TYPE, id));

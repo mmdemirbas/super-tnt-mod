@@ -16,6 +16,8 @@
   "block.supertntmod.rainbow_tnt":           "Gökkuşağı TNT",
   "block.supertntmod.lego_tnt":              "Lego TNT",
   "block.supertntmod.lego_brick":            "Lego Tuğla",
+  "block.supertntmod.makarna_tnt":           "Makarna TNT",
+  "block.supertntmod.seker_tnt":             "Şeker TNT",
   "item.supertntmod.tnt_frisbee":            "TNT Frizbi",
 
   "block.supertntmod.diamond_tnt.tooltip":           "2.5x patlama gücü - dev kraterler açar",
@@ -37,6 +39,8 @@
   "block.supertntmod.water_tnt.tooltip":             "Ateşleri söndürür, su dalgasıyla iter",
   "block.supertntmod.rainbow_tnt.tooltip":           "Blokları renkli yüne dönüştürür (30 blok yarıçap)",
   "block.supertntmod.lego_tnt.tooltip":              "Çıkıntılı lego tuğlalarından yapılar inşa eder!",
+  "block.supertntmod.makarna_tnt.tooltip":           "Blokları yenilebilen bloklara dönüştürür - afiyet olsun!",
+  "block.supertntmod.seker_tnt.tooltip":             "Çikolata ve şeker dünyası yaratır + hız güçlendirmesi!",
   "item.supertntmod.tnt_frisbee.tooltip":            "Atılabilir TNT - + şeklinde yok eder, size geri döner",
 
   "advancement.supertntmod.root.title":              "Süper TNT Dünyası",

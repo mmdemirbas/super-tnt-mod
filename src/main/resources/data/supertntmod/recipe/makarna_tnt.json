@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "MMM",
+    "MTM",
+    "MMM"
+  ],
+  "key": {
+    "M": "minecraft:wheat",
+    "T": "minecraft:tnt"
+  },
+  "result": {
+    "id": "supertntmod:makarna_tnt",
+    "count": 1
+  }
+}
