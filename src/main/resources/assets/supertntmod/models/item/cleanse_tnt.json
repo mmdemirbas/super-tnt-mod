@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "supertntmod:item/tnt_door"
+    "layer0": "supertntmod:item/cleanse_tnt"
   }
 }

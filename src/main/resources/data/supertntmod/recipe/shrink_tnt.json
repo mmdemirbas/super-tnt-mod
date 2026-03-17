@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "MMM",
+    "MTM",
+    "MMM"
+  ],
+  "key": {
+    "M": "minecraft:fermented_spider_eye",
+    "T": "minecraft:tnt"
+  },
+  "result": {
+    "id": "supertntmod:shrink_tnt",
+    "count": 1
+  }
+}

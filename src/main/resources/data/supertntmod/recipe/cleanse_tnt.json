@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "MMM",
+    "MTM",
+    "MMM"
+  ],
+  "key": {
+    "M": "minecraft:milk_bucket",
+    "T": "minecraft:tnt"
+  },
+  "result": {
+    "id": "supertntmod:cleanse_tnt",
+    "count": 1
+  }
+}

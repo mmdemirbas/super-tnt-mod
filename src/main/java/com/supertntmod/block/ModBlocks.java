@@ -108,6 +108,18 @@ public class ModBlocks {
     public static final SekerTntBlock SEKER_TNT = reg("seker_tnt",
             new SekerTntBlock(tntSettings("seker_tnt")));
 
+    // 🔽 Küçülten TNT - Canlıları küçültür
+    public static final ShrinkTntBlock SHRINK_TNT = reg("shrink_tnt",
+            new ShrinkTntBlock(tntSettings("shrink_tnt")));
+
+    // 🔼 Büyüten TNT - Canlıları büyütür
+    public static final GrowthTntBlock GROWTH_TNT = reg("growth_tnt",
+            new GrowthTntBlock(tntSettings("growth_tnt")));
+
+    // ✨ Temizleyici TNT - Efektleri ve boyut değişikliklerini temizler
+    public static final CleanseTntBlock CLEANSE_TNT = reg("cleanse_tnt",
+            new CleanseTntBlock(tntSettings("cleanse_tnt")));
+
     // 🧱 Lego Tuğla - Lego TNT tarafından oluşturulan dekoratif blok (16 renk)
     public static final LegoBrickBlock LEGO_BRICK = regBlockOnly("lego_brick",
             new LegoBrickBlock(AbstractBlock.Settings.copy(Blocks.STONE)
@@ -140,6 +152,6 @@ public class ModBlocks {
     }
 
     public static void register() {
-        SuperTntMod.LOGGER.info("16 blok kaydedildi.");
+        SuperTntMod.LOGGER.info("22 blok kaydedildi.");
     }
 }

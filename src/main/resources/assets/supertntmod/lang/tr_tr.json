@@ -18,6 +18,9 @@
   "block.supertntmod.lego_brick":            "Lego Tuğla",
   "block.supertntmod.makarna_tnt":           "Makarna TNT",
   "block.supertntmod.seker_tnt":             "Şeker TNT",
+  "block.supertntmod.shrink_tnt":            "Küçülten TNT",
+  "block.supertntmod.growth_tnt":            "Büyüten TNT",
+  "block.supertntmod.cleanse_tnt":           "Temizleyici TNT",
   "item.supertntmod.tnt_frisbee":            "TNT Frizbi",
 
   "block.supertntmod.diamond_tnt.tooltip":           "2.5x patlama gücü - dev kraterler açar",
@@ -41,6 +44,9 @@
   "block.supertntmod.lego_tnt.tooltip":              "Çıkıntılı lego tuğlalarından yapılar inşa eder!",
   "block.supertntmod.makarna_tnt.tooltip":           "Blokları yenilebilen bloklara dönüştürür - afiyet olsun!",
   "block.supertntmod.seker_tnt.tooltip":             "Çikolata ve şeker dünyası yaratır + hız güçlendirmesi!",
+  "block.supertntmod.shrink_tnt.tooltip":            "Yakındaki tüm canlıları minik boyuta küçültür!",
+  "block.supertntmod.growth_tnt.tooltip":            "Yakındaki tüm canlıları dev boyuta büyütür!",
+  "block.supertntmod.cleanse_tnt.tooltip":           "Tüm efektleri ve boyut değişikliklerini temizler",
   "item.supertntmod.tnt_frisbee.tooltip":            "Atılabilir TNT - + şeklinde yok eder, size geri döner",
 
   "advancement.supertntmod.root.title":              "Süper TNT Dünyası",

@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "MMM",
+    "MTM",
+    "MMM"
+  ],
+  "key": {
+    "M": "minecraft:bone_meal",
+    "T": "minecraft:tnt"
+  },
+  "result": {
+    "id": "supertntmod:growth_tnt",
+    "count": 1
+  }
+}

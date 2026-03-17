@@ -102,6 +102,21 @@ public class ModEntities {
                     (type, world) -> new SekerTntEntity(type, world), SpawnGroup.MISC)
                     .dimensions(0.98f, 0.98f));
 
+    public static final EntityType<ShrinkTntEntity> SHRINK_TNT = regTnt("shrink_tnt",
+            EntityType.Builder.<ShrinkTntEntity>create(
+                    (type, world) -> new ShrinkTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    public static final EntityType<GrowthTntEntity> GROWTH_TNT = regTnt("growth_tnt",
+            EntityType.Builder.<GrowthTntEntity>create(
+                    (type, world) -> new GrowthTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    public static final EntityType<CleanseTntEntity> CLEANSE_TNT = regTnt("cleanse_tnt",
+            EntityType.Builder.<CleanseTntEntity>create(
+                    (type, world) -> new CleanseTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
     private static <T extends TntEntity> EntityType<T> regTnt(String name, EntityType.Builder<T> builder) {
         Identifier id = Identifier.of(SuperTntMod.MOD_ID, name);
         EntityType<T> type = builder.build(RegistryKey.of(RegistryKeys.ENTITY_TYPE, id));
@@ -121,6 +136,6 @@ public class ModEntities {
     }
 
     public static void register() {
-        SuperTntMod.LOGGER.info("15 entity türü kaydedildi.");
+        SuperTntMod.LOGGER.info("20 entity türü kaydedildi.");
     }
 }
