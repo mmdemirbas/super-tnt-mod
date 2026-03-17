@@ -66,6 +66,7 @@ public class SuperTntMod implements ModInitializer {
                             entries.add(ModBlocks.SHRINK_TNT);
                             entries.add(ModBlocks.GROWTH_TNT);
                             entries.add(ModBlocks.CLEANSE_TNT);
+                            entries.add(ModBlocks.FAKE_TNT);
                             // Item'ler
                             entries.add(ModItems.TNT_FRISBEE);
                         })
@@ -88,6 +89,6 @@ public class SuperTntMod implements ModInitializer {
             return true; // Normal mesaj, devam et
         });
 
-        LOGGER.info("Super TNT Modu yüklendi! 22 blok + 1 item hazır.");
+        LOGGER.info("Super TNT Modu yüklendi! 23 blok + 1 item hazır.");
     }
 }

@@ -21,6 +21,7 @@
   "block.supertntmod.shrink_tnt":            "Shrink TNT",
   "block.supertntmod.growth_tnt":            "Growth TNT",
   "block.supertntmod.cleanse_tnt":           "Cleanse TNT",
+  "block.supertntmod.fake_tnt":              "Cake TNT",
   "item.supertntmod.tnt_frisbee":            "TNT Frisbee",
 
   "block.supertntmod.diamond_tnt.tooltip":           "2.5x explosion power - creates massive craters",
@@ -47,6 +48,7 @@
   "block.supertntmod.shrink_tnt.tooltip":            "Shrinks all nearby entities to tiny size!",
   "block.supertntmod.growth_tnt.tooltip":            "Grows all nearby entities to giant size!",
   "block.supertntmod.cleanse_tnt.tooltip":           "Removes all effects and size changes",
+  "block.supertntmod.fake_tnt.tooltip":              "A delicious cake... or is it?",
   "item.supertntmod.tnt_frisbee.tooltip":            "Throwable TNT - destroys in + pattern, returns to you",
 
   "advancement.supertntmod.root.title":              "Super TNT World",

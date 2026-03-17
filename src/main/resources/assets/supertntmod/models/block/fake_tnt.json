@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "bottom": "supertntmod:block/fake_tnt_bottom",
+    "side": "supertntmod:block/fake_tnt_side",
+    "top": "supertntmod:block/fake_tnt_top"
+  }
+}

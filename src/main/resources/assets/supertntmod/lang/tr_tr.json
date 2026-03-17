@@ -21,6 +21,7 @@
   "block.supertntmod.shrink_tnt":            "Küçülten TNT",
   "block.supertntmod.growth_tnt":            "Büyüten TNT",
   "block.supertntmod.cleanse_tnt":           "Temizleyici TNT",
+  "block.supertntmod.fake_tnt":              "Pasta TNT",
   "item.supertntmod.tnt_frisbee":            "TNT Frizbi",
 
   "block.supertntmod.diamond_tnt.tooltip":           "2.5x patlama gücü - dev kraterler açar",
@@ -47,6 +48,7 @@
   "block.supertntmod.shrink_tnt.tooltip":            "Yakındaki tüm canlıları minik boyuta küçültür!",
   "block.supertntmod.growth_tnt.tooltip":            "Yakındaki tüm canlıları dev boyuta büyütür!",
   "block.supertntmod.cleanse_tnt.tooltip":           "Tüm efektleri ve boyut değişikliklerini temizler",
+  "block.supertntmod.fake_tnt.tooltip":              "Lezzetli bir pasta... mı acaba?",
   "item.supertntmod.tnt_frisbee.tooltip":            "Atılabilir TNT - + şeklinde yok eder, size geri döner",
 
   "advancement.supertntmod.root.title":              "Süper TNT Dünyası",

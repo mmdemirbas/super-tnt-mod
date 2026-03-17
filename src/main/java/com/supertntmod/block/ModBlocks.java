@@ -120,6 +120,11 @@ public class ModBlocks {
     public static final CleanseTntBlock CLEANSE_TNT = reg("cleanse_tnt",
             new CleanseTntBlock(tntSettings("cleanse_tnt")));
 
+    // 🎂 Sahte TNT - Pasta görünümlü, yemeye çalışan patlar!
+    public static final FakeTntBlock FAKE_TNT = reg("fake_tnt",
+            new FakeTntBlock(AbstractBlock.Settings.copy(Blocks.CAKE)
+                    .registryKey(RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(SuperTntMod.MOD_ID, "fake_tnt")))));
+
     // 🧱 Lego Tuğla - Lego TNT tarafından oluşturulan dekoratif blok (16 renk)
     public static final LegoBrickBlock LEGO_BRICK = regBlockOnly("lego_brick",
             new LegoBrickBlock(AbstractBlock.Settings.copy(Blocks.STONE)
@@ -152,6 +157,6 @@ public class ModBlocks {
     }
 
     public static void register() {
-        SuperTntMod.LOGGER.info("22 blok kaydedildi.");
+        SuperTntMod.LOGGER.info("23 blok kaydedildi.");
     }
 }

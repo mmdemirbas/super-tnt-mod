@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "MMM",
+    "MTM",
+    "MMM"
+  ],
+  "key": {
+    "M": "minecraft:cake",
+    "T": "minecraft:tnt"
+  },
+  "result": {
+    "id": "supertntmod:fake_tnt",
+    "count": 1
+  }
+}
