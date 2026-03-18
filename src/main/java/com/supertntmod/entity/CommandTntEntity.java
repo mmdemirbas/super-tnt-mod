@@ -17,12 +17,18 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Komut Bloğu TNT: Belirli bir blok türünü seçili yarıçap içinde patlatır.
  * Varsayılan: Taş (stone), 30 blok yarıçap.
- * Blok türü ve yarıçap CommandTntBlock üzerinden ayarlanabilir.
+ * Performans: İşlem birden fazla tick'e yayılır.
  */
 public class CommandTntEntity extends TntEntity {
     private Block targetBlock = Blocks.STONE;
     private int radius = 30;
     private boolean done = false;
+
+    // Kademeli işleme durumu
+    private boolean processing = false;
+    private BlockPos center;
+    private int idx = 0;
+    private static final int MODIFICATIONS_PER_TICK = 1000;
 
     public CommandTntEntity(EntityType<? extends TntEntity> type, World world) {
         super(type, world);
@@ -46,37 +52,58 @@ public class CommandTntEntity extends TntEntity {
 
     @Override
     public void tick() {
-        if (!done && this.getFuse() <= 1 && !this.getEntityWorld().isClient()) {
-            done = true;
-            BlockPos center = this.getBlockPos();
+        // Kademeli blok işleme
+        if (processing && !this.getEntityWorld().isClient()) {
             World world = getEntityWorld();
-            this.discard();
+            int side = radius * 2 + 1;
+            int total = side * side * side;
+            int modified = 0;
 
-            // Hedef blok türünü yarıçap içinde yok et
-            int destroyed = 0;
-            for (BlockPos pos : BlockPos.iterateOutwards(center, radius, radius, radius)) {
+            while (idx < total && modified < MODIFICATIONS_PER_TICK) {
+                int lx = idx % side - radius;
+                int ly = (idx / side) % side - radius;
+                int lz = (idx / (side * side)) - radius;
+                idx++;
+
+                BlockPos pos = center.add(lx, ly, lz);
                 if (!pos.isWithinDistance(center, radius)) continue;
 
                 BlockState state = world.getBlockState(pos);
                 if (state.isOf(targetBlock)) {
-                    world.breakBlock(pos, true); // drop items
-                    destroyed++;
+                    world.breakBlock(pos, true);
+                    modified++;
                 }
             }
 
-            // Görsel patlama efekti
-            world.createExplosion(null, center.getX() + 0.5, center.getY(),
-                    center.getZ() + 0.5, 3.0f, false, World.ExplosionSourceType.NONE);
+            if (idx >= total) {
+                processing = false;
 
-            world.playSound(null, center.getX(), center.getY(), center.getZ(),
-                    SoundEvents.ENTITY_GENERIC_EXPLODE, SoundCategory.BLOCKS, 1.0f, 1.0f);
+                // Görsel patlama efekti
+                world.createExplosion(null, center.getX() + 0.5, center.getY(),
+                        center.getZ() + 0.5, 3.0f, false, World.ExplosionSourceType.NONE);
 
-            // Redstone partikülleri (komut bloğu teması)
-            if (world instanceof ServerWorld serverWorld) {
-                serverWorld.spawnParticles(ParticleTypes.DUST_PLUME,
-                        center.getX() + 0.5, center.getY() + 1, center.getZ() + 0.5,
-                        100, 5.0, 3.0, 5.0, 0.1);
+                world.playSound(null, center.getX(), center.getY(), center.getZ(),
+                        SoundEvents.ENTITY_GENERIC_EXPLODE, SoundCategory.BLOCKS, 1.0f, 1.0f);
+
+                if (world instanceof ServerWorld serverWorld) {
+                    serverWorld.spawnParticles(ParticleTypes.DUST_PLUME,
+                            center.getX() + 0.5, center.getY() + 1, center.getZ() + 0.5,
+                            100, 5.0, 3.0, 5.0, 0.1);
+                }
+                this.discard();
             }
+            return;
+        }
+
+        if (!done && this.getFuse() <= 1 && !this.getEntityWorld().isClient()) {
+            done = true;
+            center = this.getBlockPos();
+            processing = true;
+            idx = 0;
+            // Ses efekti hemen çalsın
+            World world = getEntityWorld();
+            world.playSound(null, center.getX(), center.getY(), center.getZ(),
+                    SoundEvents.BLOCK_BEACON_ACTIVATE, SoundCategory.BLOCKS, 2.0f, 0.5f);
             return;
         }
         if (!done) super.tick();

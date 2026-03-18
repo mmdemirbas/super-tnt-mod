@@ -32,7 +32,7 @@
   "block.supertntmod.nuclear_tnt.tooltip":           "Dev patlama + radyasyon zehri",
   "block.supertntmod.freeze_tnt.tooltip":            "Suyu buza, yüzeyleri kara çevirir",
   "block.supertntmod.wood_tnt.tooltip":              "Ağaçları yok eder, 1 dakika sonra geri gelir",
-  "block.supertntmod.command_tnt.tooltip":           "30 blok yarıçapında tek blok türünü yok eder",
+  "block.supertntmod.command_tnt.tooltip":           "Elinde blok tut + sağ tıkla = hedef ayarla, eğil + sağ tıkla = yarıçap değiştir",
   "block.supertntmod.tnt_door.tooltip":              "İlk kullanan sahip olur, güvenle geçer",
   "block.supertntmod.tnt_door.tooltip2":             "Başkaları önce uyarı alır, sonra BOOM!",
   "block.supertntmod.encrypted_tnt_chest.tooltip":   "Şifreli sandık, sadece sahibi açabilir",

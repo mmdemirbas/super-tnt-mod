@@ -16,10 +16,17 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Rainbow Dinamit: Patladığında 30 blok yakınındaki tüm blokları
  * rengarenk yün bloklarına dönüştürür.
+ * Performans: İşlem birden fazla tick'e yayılır.
  */
 public class RainbowTntEntity extends TntEntity {
     private static final int RADIUS = 30;
     private boolean done = false;
+
+    // Kademeli işleme durumu
+    private boolean processing = false;
+    private BlockPos center;
+    private int idx = 0;
+    private static final int MODIFICATIONS_PER_TICK = 1000;
 
     // 16 renk yün bloğu
     private static final Block[] WOOL_COLORS = {
@@ -55,46 +62,67 @@ public class RainbowTntEntity extends TntEntity {
 
     @Override
     public void tick() {
-        if (!done && this.getFuse() <= 1 && !this.getEntityWorld().isClient()) {
-            done = true;
-            BlockPos center = this.getBlockPos();
+        // Kademeli blok işleme
+        if (processing && !this.getEntityWorld().isClient()) {
             World world = getEntityWorld();
-            this.discard();
+            int side = RADIUS * 2 + 1;
+            int total = side * side * side;
+            int modified = 0;
 
-            // 30 blok yarıçapındaki katı blokları rastgele renkli yüne dönüştür
-            for (BlockPos pos : BlockPos.iterateOutwards(center, RADIUS, RADIUS, RADIUS)) {
+            while (idx < total && modified < MODIFICATIONS_PER_TICK) {
+                int lx = idx % side - RADIUS;
+                int ly = (idx / side) % side - RADIUS;
+                int lz = (idx / (side * side)) - RADIUS;
+                idx++;
+
+                BlockPos pos = center.add(lx, ly, lz);
                 if (!pos.isWithinDistance(center, RADIUS)) continue;
 
                 var state = world.getBlockState(pos);
 
-                // Hava, sıvı ve bedrock'u atla
                 if (state.isOf(Blocks.AIR) || state.isOf(Blocks.BEDROCK) ||
                     state.isOf(Blocks.WATER) || state.isOf(Blocks.LAVA) ||
                     !state.isSolidBlock(world, pos)) continue;
 
-                // Rastgele bir yün rengi seç
                 Block wool = WOOL_COLORS[world.random.nextInt(WOOL_COLORS.length)];
                 world.setBlockState(pos, wool.getDefaultState());
+                modified++;
             }
 
-            // Patlama efekti (bloklara zarar vermez, sadece görsel)
-            world.createExplosion(null, center.getX() + 0.5, center.getY(),
-                    center.getZ() + 0.5, 0.0f, false, World.ExplosionSourceType.NONE);
+            if (idx >= total) {
+                processing = false;
 
-            // Gökkuşağı partikülleri
-            if (world instanceof ServerWorld serverWorld) {
-                serverWorld.spawnParticles(ParticleTypes.FIREWORK,
-                        center.getX() + 0.5, center.getY() + 5, center.getZ() + 0.5,
-                        300, 8.0, 5.0, 8.0, 0.5);
-                serverWorld.spawnParticles(ParticleTypes.END_ROD,
-                        center.getX() + 0.5, center.getY() + 3, center.getZ() + 0.5,
-                        100, 6.0, 4.0, 6.0, 0.1);
+                // Patlama efekti
+                world.createExplosion(null, center.getX() + 0.5, center.getY(),
+                        center.getZ() + 0.5, 0.0f, false, World.ExplosionSourceType.NONE);
+
+                // Gökkuşağı partikülleri
+                if (world instanceof ServerWorld serverWorld) {
+                    serverWorld.spawnParticles(ParticleTypes.FIREWORK,
+                            center.getX() + 0.5, center.getY() + 5, center.getZ() + 0.5,
+                            300, 8.0, 5.0, 8.0, 0.5);
+                    serverWorld.spawnParticles(ParticleTypes.END_ROD,
+                            center.getX() + 0.5, center.getY() + 3, center.getZ() + 0.5,
+                            100, 6.0, 4.0, 6.0, 0.1);
+                }
+
+                world.playSound(null, center.getX(), center.getY(), center.getZ(),
+                        SoundEvents.ENTITY_FIREWORK_ROCKET_BLAST, SoundCategory.BLOCKS, 2.0f, 1.0f);
+                world.playSound(null, center.getX(), center.getY(), center.getZ(),
+                        SoundEvents.ENTITY_FIREWORK_ROCKET_TWINKLE, SoundCategory.BLOCKS, 1.5f, 1.2f);
+                this.discard();
             }
+            return;
+        }
 
+        if (!done && this.getFuse() <= 1 && !this.getEntityWorld().isClient()) {
+            done = true;
+            center = this.getBlockPos();
+            processing = true;
+            idx = 0;
+            World world = getEntityWorld();
             world.playSound(null, center.getX(), center.getY(), center.getZ(),
-                    SoundEvents.ENTITY_FIREWORK_ROCKET_BLAST, SoundCategory.BLOCKS, 2.0f, 1.0f);
-            world.playSound(null, center.getX(), center.getY(), center.getZ(),
-                    SoundEvents.ENTITY_FIREWORK_ROCKET_TWINKLE, SoundCategory.BLOCKS, 1.5f, 1.2f);
+                    SoundEvents.ENTITY_FIREWORK_ROCKET_LAUNCH, SoundCategory.BLOCKS, 2.0f, 1.0f);
             return;
         }
         if (!done) super.tick();

@@ -32,7 +32,7 @@
   "block.supertntmod.nuclear_tnt.tooltip":           "Massive blast + radiation poisoning",
   "block.supertntmod.freeze_tnt.tooltip":            "Turns water to ice, covers ground with snow",
   "block.supertntmod.wood_tnt.tooltip":              "Destroys trees, they regrow after 1 minute",
-  "block.supertntmod.command_tnt.tooltip":           "Selectively destroys one block type in 30 block radius",
+  "block.supertntmod.command_tnt.tooltip":           "Hold a block + right-click to set target, sneak + right-click to change radius",
   "block.supertntmod.tnt_door.tooltip":              "First user becomes owner, opens normally for them",
   "block.supertntmod.tnt_door.tooltip2":             "Non-owners get a warning, then BOOM!",
   "block.supertntmod.encrypted_tnt_chest.tooltip":   "Password-protected chest, only owner can open",
