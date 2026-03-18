@@ -27,17 +27,17 @@ public class FakeTntBlock extends Block {
     }
 
     @Override
-    protected ActionResult onUse(BlockState state, World world, BlockPos pos,
-                                  PlayerEntity player, BlockHitResult hit) {
-        if (world.isClient()) return ActionResult.SUCCESS;
+    public BlockState onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
+        if (!world.isClient()) {
+            explode(world, pos, player);
+        }
+        return super.onBreak(world, pos, state, player);
+    }
 
+    private void explode(World world, BlockPos pos, PlayerEntity player) {
         // Pasta yeme sesi (kandırma)
         world.playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
                 SoundEvents.ENTITY_GENERIC_EAT, SoundCategory.BLOCKS, 1.0f, 1.0f);
-
-        // Kısa bir beklemeden sonra patlama! (anında olsun, daha komik)
-        // Bloğu kaldır
-        world.setBlockState(pos, Blocks.AIR.getDefaultState());
 
         // Patlama sesi
         world.playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
@@ -64,7 +64,5 @@ public class FakeTntBlock extends Block {
 
         // Trolleme mesajı
         player.sendMessage(Text.literal("§c💥 Bu pasta değildi! BOOM!"), false);
-
-        return ActionResult.SUCCESS;
     }
 }
