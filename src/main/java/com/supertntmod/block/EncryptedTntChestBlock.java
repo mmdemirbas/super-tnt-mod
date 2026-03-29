@@ -94,7 +94,7 @@ public class EncryptedTntChestBlock extends Block {
             INVENTORIES.put(pos, new SimpleInventory(27));
             AWAITING_PASSWORD.put(player.getUuid(), pos.toImmutable());
             AWAITING_SET_PASSWORD.put(player.getUuid(), true);
-            player.sendMessage(Text.literal("§aBu sandığın sahibi oldunuz! Chat'e şifrenizi yazın:"), false);
+            player.sendMessage(Text.translatable("message.supertntmod.encrypted_tnt_chest.owner_set"), false);
             return ActionResult.SUCCESS;
         }
 
@@ -105,12 +105,12 @@ public class EncryptedTntChestBlock extends Block {
                 // Henüz şifre belirlenmemiş
                 AWAITING_PASSWORD.put(player.getUuid(), pos.toImmutable());
                 AWAITING_SET_PASSWORD.put(player.getUuid(), true);
-                player.sendMessage(Text.literal("§eChat'e şifrenizi yazın:"), false);
+                player.sendMessage(Text.translatable("message.supertntmod.encrypted_tnt_chest.set_password"), false);
             } else {
                 // Sahibi: şifre sor
                 AWAITING_PASSWORD.put(player.getUuid(), pos.toImmutable());
                 AWAITING_SET_PASSWORD.put(player.getUuid(), false);
-                player.sendMessage(Text.literal("§eŞifreyi girin:"), false);
+                player.sendMessage(Text.translatable("message.supertntmod.encrypted_tnt_chest.enter_password"), false);
             }
         } else {
             // Başkası: hemen patla!
@@ -121,7 +121,7 @@ public class EncryptedTntChestBlock extends Block {
                     SoundEvents.ENTITY_GENERIC_EXPLODE.value(), SoundCategory.BLOCKS, 1.0f, 1.0f);
             world.createExplosion(null, pos.getX() + 0.5, pos.getY() + 0.5,
                     pos.getZ() + 0.5, 0.0f, false, World.ExplosionSourceType.NONE);
-            player.sendMessage(Text.literal("§cBu sandık sana ait değil! BOOM!"), true);
+            player.sendMessage(Text.translatable("message.supertntmod.encrypted_tnt_chest.not_owner"), true);
         }
 
         return ActionResult.SUCCESS;
@@ -140,7 +140,7 @@ public class EncryptedTntChestBlock extends Block {
 
         if (isSettingPassword) {
             PASSWORDS.put(pos, message);
-            player.sendMessage(Text.literal("§aŞifre belirlendi! Sandığınız korunuyor."), false);
+            player.sendMessage(Text.translatable("message.supertntmod.encrypted_tnt_chest.password_set"), false);
             return true;
         }
 
@@ -152,12 +152,12 @@ public class EncryptedTntChestBlock extends Block {
             if (inventory != null) {
                 player.openHandledScreen(new SimpleNamedScreenHandlerFactory(
                         (syncId, playerInventory, p) -> GenericContainerScreenHandler.createGeneric9x3(syncId, playerInventory, inventory),
-                        Text.literal("Şifreli TNT Sandık")
+                        Text.translatable("message.supertntmod.encrypted_tnt_chest.title")
                 ));
             }
-            player.sendMessage(Text.literal("§aŞifre doğru! Sandık açılıyor."), true);
+            player.sendMessage(Text.translatable("message.supertntmod.encrypted_tnt_chest.password_correct"), true);
         } else {
-            player.sendMessage(Text.literal("§cYanlış şifre!"), true);
+            player.sendMessage(Text.translatable("message.supertntmod.encrypted_tnt_chest.password_wrong"), true);
         }
         return true;
     }

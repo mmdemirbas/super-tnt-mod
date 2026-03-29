@@ -63,6 +63,6 @@ public class FakeTntBlock extends Block {
         }
 
         // Trolleme mesajı
-        player.sendMessage(Text.literal("§c💥 Bu pasta değildi! BOOM!"), false);
+        player.sendMessage(Text.translatable("message.supertntmod.fake_tnt.boom"), false);
     }
 }

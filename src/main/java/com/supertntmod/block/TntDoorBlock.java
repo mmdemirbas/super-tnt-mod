@@ -46,7 +46,7 @@ public class TntDoorBlock extends DoorBlock {
         // İlk kez kullanıldığında sahibini kaydet
         if (!OWNERS.containsKey(basePos)) {
             OWNERS.put(basePos, player.getUuid());
-            player.sendMessage(Text.literal("Bu TNT kapısının sahibi oldunuz!"), true);
+            player.sendMessage(Text.translatable("message.supertntmod.tnt_door.owner_set"), true);
         }
 
         UUID ownerUuid = OWNERS.get(basePos);
@@ -72,7 +72,7 @@ public class TntDoorBlock extends DoorBlock {
                 WARNED_PLAYERS.put(player.getUuid(), basePos);
                 world.playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
                         SoundEvents.BLOCK_NOTE_BLOCK_BASS.value(), SoundCategory.BLOCKS, 1.0f, 0.5f);
-                player.sendMessage(Text.literal("§c⚠ DİKKAT: Bu kapı sana ait değil! Tekrar denerseniz patlayacak!"), false);
+                player.sendMessage(Text.translatable("message.supertntmod.tnt_door.warning"), false);
                 return ActionResult.SUCCESS;
             }
             // İkinci deneme: patla!
@@ -84,7 +84,7 @@ public class TntDoorBlock extends DoorBlock {
                     SoundEvents.ENTITY_GENERIC_EXPLODE.value(), SoundCategory.BLOCKS, 1.0f, 1.0f);
             world.createExplosion(null, pos.getX() + 0.5, pos.getY() + 0.5,
                     pos.getZ() + 0.5, 0.0f, false, World.ExplosionSourceType.NONE);
-            player.sendMessage(Text.literal("§c💥 Bu kapı sana ait değil! BOOM!"), false);
+            player.sendMessage(Text.translatable("message.supertntmod.tnt_door.not_owner"), false);
             return ActionResult.SUCCESS;
         }
     }
