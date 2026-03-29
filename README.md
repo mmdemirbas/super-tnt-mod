@@ -1,6 +1,6 @@
 # 🧨 Super TNT Mod
 
-Fabric 1.21.1 | 22 Özel Blok + 1 Item
+Fabric 1.21.1 | 25 Blok + 5 Item
 
 ## TNT Türleri
 
@@ -27,13 +27,40 @@ Fabric 1.21.1 | 22 Özel Blok + 1 Item
 | 🔽 Küçülten TNT | Tavşan Derisi | Yakındaki canlıları minik boyuta küçültür |
 | 🔼 Büyüten TNT | Kemik Bloğu | Yakındaki canlıları dev boyuta büyütür |
 | ✨ Temizleyici TNT | Süt Kovası | Tüm efektleri ve boyut değişikliklerini temizler |
-| 🎂 Pasta TNT | Pasta | Lezzetli bir pasta... mı acaba? |
+| 🎂 Pasta TNT | Pasta | Lezzetli bir pasta... mı acaba? (Sağ tık veya kırınca patlar!) |
 
 ## Item'ler
 
 | Item | Özellik |
 |------|---------|
 | 🥏 TNT Frizbi | Atılabilir TNT - + şeklinde yok eder, size geri döner |
+| 🔫 Portal Silahı | Portal atar - önce pembe, sonra yeşil. İçinden geçerek ışınlan! |
+| ⛏ Tünel Kazma Aleti | 1/12 ölçeğe küçülünce otomatik verilir, bloklara sağ tıklayarak minik delikler açar |
+| 🟩 Yeşil Lego Tuğla | Portal Silahı crafting malzemesi |
+| 🟪 Pembe Lego Tuğla | Portal Silahı crafting malzemesi |
+
+## Dekoratif Bloklar
+
+| Blok | Özellik |
+|------|---------|
+| 🧱 Lego Tuğla | Lego TNT tarafından oluşturulan dekoratif blok (16 renk) |
+| 🌀 Portal | Portal Silahı tarafından oluşturulan ışınlanma portalı |
+| 🕳 Tünel Blok | Tünel Kazma Aleti ile oluşturulan kısmen kazılmış blok |
+
+## Portal Silahı Kullanımı
+
+1. **Sağ tıkla** → pembe portal ateşlenir
+2. **Tekrar sağ tıkla** → yeşil portal ateşlenir
+3. Portalların birine gir → diğerine ışınlan!
+
+Crafting: 8x Yeşil Lego Tuğla + 1x Pembe Lego Tuğla (ortada)
+
+## Tünel Kazma Aleti Kullanımı
+
+1. Küçülten TNT ile 1/12 ölçeğe küçül
+2. Alet otomatik olarak envantere verilir
+3. **Bloklara sağ tıkla** → 4×4×4 sub-voxel grid üzerinde minik delikler aç
+4. Bir bloğun tüm sub-voxel'leri kaldırılırsa blok tamamen yok olur
 
 ## Komut Bloğu TNT Kullanımı
 
@@ -45,7 +72,7 @@ Fabric 1.21.1 | 22 Özel Blok + 1 Item
 
 ## Crafting Tarifi
 
-Tüm TNT'ler aynı kalıbı kullanır:
+Çoğu TNT aynı kalıbı kullanır:
 
 ```
 M M M
@@ -53,6 +80,8 @@ M T M   → 1 Özel TNT
 M M M
 ```
 `M` = İlgili malzeme, `T` = Normal TNT
+
+İstisnalar: TNT Frizbi, TNT Kapı, Şifreli TNT Sandık ve Portal Silahı kendine özgü tariflere sahiptir.
 
 ## Ateşleme
 
