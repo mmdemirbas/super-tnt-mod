@@ -61,6 +61,7 @@
   "item.supertntmod.pink_lego_brick":                "Pink Lego Brick",
   "item.supertntmod.green_lego_brick":               "Green Lego Brick",
   "block.supertntmod.portal_block":                  "Portal",
+  "block.supertntmod.tunneled_block":                "Tunneled Block",
 
   "message.supertntmod.encrypted_tnt_chest.owner_set":        "§aYou are now the owner of this chest! Type your password in chat:",
   "message.supertntmod.encrypted_tnt_chest.set_password":     "§eType your password in chat:",
