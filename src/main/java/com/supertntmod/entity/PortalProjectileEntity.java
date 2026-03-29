@@ -3,6 +3,8 @@ package com.supertntmod.entity;
 import com.supertntmod.block.PortalBlock;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.data.DataTracker;
+import net.minecraft.entity.data.TrackedData;
+import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.thrown.ThrownEntity;
 import net.minecraft.util.hit.BlockHitResult;
@@ -16,7 +18,8 @@ import net.minecraft.world.World;
  * Pembe veya yeşil portal açar.
  */
 public class PortalProjectileEntity extends ThrownEntity {
-    private boolean isPink = true;
+    private static final TrackedData<Boolean> IS_PINK = DataTracker.registerData(
+            PortalProjectileEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
 
     public PortalProjectileEntity(EntityType<? extends ThrownEntity> type, World world) {
         super(type, world);
@@ -25,16 +28,16 @@ public class PortalProjectileEntity extends ThrownEntity {
     public PortalProjectileEntity(World world, PlayerEntity owner, boolean isPink) {
         super(ModEntities.PORTAL_PROJECTILE, owner.getX(), owner.getEyeY() - 0.1, owner.getZ(), world);
         this.setOwner(owner);
-        this.isPink = isPink;
+        this.dataTracker.set(IS_PINK, isPink);
     }
 
     public boolean isPink() {
-        return isPink;
+        return this.dataTracker.get(IS_PINK);
     }
 
     @Override
     protected void initDataTracker(DataTracker.Builder builder) {
-        // Sunucu tarafında field yeterli, data tracker gerekmez
+        builder.add(IS_PINK, true);
     }
 
     @Override
@@ -56,7 +59,7 @@ public class PortalProjectileEntity extends ThrownEntity {
         }
 
         if (this.getOwner() instanceof PlayerEntity owner) {
-            PortalBlock.placePortal(world, portalPos, isPink, owner.getUuid());
+            PortalBlock.placePortal(world, portalPos, isPink(), owner.getUuid());
         }
 
         this.discard();

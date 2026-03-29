@@ -13,6 +13,7 @@ import net.minecraft.client.util.math.MatrixStack;
  * Portal mermisi renderer: küçük pembe/yeşil beton bloğu olarak render eder.
  */
 public class PortalProjectileEntityRenderer extends EntityRenderer<PortalProjectileEntity, TntEntityRenderState> {
+    private boolean isPink = true;
 
     public PortalProjectileEntityRenderer(EntityRendererFactory.Context ctx) {
         super(ctx);
@@ -26,6 +27,7 @@ public class PortalProjectileEntityRenderer extends EntityRenderer<PortalProject
     @Override
     public void updateRenderState(PortalProjectileEntity entity, TntEntityRenderState state, float tickDelta) {
         super.updateRenderState(entity, state, tickDelta);
+        this.isPink = entity.isPink();
     }
 
     @Override
@@ -34,8 +36,8 @@ public class PortalProjectileEntityRenderer extends EntityRenderer<PortalProject
         matrices.push();
         matrices.scale(0.3f, 0.3f, 0.3f);
         matrices.translate(-0.5, 0.0, -0.5);
-        // Pembe/yeşil ayrımı client'da yapılamıyor (data tracked değil), varsayılan pembe beton
-        renderCommands.submitBlock(matrices, Blocks.PINK_CONCRETE.getDefaultState(), state.light, 0, 0);
+        var block = isPink ? Blocks.PINK_CONCRETE : Blocks.GREEN_CONCRETE;
+        renderCommands.submitBlock(matrices, block.getDefaultState(), state.light, 0, 0);
         matrices.pop();
         super.render(state, matrices, renderCommands, cameraState);
     }
