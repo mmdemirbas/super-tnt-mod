@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "is_pink=true":  { "model": "supertntmod:block/portal_block_pink" },
+    "is_pink=false": { "model": "supertntmod:block/portal_block_green" }
+  }
+}

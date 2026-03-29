@@ -1,6 +1,7 @@
 package com.supertntmod;
 
 import com.supertntmod.block.ModBlocks;
+import com.supertntmod.client.PortalProjectileEntityRenderer;
 import com.supertntmod.client.TntFrisbeeEntityRenderer;
 import com.supertntmod.client.TunneledBlockEntityRenderer;
 import com.supertntmod.client.WalkingTntEntityRenderer;
@@ -42,6 +43,12 @@ public class SuperTntModClient implements ClientModInitializer {
 
         // TNT Frizbi - özel renderer (küçük TNT)
         EntityRendererRegistry.register(ModEntities.TNT_FRISBEE, TntFrisbeeEntityRenderer::new);
+
+        // Portal mermisi - özel renderer
+        EntityRendererRegistry.register(ModEntities.PORTAL_PROJECTILE, PortalProjectileEntityRenderer::new);
+
+        // Portal bloğu render katmanı
+        BlockRenderLayerMap.putBlock(ModBlocks.PORTAL_BLOCK, BlockRenderLayer.CUTOUT);
 
         // Tünellenmiş blok - özel BlockEntity renderer
         BlockEntityRendererRegistry.register(ModBlocks.TUNNELED_BLOCK_ENTITY_TYPE, TunneledBlockEntityRenderer::new);

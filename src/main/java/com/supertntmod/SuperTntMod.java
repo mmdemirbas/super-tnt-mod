@@ -70,6 +70,9 @@ public class SuperTntMod implements ModInitializer {
                             // Item'ler
                             entries.add(ModItems.TNT_FRISBEE);
                             entries.add(ModItems.TUNNELING_ITEM);
+                            entries.add(ModItems.PORTAL_GUN);
+                            entries.add(ModItems.PINK_LEGO_BRICK);
+                            entries.add(ModItems.GREEN_LEGO_BRICK);
                         })
                         .build());
 

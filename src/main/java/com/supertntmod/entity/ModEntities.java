@@ -67,6 +67,11 @@ public class ModEntities {
                     (type, world) -> new WalkingTntEntity(type, world), SpawnGroup.MISC)
                     .dimensions(0.98f, 0.98f));
 
+    public static final EntityType<PortalProjectileEntity> PORTAL_PROJECTILE = regThrown("portal_projectile",
+            EntityType.Builder.<PortalProjectileEntity>create(
+                    (type, world) -> new PortalProjectileEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.25f, 0.25f));
+
     public static final EntityType<TntFrisbeeEntity> TNT_FRISBEE = regThrown("tnt_frisbee",
             EntityType.Builder.<TntFrisbeeEntity>create(
                     (type, world) -> new TntFrisbeeEntity(type, world), SpawnGroup.MISC)

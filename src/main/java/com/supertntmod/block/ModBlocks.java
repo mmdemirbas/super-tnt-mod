@@ -138,6 +138,14 @@ public class ModBlocks {
                     .nonOpaque()
                     .registryKey(RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(SuperTntMod.MOD_ID, "tunneled_block")))));
 
+    // 🌀 Portal Bloğu - Portal silahı tarafından oluşturulan ışınlanma portalı
+    public static final PortalBlock PORTAL_BLOCK = regBlockOnly("portal_block",
+            new PortalBlock(AbstractBlock.Settings.copy(Blocks.GLASS)
+                    .nonOpaque()
+                    .noCollision()
+                    .luminance(state -> 11)
+                    .registryKey(RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(SuperTntMod.MOD_ID, "portal_block")))));
+
     // TunneledBlock için BlockEntity tipi
     public static final BlockEntityType<TunneledBlockEntity> TUNNELED_BLOCK_ENTITY_TYPE =
             Registry.register(Registries.BLOCK_ENTITY_TYPE,

@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "GGG",
+    "GPG",
+    "GGG"
+  ],
+  "key": {
+    "G": "supertntmod:green_lego_brick",
+    "P": "supertntmod:pink_lego_brick"
+  },
+  "result": {
+    "id": "supertntmod:portal_gun",
+    "count": 1
+  }
+}

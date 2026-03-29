@@ -15,6 +15,19 @@ public class ModItems {
                     .maxCount(16)
                     .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "tnt_frisbee")))));
 
+    public static final Item PINK_LEGO_BRICK = register("pink_lego_brick",
+            new Item(new Item.Settings()
+                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "pink_lego_brick")))));
+
+    public static final Item GREEN_LEGO_BRICK = register("green_lego_brick",
+            new Item(new Item.Settings()
+                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "green_lego_brick")))));
+
+    public static final PortalGunItem PORTAL_GUN = register("portal_gun",
+            new PortalGunItem(new Item.Settings()
+                    .maxCount(1)
+                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "portal_gun")))));
+
     public static final TunnelingItem TUNNELING_ITEM = register("tunneling_item",
             new TunnelingItem(new Item.Settings()
                     .maxCount(1)
