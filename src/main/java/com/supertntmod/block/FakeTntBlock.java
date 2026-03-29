@@ -27,6 +27,16 @@ public class FakeTntBlock extends Block {
     }
 
     @Override
+    protected ActionResult onUse(BlockState state, World world, BlockPos pos,
+                                  PlayerEntity player, BlockHitResult hit) {
+        if (!world.isClient()) {
+            world.removeBlock(pos, false);
+            explode(world, pos, player);
+        }
+        return ActionResult.SUCCESS;
+    }
+
+    @Override
     public BlockState onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
         if (!world.isClient()) {
             explode(world, pos, player);
