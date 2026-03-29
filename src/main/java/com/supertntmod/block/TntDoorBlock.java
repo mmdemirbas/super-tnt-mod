@@ -26,9 +26,7 @@ import java.util.UUID;
  * Etraftaki bloklara zarar vermez.
  */
 public class TntDoorBlock extends DoorBlock {
-    // Kapının sahibini takip eden map (pozisyon -> oyuncu UUID)
-    private static final Map<BlockPos, UUID> OWNERS = new HashMap<>();
-    // Uyarı alan oyuncular (ikinci denemede patlar)
+    // Uyarı alan oyuncular (ikinci denemede patlar) — ephemeral, no persistence needed
     private static final Map<UUID, BlockPos> WARNED_PLAYERS = new HashMap<>();
 
     public TntDoorBlock(Settings settings) {
@@ -39,17 +37,20 @@ public class TntDoorBlock extends DoorBlock {
     protected ActionResult onUse(BlockState state, World world, BlockPos pos,
                                   PlayerEntity player, BlockHitResult hit) {
         if (world.isClient()) return ActionResult.SUCCESS;
+        if (!(world instanceof ServerWorld serverWorld)) return ActionResult.PASS;
+        TntDoorPersistentState doorState = TntDoorPersistentState.get(serverWorld);
 
         // Alt blok pozisyonunu bul (sahiplik takibi için)
         BlockPos basePos = state.get(HALF) == DoubleBlockHalf.UPPER ? pos.down() : pos;
 
         // İlk kez kullanıldığında sahibini kaydet
-        if (!OWNERS.containsKey(basePos)) {
-            OWNERS.put(basePos, player.getUuid());
+        if (!doorState.owners.containsKey(basePos)) {
+            doorState.owners.put(basePos, player.getUuid());
+            doorState.markDirty();
             player.sendMessage(Text.translatable("message.supertntmod.tnt_door.owner_set"), true);
         }
 
-        UUID ownerUuid = OWNERS.get(basePos);
+        UUID ownerUuid = doorState.owners.get(basePos);
 
         if (player.getUuid().equals(ownerUuid)) {
             // Sahibi: kapıyı aç/kapa
@@ -77,9 +78,7 @@ public class TntDoorBlock extends DoorBlock {
             }
             // İkinci deneme: patla!
             WARNED_PLAYERS.remove(player.getUuid());
-            if (world instanceof ServerWorld serverWorld) {
-                player.damage(serverWorld, world.getDamageSources().explosion(null, null), 14.0f);
-            }
+            player.damage(serverWorld, world.getDamageSources().explosion(null, null), 14.0f);
             world.playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
                     SoundEvents.ENTITY_GENERIC_EXPLODE.value(), SoundCategory.BLOCKS, 1.0f, 1.0f);
             world.createExplosion(null, pos.getX() + 0.5, pos.getY() + 0.5,
@@ -91,8 +90,13 @@ public class TntDoorBlock extends DoorBlock {
 
     @Override
     public BlockState onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
-        BlockPos basePos = state.get(HALF) == DoubleBlockHalf.UPPER ? pos.down() : pos;
-        OWNERS.remove(basePos);
+        if (world instanceof ServerWorld serverWorld) {
+            TntDoorPersistentState doorState = TntDoorPersistentState.get(serverWorld);
+            BlockPos basePos = state.get(HALF) == DoubleBlockHalf.UPPER ? pos.down() : pos;
+            if (doorState.owners.remove(basePos) != null) {
+                doorState.markDirty();
+            }
+        }
         return super.onBreak(world, pos, state, player);
     }
 }

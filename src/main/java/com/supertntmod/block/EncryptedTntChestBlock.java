@@ -44,12 +44,7 @@ public class EncryptedTntChestBlock extends Block {
     // Sandık şekli: 14×14 taban, 14 piksel yükseklik (vanilla sandık boyutu)
     private static final VoxelShape SHAPE = Block.createCuboidShape(1, 0, 1, 15, 14, 15);
 
-    // Sandığın sahibi ve şifresini takip eden map'ler
-    private static final Map<BlockPos, UUID> OWNERS = new HashMap<>();
-    private static final Map<BlockPos, String> PASSWORDS = new HashMap<>();
-    private static final Map<BlockPos, SimpleInventory> INVENTORIES = new HashMap<>();
-
-    // Şifre girişi bekleyen oyuncular
+    // Şifre girişi bekleyen oyuncular (ephemeral, no persistence needed)
     public static final Map<UUID, BlockPos> AWAITING_PASSWORD = new HashMap<>();
     public static final Map<UUID, Boolean> AWAITING_SET_PASSWORD = new HashMap<>();
 
@@ -87,21 +82,26 @@ public class EncryptedTntChestBlock extends Block {
     protected ActionResult onUse(BlockState state, World world, BlockPos pos,
                                   PlayerEntity player, BlockHitResult hit) {
         if (world.isClient()) return ActionResult.SUCCESS;
+        if (!(world instanceof net.minecraft.server.world.ServerWorld serverWorld)) return ActionResult.PASS;
+        ChestPersistentState chestState = ChestPersistentState.get(serverWorld);
 
-        if (!OWNERS.containsKey(pos)) {
+        if (!chestState.owners.containsKey(pos)) {
             // İlk kullanım: sahibi ol ve şifre belirle
-            OWNERS.put(pos, player.getUuid());
-            INVENTORIES.put(pos, new SimpleInventory(27));
+            chestState.owners.put(pos, player.getUuid());
+            SimpleInventory inv = new SimpleInventory(27);
+            inv.addListener(sender -> chestState.markDirty());
+            chestState.inventories.put(pos, inv);
+            chestState.markDirty();
             AWAITING_PASSWORD.put(player.getUuid(), pos.toImmutable());
             AWAITING_SET_PASSWORD.put(player.getUuid(), true);
             player.sendMessage(Text.translatable("message.supertntmod.encrypted_tnt_chest.owner_set"), false);
             return ActionResult.SUCCESS;
         }
 
-        UUID ownerUuid = OWNERS.get(pos);
+        UUID ownerUuid = chestState.owners.get(pos);
 
         if (player.getUuid().equals(ownerUuid)) {
-            if (!PASSWORDS.containsKey(pos)) {
+            if (!chestState.passwords.containsKey(pos)) {
                 // Henüz şifre belirlenmemiş
                 AWAITING_PASSWORD.put(player.getUuid(), pos.toImmutable());
                 AWAITING_SET_PASSWORD.put(player.getUuid(), true);
@@ -114,9 +114,7 @@ public class EncryptedTntChestBlock extends Block {
             }
         } else {
             // Başkası: hemen patla!
-            if (world instanceof net.minecraft.server.world.ServerWorld serverWorld) {
-                player.damage(serverWorld, world.getDamageSources().explosion(null, null), 30.0f);
-            }
+            player.damage(serverWorld, world.getDamageSources().explosion(null, null), 30.0f);
             world.playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
                     SoundEvents.ENTITY_GENERIC_EXPLODE.value(), SoundCategory.BLOCKS, 1.0f, 1.0f);
             world.createExplosion(null, pos.getX() + 0.5, pos.getY() + 0.5,
@@ -137,18 +135,20 @@ public class EncryptedTntChestBlock extends Block {
 
         BlockPos pos = AWAITING_PASSWORD.remove(uuid);
         boolean isSettingPassword = AWAITING_SET_PASSWORD.remove(uuid);
+        ChestPersistentState chestState = ChestPersistentState.get(player.getEntityWorld());
 
         if (isSettingPassword) {
-            PASSWORDS.put(pos, message);
+            chestState.passwords.put(pos, message);
+            chestState.markDirty();
             player.sendMessage(Text.translatable("message.supertntmod.encrypted_tnt_chest.password_set"), false);
             return true;
         }
 
         // Şifre doğrulama (sadece sahip buraya ulaşır)
-        String correctPassword = PASSWORDS.get(pos);
+        String correctPassword = chestState.passwords.get(pos);
         if (correctPassword != null && correctPassword.equals(message)) {
             // Doğru şifre - sandığı aç
-            SimpleInventory inventory = INVENTORIES.get(pos);
+            SimpleInventory inventory = chestState.inventories.get(pos);
             if (inventory != null) {
                 player.openHandledScreen(new SimpleNamedScreenHandlerFactory(
                         (syncId, playerInventory, p) -> GenericContainerScreenHandler.createGeneric9x3(syncId, playerInventory, inventory),
@@ -164,9 +164,13 @@ public class EncryptedTntChestBlock extends Block {
 
     @Override
     public BlockState onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
-        OWNERS.remove(pos);
-        PASSWORDS.remove(pos);
-        INVENTORIES.remove(pos);
+        if (world instanceof net.minecraft.server.world.ServerWorld serverWorld) {
+            ChestPersistentState chestState = ChestPersistentState.get(serverWorld);
+            chestState.owners.remove(pos);
+            chestState.passwords.remove(pos);
+            chestState.inventories.remove(pos);
+            chestState.markDirty();
+        }
         return super.onBreak(world, pos, state, player);
     }
 }
