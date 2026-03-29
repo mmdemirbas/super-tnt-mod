@@ -33,12 +33,6 @@ import java.util.UUID;
 public class PortalBlock extends Block {
     public static final BooleanProperty IS_PINK = BooleanProperty.of("is_pink");
 
-    // Oyuncu başına portal pozisyonları
-    private static final Map<UUID, BlockPos> PINK_PORTALS = new HashMap<>();
-    private static final Map<UUID, BlockPos> GREEN_PORTALS = new HashMap<>();
-    // Portal pozisyonu → sahip UUID
-    private static final Map<BlockPos, UUID> PORTAL_OWNERS = new HashMap<>();
-
     // Işınlanma sonrası bekleme süresi (tick)
     private static final int TELEPORT_COOLDOWN = 40;
     private static final Map<UUID, Long> TELEPORT_COOLDOWNS = new HashMap<>();
@@ -68,18 +62,22 @@ public class PortalBlock extends Block {
      * Portal yerleştirildiğinde çağrılır. Eski aynı renk portalı kaldırır.
      */
     public static void placePortal(World world, BlockPos pos, boolean isPink, UUID ownerUuid) {
+        if (!(world instanceof ServerWorld serverWorld)) return;
+        PortalPersistentState state = PortalPersistentState.get(serverWorld);
+
         // Eski portalı kaldır
-        Map<UUID, BlockPos> portals = isPink ? PINK_PORTALS : GREEN_PORTALS;
+        Map<UUID, BlockPos> portals = isPink ? state.pinkPortals : state.greenPortals;
         BlockPos oldPos = portals.get(ownerUuid);
         if (oldPos != null && world.getBlockState(oldPos).getBlock() instanceof PortalBlock) {
             world.removeBlock(oldPos, false);
-            PORTAL_OWNERS.remove(oldPos);
+            state.portalOwners.remove(oldPos);
         }
 
         // Yeni portalı yerleştir
         world.setBlockState(pos, ModBlocks.PORTAL_BLOCK.getDefaultState().with(IS_PINK, isPink));
         portals.put(ownerUuid, pos.toImmutable());
-        PORTAL_OWNERS.put(pos.toImmutable(), ownerUuid);
+        state.portalOwners.put(pos.toImmutable(), ownerUuid);
+        state.markDirty();
 
         // Ses efekti
         world.playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
@@ -90,8 +88,10 @@ public class PortalBlock extends Block {
     protected void onEntityCollision(BlockState state, World world, BlockPos pos, Entity entity,
                                      EntityCollisionHandler handler, boolean pushable) {
         if (world.isClient() || !(entity instanceof LivingEntity)) return;
+        if (!(world instanceof ServerWorld serverWorld)) return;
+        PortalPersistentState portalState = PortalPersistentState.get(serverWorld);
 
-        UUID ownerUuid = PORTAL_OWNERS.get(pos.toImmutable());
+        UUID ownerUuid = portalState.portalOwners.get(pos.toImmutable());
         if (ownerUuid == null) return;
 
         // Bekleme süresi kontrolü
@@ -100,7 +100,7 @@ public class PortalBlock extends Block {
         if (lastTeleport != null && currentTick - lastTeleport < TELEPORT_COOLDOWN) return;
 
         boolean isPink = state.get(IS_PINK);
-        Map<UUID, BlockPos> targetPortals = isPink ? GREEN_PORTALS : PINK_PORTALS;
+        Map<UUID, BlockPos> targetPortals = isPink ? portalState.greenPortals : portalState.pinkPortals;
         BlockPos targetPos = targetPortals.get(ownerUuid);
 
         if (targetPos == null) return;
@@ -108,7 +108,8 @@ public class PortalBlock extends Block {
         // Hedef portalın hala var olduğunu kontrol et
         if (!(world.getBlockState(targetPos).getBlock() instanceof PortalBlock)) {
             targetPortals.remove(ownerUuid);
-            PORTAL_OWNERS.remove(targetPos);
+            portalState.portalOwners.remove(targetPos);
+            portalState.markDirty();
             return;
         }
 
@@ -125,10 +126,14 @@ public class PortalBlock extends Block {
 
     @Override
     public BlockState onBreak(World world, BlockPos pos, BlockState state, net.minecraft.entity.player.PlayerEntity player) {
-        UUID ownerUuid = PORTAL_OWNERS.remove(pos.toImmutable());
-        if (ownerUuid != null) {
-            boolean isPink = state.get(IS_PINK);
-            (isPink ? PINK_PORTALS : GREEN_PORTALS).remove(ownerUuid);
+        if (world instanceof ServerWorld serverWorld) {
+            PortalPersistentState portalState = PortalPersistentState.get(serverWorld);
+            UUID ownerUuid = portalState.portalOwners.remove(pos.toImmutable());
+            if (ownerUuid != null) {
+                boolean isPink = state.get(IS_PINK);
+                (isPink ? portalState.pinkPortals : portalState.greenPortals).remove(ownerUuid);
+                portalState.markDirty();
+            }
         }
         return super.onBreak(world, pos, state, player);
     }
