@@ -4,8 +4,8 @@
   kullanarak blokları kırmadan blokların içinden geçebileceğiz. Bu item, tıkladığımız bloğun içini
   delerek geçmemizi sağlayacak. Ama blok'u tamamen kırmayacak. Yani tıklaya tıklaya delerek
   geçeceğiz, neticede bu şekilde bir tünel açabileceğiz.
-- [ ] TNT sandığı kırmızı bir sandık görünümünde olsun. İçini de açabilelim.
-- [ ] Portal silahı: Lego bloklarından yapılır. Lego blokları crafting table'da ortaya pembe,
+- [X] TNT sandığı kırmızı bir sandık görünümünde olsun. İçini de açabilelim.
+- [X] Portal silahı: Lego bloklarından yapılır. Lego blokları crafting table'da ortaya pembe,
   kenarlara yeşil olacak şekilde yerleştirilince bir portal silahı oluşur. Ateş ettiği yere bir
   pembe portal açar. İkinci ateş ettiği yere ise yeşil bir portal açar. Açtığı ilk portaldan ikinci
   portala ışınlanabilirsin. Yeşil portal açıldıktan sonra başka bir portal açmak için tekrar ateş
