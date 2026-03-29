@@ -50,6 +50,10 @@
   "block.supertntmod.cleanse_tnt.tooltip":           "Removes all effects and size changes",
   "block.supertntmod.fake_tnt.tooltip":              "A delicious cake... or is it?",
   "item.supertntmod.tnt_frisbee.tooltip":            "Throwable TNT - destroys in + pattern, returns to you",
+  "item.supertntmod.tunneling_item":                 "Tunneling Tool",
+  "item.supertntmod.tunneling_item.tooltip":         "Right-click blocks to drill tiny holes when shrunk to 1/12 scale",
+  "item.supertntmod.tunneling_item.too_large":       "Too large to tunnel! Must be 1/12 scale or smaller.",
+  "item.supertntmod.tunneling_item.granted":         "You received a Tunneling Tool! Right-click blocks to drill through them.",
 
   "advancement.supertntmod.root.title":              "Super TNT World",
   "advancement.supertntmod.root.description":        "Obtain your first custom TNT",

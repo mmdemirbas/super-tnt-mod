@@ -2,9 +2,11 @@ package com.supertntmod.block;
 
 import com.supertntmod.SuperTntMod;
 import com.supertntmod.item.TooltipBlockItem;
+import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
+import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
@@ -129,6 +131,18 @@ public class ModBlocks {
     public static final LegoBrickBlock LEGO_BRICK = regBlockOnly("lego_brick",
             new LegoBrickBlock(AbstractBlock.Settings.copy(Blocks.STONE)
                     .registryKey(RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(SuperTntMod.MOD_ID, "lego_brick")))));
+
+    // 🕳 Tünellenmiş Blok - TunnelingItem ile oluşturulan kısmen kazılmış blok
+    public static final TunneledBlock TUNNELED_BLOCK = regBlockOnly("tunneled_block",
+            new TunneledBlock(AbstractBlock.Settings.copy(Blocks.STONE)
+                    .nonOpaque()
+                    .registryKey(RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(SuperTntMod.MOD_ID, "tunneled_block")))));
+
+    // TunneledBlock için BlockEntity tipi
+    public static final BlockEntityType<TunneledBlockEntity> TUNNELED_BLOCK_ENTITY_TYPE =
+            Registry.register(Registries.BLOCK_ENTITY_TYPE,
+                    Identifier.of(SuperTntMod.MOD_ID, "tunneled_block"),
+                    FabricBlockEntityTypeBuilder.create(TunneledBlockEntity::new, TUNNELED_BLOCK).build());
 
 
     // Sadece blok kaydı (item olmadan) - entity tarafından oluşturulan bloklar için

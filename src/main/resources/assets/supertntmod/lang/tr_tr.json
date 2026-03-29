@@ -50,6 +50,10 @@
   "block.supertntmod.cleanse_tnt.tooltip":           "Tüm efektleri ve boyut değişikliklerini temizler",
   "block.supertntmod.fake_tnt.tooltip":              "Lezzetli bir pasta... mı acaba?",
   "item.supertntmod.tnt_frisbee.tooltip":            "Atılabilir TNT - + şeklinde yok eder, size geri döner",
+  "item.supertntmod.tunneling_item":                 "Tünel Kazma Aleti",
+  "item.supertntmod.tunneling_item.tooltip":         "1/12 ölçeğe küçülünce bloklara sağ tıklayarak minik delikler aç",
+  "item.supertntmod.tunneling_item.too_large":       "Tünel kazmak için çok büyüksün! 1/12 ölçek veya daha küçük olmalısın.",
+  "item.supertntmod.tunneling_item.granted":         "Tünel Kazma Aleti aldın! Bloklara sağ tıklayarak içlerinden geç.",
 
   "advancement.supertntmod.root.title":              "Süper TNT Dünyası",
   "advancement.supertntmod.root.description":        "İlk özel TNT'ni edin",
