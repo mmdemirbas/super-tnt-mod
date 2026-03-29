@@ -1,6 +1,3 @@
 {
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "supertntmod:item/encrypted_tnt_chest"
-  }
+  "parent": "supertntmod:block/encrypted_tnt_chest"
 }

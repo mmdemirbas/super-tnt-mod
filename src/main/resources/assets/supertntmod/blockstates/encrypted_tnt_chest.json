@@ -1,1 +1,8 @@
-{ "variants": { "": { "model": "supertntmod:block/encrypted_tnt_chest" } } }
+{
+  "variants": {
+    "facing=north": { "model": "supertntmod:block/encrypted_tnt_chest" },
+    "facing=south": { "model": "supertntmod:block/encrypted_tnt_chest", "y": 180 },
+    "facing=west":  { "model": "supertntmod:block/encrypted_tnt_chest", "y": 270 },
+    "facing=east":  { "model": "supertntmod:block/encrypted_tnt_chest", "y": 90 }
+  }
+}
