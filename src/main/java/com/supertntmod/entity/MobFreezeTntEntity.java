@@ -22,6 +22,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class MobFreezeTntEntity extends TntEntity {
     private static final int FREEZE_DURATION = 12000; // 10 dakika = 12000 tick
+    private static final int RADIUS = 30;
     private boolean done = false;
 
     public MobFreezeTntEntity(EntityType<? extends TntEntity> type, World world) {
@@ -58,33 +59,35 @@ public class MobFreezeTntEntity extends TntEntity {
             }
 
             if (world instanceof ServerWorld serverWorld) {
-                // Tüm yüklü chunk'lardaki düşman mobları dondur
-                serverWorld.iterateEntities().forEach(entity -> {
-                    if (entity instanceof HostileEntity hostile && hostile.isAlive()) {
-                        // Buz bloğuyla kapla
-                        BlockPos mobPos = hostile.getBlockPos();
+                // Yarıçap içindeki düşman mobları dondur
+                BlockPos center = BlockPos.ofFloored(getX(), getY(), getZ());
+                serverWorld.getEntitiesByClass(HostileEntity.class,
+                        new net.minecraft.util.math.Box(center).expand(RADIUS),
+                        HostileEntity::isAlive
+                ).forEach(hostile -> {
+                    // Buz bloğuyla kapla
+                    BlockPos mobPos = hostile.getBlockPos();
 
-                        // Mobun etrafına buz blokları koy
-                        for (int dx = -1; dx <= 1; dx++) {
-                            for (int dz = -1; dz <= 1; dz++) {
-                                for (int dy = 0; dy <= 2; dy++) {
-                                    BlockPos icePos = mobPos.add(dx, dy, dz);
-                                    if (world.getBlockState(icePos).isOf(Blocks.AIR)) {
-                                        world.setBlockState(icePos, Blocks.ICE.getDefaultState());
-                                    }
+                    // Mobun etrafına buz blokları koy
+                    for (int dx = -1; dx <= 1; dx++) {
+                        for (int dz = -1; dz <= 1; dz++) {
+                            for (int dy = 0; dy <= 2; dy++) {
+                                BlockPos icePos = mobPos.add(dx, dy, dz);
+                                if (world.getBlockState(icePos).isOf(Blocks.AIR)) {
+                                    world.setBlockState(icePos, Blocks.ICE.getDefaultState());
                                 }
                             }
                         }
-
-                        // Yavaşlama + hareketsizlik efekti
-                        hostile.addStatusEffect(new StatusEffectInstance(
-                                StatusEffects.SLOWNESS, FREEZE_DURATION, 127)); // Max yavaşlama
-                        hostile.addStatusEffect(new StatusEffectInstance(
-                                StatusEffects.RESISTANCE, FREEZE_DURATION, 4)); // Hasar almaz
-                        hostile.addStatusEffect(new StatusEffectInstance(
-                                StatusEffects.WEAKNESS, FREEZE_DURATION, 127)); // Saldıramaz
-                        hostile.setFrozenTicks(FREEZE_DURATION); // Minecraft dondurma mekaniği
                     }
+
+                    // Yavaşlama + hareketsizlik efekti
+                    hostile.addStatusEffect(new StatusEffectInstance(
+                            StatusEffects.SLOWNESS, FREEZE_DURATION, 127)); // Max yavaşlama
+                    hostile.addStatusEffect(new StatusEffectInstance(
+                            StatusEffects.RESISTANCE, FREEZE_DURATION, 4)); // Hasar almaz
+                    hostile.addStatusEffect(new StatusEffectInstance(
+                            StatusEffects.WEAKNESS, FREEZE_DURATION, 127)); // Saldıramaz
+                    hostile.setFrozenTicks(FREEZE_DURATION); // Minecraft dondurma mekaniği
                 });
             }
             return;
