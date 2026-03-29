@@ -93,6 +93,6 @@ public class SuperTntMod implements ModInitializer {
             return true; // Normal mesaj, devam et
         });
 
-        LOGGER.info("Super TNT Modu yüklendi! 23 blok + 1 item hazır.");
+        LOGGER.info("Super TNT Modu yüklendi! 25 blok + 5 item hazır.");
     }
 }

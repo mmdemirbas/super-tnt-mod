@@ -3,7 +3,7 @@
   "id": "supertntmod",
   "version": "1.0.0",
   "name": "Super TNT Mod",
-  "description": "21 özel TNT bloğu + TNT Frizbi: Elmas, Altın, Kaya Katmanı, Zümrüt, Yıldırım, Nükleer, Dondurucu, Odun, Komut Bloğu, TNT Kapı, Şifreli Sandık, Yürüyen, Canavar Dondurucu, Su, Gökkuşağı, Lego, Makarna, Şeker, Küçülten, Büyüten, Temizleyici",
+  "description": "22 özel TNT bloğu + TNT Frizbi + Portal Silahı + Tünel Aleti: Elmas, Altın, Kaya Katmanı, Zümrüt, Yıldırım, Nükleer, Dondurucu, Odun, Komut Bloğu, TNT Kapı, Şifreli Sandık, Yürüyen, Canavar Dondurucu, Su, Gökkuşağı, Lego, Makarna, Şeker, Küçülten, Büyüten, Temizleyici, Pasta",
   "authors": ["Muhammed"],
   "license": "MIT",
   "environment": "*",

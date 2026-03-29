@@ -39,6 +39,6 @@ public class ModItems {
     }
 
     public static void register() {
-        SuperTntMod.LOGGER.info("TNT Frizbi itemi kaydedildi.");
+        SuperTntMod.LOGGER.info("5 item kaydedildi.");
     }
 }
