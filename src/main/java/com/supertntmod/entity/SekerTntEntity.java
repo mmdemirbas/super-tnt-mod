@@ -42,7 +42,6 @@ public class SekerTntEntity extends TntEntity {
             Blocks.BROWN_CONCRETE,            // Koyu çikolata
             Blocks.PINK_CONCRETE,             // Pamuk şeker
             Blocks.WHITE_CONCRETE,            // Marshmallow
-            Blocks.COCOA,                     // Kakao
     };
 
     public SekerTntEntity(EntityType<? extends TntEntity> type, World world) {
@@ -81,8 +80,7 @@ public class SekerTntEntity extends TntEntity {
                     state.isOf(Blocks.WATER) || state.isOf(Blocks.LAVA) ||
                     !state.isSolidBlock(world, pos)) continue;
 
-                // Kakao sadece orman ağaçlarına yerleşir, onu atlayalım
-                Block candy = CANDY_BLOCKS[world.random.nextInt(CANDY_BLOCKS.length - 1)];
+                Block candy = CANDY_BLOCKS[world.random.nextInt(CANDY_BLOCKS.length)];
                 world.setBlockState(pos, candy.getDefaultState());
                 modified++;
             }
