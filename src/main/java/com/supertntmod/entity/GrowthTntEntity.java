@@ -1,6 +1,5 @@
 package com.supertntmod.entity;
 
-import com.supertntmod.SuperTntMod;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.TntEntity;
@@ -11,7 +10,6 @@ import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
@@ -22,7 +20,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class GrowthTntEntity extends TntEntity {
     private static final int RADIUS = 15;
-    public static final Identifier GROWTH_MODIFIER_ID = Identifier.of(SuperTntMod.MOD_ID, "growth");
+
     private boolean done = false;
 
     public GrowthTntEntity(EntityType<? extends TntEntity> type, World world) {
@@ -58,12 +56,14 @@ public class GrowthTntEntity extends TntEntity {
             ).forEach(entity -> {
                 EntityAttributeInstance scaleAttr = entity.getAttributeInstance(EntityAttributes.SCALE);
                 if (scaleAttr != null) {
-                    // Önceki büyütme/küçültme modifier'ını kaldır
-                    scaleAttr.removeModifier(GROWTH_MODIFIER_ID);
-                    scaleAttr.removeModifier(ShrinkTntEntity.SHRINK_MODIFIER_ID);
-                    // Büyütme uygula: base * 2.0 = 3x boyut
+                    // Mevcut ölçeği oku ve 3.0 ile çarp (kümülatif büyütme)
+                    double currentScale = scaleAttr.getValue();
+                    double newScale = currentScale * 3.0;
+                    double newModifierValue = newScale - 1.0;
+
+                    scaleAttr.removeModifier(ShrinkTntEntity.SCALE_MODIFIER_ID);
                     scaleAttr.addPersistentModifier(new EntityAttributeModifier(
-                            GROWTH_MODIFIER_ID, 2.0,
+                            ShrinkTntEntity.SCALE_MODIFIER_ID, newModifierValue,
                             EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE));
                 }
             });

@@ -60,11 +60,10 @@ public class CleanseTntEntity extends TntEntity {
                     entity.removeStatusEffect(effect.getEffectType());
                 }
 
-                // Boyut modifier'larını kaldır (küçültme/büyütme)
+                // Boyut modifier'ını kaldır (küçültme/büyütme ortak ID)
                 EntityAttributeInstance scaleAttr = entity.getAttributeInstance(EntityAttributes.SCALE);
                 if (scaleAttr != null) {
-                    scaleAttr.removeModifier(ShrinkTntEntity.SHRINK_MODIFIER_ID);
-                    scaleAttr.removeModifier(GrowthTntEntity.GROWTH_MODIFIER_ID);
+                    scaleAttr.removeModifier(ShrinkTntEntity.SCALE_MODIFIER_ID);
                 }
 
                 // Donma efektini sıfırla
