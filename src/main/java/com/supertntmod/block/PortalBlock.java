@@ -114,7 +114,7 @@ public class PortalBlock extends Block {
 
         // Işınla
         entity.teleport((ServerWorld) world,
-                targetPos.getX() + 0.5, targetPos.getY() + 0.1, targetPos.getZ() + 0.5,
+                targetPos.getX() + 0.5, targetPos.getY() + 1.0, targetPos.getZ() + 0.5,
                 java.util.Set.of(), entity.getYaw(), entity.getPitch(), false);
 
         TELEPORT_COOLDOWNS.put(entity.getUuid(), currentTick);
