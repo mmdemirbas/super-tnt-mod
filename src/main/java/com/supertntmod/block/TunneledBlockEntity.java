@@ -43,6 +43,19 @@ public class TunneledBlockEntity extends BlockEntity {
     }
 
     /**
+     * Sub-voxel bitmask'ını doğrudan ayarlar.
+     * Küçülmüş oyuncunun blok yerleştirmesi için kullanılır.
+     */
+    public void setSubVoxelMask(long mask) {
+        this.subVoxels = mask;
+        this.cachedShape = null;
+        markDirty();
+        if (world != null) {
+            world.updateListeners(pos, getCachedState(), getCachedState(), 3);
+        }
+    }
+
+    /**
      * Sub-voxel indeksini hesaplar: x + y*4 + z*16 (her biri 0-3).
      */
     public static int subVoxelIndex(int x, int y, int z) {
@@ -59,12 +72,27 @@ public class TunneledBlockEntity extends BlockEntity {
      */
     public boolean removeSubVoxel(int x, int y, int z) {
         subVoxels &= ~(1L << subVoxelIndex(x, y, z));
-        cachedShape = null; // Shape yeniden hesaplanmalı
+        cachedShape = null;
         markDirty();
         if (world != null) {
             world.updateListeners(pos, getCachedState(), getCachedState(), 3);
         }
         return subVoxels == 0;
+    }
+
+    /**
+     * Birden fazla sub-voxel'i tek seferde kaldırır.
+     * Tek bir update bildirimi gönderir.
+     */
+    public void removeSubVoxels(int[][] coords) {
+        for (int[] c : coords) {
+            subVoxels &= ~(1L << subVoxelIndex(c[0], c[1], c[2]));
+        }
+        cachedShape = null;
+        markDirty();
+        if (world != null) {
+            world.updateListeners(pos, getCachedState(), getCachedState(), 3);
+        }
     }
 
     /**

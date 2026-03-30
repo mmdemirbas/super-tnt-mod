@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "package": "com.supertntmod.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "ClampedEntityAttributeAccessor",
+    "BlockItemMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

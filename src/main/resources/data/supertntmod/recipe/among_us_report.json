@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["RRR", "RTR", "RRR"],
+  "key": {
+    "R": "minecraft:redstone",
+    "T": "minecraft:tnt"
+  },
+  "result": {
+    "id": "supertntmod:among_us_report",
+    "count": 1
+  }
+}

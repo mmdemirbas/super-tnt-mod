@@ -58,6 +58,8 @@
   "item.supertntmod.portal_gun.tooltip":             "Shoots portals - first pink, then green. Walk through to teleport!",
   "item.supertntmod.portal_gun.shot_pink":           "Pink portal fired!",
   "item.supertntmod.portal_gun.shot_green":          "Green portal fired!",
+  "item.supertntmod.among_us_report":                 "Among Us Report",
+  "item.supertntmod.among_us_report.tooltip":         "Right-click any mob or player to instantly eliminate them!",
   "item.supertntmod.pink_lego_brick":                "Pink Lego Brick",
   "item.supertntmod.green_lego_brick":               "Green Lego Brick",
   "block.supertntmod.portal_block":                  "Portal",

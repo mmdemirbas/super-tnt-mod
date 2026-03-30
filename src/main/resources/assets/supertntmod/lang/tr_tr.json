@@ -58,6 +58,8 @@
   "item.supertntmod.portal_gun.tooltip":             "Portal atar - önce pembe, sonra yeşil. İçinden geçerek ışınlan!",
   "item.supertntmod.portal_gun.shot_pink":           "Pembe portal ateşlendi!",
   "item.supertntmod.portal_gun.shot_green":          "Yeşil portal ateşlendi!",
+  "item.supertntmod.among_us_report":                 "Among Us Rapor",
+  "item.supertntmod.among_us_report.tooltip":         "Herhangi bir mob veya oyuncuya sağ tıklayarak anında öldür!",
   "item.supertntmod.pink_lego_brick":                "Pembe Lego Tuğla",
   "item.supertntmod.green_lego_brick":               "Yeşil Lego Tuğla",
   "block.supertntmod.portal_block":                  "Portal",

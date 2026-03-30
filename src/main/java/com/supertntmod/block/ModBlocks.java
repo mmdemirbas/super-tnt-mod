@@ -136,6 +136,8 @@ public class ModBlocks {
     public static final TunneledBlock TUNNELED_BLOCK = regBlockOnly("tunneled_block",
             new TunneledBlock(AbstractBlock.Settings.copy(Blocks.STONE)
                     .nonOpaque()
+                    .dynamicBounds()
+                    .suffocates((state, world, pos) -> false)
                     .registryKey(RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(SuperTntMod.MOD_ID, "tunneled_block")))));
 
     // 🌀 Portal Bloğu - Portal silahı tarafından oluşturulan ışınlanma portalı

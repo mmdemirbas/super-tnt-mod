@@ -20,6 +20,7 @@ import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
+import net.minecraft.util.math.Direction;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
@@ -78,22 +79,42 @@ public class TunnelingItem extends Item {
         int subY = Math.min(3, Math.max(0, (int) (localY * 4)));
         int subZ = Math.min(3, Math.max(0, (int) (localZ * 4)));
 
-        if (targetState.getBlock() instanceof TunneledBlock) {
-            // Zaten tünellenmiş blok: sub-voxel kaldır
-            if (world.getBlockEntity(pos) instanceof TunneledBlockEntity entity) {
-                if (!entity.isSubVoxelFilled(subX, subY, subZ)) {
-                    return ActionResult.PASS; // Zaten boş
+        // Delme boyutunu oyuncu boyutuna göre hesapla
+        // Bir delme işlemi = yarı oyuncu yüksekliği, iki delme = tam beden deliği
+        int drillH = Math.max(1, (int) Math.ceil(player.getHeight() / 2.0 / 0.25));
+        int drillW = Math.max(1, (int) Math.ceil(player.getWidth() / 0.25));
+
+        // Delme yönüne göre hangi eksenlerde genişleyeceğini belirle
+        Direction face = context.getSide();
+        int[][] offsets = computeDrillOffsets(face, subX, subY, subZ, drillW, drillH);
+
+        // Sadece dolu sub-voxel'leri filtrele
+        int[][] filledOffsets = java.util.Arrays.stream(offsets).filter(off -> {
+            if (targetState.getBlock() instanceof TunneledBlock) {
+                if (world.getBlockEntity(pos) instanceof TunneledBlockEntity entity) {
+                    return entity.isSubVoxelFilled(off[0], off[1], off[2]);
                 }
-                boolean allEmpty = entity.removeSubVoxel(subX, subY, subZ);
-                if (allEmpty) {
+                return false;
+            }
+            return true; // Normal blok: tüm sub-voxel'ler dolu
+        }).toArray(int[][]::new);
+
+        if (filledOffsets.length == 0) {
+            return ActionResult.PASS;
+        }
+
+        if (targetState.getBlock() instanceof TunneledBlock) {
+            // Zaten tünellenmiş blok: sub-voxel kümesini toplu kaldır
+            if (world.getBlockEntity(pos) instanceof TunneledBlockEntity entity) {
+                entity.removeSubVoxels(filledOffsets);
+                if (entity.getSubVoxels() == 0) {
                     world.removeBlock(pos, false);
                 }
                 playDrillEffect(world, pos, subX, subY, subZ);
                 return ActionResult.SUCCESS;
             }
         } else {
-            // Normal blok: TunneledBlock'a dönüştür ve tıklanan sub-voxel'i kaldır
-            // BlockEntity'li blokları dönüştürme
+            // Normal blok: TunneledBlock'a dönüştür ve sub-voxel kümesini kaldır
             if (targetState.hasBlockEntity()) {
                 return ActionResult.PASS;
             }
@@ -102,8 +123,8 @@ public class TunnelingItem extends Item {
             world.setBlockState(pos, ModBlocks.TUNNELED_BLOCK.getDefaultState());
             if (world.getBlockEntity(pos) instanceof TunneledBlockEntity entity) {
                 entity.setOriginalBlockId(originalId);
-                boolean allEmpty = entity.removeSubVoxel(subX, subY, subZ);
-                if (allEmpty) {
+                entity.removeSubVoxels(filledOffsets);
+                if (entity.getSubVoxels() == 0) {
                     world.removeBlock(pos, false);
                 }
             }
@@ -112,6 +133,59 @@ public class TunnelingItem extends Item {
         }
 
         return ActionResult.PASS;
+    }
+
+    /**
+     * Delme alanını hesaplar: tıklanan yüzeye dik düzlemde genişler.
+     * Üst/alt yüzey tıklandığında X-Z düzleminde, yan yüzey tıklandığında
+     * Y ekseni dikey, kalan eksen yatay olarak kullanılır.
+     */
+    private int[][] computeDrillOffsets(Direction face, int subX, int subY, int subZ, int drillW, int drillH) {
+        java.util.List<int[]> result = new java.util.ArrayList<>();
+
+        if (face.getAxis() == Direction.Axis.Y) {
+            // Üst/alt yüzey: X-Z düzleminde genişle, tüm Y derinliğini del
+            int halfW = drillW / 2;
+            int halfH = drillW / 2; // kare delik
+            for (int dy = 0; dy < 4; dy++) {
+                for (int dx = -halfW; dx < drillW - halfW; dx++) {
+                    for (int dz = -halfH; dz < drillW - halfH; dz++) {
+                        int sx = subX + dx;
+                        int sz = subZ + dz;
+                        if (sx >= 0 && sx < 4 && sz >= 0 && sz < 4) {
+                            result.add(new int[]{sx, dy, sz});
+                        }
+                    }
+                }
+            }
+        } else {
+            // Yan yüzey: Y ekseni dikey, kalan eksen yatay,
+            // yüzeye dik eksen boyunca tüm derinliği del (tünel aç)
+            int halfW = drillW / 2;
+            for (int dy = 0; dy < drillH; dy++) {
+                for (int dw = -halfW; dw < drillW - halfW; dw++) {
+                    for (int depth = 0; depth < 4; depth++) {
+                        int sy = subY + dy;
+                        int sx, sz;
+                        if (face.getAxis() == Direction.Axis.X) {
+                            sx = depth;
+                            sz = subZ + dw;
+                        } else {
+                            sx = subX + dw;
+                            sz = depth;
+                        }
+                        if (sx >= 0 && sx < 4 && sy >= 0 && sy < 4 && sz >= 0 && sz < 4) {
+                            result.add(new int[]{sx, sy, sz});
+                        }
+                    }
+                }
+            }
+        }
+
+        if (result.isEmpty()) {
+            result.add(new int[]{subX, subY, subZ});
+        }
+        return result.toArray(new int[0][]);
     }
 
     private void playDrillEffect(World world, BlockPos pos, int subX, int subY, int subZ) {

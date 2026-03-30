@@ -33,6 +33,13 @@ public class SuperTntMod implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        // SCALE attribute minimum değerini düşür (varsayılan 0.0625 = 1/16)
+        // Bu sayede 5-6 kez küçülme desteklenir
+        var scaleAttr = (net.minecraft.entity.attribute.ClampedEntityAttribute)
+                net.minecraft.entity.attribute.EntityAttributes.SCALE.value();
+        ((com.supertntmod.mixin.ClampedEntityAttributeAccessor) scaleAttr)
+                .supertntmod$setMinValue(0.0001);
+
         ModEntities.register();
         ModBlocks.register();
         ModItems.register();
@@ -73,6 +80,7 @@ public class SuperTntMod implements ModInitializer {
                             entries.add(ModItems.PORTAL_GUN);
                             entries.add(ModItems.PINK_LEGO_BRICK);
                             entries.add(ModItems.GREEN_LEGO_BRICK);
+                            entries.add(ModItems.AMONG_US_REPORT);
                         })
                         .build());
 
