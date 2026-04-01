@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["SSS", "STS", "SSS"],
+  "key": {
+    "S": "minecraft:stone",
+    "T": "minecraft:tnt"
+  },
+  "result": {
+    "id": "supertntmod:invisible_tnt",
+    "count": 1
+  }
+}

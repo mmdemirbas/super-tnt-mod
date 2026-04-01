@@ -64,6 +64,8 @@
   "item.supertntmod.green_lego_brick":               "Yeşil Lego Tuğla",
   "block.supertntmod.portal_block":                  "Portal",
   "block.supertntmod.tunneled_block":                "Tünel Blok",
+  "block.supertntmod.invisible_tnt":         "Görünmez TNT",
+  "block.supertntmod.invisible_tnt.tooltip": "Taş kılığında — kimse fark etmez!",
   "block.supertntmod.swap_tnt":           "Takas TNT",
   "block.supertntmod.swap_tnt.tooltip":   "Yakındaki tüm canlıların konumlarını rastgele karıştırır!",
   "block.supertntmod.bounce_tnt":         "Zıplatan TNT",

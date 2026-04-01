@@ -126,6 +126,10 @@ public class ModBlocks {
     public static final BounceTntBlock BOUNCE_TNT = reg("bounce_tnt",
             new BounceTntBlock(tntSettings("bounce_tnt")));
 
+    // 🪨 Görünmez TNT - Taş gibi görünür, ateşlenince patlar
+    public static final InvisibleTntBlock INVISIBLE_TNT = reg("invisible_tnt",
+            new InvisibleTntBlock(tntSettings("invisible_tnt")));
+
     // 🔀 Takas TNT - Yakındaki canlıların konumlarını karıştırır
     public static final SwapTntBlock SWAP_TNT = reg("swap_tnt",
             new SwapTntBlock(tntSettings("swap_tnt")));

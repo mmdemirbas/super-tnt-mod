@@ -64,6 +64,8 @@
   "item.supertntmod.green_lego_brick":               "Green Lego Brick",
   "block.supertntmod.portal_block":                  "Portal",
   "block.supertntmod.tunneled_block":                "Tunneled Block",
+  "block.supertntmod.invisible_tnt":         "Invisible TNT",
+  "block.supertntmod.invisible_tnt.tooltip": "Disguised as stone — nobody suspects a thing!",
   "block.supertntmod.swap_tnt":           "Swap TNT",
   "block.supertntmod.swap_tnt.tooltip":   "Randomly teleports all nearby entities to each other's positions!",
   "block.supertntmod.bounce_tnt":         "Bounce TNT",
