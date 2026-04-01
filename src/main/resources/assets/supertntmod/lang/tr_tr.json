@@ -64,6 +64,8 @@
   "item.supertntmod.green_lego_brick":               "Yeşil Lego Tuğla",
   "block.supertntmod.portal_block":                  "Portal",
   "block.supertntmod.tunneled_block":                "Tünel Blok",
+  "block.supertntmod.proximity_mine":         "Yakınlık Mayını",
+  "block.supertntmod.proximity_mine.tooltip": "2 blok yakınına gelen herhangi bir canlıda patlar. Kaçmak için 2 saniyeniz var!",
   "item.supertntmod.grappling_hook":         "Kanca",
   "item.supertntmod.grappling_hook.tooltip": "Sağ tıkla ve fırlat — bloklara saplanır ve seni anında oraya çeker!",
   "block.supertntmod.magnet_tnt":         "Mıknatıs TNT",

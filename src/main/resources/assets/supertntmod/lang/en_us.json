@@ -64,6 +64,8 @@
   "item.supertntmod.green_lego_brick":               "Green Lego Brick",
   "block.supertntmod.portal_block":                  "Portal",
   "block.supertntmod.tunneled_block":                "Tunneled Block",
+  "block.supertntmod.proximity_mine":         "Proximity Mine",
+  "block.supertntmod.proximity_mine.tooltip": "Explodes when any living entity comes within 2 blocks. You have 2 seconds to run!",
   "item.supertntmod.grappling_hook":         "Grappling Hook",
   "item.supertntmod.grappling_hook.tooltip": "Right-click to launch — latches onto blocks and pulls you there instantly!",
   "block.supertntmod.magnet_tnt":         "Magnet TNT",

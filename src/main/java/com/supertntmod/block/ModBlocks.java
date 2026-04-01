@@ -126,6 +126,12 @@ public class ModBlocks {
     public static final BounceTntBlock BOUNCE_TNT = reg("bounce_tnt",
             new BounceTntBlock(tntSettings("bounce_tnt")));
 
+    // 💣 Yakınlık Mayını - Biri yaklaşınca patlar
+    public static final ProximityMineBlock PROXIMITY_MINE = reg("proximity_mine",
+            new ProximityMineBlock(AbstractBlock.Settings.copy(Blocks.IRON_BLOCK)
+                    .hardness(0.5f)
+                    .registryKey(RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(SuperTntMod.MOD_ID, "proximity_mine")))));
+
     // 🧲 Mıknatıs TNT - 3 sn çeker sonra patlar
     public static final MagnetTntBlock MAGNET_TNT = reg("magnet_tnt",
             new MagnetTntBlock(hardTntSettings("magnet_tnt")));

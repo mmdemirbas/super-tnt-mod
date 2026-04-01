@@ -76,6 +76,7 @@ public class SuperTntMod implements ModInitializer {
                             entries.add(ModBlocks.CLEANSE_TNT);
                             entries.add(ModBlocks.FAKE_TNT);
                             entries.add(ModBlocks.BOUNCE_TNT);
+                            entries.add(ModBlocks.PROXIMITY_MINE);
                             entries.add(ModBlocks.MAGNET_TNT);
                             entries.add(ModBlocks.GRAVITY_TNT);
                             entries.add(ModBlocks.INVISIBLE_TNT);
