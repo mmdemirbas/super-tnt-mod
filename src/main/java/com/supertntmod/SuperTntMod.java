@@ -87,6 +87,7 @@ public class SuperTntMod implements ModInitializer {
                             entries.add(ModItems.PINK_LEGO_BRICK);
                             entries.add(ModItems.GREEN_LEGO_BRICK);
                             entries.add(ModItems.AMONG_US_REPORT);
+                            entries.add(ModItems.GRAPPLING_HOOK);
                             entries.add(ModItems.SHRINK_BALL);
                             entries.add(ModItems.GROW_BALL);
                         })

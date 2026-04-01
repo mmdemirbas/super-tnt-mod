@@ -77,6 +77,11 @@ public class ModEntities {
                     (type, world) -> new TntFrisbeeEntity(type, world), SpawnGroup.MISC)
                     .dimensions(0.25f, 0.25f));
 
+    public static final EntityType<GrapplingHookEntity> GRAPPLING_HOOK = regThrown("grappling_hook",
+            EntityType.Builder.<GrapplingHookEntity>create(
+                    (type, world) -> new GrapplingHookEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.25f, 0.25f));
+
     public static final EntityType<MagnetTntEntity> MAGNET_TNT = regTnt("magnet_tnt",
             EntityType.Builder.<MagnetTntEntity>create(
                     (type, world) -> new MagnetTntEntity(type, world), SpawnGroup.MISC)

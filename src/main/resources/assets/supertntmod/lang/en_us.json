@@ -64,6 +64,8 @@
   "item.supertntmod.green_lego_brick":               "Green Lego Brick",
   "block.supertntmod.portal_block":                  "Portal",
   "block.supertntmod.tunneled_block":                "Tunneled Block",
+  "item.supertntmod.grappling_hook":         "Grappling Hook",
+  "item.supertntmod.grappling_hook.tooltip": "Right-click to launch — latches onto blocks and pulls you there instantly!",
   "block.supertntmod.magnet_tnt":         "Magnet TNT",
   "block.supertntmod.magnet_tnt.tooltip": "Pulls all nearby entities toward it for 3 seconds, then BOOM!",
   "block.supertntmod.gravity_tnt":         "Gravity TNT",

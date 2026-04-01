@@ -55,6 +55,10 @@ public class SuperTntModClient implements ClientModInitializer {
         // Portal mermisi - özel renderer
         EntityRendererRegistry.register(ModEntities.PORTAL_PROJECTILE, PortalProjectileEntityRenderer::new);
 
+        // Kanca entity — portal projectile renderer'ını yeniden kullan (küçük gri küp)
+        EntityRendererRegistry.register(ModEntities.GRAPPLING_HOOK, ctx ->
+                new com.supertntmod.client.GrapplingHookEntityRenderer(ctx));
+
         // Top entity'leri - özel renderer (renkli beton küp)
         EntityRendererRegistry.register(ModEntities.SHRINK_BALL, ShrinkBallEntityRenderer::new);
         EntityRendererRegistry.register(ModEntities.GROW_BALL, GrowBallEntityRenderer::new);

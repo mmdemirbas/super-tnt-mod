@@ -43,6 +43,11 @@ public class ModItems {
                     .maxCount(16)
                     .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "shrink_ball")))));
 
+    public static final GrapplingHookItem GRAPPLING_HOOK = register("grappling_hook",
+            new GrapplingHookItem(new Item.Settings()
+                    .maxCount(1)
+                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "grappling_hook")))));
+
     public static final GrowBallItem GROW_BALL = register("grow_ball",
             new GrowBallItem(new Item.Settings()
                     .maxCount(16)
