@@ -1,5 +1,6 @@
 package com.supertntmod.entity;
 
+import com.supertntmod.item.ScaleLockItem;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.TntEntity;
@@ -49,11 +50,12 @@ public class GrowthTntEntity extends TntEntity {
             world.playSound(null, center.getX(), center.getY(), center.getZ(),
                     SoundEvents.ENTITY_ELDER_GUARDIAN_CURSE, SoundCategory.BLOCKS, 1.0f, 0.8f);
 
-            // Yakındaki tüm canlıları büyüt
+            // Yakındaki tüm canlıları büyüt (Ölçek Kilidi takanlar hariç)
             world.getEntitiesByClass(LivingEntity.class,
                     new net.minecraft.util.math.Box(center).expand(RADIUS),
                     e -> true
             ).forEach(entity -> {
+                if (ScaleLockItem.isProtected(entity)) return;
                 EntityAttributeInstance scaleAttr = entity.getAttributeInstance(EntityAttributes.SCALE);
                 if (scaleAttr != null) {
                     // Mevcut ölçeği oku ve 3.0 ile çarp (kümülatif büyütme)

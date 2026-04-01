@@ -82,6 +82,12 @@
   "item.supertntmod.shrink_ball.tooltip":            "Throw at your feet to shrink yourself! Does not affect others.",
   "item.supertntmod.grow_ball":                      "Grow Ball",
   "item.supertntmod.grow_ball.tooltip":              "Throw at your feet to grow yourself! Does not affect others.",
+  "item.supertntmod.shrink_potion":                  "Shrink Potion",
+  "item.supertntmod.shrink_potion.tooltip":          "Throw at an entity to shrink it! Scale Lock blocks the effect.",
+  "item.supertntmod.grow_potion":                    "Grow Potion",
+  "item.supertntmod.grow_potion.tooltip":            "Throw at an entity to grow it! Scale Lock blocks the effect.",
+  "item.supertntmod.scale_lock":                     "Scale Lock",
+  "item.supertntmod.scale_lock.tooltip":             "Hold or equip to block all scale-changing effects!",
 
   "message.supertntmod.encrypted_tnt_chest.owner_set":        "§aYou are now the owner of this chest! Type your password in chat:",
   "message.supertntmod.encrypted_tnt_chest.set_password":     "§eType your password in chat:",

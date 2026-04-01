@@ -91,6 +91,9 @@ public class SuperTntMod implements ModInitializer {
                             entries.add(ModItems.GRAPPLING_HOOK);
                             entries.add(ModItems.SHRINK_BALL);
                             entries.add(ModItems.GROW_BALL);
+                            entries.add(ModItems.SHRINK_POTION);
+                            entries.add(ModItems.GROW_POTION);
+                            entries.add(ModItems.SCALE_LOCK);
                         })
                         .build());
 

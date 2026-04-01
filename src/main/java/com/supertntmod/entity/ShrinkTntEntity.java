@@ -2,6 +2,7 @@ package com.supertntmod.entity;
 
 import com.supertntmod.SuperTntMod;
 import com.supertntmod.item.ModItems;
+import com.supertntmod.item.ScaleLockItem;
 import com.supertntmod.item.TunnelingItem;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
@@ -54,11 +55,12 @@ public class ShrinkTntEntity extends TntEntity {
             world.playSound(null, center.getX(), center.getY(), center.getZ(),
                     SoundEvents.ENTITY_PUFFER_FISH_BLOW_OUT, SoundCategory.BLOCKS, 2.0f, 2.0f);
 
-            // Yakındaki tüm canlıları küçült
+            // Yakındaki tüm canlıları küçült (Ölçek Kilidi takanlar hariç)
             world.getEntitiesByClass(LivingEntity.class,
                     new net.minecraft.util.math.Box(center).expand(RADIUS),
                     e -> true
             ).forEach(entity -> {
+                if (ScaleLockItem.isProtected(entity)) return;
                 EntityAttributeInstance scaleAttr = entity.getAttributeInstance(EntityAttributes.SCALE);
                 if (scaleAttr != null) {
                     // Mevcut ölçeği oku ve 0.3 ile çarp (kümülatif küçültme)

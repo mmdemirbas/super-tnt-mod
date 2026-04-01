@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["GGG", "GDG", "GGG"],
+  "key": {
+    "G": "minecraft:gold_ingot",
+    "D": "minecraft:diamond"
+  },
+  "result": {
+    "id": "supertntmod:scale_lock",
+    "count": 1
+  }
+}

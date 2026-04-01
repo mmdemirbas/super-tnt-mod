@@ -117,6 +117,16 @@ public class ModEntities {
                     (type, world) -> new GrowBallEntity(type, world), SpawnGroup.MISC)
                     .dimensions(0.25f, 0.25f));
 
+    public static final EntityType<ShrinkPotionEntity> SHRINK_POTION = regThrown("shrink_potion",
+            EntityType.Builder.<ShrinkPotionEntity>create(
+                    (type, world) -> new ShrinkPotionEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.25f, 0.25f));
+
+    public static final EntityType<GrowPotionEntity> GROW_POTION = regThrown("grow_potion",
+            EntityType.Builder.<GrowPotionEntity>create(
+                    (type, world) -> new GrowPotionEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.25f, 0.25f));
+
     public static final EntityType<MobFreezeTntEntity> MOB_FREEZE_TNT = regTnt("mob_freeze_tnt",
             EntityType.Builder.<MobFreezeTntEntity>create(
                     (type, world) -> new MobFreezeTntEntity(type, world), SpawnGroup.MISC)

@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["LLL", "LSL", "LLL"],
+  "key": {
+    "L": "minecraft:lapis_lazuli",
+    "S": "supertntmod:shrink_ball"
+  },
+  "result": {
+    "id": "supertntmod:shrink_potion",
+    "count": 4
+  }
+}

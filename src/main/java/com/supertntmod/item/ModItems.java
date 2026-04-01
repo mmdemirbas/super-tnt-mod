@@ -53,6 +53,21 @@ public class ModItems {
                     .maxCount(16)
                     .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "grow_ball")))));
 
+    public static final ShrinkPotionItem SHRINK_POTION = register("shrink_potion",
+            new ShrinkPotionItem(new Item.Settings()
+                    .maxCount(16)
+                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "shrink_potion")))));
+
+    public static final GrowPotionItem GROW_POTION = register("grow_potion",
+            new GrowPotionItem(new Item.Settings()
+                    .maxCount(16)
+                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "grow_potion")))));
+
+    public static final ScaleLockItem SCALE_LOCK = register("scale_lock",
+            new ScaleLockItem(new Item.Settings()
+                    .maxCount(1)
+                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "scale_lock")))));
+
     private static <T extends Item> T register(String name, T item) {
         Identifier id = Identifier.of(SuperTntMod.MOD_ID, name);
         return Registry.register(Registries.ITEM, id, item);

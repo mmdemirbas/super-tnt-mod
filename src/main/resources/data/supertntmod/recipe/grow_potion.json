@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["BBB", "BGB", "BBB"],
+  "key": {
+    "B": "minecraft:blaze_powder",
+    "G": "supertntmod:grow_ball"
+  },
+  "result": {
+    "id": "supertntmod:grow_potion",
+    "count": 4
+  }
+}

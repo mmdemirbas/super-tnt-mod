@@ -82,6 +82,12 @@
   "item.supertntmod.shrink_ball.tooltip":            "Ayaklarına at ve küçül! Diğerlerini etkilemez.",
   "item.supertntmod.grow_ball":                      "Büyütme Topu",
   "item.supertntmod.grow_ball.tooltip":              "Ayaklarına at ve büyü! Diğerlerini etkilemez.",
+  "item.supertntmod.shrink_potion":                  "Küçültme İksiri",
+  "item.supertntmod.shrink_potion.tooltip":          "Canlıya at ve küçült! Ölçek Kilidi etkiyi engeller.",
+  "item.supertntmod.grow_potion":                    "Büyütme İksiri",
+  "item.supertntmod.grow_potion.tooltip":            "Canlıya at ve büyüt! Ölçek Kilidi etkiyi engeller.",
+  "item.supertntmod.scale_lock":                     "Ölçek Kilidi",
+  "item.supertntmod.scale_lock.tooltip":             "Tut veya tak — tüm boyut değiştirme etkilerini engeller!",
 
   "message.supertntmod.encrypted_tnt_chest.owner_set":        "§aBu sandığın sahibi oldunuz! Chat'e şifrenizi yazın:",
   "message.supertntmod.encrypted_tnt_chest.set_password":     "§eChat'e şifrenizi yazın:",
