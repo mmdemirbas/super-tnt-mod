@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["LLL", "LTL", "LLL"],
+  "key": {
+    "L": "minecraft:lime_dye",
+    "T": "minecraft:tnt"
+  },
+  "result": {
+    "id": "supertntmod:grow_ball",
+    "count": 4
+  }
+}

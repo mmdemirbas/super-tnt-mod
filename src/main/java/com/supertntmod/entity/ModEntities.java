@@ -77,6 +77,16 @@ public class ModEntities {
                     (type, world) -> new TntFrisbeeEntity(type, world), SpawnGroup.MISC)
                     .dimensions(0.25f, 0.25f));
 
+    public static final EntityType<ShrinkBallEntity> SHRINK_BALL = regThrown("shrink_ball",
+            EntityType.Builder.<ShrinkBallEntity>create(
+                    (type, world) -> new ShrinkBallEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.25f, 0.25f));
+
+    public static final EntityType<GrowBallEntity> GROW_BALL = regThrown("grow_ball",
+            EntityType.Builder.<GrowBallEntity>create(
+                    (type, world) -> new GrowBallEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.25f, 0.25f));
+
     public static final EntityType<MobFreezeTntEntity> MOB_FREEZE_TNT = regTnt("mob_freeze_tnt",
             EntityType.Builder.<MobFreezeTntEntity>create(
                     (type, world) -> new MobFreezeTntEntity(type, world), SpawnGroup.MISC)
@@ -141,6 +151,6 @@ public class ModEntities {
     }
 
     public static void register() {
-        SuperTntMod.LOGGER.info("21 entity türü kaydedildi.");
+        SuperTntMod.LOGGER.info("23 entity türü kaydedildi.");
     }
 }

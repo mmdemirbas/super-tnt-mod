@@ -1,7 +1,9 @@
 package com.supertntmod;
 
 import com.supertntmod.block.ModBlocks;
+import com.supertntmod.client.GrowBallEntityRenderer;
 import com.supertntmod.client.PortalProjectileEntityRenderer;
+import com.supertntmod.client.ShrinkBallEntityRenderer;
 import com.supertntmod.client.TntFrisbeeEntityRenderer;
 import com.supertntmod.client.TunneledBlockEntityRenderer;
 import com.supertntmod.client.WalkingTntEntityRenderer;
@@ -46,6 +48,10 @@ public class SuperTntModClient implements ClientModInitializer {
 
         // Portal mermisi - özel renderer
         EntityRendererRegistry.register(ModEntities.PORTAL_PROJECTILE, PortalProjectileEntityRenderer::new);
+
+        // Top entity'leri - özel renderer (renkli beton küp)
+        EntityRendererRegistry.register(ModEntities.SHRINK_BALL, ShrinkBallEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.GROW_BALL, GrowBallEntityRenderer::new);
 
         // Portal bloğu render katmanı
         BlockRenderLayerMap.putBlock(ModBlocks.PORTAL_BLOCK, BlockRenderLayer.CUTOUT);

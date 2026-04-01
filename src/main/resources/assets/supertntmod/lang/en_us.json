@@ -64,6 +64,10 @@
   "item.supertntmod.green_lego_brick":               "Green Lego Brick",
   "block.supertntmod.portal_block":                  "Portal",
   "block.supertntmod.tunneled_block":                "Tunneled Block",
+  "item.supertntmod.shrink_ball":                    "Shrink Ball",
+  "item.supertntmod.shrink_ball.tooltip":            "Throw at your feet to shrink yourself! Does not affect others.",
+  "item.supertntmod.grow_ball":                      "Grow Ball",
+  "item.supertntmod.grow_ball.tooltip":              "Throw at your feet to grow yourself! Does not affect others.",
 
   "message.supertntmod.encrypted_tnt_chest.owner_set":        "§aYou are now the owner of this chest! Type your password in chat:",
   "message.supertntmod.encrypted_tnt_chest.set_password":     "§eType your password in chat:",

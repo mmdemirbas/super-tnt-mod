@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["RRR", "RTR", "RRR"],
+  "key": {
+    "R": "minecraft:red_dye",
+    "T": "minecraft:tnt"
+  },
+  "result": {
+    "id": "supertntmod:shrink_ball",
+    "count": 4
+  }
+}

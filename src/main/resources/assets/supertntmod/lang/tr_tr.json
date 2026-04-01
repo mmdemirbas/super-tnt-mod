@@ -64,6 +64,10 @@
   "item.supertntmod.green_lego_brick":               "Yeşil Lego Tuğla",
   "block.supertntmod.portal_block":                  "Portal",
   "block.supertntmod.tunneled_block":                "Tünel Blok",
+  "item.supertntmod.shrink_ball":                    "Küçültme Topu",
+  "item.supertntmod.shrink_ball.tooltip":            "Ayaklarına at ve küçül! Diğerlerini etkilemez.",
+  "item.supertntmod.grow_ball":                      "Büyütme Topu",
+  "item.supertntmod.grow_ball.tooltip":              "Ayaklarına at ve büyü! Diğerlerini etkilemez.",
 
   "message.supertntmod.encrypted_tnt_chest.owner_set":        "§aBu sandığın sahibi oldunuz! Chat'e şifrenizi yazın:",
   "message.supertntmod.encrypted_tnt_chest.set_password":     "§eChat'e şifrenizi yazın:",

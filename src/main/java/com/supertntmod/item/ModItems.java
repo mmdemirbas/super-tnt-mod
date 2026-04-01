@@ -38,12 +38,22 @@ public class ModItems {
                     .maxCount(16)
                     .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "among_us_report")))));
 
+    public static final ShrinkBallItem SHRINK_BALL = register("shrink_ball",
+            new ShrinkBallItem(new Item.Settings()
+                    .maxCount(16)
+                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "shrink_ball")))));
+
+    public static final GrowBallItem GROW_BALL = register("grow_ball",
+            new GrowBallItem(new Item.Settings()
+                    .maxCount(16)
+                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "grow_ball")))));
+
     private static <T extends Item> T register(String name, T item) {
         Identifier id = Identifier.of(SuperTntMod.MOD_ID, name);
         return Registry.register(Registries.ITEM, id, item);
     }
 
     public static void register() {
-        SuperTntMod.LOGGER.info("5 item kaydedildi.");
+        SuperTntMod.LOGGER.info("8 item kaydedildi.");
     }
 }
