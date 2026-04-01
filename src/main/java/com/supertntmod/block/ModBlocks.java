@@ -126,6 +126,10 @@ public class ModBlocks {
     public static final BounceTntBlock BOUNCE_TNT = reg("bounce_tnt",
             new BounceTntBlock(tntSettings("bounce_tnt")));
 
+    // 🔀 Takas TNT - Yakındaki canlıların konumlarını karıştırır
+    public static final SwapTntBlock SWAP_TNT = reg("swap_tnt",
+            new SwapTntBlock(tntSettings("swap_tnt")));
+
     // 🎂 Sahte TNT - Pasta görünümlü, yemeye çalışan patlar!
     public static final FakeTntBlock FAKE_TNT = reg("fake_tnt",
             new FakeTntBlock(AbstractBlock.Settings.copy(Blocks.CAKE)

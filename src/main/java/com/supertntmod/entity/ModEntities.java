@@ -77,6 +77,11 @@ public class ModEntities {
                     (type, world) -> new TntFrisbeeEntity(type, world), SpawnGroup.MISC)
                     .dimensions(0.25f, 0.25f));
 
+    public static final EntityType<SwapTntEntity> SWAP_TNT = regTnt("swap_tnt",
+            EntityType.Builder.<SwapTntEntity>create(
+                    (type, world) -> new SwapTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
     public static final EntityType<BounceTntEntity> BOUNCE_TNT = regTnt("bounce_tnt",
             EntityType.Builder.<BounceTntEntity>create(
                     (type, world) -> new BounceTntEntity(type, world), SpawnGroup.MISC)

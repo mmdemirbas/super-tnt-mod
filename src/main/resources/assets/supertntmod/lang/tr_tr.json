@@ -64,6 +64,8 @@
   "item.supertntmod.green_lego_brick":               "Yeşil Lego Tuğla",
   "block.supertntmod.portal_block":                  "Portal",
   "block.supertntmod.tunneled_block":                "Tünel Blok",
+  "block.supertntmod.swap_tnt":           "Takas TNT",
+  "block.supertntmod.swap_tnt.tooltip":   "Yakındaki tüm canlıların konumlarını rastgele karıştırır!",
   "block.supertntmod.bounce_tnt":         "Zıplatan TNT",
   "block.supertntmod.bounce_tnt.tooltip": "Yakındaki HER ŞEYİ gökyüzüne fırlatır! Blok hasarı yoktur.",
   "item.supertntmod.shrink_ball":                    "Küçültme Topu",

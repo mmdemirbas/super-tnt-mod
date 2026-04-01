@@ -75,6 +75,7 @@ public class SuperTntMod implements ModInitializer {
                             entries.add(ModBlocks.CLEANSE_TNT);
                             entries.add(ModBlocks.FAKE_TNT);
                             entries.add(ModBlocks.BOUNCE_TNT);
+                            entries.add(ModBlocks.SWAP_TNT);
                             // Item'ler
                             entries.add(ModItems.TNT_FRISBEE);
                             entries.add(ModItems.TUNNELING_ITEM);

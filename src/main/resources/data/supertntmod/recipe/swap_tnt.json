@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["EEE", "ETE", "EEE"],
+  "key": {
+    "E": "minecraft:ender_pearl",
+    "T": "minecraft:tnt"
+  },
+  "result": {
+    "id": "supertntmod:swap_tnt",
+    "count": 1
+  }
+}
