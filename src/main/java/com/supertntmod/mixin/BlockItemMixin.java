@@ -1,5 +1,6 @@
 package com.supertntmod.mixin;
 
+import com.supertntmod.SuperTntMod;
 import com.supertntmod.block.ModBlocks;
 import com.supertntmod.block.TunneledBlock;
 import com.supertntmod.block.TunneledBlockEntity;
@@ -46,9 +47,11 @@ public class BlockItemMixin {
         BlockPos pos = context.getBlockPos();
         BlockState placedState = world.getBlockState(pos);
 
-        // TunneledBlock veya BlockEntity'li blokları dönüştürme
+        // TunneledBlock, BlockEntity'li veya mod'a ait blokları dönüştürme
         if (placedState.getBlock() instanceof TunneledBlock) return;
         if (placedState.hasBlockEntity()) return;
+        // Supertntmod bloklarını dönüştürme — TNT ve özel bloklar tam boyutlu kalmalı
+        if (Registries.BLOCK.getId(placedState.getBlock()).getNamespace().equals(SuperTntMod.MOD_ID)) return;
 
         // Sub-voxel sayısını hesapla (eksen başına)
         int count = Math.max(1, (int) Math.ceil(scale * 4));
