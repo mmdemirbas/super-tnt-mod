@@ -77,6 +77,11 @@ public class ModEntities {
                     (type, world) -> new TntFrisbeeEntity(type, world), SpawnGroup.MISC)
                     .dimensions(0.25f, 0.25f));
 
+    public static final EntityType<MagnetTntEntity> MAGNET_TNT = regTnt("magnet_tnt",
+            EntityType.Builder.<MagnetTntEntity>create(
+                    (type, world) -> new MagnetTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
     public static final EntityType<GravityTntEntity> GRAVITY_TNT = regTnt("gravity_tnt",
             EntityType.Builder.<GravityTntEntity>create(
                     (type, world) -> new GravityTntEntity(type, world), SpawnGroup.MISC)

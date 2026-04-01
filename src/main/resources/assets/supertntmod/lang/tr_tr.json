@@ -64,6 +64,8 @@
   "item.supertntmod.green_lego_brick":               "Yeşil Lego Tuğla",
   "block.supertntmod.portal_block":                  "Portal",
   "block.supertntmod.tunneled_block":                "Tünel Blok",
+  "block.supertntmod.magnet_tnt":         "Mıknatıs TNT",
+  "block.supertntmod.magnet_tnt.tooltip": "3 saniye boyunca yakındaki her şeyi çeker, sonra BOOM!",
   "block.supertntmod.gravity_tnt":         "Yerçekimi TNT",
   "block.supertntmod.gravity_tnt.tooltip": "Yakındaki canlıların yerçekimini 10 sn ters çevirir — iyi düşüşler!",
   "block.supertntmod.invisible_tnt":         "Görünmez TNT",
