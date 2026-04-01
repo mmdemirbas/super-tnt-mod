@@ -2,6 +2,7 @@ package com.supertntmod;
 
 import com.supertntmod.block.EncryptedTntChestBlock;
 import com.supertntmod.block.ModBlocks;
+import com.supertntmod.entity.GravityTntEntity;
 import com.supertntmod.entity.ModEntities;
 import com.supertntmod.entity.WalkingTntEntity;
 import com.supertntmod.entity.WoodTntEntity;
@@ -75,6 +76,7 @@ public class SuperTntMod implements ModInitializer {
                             entries.add(ModBlocks.CLEANSE_TNT);
                             entries.add(ModBlocks.FAKE_TNT);
                             entries.add(ModBlocks.BOUNCE_TNT);
+                            entries.add(ModBlocks.GRAVITY_TNT);
                             entries.add(ModBlocks.INVISIBLE_TNT);
                             entries.add(ModBlocks.SWAP_TNT);
                             // Item'ler
@@ -89,8 +91,11 @@ public class SuperTntMod implements ModInitializer {
                         })
                         .build());
 
-        // Odun TNT geri yükleme zamanlayıcısı (tek bir listener)
+        // Odun TNT geri yükleme zamanlayıcısı
         ServerTickEvents.END_SERVER_TICK.register(server -> WoodTntEntity.tickRestores());
+
+        // Yerçekimi TNT: ters yerçekimi zamanlayıcısı
+        ServerTickEvents.END_SERVER_TICK.register(server -> GravityTntEntity.tickGravity(server));
 
         // Yürüyen TNT entity özelliklerini kaydet
         FabricDefaultAttributeRegistry.register(ModEntities.WALKING_TNT, WalkingTntEntity.createAttributes());

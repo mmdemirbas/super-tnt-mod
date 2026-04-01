@@ -1,0 +1,6 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["PPP", "PTP", "PPP"],
+  "key": {"P": "minecraft:phantom_membrane", "T": "minecraft:tnt"},
+  "result": {"id": "supertntmod:gravity_tnt", "count": 1}
+}

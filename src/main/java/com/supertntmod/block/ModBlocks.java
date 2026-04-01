@@ -126,6 +126,10 @@ public class ModBlocks {
     public static final BounceTntBlock BOUNCE_TNT = reg("bounce_tnt",
             new BounceTntBlock(tntSettings("bounce_tnt")));
 
+    // 🌌 Yerçekimi TNT - Yakındaki canlıların yerçekimini 10 sn ters çevirir
+    public static final GravityTntBlock GRAVITY_TNT = reg("gravity_tnt",
+            new GravityTntBlock(tntSettings("gravity_tnt")));
+
     // 🪨 Görünmez TNT - Taş gibi görünür, ateşlenince patlar
     public static final InvisibleTntBlock INVISIBLE_TNT = reg("invisible_tnt",
             new InvisibleTntBlock(tntSettings("invisible_tnt")));

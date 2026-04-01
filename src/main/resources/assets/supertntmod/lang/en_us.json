@@ -64,6 +64,8 @@
   "item.supertntmod.green_lego_brick":               "Green Lego Brick",
   "block.supertntmod.portal_block":                  "Portal",
   "block.supertntmod.tunneled_block":                "Tunneled Block",
+  "block.supertntmod.gravity_tnt":         "Gravity TNT",
+  "block.supertntmod.gravity_tnt.tooltip": "Inverts gravity for nearby entities for 10 seconds — enjoy the fall!",
   "block.supertntmod.invisible_tnt":         "Invisible TNT",
   "block.supertntmod.invisible_tnt.tooltip": "Disguised as stone — nobody suspects a thing!",
   "block.supertntmod.swap_tnt":           "Swap TNT",
