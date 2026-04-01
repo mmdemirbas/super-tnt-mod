@@ -122,6 +122,10 @@ public class ModBlocks {
     public static final CleanseTntBlock CLEANSE_TNT = reg("cleanse_tnt",
             new CleanseTntBlock(tntSettings("cleanse_tnt")));
 
+    // 🟡 Zıplatan TNT - Yakındaki her şeyi havaya uçurur
+    public static final BounceTntBlock BOUNCE_TNT = reg("bounce_tnt",
+            new BounceTntBlock(tntSettings("bounce_tnt")));
+
     // 🎂 Sahte TNT - Pasta görünümlü, yemeye çalışan patlar!
     public static final FakeTntBlock FAKE_TNT = reg("fake_tnt",
             new FakeTntBlock(AbstractBlock.Settings.copy(Blocks.CAKE)

@@ -40,6 +40,8 @@ public class SuperTntModClient implements ClientModInitializer {
         EntityRendererRegistry.register(ModEntities.GROWTH_TNT, TntEntityRenderer::new);
         EntityRendererRegistry.register(ModEntities.CLEANSE_TNT, TntEntityRenderer::new);
 
+        EntityRendererRegistry.register(ModEntities.BOUNCE_TNT, TntEntityRenderer::new);
+
         // Yürüyen TNT - özel renderer (TNT bloğu görünümü)
         EntityRendererRegistry.register(ModEntities.WALKING_TNT, WalkingTntEntityRenderer::new);
 

@@ -64,6 +64,8 @@
   "item.supertntmod.green_lego_brick":               "Green Lego Brick",
   "block.supertntmod.portal_block":                  "Portal",
   "block.supertntmod.tunneled_block":                "Tunneled Block",
+  "block.supertntmod.bounce_tnt":         "Bounce TNT",
+  "block.supertntmod.bounce_tnt.tooltip": "Launches ALL nearby entities sky-high! No block damage.",
   "item.supertntmod.shrink_ball":                    "Shrink Ball",
   "item.supertntmod.shrink_ball.tooltip":            "Throw at your feet to shrink yourself! Does not affect others.",
   "item.supertntmod.grow_ball":                      "Grow Ball",
