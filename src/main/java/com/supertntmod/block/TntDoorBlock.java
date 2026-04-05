@@ -77,7 +77,7 @@ public class TntDoorBlock extends DoorBlock {
                 return ActionResult.SUCCESS;
             }
             // İkinci deneme: patla!
-            WARNED_PLAYERS.remove(player.getUuid());
+            onPlayerDisconnect(player.getUuid());
             player.damage(serverWorld, world.getDamageSources().explosion(null, null), 14.0f);
             world.playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
                     SoundEvents.ENTITY_GENERIC_EXPLODE.value(), SoundCategory.BLOCKS, 1.0f, 1.0f);
@@ -86,6 +86,10 @@ public class TntDoorBlock extends DoorBlock {
             player.sendMessage(Text.translatable("message.supertntmod.tnt_door.not_owner"), false);
             return ActionResult.SUCCESS;
         }
+    }
+
+    public static void onPlayerDisconnect(java.util.UUID uuid) {
+        WARNED_PLAYERS.remove(uuid);
     }
 
     @Override

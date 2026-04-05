@@ -64,4 +64,8 @@ public class PortalGunItem extends Item {
 
         return ActionResult.SUCCESS;
     }
+
+    public static void onPlayerDisconnect(java.util.UUID uuid) {
+        NEXT_IS_PINK.remove(uuid);
+    }
 }

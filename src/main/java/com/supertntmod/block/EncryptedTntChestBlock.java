@@ -18,10 +18,10 @@ import net.minecraft.state.property.Properties;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 
@@ -44,8 +44,10 @@ public class EncryptedTntChestBlock extends Block {
     // Sandık şekli: 14×14 taban, 14 piksel yükseklik (vanilla sandık boyutu)
     private static final VoxelShape SHAPE = Block.createCuboidShape(1, 0, 1, 15, 14, 15);
 
+    private record DimPos(RegistryKey<World> dimension, BlockPos pos) {}
+
     // Şifre girişi bekleyen oyuncular (ephemeral, no persistence needed)
-    public static final Map<UUID, BlockPos> AWAITING_PASSWORD = new HashMap<>();
+    static final Map<UUID, DimPos> AWAITING_PASSWORD = new HashMap<>();
     public static final Map<UUID, Boolean> AWAITING_SET_PASSWORD = new HashMap<>();
 
     public EncryptedTntChestBlock(Settings settings) {
@@ -92,7 +94,7 @@ public class EncryptedTntChestBlock extends Block {
             inv.addListener(sender -> chestState.markDirty());
             chestState.inventories.put(pos, inv);
             chestState.markDirty();
-            AWAITING_PASSWORD.put(player.getUuid(), pos.toImmutable());
+            AWAITING_PASSWORD.put(player.getUuid(), new DimPos(world.getRegistryKey(), pos.toImmutable()));
             AWAITING_SET_PASSWORD.put(player.getUuid(), true);
             player.sendMessage(Text.translatable("message.supertntmod.encrypted_tnt_chest.owner_set"), false);
             return ActionResult.SUCCESS;
@@ -103,12 +105,12 @@ public class EncryptedTntChestBlock extends Block {
         if (player.getUuid().equals(ownerUuid)) {
             if (!chestState.passwords.containsKey(pos)) {
                 // Henüz şifre belirlenmemiş
-                AWAITING_PASSWORD.put(player.getUuid(), pos.toImmutable());
+                AWAITING_PASSWORD.put(player.getUuid(), new DimPos(world.getRegistryKey(), pos.toImmutable()));
                 AWAITING_SET_PASSWORD.put(player.getUuid(), true);
                 player.sendMessage(Text.translatable("message.supertntmod.encrypted_tnt_chest.set_password"), false);
             } else {
                 // Sahibi: şifre sor
-                AWAITING_PASSWORD.put(player.getUuid(), pos.toImmutable());
+                AWAITING_PASSWORD.put(player.getUuid(), new DimPos(world.getRegistryKey(), pos.toImmutable()));
                 AWAITING_SET_PASSWORD.put(player.getUuid(), false);
                 player.sendMessage(Text.translatable("message.supertntmod.encrypted_tnt_chest.enter_password"), false);
             }
@@ -133,9 +135,13 @@ public class EncryptedTntChestBlock extends Block {
         UUID uuid = player.getUuid();
         if (!AWAITING_PASSWORD.containsKey(uuid)) return false;
 
-        BlockPos pos = AWAITING_PASSWORD.remove(uuid);
+        DimPos dimPos = AWAITING_PASSWORD.remove(uuid);
         boolean isSettingPassword = AWAITING_SET_PASSWORD.remove(uuid);
-        ChestPersistentState chestState = ChestPersistentState.get(player.getEntityWorld());
+        if (!(player.getEntityWorld() instanceof net.minecraft.server.world.ServerWorld currentWorld)) return false;
+        net.minecraft.server.world.ServerWorld targetWorld = currentWorld.getServer().getWorld(dimPos.dimension());
+        if (targetWorld == null) return false;
+        BlockPos pos = dimPos.pos();
+        ChestPersistentState chestState = ChestPersistentState.get(targetWorld);
 
         if (isSettingPassword) {
             chestState.passwords.put(pos, message);
@@ -160,6 +166,11 @@ public class EncryptedTntChestBlock extends Block {
             player.sendMessage(Text.translatable("message.supertntmod.encrypted_tnt_chest.password_wrong"), true);
         }
         return true;
+    }
+
+    public static void onPlayerDisconnect(UUID uuid) {
+        AWAITING_PASSWORD.remove(uuid);
+        AWAITING_SET_PASSWORD.remove(uuid);
     }
 
     @Override

@@ -2,15 +2,18 @@ package com.supertntmod;
 
 import com.supertntmod.block.EncryptedTntChestBlock;
 import com.supertntmod.block.ModBlocks;
+import com.supertntmod.block.TntDoorBlock;
 import com.supertntmod.entity.GravityTntEntity;
 import com.supertntmod.entity.ModEntities;
 import com.supertntmod.entity.WalkingTntEntity;
 import com.supertntmod.entity.WoodTntEntity;
 import com.supertntmod.item.ModItems;
+import com.supertntmod.item.PortalGunItem;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
@@ -115,6 +118,14 @@ public class SuperTntMod implements ModInitializer {
                 if (handled) return false; // Şifre mesajını iptal et, kimse görmesin
             }
             return true; // Normal mesaj, devam et
+        });
+
+        // Oyuncu ayrılınca ephemeral per-player state'i temizle
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
+            java.util.UUID id = handler.player.getUuid();
+            EncryptedTntChestBlock.onPlayerDisconnect(id);
+            TntDoorBlock.onPlayerDisconnect(id);
+            PortalGunItem.onPlayerDisconnect(id);
         });
 
         LOGGER.info("Super TNT Modu yüklendi! 25 blok + 5 item hazır.");
