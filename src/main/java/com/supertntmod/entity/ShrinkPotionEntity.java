@@ -1,5 +1,6 @@
 package com.supertntmod.entity;
 
+import com.supertntmod.SuperTntMod;
 import com.supertntmod.item.ModItems;
 import com.supertntmod.item.ScaleLockItem;
 import com.supertntmod.item.TunnelingItem;
@@ -72,9 +73,9 @@ public class ShrinkPotionEntity extends ThrownEntity {
         double newScale = currentScale * 0.3;
         double newModifierValue = newScale - 1.0;
 
-        scaleAttr.removeModifier(ShrinkTntEntity.SCALE_MODIFIER_ID);
+        scaleAttr.removeModifier(SuperTntMod.SCALE_MODIFIER_ID);
         scaleAttr.addPersistentModifier(new EntityAttributeModifier(
-                ShrinkTntEntity.SCALE_MODIFIER_ID, newModifierValue,
+                SuperTntMod.SCALE_MODIFIER_ID, newModifierValue,
                 EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE));
 
         // 1/12 ölçeğe ulaşan oyunculara tünelleme aleti ver

@@ -1,5 +1,6 @@
 package com.supertntmod.entity;
 
+import com.supertntmod.SuperTntMod;
 import com.supertntmod.item.ScaleLockItem;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
@@ -63,9 +64,9 @@ public class GrowthTntEntity extends TntEntity {
                     double newScale = currentScale * 3.0;
                     double newModifierValue = newScale - 1.0;
 
-                    scaleAttr.removeModifier(ShrinkTntEntity.SCALE_MODIFIER_ID);
+                    scaleAttr.removeModifier(SuperTntMod.SCALE_MODIFIER_ID);
                     scaleAttr.addPersistentModifier(new EntityAttributeModifier(
-                            ShrinkTntEntity.SCALE_MODIFIER_ID, newModifierValue,
+                            SuperTntMod.SCALE_MODIFIER_ID, newModifierValue,
                             EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE));
                 }
             });

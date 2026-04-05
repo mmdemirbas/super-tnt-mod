@@ -1,5 +1,6 @@
 package com.supertntmod.entity;
 
+import com.supertntmod.SuperTntMod;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.TntEntity;
@@ -63,7 +64,7 @@ public class CleanseTntEntity extends TntEntity {
                 // Boyut modifier'ını kaldır (küçültme/büyütme ortak ID)
                 EntityAttributeInstance scaleAttr = entity.getAttributeInstance(EntityAttributes.SCALE);
                 if (scaleAttr != null) {
-                    scaleAttr.removeModifier(ShrinkTntEntity.SCALE_MODIFIER_ID);
+                    scaleAttr.removeModifier(SuperTntMod.SCALE_MODIFIER_ID);
                 }
 
                 // Donma efektini sıfırla

@@ -17,7 +17,6 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
@@ -28,7 +27,6 @@ import org.jetbrains.annotations.Nullable;
  */
 public class ShrinkTntEntity extends TntEntity {
     private static final int RADIUS = 15;
-    public static final Identifier SCALE_MODIFIER_ID = Identifier.of(SuperTntMod.MOD_ID, "scale");
     private boolean done = false;
 
     public ShrinkTntEntity(EntityType<? extends TntEntity> type, World world) {
@@ -68,9 +66,9 @@ public class ShrinkTntEntity extends TntEntity {
                     double newScale = currentScale * 0.3;
                     double newModifierValue = newScale - 1.0;
 
-                    scaleAttr.removeModifier(SCALE_MODIFIER_ID);
+                    scaleAttr.removeModifier(SuperTntMod.SCALE_MODIFIER_ID);
                     scaleAttr.addPersistentModifier(new EntityAttributeModifier(
-                            SCALE_MODIFIER_ID, newModifierValue,
+                            SuperTntMod.SCALE_MODIFIER_ID, newModifierValue,
                             EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE));
 
                     // 1/12 ölçeğe ulaşan oyunculara tünelleme aleti ver

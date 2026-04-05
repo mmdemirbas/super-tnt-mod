@@ -31,6 +31,8 @@ import org.slf4j.LoggerFactory;
 public class SuperTntMod implements ModInitializer {
     public static final String MOD_ID = "supertntmod";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+    public static final net.minecraft.util.Identifier SCALE_MODIFIER_ID =
+            net.minecraft.util.Identifier.of(MOD_ID, "scale");
 
     // Özel item grubu
     public static final RegistryKey<ItemGroup> SUPER_TNT_GROUP = RegistryKey.of(
