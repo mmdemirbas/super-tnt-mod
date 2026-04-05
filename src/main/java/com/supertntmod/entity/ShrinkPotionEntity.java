@@ -78,7 +78,8 @@ public class ShrinkPotionEntity extends ThrownEntity {
                 EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE));
 
         // 1/12 ölçeğe ulaşan oyunculara tünelleme aleti ver
-        if (target instanceof PlayerEntity player && newScale <= TunnelingItem.SCALE_THRESHOLD) {
+        double actualScale = scaleAttr.getValue();
+        if (target instanceof PlayerEntity player && actualScale <= TunnelingItem.SCALE_THRESHOLD) {
             if (!player.getInventory().contains(new ItemStack(ModItems.TUNNELING_ITEM))) {
                 player.getInventory().insertStack(new ItemStack(ModItems.TUNNELING_ITEM));
                 player.sendMessage(Text.translatable("item.supertntmod.tunneling_item.granted"), false);

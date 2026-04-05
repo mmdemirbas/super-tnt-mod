@@ -14,6 +14,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.world.World;
 
@@ -62,11 +63,24 @@ public class ShrinkBallEntity extends ThrownEntity {
                 ShrinkTntEntity.SCALE_MODIFIER_ID, newModifierValue,
                 EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE));
 
-        // 1/12 ölçeğe ulaşan oyunculara tünelleme aleti ver
-        if (owner instanceof PlayerEntity player && newScale <= TunnelingItem.SCALE_THRESHOLD) {
-            if (!player.getInventory().contains(new ItemStack(ModItems.TUNNELING_ITEM))) {
-                player.getInventory().insertStack(new ItemStack(ModItems.TUNNELING_ITEM));
-                player.sendMessage(Text.translatable("item.supertntmod.tunneling_item.granted"), false);
+        double actualScale = scaleAttr.getValue(); // clamp sonrası gerçek değer
+        if (owner instanceof PlayerEntity player) {
+            if (Math.abs(actualScale - currentScale) < 0.00001) {
+                player.sendMessage(
+                    Text.literal("En küçük ölçektesin! Sıfırlamak için Temizleyici TNT kullan.").formatted(Formatting.YELLOW),
+                    true);
+            } else {
+                player.sendMessage(
+                    Text.literal(String.format("Küçüldün! Ölçek: %.4fx", actualScale)).formatted(Formatting.AQUA),
+                    true);
+            }
+
+            // 1/12 ölçeğe ulaşan oyunculara tünelleme aleti ver
+            if (actualScale <= TunnelingItem.SCALE_THRESHOLD) {
+                if (!player.getInventory().contains(new ItemStack(ModItems.TUNNELING_ITEM))) {
+                    player.getInventory().insertStack(new ItemStack(ModItems.TUNNELING_ITEM));
+                    player.sendMessage(Text.translatable("item.supertntmod.tunneling_item.granted"), false);
+                }
             }
         }
     }

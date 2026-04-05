@@ -10,6 +10,8 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.thrown.ThrownEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.world.World;
 
@@ -57,6 +59,19 @@ public class GrowBallEntity extends ThrownEntity {
         scaleAttr.addPersistentModifier(new EntityAttributeModifier(
                 ShrinkTntEntity.SCALE_MODIFIER_ID, newModifierValue,
                 EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE));
+
+        double actualScale = scaleAttr.getValue(); // clamp sonrası gerçek değer
+        if (owner instanceof PlayerEntity player) {
+            if (Math.abs(actualScale - currentScale) < 0.001) {
+                player.sendMessage(
+                    Text.literal("En büyük ölçektesin! Sıfırlamak için Temizleyici TNT kullan.").formatted(Formatting.YELLOW),
+                    true);
+            } else {
+                player.sendMessage(
+                    Text.literal(String.format("Büyüdün! Ölçek: %.4fx", actualScale)).formatted(Formatting.GREEN),
+                    true);
+            }
+        }
     }
 
     private void playGrowSound() {
