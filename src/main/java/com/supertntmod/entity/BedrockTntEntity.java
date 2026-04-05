@@ -59,7 +59,7 @@ public class BedrockTntEntity extends TntEntity {
                 if (!pos.isWithinDistance(center, RADIUS)) continue;
 
                 if (!world.getBlockState(pos).isOf(Blocks.AIR)) {
-                    world.breakBlock(pos, true);
+                    world.breakBlock(pos, false);
                     modified++;
                 }
             }

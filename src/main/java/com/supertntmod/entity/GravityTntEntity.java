@@ -111,6 +111,7 @@ public class GravityTntEntity extends TntEntity {
             }
 
             if (entity == null || !entity.isAlive()) {
+                if (entity != null) entity.setNoGravity(false);
                 iter.remove();
                 continue;
             }
