@@ -118,6 +118,7 @@ public class PortalBlock extends Block {
                 targetPos.getX() + 0.5, targetPos.getY() + 1.0, targetPos.getZ() + 0.5,
                 java.util.Set.of(), entity.getYaw(), entity.getPitch(), false);
 
+        TELEPORT_COOLDOWNS.entrySet().removeIf(e -> currentTick - e.getValue() > TELEPORT_COOLDOWN);
         TELEPORT_COOLDOWNS.put(entity.getUuid(), currentTick);
 
         world.playSound(null, targetPos.getX() + 0.5, targetPos.getY() + 0.5, targetPos.getZ() + 0.5,

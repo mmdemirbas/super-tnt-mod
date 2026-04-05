@@ -5,6 +5,8 @@ import net.minecraft.entity.attribute.DefaultAttributeContainer;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.mob.PathAwareEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.storage.ReadView;
+import net.minecraft.storage.WriteView;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.math.Vec3d;
@@ -108,6 +110,20 @@ public class WalkingTntEntity extends PathAwareEntity {
 
         world.createExplosion(null, x, y, z, EXPLOSION_POWER, true,
                 World.ExplosionSourceType.TNT);
+    }
+
+    @Override
+    public void readData(ReadView reader) {
+        super.readData(reader);
+        reader.getOptionalString("OwnerUuid").ifPresent(s -> ownerUuid = UUID.fromString(s));
+    }
+
+    @Override
+    public void writeData(WriteView writer) {
+        super.writeData(writer);
+        if (ownerUuid != null) {
+            writer.putString("OwnerUuid", ownerUuid.toString());
+        }
     }
 
     @Override

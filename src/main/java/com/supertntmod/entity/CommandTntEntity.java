@@ -7,9 +7,13 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.TntEntity;
 import net.minecraft.particle.ParticleTypes;
+import net.minecraft.registry.Registries;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.storage.ReadView;
+import net.minecraft.storage.WriteView;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
@@ -48,6 +52,38 @@ public class CommandTntEntity extends TntEntity {
 
     public void setRadius(int radius) {
         this.radius = radius;
+    }
+
+    @Override
+    public void readData(ReadView reader) {
+        super.readData(reader);
+        radius = reader.getInt("radius", 30);
+        done = reader.getBoolean("done", false);
+        processing = reader.getBoolean("processing", false);
+        idx = reader.getInt("idx", 0);
+        reader.getOptionalString("targetBlock")
+                .ifPresent(s -> targetBlock = Registries.BLOCK.get(Identifier.of(s)));
+        if (processing || done) {
+            int cx = reader.getInt("centerX", 0);
+            int cy = reader.getInt("centerY", 0);
+            int cz = reader.getInt("centerZ", 0);
+            center = new BlockPos(cx, cy, cz);
+        }
+    }
+
+    @Override
+    public void writeData(WriteView writer) {
+        super.writeData(writer);
+        writer.putInt("radius", radius);
+        writer.putBoolean("done", done);
+        writer.putBoolean("processing", processing);
+        writer.putInt("idx", idx);
+        writer.putString("targetBlock", Registries.BLOCK.getId(targetBlock).toString());
+        if (center != null) {
+            writer.putInt("centerX", center.getX());
+            writer.putInt("centerY", center.getY());
+            writer.putInt("centerZ", center.getZ());
+        }
     }
 
     @Override
