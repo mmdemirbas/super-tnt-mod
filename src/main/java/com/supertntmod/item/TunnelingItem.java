@@ -81,8 +81,8 @@ public class TunnelingItem extends Item {
 
         // Delme boyutunu oyuncu boyutuna göre hesapla
         // Bir delme işlemi = yarı oyuncu yüksekliği, iki delme = tam beden deliği
-        int drillH = Math.max(1, (int) Math.ceil(player.getHeight() / 2.0 / 0.25));
-        int drillW = Math.max(1, (int) Math.ceil(player.getWidth() / 0.25));
+        int drillH = Math.max(1, (int) Math.round(player.getHeight() / 2.0 / 0.25));
+        int drillW = Math.max(1, (int) Math.round(player.getWidth() / 0.25));
 
         // Delme yönüne göre hangi eksenlerde genişleyeceğini belirle
         Direction face = context.getSide();
@@ -144,39 +144,33 @@ public class TunnelingItem extends Item {
         java.util.List<int[]> result = new java.util.ArrayList<>();
 
         if (face.getAxis() == Direction.Axis.Y) {
-            // Üst/alt yüzey: X-Z düzleminde genişle, tüm Y derinliğini del
+            // Üst/alt yüzey: tıklanan Y katmanında X-Z düzleminde genişle
             int halfW = drillW / 2;
-            int halfH = drillW / 2; // kare delik
-            for (int dy = 0; dy < 4; dy++) {
-                for (int dx = -halfW; dx < drillW - halfW; dx++) {
-                    for (int dz = -halfH; dz < drillW - halfH; dz++) {
-                        int sx = subX + dx;
-                        int sz = subZ + dz;
-                        if (sx >= 0 && sx < 4 && sz >= 0 && sz < 4) {
-                            result.add(new int[]{sx, dy, sz});
-                        }
+            for (int dx = -halfW; dx < drillW - halfW; dx++) {
+                for (int dz = -halfW; dz < drillW - halfW; dz++) {
+                    int sx = subX + dx;
+                    int sz = subZ + dz;
+                    if (sx >= 0 && sx < 4 && sz >= 0 && sz < 4) {
+                        result.add(new int[]{sx, subY, sz});
                     }
                 }
             }
         } else {
-            // Yan yüzey: Y ekseni dikey, kalan eksen yatay,
-            // yüzeye dik eksen boyunca tüm derinliği del (tünel aç)
+            // Yan yüzey: sadece tıklanan derinlik katmanında Y×lateral genişle
             int halfW = drillW / 2;
             for (int dy = 0; dy < drillH; dy++) {
                 for (int dw = -halfW; dw < drillW - halfW; dw++) {
-                    for (int depth = 0; depth < 4; depth++) {
-                        int sy = subY + dy;
-                        int sx, sz;
-                        if (face.getAxis() == Direction.Axis.X) {
-                            sx = depth;
-                            sz = subZ + dw;
-                        } else {
-                            sx = subX + dw;
-                            sz = depth;
-                        }
-                        if (sx >= 0 && sx < 4 && sy >= 0 && sy < 4 && sz >= 0 && sz < 4) {
-                            result.add(new int[]{sx, sy, sz});
-                        }
+                    int sy = subY + dy;
+                    int sx, sz;
+                    if (face.getAxis() == Direction.Axis.X) {
+                        sx = subX;
+                        sz = subZ + dw;
+                    } else {
+                        sx = subX + dw;
+                        sz = subZ;
+                    }
+                    if (sx >= 0 && sx < 4 && sy >= 0 && sy < 4 && sz >= 0 && sz < 4) {
+                        result.add(new int[]{sx, sy, sz});
                     }
                 }
             }
