@@ -9,6 +9,7 @@ import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.util.math.Box;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
@@ -61,7 +62,7 @@ public class NuclearTntEntity extends TntEntity {
 
             // 25 blok yarıçapında radyasyon efekti (güçlendirilmiş)
             world.getEntitiesByClass(LivingEntity.class,
-                    this.getBoundingBox().expand(25),
+                    new Box(x, y, z, x, y, z).expand(25),
                     e -> true
             ).forEach(entity -> {
                 entity.addStatusEffect(new StatusEffectInstance(StatusEffects.POISON,   600, 3));  // 30 sn, seviye 4

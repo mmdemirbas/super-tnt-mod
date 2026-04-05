@@ -40,18 +40,20 @@ public class AmongUsReportItem extends Item {
             return ActionResult.SUCCESS;
         }
 
+        if (!(user.getEntityWorld() instanceof ServerWorld serverWorld)) {
+            return ActionResult.FAIL;
+        }
+
         // Hedefi anında öldür
-        entity.kill((ServerWorld) user.getEntityWorld());
+        entity.kill(serverWorld);
 
         // Ses ve partikül efektleri
-        user.getEntityWorld().playSound(null, entity.getX(), entity.getY(), entity.getZ(),
+        serverWorld.playSound(null, entity.getX(), entity.getY(), entity.getZ(),
                 SoundEvents.ENTITY_WITHER_DEATH, SoundCategory.PLAYERS, 1.0f, 2.0f);
 
-        if (user.getEntityWorld() instanceof ServerWorld serverWorld) {
-            serverWorld.spawnParticles(ParticleTypes.SOUL,
-                    entity.getX(), entity.getY() + entity.getHeight() / 2, entity.getZ(),
-                    20, 0.3, 0.5, 0.3, 0.05);
-        }
+        serverWorld.spawnParticles(ParticleTypes.SOUL,
+                entity.getX(), entity.getY() + entity.getHeight() / 2, entity.getZ(),
+                20, 0.3, 0.5, 0.3, 0.05);
 
         if (!user.isCreative()) {
             stack.decrement(1);
