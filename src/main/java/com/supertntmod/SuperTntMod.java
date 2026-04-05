@@ -2,6 +2,7 @@ package com.supertntmod;
 
 import com.supertntmod.block.EncryptedTntChestBlock;
 import com.supertntmod.block.ModBlocks;
+import com.supertntmod.block.PortalBlock;
 import com.supertntmod.block.TntDoorBlock;
 import com.supertntmod.entity.GravityTntEntity;
 import com.supertntmod.entity.ModEntities;
@@ -110,6 +111,7 @@ public class SuperTntMod implements ModInitializer {
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
             WoodTntEntity.clearAll();
             GravityTntEntity.clearAll(server);
+            PortalBlock.clearCooldowns();
         });
 
         // Yerçekimi TNT: ters yerçekimi zamanlayıcısı

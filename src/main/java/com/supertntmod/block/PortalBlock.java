@@ -19,9 +19,9 @@ import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Portal bloğu: Pembe ve yeşil olmak üzere iki renk.
@@ -35,7 +35,11 @@ public class PortalBlock extends Block {
 
     // Işınlanma sonrası bekleme süresi (tick)
     private static final int TELEPORT_COOLDOWN = 40;
-    private static final Map<UUID, Long> TELEPORT_COOLDOWNS = new HashMap<>();
+    private static final Map<UUID, Long> TELEPORT_COOLDOWNS = new ConcurrentHashMap<>();
+
+    public static void clearCooldowns() {
+        TELEPORT_COOLDOWNS.clear();
+    }
 
     public PortalBlock(Settings settings) {
         super(settings);
