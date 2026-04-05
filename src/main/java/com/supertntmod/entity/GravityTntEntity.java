@@ -90,6 +90,19 @@ public class GravityTntEntity extends TntEntity {
         if (!done) super.tick();
     }
 
+    public static void clearAll(MinecraftServer server) {
+        for (Map.Entry<UUID, Integer> entry : GRAVITY_INVERTED.entrySet()) {
+            for (ServerWorld world : server.getWorlds()) {
+                Entity entity = world.getEntity(entry.getKey());
+                if (entity != null) {
+                    entity.setNoGravity(false);
+                    break;
+                }
+            }
+        }
+        GRAVITY_INVERTED.clear();
+    }
+
     /**
      * Server tick'inde çağrılır. Yerçekimi ters çevrilmiş entity'lerin
      * zamanlayıcısını düşürür; süre bitince normal yerçekimini geri yükler.

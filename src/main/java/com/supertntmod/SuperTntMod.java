@@ -10,6 +10,7 @@ import com.supertntmod.entity.WoodTntEntity;
 import com.supertntmod.item.ModItems;
 import com.supertntmod.item.PortalGunItem;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
@@ -102,6 +103,12 @@ public class SuperTntMod implements ModInitializer {
 
         // Odun TNT geri yükleme zamanlayıcısı
         ServerTickEvents.END_SERVER_TICK.register(server -> WoodTntEntity.tickRestores());
+
+        // Sunucu kapanınca stale static state'i temizle
+        ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
+            WoodTntEntity.clearAll();
+            GravityTntEntity.clearAll(server);
+        });
 
         // Yerçekimi TNT: ters yerçekimi zamanlayıcısı
         ServerTickEvents.END_SERVER_TICK.register(server -> GravityTntEntity.tickGravity(server));

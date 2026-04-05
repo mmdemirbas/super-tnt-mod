@@ -126,6 +126,10 @@ public class WoodTntEntity extends TntEntity {
         }
     }
 
+    public static void clearAll() {
+        pendingRestores.clear();
+    }
+
     /**
      * SuperTntMod.onInitialize() içinde ServerTickEvents.END_SERVER_TICK ile
      * bir kez kaydedilmeli. Her tick'te bekleyen geri yüklemeleri işler.
