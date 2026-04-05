@@ -96,9 +96,9 @@ public class CommandTntEntity extends TntEntity {
             int modified = 0;
 
             while (idx < total && modified < MODIFICATIONS_PER_TICK) {
-                int lx = idx % side - radius;
-                int ly = (idx / side) % side - radius;
-                int lz = (idx / (side * side)) - radius;
+                int lz = idx % side - radius;
+                int lx = (idx / side) % side - radius;
+                int ly = (idx / (side * side)) - radius;
                 idx++;
 
                 BlockPos pos = center.add(lx, ly, lz);

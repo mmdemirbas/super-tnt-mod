@@ -67,9 +67,9 @@ public class MakarnaTntEntity extends TntEntity {
             int modified = 0;
 
             while (idx < total && modified < MODIFICATIONS_PER_TICK) {
-                int lx = idx % side - RADIUS;
-                int ly = (idx / side) % side - RADIUS;
-                int lz = (idx / (side * side)) - RADIUS;
+                int lz = idx % side - RADIUS;
+                int lx = (idx / side) % side - RADIUS;
+                int ly = (idx / (side * side)) - RADIUS;
                 idx++;
 
                 BlockPos pos = center.add(lx, ly, lz);
