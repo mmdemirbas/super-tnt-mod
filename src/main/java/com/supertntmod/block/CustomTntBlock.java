@@ -62,7 +62,7 @@ public abstract class CustomTntBlock extends TntBlock {
             }
             return ActionResult.SUCCESS;
         }
-        return ActionResult.PASS_TO_DEFAULT_BLOCK_ACTION;
+        return ActionResult.PASS;
     }
 
     // Redstone sinyali ile ateşleme
