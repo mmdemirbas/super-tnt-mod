@@ -104,6 +104,7 @@
   "screen.supertntmod.drawing.build":                "Yap",
   "screen.supertntmod.drawing.clear":                "Temizle",
   "screen.supertntmod.drawing.eraser":               "Silgi",
+  "screen.supertntmod.drawing.undo":                 "Geri Al",
   "message.supertntmod.drawing.built":               "Çizimin inşa edildi!",
 
   "message.supertntmod.encrypted_tnt_chest.owner_set":        "§aBu sandığın sahibi oldunuz! Chat'e şifrenizi yazın:",

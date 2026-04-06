@@ -104,6 +104,7 @@
   "screen.supertntmod.drawing.build":                "Build",
   "screen.supertntmod.drawing.clear":                "Clear",
   "screen.supertntmod.drawing.eraser":               "Eraser",
+  "screen.supertntmod.drawing.undo":                 "Undo",
   "message.supertntmod.drawing.built":               "Your drawing has been built!",
 
   "message.supertntmod.encrypted_tnt_chest.owner_set":        "§aYou are now the owner of this chest! Type your password in chat:",
