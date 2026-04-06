@@ -89,6 +89,23 @@
   "item.supertntmod.scale_lock":                     "Ölçek Kilidi",
   "item.supertntmod.scale_lock.tooltip":             "Tut veya tak — tüm boyut değiştirme etkilerini engeller!",
 
+  "item.supertntmod.tnt_armor_helmet":               "TNT Kask",
+  "item.supertntmod.tnt_armor_helmet.tooltip":       "Sana vuran patlıyor!",
+  "item.supertntmod.tnt_armor_chestplate":           "TNT Göğüslük",
+  "item.supertntmod.tnt_armor_chestplate.tooltip":   "Sana vuran patlıyor!",
+  "item.supertntmod.tnt_armor_leggings":             "TNT Pantolon",
+  "item.supertntmod.tnt_armor_leggings.tooltip":     "Sana vuran patlıyor!",
+  "item.supertntmod.tnt_armor_boots":                "TNT Bot",
+  "item.supertntmod.tnt_armor_boots.tooltip":        "Sana vuran patlıyor!",
+
+  "item.supertntmod.drawing_item":                   "Çizim Eşyası",
+  "item.supertntmod.drawing_item.tooltip":           "Sağ tıkla ve çiz — çizimlerin gerçek bloklara dönüşür!",
+  "screen.supertntmod.drawing":                      "Çizim Eşyası",
+  "screen.supertntmod.drawing.build":                "Yap",
+  "screen.supertntmod.drawing.clear":                "Temizle",
+  "screen.supertntmod.drawing.eraser":               "Silgi",
+  "message.supertntmod.drawing.built":               "Çizimin inşa edildi!",
+
   "message.supertntmod.encrypted_tnt_chest.owner_set":        "§aBu sandığın sahibi oldunuz! Chat'e şifrenizi yazın:",
   "message.supertntmod.encrypted_tnt_chest.set_password":     "§eChat'e şifrenizi yazın:",
   "message.supertntmod.encrypted_tnt_chest.enter_password":   "§eŞifreyi girin:",

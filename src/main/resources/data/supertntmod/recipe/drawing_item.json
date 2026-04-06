@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [" D ", "PPP", " T "],
+  "key": {
+    "D": "minecraft:red_dye",
+    "P": "minecraft:paper",
+    "T": "minecraft:tnt"
+  },
+  "result": {
+    "id": "supertntmod:drawing_item",
+    "count": 1
+  }
+}

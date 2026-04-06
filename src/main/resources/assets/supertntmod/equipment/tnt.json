@@ -1,0 +1,14 @@
+{
+  "layers": {
+    "humanoid": [
+      {
+        "texture": "supertntmod:tnt"
+      }
+    ],
+    "humanoid_leggings": [
+      {
+        "texture": "supertntmod:tnt"
+      }
+    ]
+  }
+}

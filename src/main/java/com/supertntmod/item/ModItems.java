@@ -68,12 +68,39 @@ public class ModItems {
                     .maxCount(1)
                     .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "scale_lock")))));
 
+    // TNT Zırh seti
+    public static final Item TNT_ARMOR_HELMET = register("tnt_armor_helmet",
+            new TooltipItem(new Item.Settings()
+                    .armor(ModArmorMaterials.TNT_ARMOR, net.minecraft.item.equipment.EquipmentType.HELMET)
+                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "tnt_armor_helmet")))));
+
+    public static final Item TNT_ARMOR_CHESTPLATE = register("tnt_armor_chestplate",
+            new TooltipItem(new Item.Settings()
+                    .armor(ModArmorMaterials.TNT_ARMOR, net.minecraft.item.equipment.EquipmentType.CHESTPLATE)
+                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "tnt_armor_chestplate")))));
+
+    public static final Item TNT_ARMOR_LEGGINGS = register("tnt_armor_leggings",
+            new TooltipItem(new Item.Settings()
+                    .armor(ModArmorMaterials.TNT_ARMOR, net.minecraft.item.equipment.EquipmentType.LEGGINGS)
+                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "tnt_armor_leggings")))));
+
+    public static final Item TNT_ARMOR_BOOTS = register("tnt_armor_boots",
+            new TooltipItem(new Item.Settings()
+                    .armor(ModArmorMaterials.TNT_ARMOR, net.minecraft.item.equipment.EquipmentType.BOOTS)
+                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "tnt_armor_boots")))));
+
+    // Çizim Eşyası
+    public static final DrawingItem DRAWING_ITEM = register("drawing_item",
+            new DrawingItem(new Item.Settings()
+                    .maxCount(1)
+                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "drawing_item")))));
+
     private static <T extends Item> T register(String name, T item) {
         Identifier id = Identifier.of(SuperTntMod.MOD_ID, name);
         return Registry.register(Registries.ITEM, id, item);
     }
 
     public static void register() {
-        SuperTntMod.LOGGER.info("8 item kaydedildi.");
+        SuperTntMod.LOGGER.info("16 item kaydedildi.");
     }
 }

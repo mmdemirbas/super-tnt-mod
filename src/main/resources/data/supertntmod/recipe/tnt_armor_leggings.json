@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["TTT", "T T", "T T"],
+  "key": {
+    "T": "minecraft:tnt"
+  },
+  "result": {
+    "id": "supertntmod:tnt_armor_leggings",
+    "count": 1
+  }
+}

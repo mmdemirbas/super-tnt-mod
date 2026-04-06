@@ -89,6 +89,23 @@
   "item.supertntmod.scale_lock":                     "Scale Lock",
   "item.supertntmod.scale_lock.tooltip":             "Hold or equip to block all scale-changing effects!",
 
+  "item.supertntmod.tnt_armor_helmet":               "TNT Helmet",
+  "item.supertntmod.tnt_armor_helmet.tooltip":       "Attackers explode on contact!",
+  "item.supertntmod.tnt_armor_chestplate":           "TNT Chestplate",
+  "item.supertntmod.tnt_armor_chestplate.tooltip":   "Attackers explode on contact!",
+  "item.supertntmod.tnt_armor_leggings":             "TNT Leggings",
+  "item.supertntmod.tnt_armor_leggings.tooltip":     "Attackers explode on contact!",
+  "item.supertntmod.tnt_armor_boots":                "TNT Boots",
+  "item.supertntmod.tnt_armor_boots.tooltip":        "Attackers explode on contact!",
+
+  "item.supertntmod.drawing_item":                   "Drawing Tool",
+  "item.supertntmod.drawing_item.tooltip":           "Right-click to draw — your art becomes real blocks!",
+  "screen.supertntmod.drawing":                      "Drawing Tool",
+  "screen.supertntmod.drawing.build":                "Build",
+  "screen.supertntmod.drawing.clear":                "Clear",
+  "screen.supertntmod.drawing.eraser":               "Eraser",
+  "message.supertntmod.drawing.built":               "Your drawing has been built!",
+
   "message.supertntmod.encrypted_tnt_chest.owner_set":        "§aYou are now the owner of this chest! Type your password in chat:",
   "message.supertntmod.encrypted_tnt_chest.set_password":     "§eType your password in chat:",
   "message.supertntmod.encrypted_tnt_chest.enter_password":   "§eEnter the password:",
