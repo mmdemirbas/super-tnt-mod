@@ -1,13 +1,9 @@
 {
   "type": "minecraft:crafting_shaped",
-  "pattern": [
-    "GGG",
-    "GAG",
-    "GGG"
-  ],
+  "pattern": ["GGG", "GAG", "GGG"],
   "key": {
-    "G": { "item": "minecraft:gold_ingot" },
-    "A": { "item": "minecraft:diamond_axe" }
+    "G": "minecraft:gold_ingot",
+    "A": "minecraft:diamond_axe"
   },
   "result": {
     "id": "supertntmod:craft_axe",

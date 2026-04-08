@@ -19,7 +19,8 @@ import java.util.Deque;
 /**
  * 16x16 piksel, 16 katmanlı 3D çizim ekranı.
  * Sol tarafta tuval, sağ tarafta 2x8 renk paleti.
- * Katman geçişi butonlarıyla 3 boyutlu yapılar çizilebilir.
+ * Katman geçişi: butonlar, klavye ([ / ], Page Up/Down), fare tekerleği.
+ * Önceki katman "hayalet" (ghost) olarak görünür.
  * Ctrl+Z ile geri al, hover önizleme, seçili renk göstergesi.
  * "Yap" butonu çizimi lego bloklarından inşa eder.
  */
@@ -82,10 +83,11 @@ public class DrawingScreen extends Screen {
         int totalW = totalCanvasW + gap + paletteW;
         int startX = (width - totalW) / 2;
         canvasX = startX;
-        canvasY = (height - totalCanvasH) / 2 - 16;
+        canvasY = (height - totalCanvasH) / 2 - 10;
         paletteX = canvasX + totalCanvasW + gap;
         paletteY = canvasY;
 
+        // -- Alt butonlar satırı 1: Yap / Temizle / Silgi / Geri Al --
         int btnY = canvasY + totalCanvasH + 6;
         int btnW = 54;
         int btnGap = 4;
@@ -114,19 +116,26 @@ public class DrawingScreen extends Screen {
                 btn -> popUndo()
         ).dimensions(bx, btnY, btnW, 20).build());
 
-        // Katman geçiş butonları
+        // -- Alt butonlar satırı 2: Katman navigasyonu --
         int layerBtnY = btnY + 24;
-        int layerBtnW = 64;
+        int layerBtnW = 30;
 
         addDrawableChild(ButtonWidget.builder(
-                Text.translatable("screen.supertntmod.drawing.prev_layer"),
-                btn -> { if (currentLayer > 0) currentLayer--; }
+                Text.literal("<<"),
+                btn -> changeLayer(-1)
         ).dimensions(canvasX, layerBtnY, layerBtnW, 20).build());
 
         addDrawableChild(ButtonWidget.builder(
-                Text.translatable("screen.supertntmod.drawing.next_layer"),
-                btn -> { if (currentLayer < LAYERS - 1) currentLayer++; }
+                Text.literal(">>"),
+                btn -> changeLayer(1)
         ).dimensions(canvasX + layerBtnW + 4, layerBtnY, layerBtnW, 20).build());
+    }
+
+    private void changeLayer(int delta) {
+        int newLayer = currentLayer + delta;
+        if (newLayer >= 0 && newLayer < LAYERS) {
+            currentLayer = newLayer;
+        }
     }
 
     /**
@@ -140,15 +149,14 @@ public class DrawingScreen extends Screen {
         int paletteW = PALETTE_COLS * PALETTE_CELL + (PALETTE_COLS - 1) * PALETTE_GAP;
         int panelPad = 10;
         int panelX = (width - (totalCanvasW + 12 + paletteW)) / 2 - panelPad;
-        int panelY = (height - totalCanvasH) / 2 - 16 - 22;
+        int panelY = canvasY - 22;
         int panelW = totalCanvasW + 12 + paletteW + panelPad * 2;
-        int panelH = totalCanvasH + 95;
+        int panelH = totalCanvasH + 100;
         context.fill(panelX, panelY, panelX + panelW, panelY + panelH, 0xCC222222);
     }
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        // super.render = renderBackground (panel only) + tüm widget'lar
         super.render(context, mouseX, mouseY, delta);
 
         int totalCanvasW = CANVAS_SIZE * CELL_SIZE;
@@ -157,14 +165,26 @@ public class DrawingScreen extends Screen {
         // Başlık
         context.drawCenteredTextWithShadow(textRenderer, title, width / 2, canvasY - 14, 0xFFFFFF);
 
-        // Katman göstergesi
-        context.drawTextWithShadow(textRenderer,
-                Text.literal("Katman: " + (currentLayer + 1) + "/" + LAYERS),
-                canvasX, canvasY + totalCanvasH + 30, 0xFFFFAA);
-
         // Tuval çerçevesi
         context.fill(canvasX - 2, canvasY - 2,
                 canvasX + totalCanvasW + 2, canvasY + totalCanvasH + 2, 0xFF333333);
+
+        // Önceki katmanın hayalet görüntüsü (ghost layer)
+        if (currentLayer > 0) {
+            int ghostOffset = (currentLayer - 1) * CANVAS_SIZE * CANVAS_SIZE;
+            for (int y = 0; y < CANVAS_SIZE; y++) {
+                for (int x = 0; x < CANVAS_SIZE; x++) {
+                    int colorIdx = pixels[ghostOffset + y * CANVAS_SIZE + x];
+                    if (colorIdx > 0 && colorIdx <= 16) {
+                        int px = canvasX + x * CELL_SIZE;
+                        int py = canvasY + y * CELL_SIZE;
+                        // Yarı saydam hayalet renk
+                        int ghostColor = (LEGO_COLORS[colorIdx - 1] & 0x00FFFFFF) | 0x30000000;
+                        context.fill(px, py, px + CELL_SIZE, py + CELL_SIZE, ghostColor);
+                    }
+                }
+            }
+        }
 
         // Pikseller (aktif katman)
         int layerOffset = currentLayer * CANVAS_SIZE * CANVAS_SIZE;
@@ -176,10 +196,9 @@ public class DrawingScreen extends Screen {
                 if (colorIdx > 0 && colorIdx <= 16) {
                     context.fill(px, py, px + CELL_SIZE, py + CELL_SIZE, LEGO_COLORS[colorIdx - 1]);
                 } else {
-                    context.fill(px, py, px + CELL_SIZE, py + CELL_SIZE, 0xFFFFFFFF);
-                    if ((x + y) % 2 == 0) {
-                        context.fill(px, py, px + CELL_SIZE, py + CELL_SIZE, 0xFFEEEEEE);
-                    }
+                    // Dama deseni (boş hücre)
+                    int bgColor = ((x + y) % 2 == 0) ? 0xFFEEEEEE : 0xFFFFFFFF;
+                    context.fill(px, py, px + CELL_SIZE, py + CELL_SIZE, bgColor);
                 }
             }
         }
@@ -204,6 +223,7 @@ public class DrawingScreen extends Screen {
                     context.fill(hpx, hpy, hpx + CELL_SIZE, hpy + CELL_SIZE,
                             (LEGO_COLORS[selectedColor - 1] & 0x00FFFFFF) | 0x88000000);
                 } else {
+                    // Silgi: kırmızı çerçeve
                     context.fill(hpx, hpy, hpx + CELL_SIZE, hpy + 1, 0xAAFF0000);
                     context.fill(hpx, hpy + CELL_SIZE - 1, hpx + CELL_SIZE, hpy + CELL_SIZE, 0xAAFF0000);
                     context.fill(hpx, hpy, hpx + 1, hpy + CELL_SIZE, 0xAAFF0000);
@@ -242,6 +262,35 @@ public class DrawingScreen extends Screen {
                 }
             }
         }
+
+        // -- Katman göstergesi: büyük, belirgin --
+        // Katman numarası butonların yanında
+        int layerLabelX = canvasX + 68; // butonlardan sonra
+        int layerLabelY = canvasY + totalCanvasH + 30 + 5;
+        // Büyük katman numarası
+        context.drawTextWithShadow(textRenderer,
+                Text.translatable("screen.supertntmod.drawing.layer", currentLayer + 1, LAYERS),
+                layerLabelX, layerLabelY, 0xFFFF55);
+
+        // Katman mini haritası: 16 küçük kare, dolu katmanlar renkli
+        int miniX = layerLabelX + 90;
+        int miniSize = 8;
+        int miniGap = 2;
+        for (int layer = 0; layer < LAYERS; layer++) {
+            int mx = miniX + layer * (miniSize + miniGap);
+            int my = layerLabelY - 1;
+            boolean hasContent = false;
+            int lo = layer * CANVAS_SIZE * CANVAS_SIZE;
+            for (int j = 0; j < CANVAS_SIZE * CANVAS_SIZE; j++) {
+                if (pixels[lo + j] != 0) { hasContent = true; break; }
+            }
+            if (layer == currentLayer) {
+                // Aktif katman: parlak sarı çerçeve
+                context.fill(mx - 1, my - 1, mx + miniSize + 1, my + miniSize + 1, 0xFFFFFF00);
+            }
+            int bgColor = hasContent ? 0xFF44AA44 : 0xFF555555;
+            context.fill(mx, my, mx + miniSize, my + miniSize, bgColor);
+        }
     }
 
     @Override
@@ -263,9 +312,36 @@ public class DrawingScreen extends Screen {
     }
 
     @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+        if (super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount)) return true;
+        // Fare tekerleği ile katman değiştir
+        if (verticalAmount > 0) {
+            changeLayer(1);
+            return true;
+        } else if (verticalAmount < 0) {
+            changeLayer(-1);
+            return true;
+        }
+        return false;
+    }
+
+    @Override
     public boolean keyPressed(KeyInput input) {
-        if (input.getKeycode() == InputUtil.GLFW_KEY_Z && input.hasCtrlOrCmd()) {
+        int key = input.getKeycode();
+
+        // Ctrl+Z: geri al
+        if (key == InputUtil.GLFW_KEY_Z && input.hasCtrlOrCmd()) {
             popUndo();
+            return true;
+        }
+        // [ veya Page Down: önceki katman
+        if (key == InputUtil.GLFW_KEY_LEFT_BRACKET || key == InputUtil.GLFW_KEY_PAGE_DOWN) {
+            changeLayer(-1);
+            return true;
+        }
+        // ] veya Page Up: sonraki katman
+        if (key == InputUtil.GLFW_KEY_RIGHT_BRACKET || key == InputUtil.GLFW_KEY_PAGE_UP) {
+            changeLayer(1);
             return true;
         }
         return super.keyPressed(input);

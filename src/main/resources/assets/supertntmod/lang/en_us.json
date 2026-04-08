@@ -107,6 +107,7 @@
   "screen.supertntmod.drawing.undo":                 "Undo",
   "screen.supertntmod.drawing.prev_layer":           "< Prev",
   "screen.supertntmod.drawing.next_layer":           "Next >",
+  "screen.supertntmod.drawing.layer":                "Layer %d/%d  [ scroll / PgUp/Dn ]",
   "message.supertntmod.drawing.built":               "Your drawing has been built!",
 
   "block.supertntmod.mirror":                        "Mirror",

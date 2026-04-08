@@ -1,13 +1,9 @@
 {
   "type": "minecraft:crafting_shaped",
-  "pattern": [
-    "AAA",
-    "ANA",
-    "AAA"
-  ],
+  "pattern": ["AAA", "ANA", "AAA"],
   "key": {
-    "A": { "item": "minecraft:amethyst_shard" },
-    "N": { "item": "minecraft:nether_star" }
+    "A": "minecraft:amethyst_shard",
+    "N": "minecraft:nether_star"
   },
   "result": {
     "id": "supertntmod:energy_crystal",

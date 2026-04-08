@@ -1,13 +1,9 @@
 {
   "type": "minecraft:crafting_shaped",
-  "pattern": [
-    "KKK",
-    "KBK",
-    "KKK"
-  ],
+  "pattern": ["KKK", "KBK", "KKK"],
   "key": {
-    "K": { "item": "minecraft:dried_kelp" },
-    "B": { "item": "minecraft:blaze_powder" }
+    "K": "minecraft:dried_kelp",
+    "B": "minecraft:blaze_powder"
   },
   "result": {
     "id": "supertntmod:spicy_chips",

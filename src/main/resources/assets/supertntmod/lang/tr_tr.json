@@ -107,6 +107,7 @@
   "screen.supertntmod.drawing.undo":                 "Geri Al",
   "screen.supertntmod.drawing.prev_layer":           "< Önceki",
   "screen.supertntmod.drawing.next_layer":           "Sonraki >",
+  "screen.supertntmod.drawing.layer":                "Katman %d/%d  [ scroll / PgUp/Dn ]",
   "message.supertntmod.drawing.built":               "Çizimin inşa edildi!",
 
   "block.supertntmod.mirror":                        "Ayna",
