@@ -59,9 +59,9 @@ public class GrowthTntEntity extends TntEntity {
                 if (ScaleLockItem.isProtected(entity)) return;
                 EntityAttributeInstance scaleAttr = entity.getAttributeInstance(EntityAttributes.SCALE);
                 if (scaleAttr != null) {
-                    // Mevcut ölçeği oku ve 3.0 ile çarp (kümülatif büyütme)
+                    // Mevcut ölçeği oku ve 2.0 ile çarp (kümülatif büyütme)
                     double currentScale = scaleAttr.getValue();
-                    double newScale = currentScale * 3.0;
+                    double newScale = currentScale * 2.0;
                     double newModifierValue = newScale - 1.0;
 
                     scaleAttr.removeModifier(SuperTntMod.SCALE_MODIFIER_ID);

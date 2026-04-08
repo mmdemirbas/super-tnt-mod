@@ -20,8 +20,6 @@ import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
-import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
@@ -114,6 +112,13 @@ public class SuperTntMod implements ModInitializer {
                             entries.add(ModItems.TNT_ARMOR_CHESTPLATE);
                             entries.add(ModItems.TNT_ARMOR_LEGGINGS);
                             entries.add(ModItems.TNT_ARMOR_BOOTS);
+                            // Yeni bloklar
+                            entries.add(ModBlocks.MIRROR);
+                            entries.add(ModBlocks.LIGHT_BOMB);
+                            // Yeni item'ler
+                            entries.add(ModItems.SPICY_CHIPS);
+                            entries.add(ModItems.ENERGY_CRYSTAL);
+                            entries.add(ModItems.CRAFT_AXE);
                             // Çizim Eşyası
                             entries.add(ModItems.DRAWING_ITEM);
                         })
@@ -127,6 +132,7 @@ public class SuperTntMod implements ModInitializer {
             WoodTntEntity.clearAll();
             GravityTntEntity.clearAll(server);
             PortalBlock.clearCooldowns();
+            com.supertntmod.item.CraftAxeItem.clearAll();
         });
 
         // Yerçekimi TNT: ters yerçekimi zamanlayıcısı
@@ -165,24 +171,16 @@ public class SuperTntMod implements ModInitializer {
     }
 
     /**
-     * Çizim verisini yün bloklarına dönüştürür.
-     * 16x16 piksel, oyuncunun baktığı yöne dik duvar olarak 3 blok ileride inşa edilir.
+     * Çizim verisini lego bloklarına dönüştürür.
+     * 16x16x16 piksel (16 katman), oyuncunun baktığı yöne doğru 3D yapı olarak inşa edilir.
+     * Katman 0 = oyuncuya en yakın, katman 15 = en uzak.
+     * Oyuncu küçükse (scale < 0.5) yapı yarı boyutlu bloklar olarak yerleştirilir.
      */
     private static void handleDrawingPayload(ServerPlayerEntity player, DrawingC2SPayload payload) {
         if (!(player.getEntityWorld() instanceof ServerWorld world)) return;
 
         byte[] pixels = payload.pixels();
         if (pixels.length != DrawingC2SPayload.PIXEL_COUNT) return;
-
-        // 16 yün bloğu (renk indeksi 1-16 sırasıyla)
-        Block[] WOOL_BLOCKS = {
-                Blocks.WHITE_WOOL, Blocks.ORANGE_WOOL, Blocks.MAGENTA_WOOL,
-                Blocks.LIGHT_BLUE_WOOL, Blocks.YELLOW_WOOL, Blocks.LIME_WOOL,
-                Blocks.PINK_WOOL, Blocks.GRAY_WOOL, Blocks.LIGHT_GRAY_WOOL,
-                Blocks.CYAN_WOOL, Blocks.PURPLE_WOOL, Blocks.BLUE_WOOL,
-                Blocks.BROWN_WOOL, Blocks.GREEN_WOOL, Blocks.RED_WOOL,
-                Blocks.BLACK_WOOL
-        };
 
         // Oyuncunun baktığı yönü hesapla (4 ana yön)
         float yaw = payload.yaw() % 360;
@@ -194,27 +192,63 @@ public class SuperTntMod implements ModInitializer {
         else if (yaw < 225) facing = Direction.NORTH;
         else facing = Direction.EAST;
 
-        // Yapı 3 blok ileride, oyuncunun baktığı yöne dik
+        // Yapı 3 blok ileride başlar
         BlockPos origin = player.getBlockPos().offset(facing, 3);
 
         // Sağ yön (duvarın genişlik ekseni)
         Direction right = facing.rotateYClockwise();
 
-        // Çizimi bloklara dönüştür (y ekseni ters: piksel 0,0 = sol üst = en üst blok)
         int size = DrawingC2SPayload.CANVAS_SIZE;
-        for (int py = 0; py < size; py++) {
-            for (int px = 0; px < size; px++) {
-                int colorIdx = pixels[py * size + px] & 0xFF;
-                if (colorIdx < 1 || colorIdx > 16) continue;
+        int layers = DrawingC2SPayload.LAYERS;
 
-                // Blok konumu: origin + sağa px + yukarı (size-1-py)
-                BlockPos blockPos = origin
-                        .offset(right, px - size / 2)
-                        .up(size - 1 - py);
+        // Oyuncunun ölçeğini kontrol et: küçükse oluşturulan bloklar da küçük olsun
+        double playerScale = 1.0;
+        net.minecraft.entity.attribute.EntityAttributeInstance scaleAttr =
+                player.getAttributeInstance(net.minecraft.entity.attribute.EntityAttributes.SCALE);
+        if (scaleAttr != null) {
+            playerScale = scaleAttr.getValue();
+        }
+        boolean small = playerScale < 0.5;
 
-                // Sadece hava bloklarını değiştir (mevcut yapıları bozmaz)
-                if (world.getBlockState(blockPos).isAir()) {
-                    world.setBlockState(blockPos, WOOL_BLOCKS[colorIdx - 1].getDefaultState());
+        for (int layer = 0; layer < layers; layer++) {
+            int layerOffset = layer * size * size;
+            for (int py = 0; py < size; py++) {
+                for (int px = 0; px < size; px++) {
+                    int colorIdx = pixels[layerOffset + py * size + px] & 0xFF;
+                    if (colorIdx < 1 || colorIdx > 16) continue;
+
+                    // Blok konumu: origin + derinlik (katman) + sağa + yukarı
+                    BlockPos blockPos = origin
+                            .offset(facing, layer)
+                            .offset(right, px - size / 2)
+                            .up(size - 1 - py);
+
+                    if (!world.getBlockState(blockPos).isAir()) continue;
+
+                    // LegoBrick rengi 0-15 (colorIdx 1-16 → renk 0-15)
+                    int legoColor = colorIdx - 1;
+                    net.minecraft.block.BlockState legoState =
+                            ModBlocks.LEGO_BRICK.getDefaultState()
+                                    .with(com.supertntmod.block.LegoBrickBlock.COLOR, legoColor);
+
+                    if (small) {
+                        // Küçük oyuncu: TunneledBlock olarak yerleştir
+                        net.minecraft.util.Identifier blockId =
+                                net.minecraft.registry.Registries.BLOCK.getId(ModBlocks.LEGO_BRICK);
+                        world.setBlockState(blockPos, ModBlocks.TUNNELED_BLOCK.getDefaultState());
+                        if (world.getBlockEntity(blockPos) instanceof com.supertntmod.block.TunneledBlockEntity te) {
+                            te.setOriginalBlockId(blockId);
+                            // 2x2x2 alt-voxel maskesi (scale ≈ 0.5 için 2/4 = yarı boyut)
+                            long mask = 0L;
+                            for (int z = 0; z < 2; z++)
+                                for (int y = 0; y < 2; y++)
+                                    for (int x = 0; x < 2; x++)
+                                        mask |= (1L << com.supertntmod.block.TunneledBlockEntity.subVoxelIndex(x, y, z));
+                            te.setSubVoxelMask(mask);
+                        }
+                    } else {
+                        world.setBlockState(blockPos, legoState);
+                    }
                 }
             }
         }

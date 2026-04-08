@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "GGG",
+    "GQG",
+    "GGG"
+  ],
+  "key": {
+    "G": { "item": "minecraft:glass_pane" },
+    "Q": { "item": "minecraft:quartz" }
+  },
+  "result": {
+    "id": "supertntmod:mirror",
+    "count": 1
+  }
+}

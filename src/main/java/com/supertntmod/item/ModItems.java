@@ -89,6 +89,24 @@ public class ModItems {
                     .armor(ModArmorMaterials.TNT_ARMOR, net.minecraft.item.equipment.EquipmentType.BOOTS)
                     .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "tnt_armor_boots")))));
 
+    // Acılı Cips - yenildiğinde hız efekti verir
+    public static final SpicyChipsItem SPICY_CHIPS = register("spicy_chips",
+            new SpicyChipsItem(new Item.Settings()
+                    .maxCount(16)
+                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "spicy_chips")))));
+
+    // Enerji Kristali - bedrock kırar, altından yeni bedrock çıkar
+    public static final EnergyCrystalItem ENERGY_CRYSTAL = register("energy_crystal",
+            new EnergyCrystalItem(new Item.Settings()
+                    .maxCount(16)
+                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "energy_crystal")))));
+
+    // Craft Baltası - iki blok arasına duvar inşa eder
+    public static final CraftAxeItem CRAFT_AXE = register("craft_axe",
+            new CraftAxeItem(new Item.Settings()
+                    .maxCount(1)
+                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "craft_axe")))));
+
     // Çizim Eşyası
     public static final DrawingItem DRAWING_ITEM = register("drawing_item",
             new DrawingItem(new Item.Settings()

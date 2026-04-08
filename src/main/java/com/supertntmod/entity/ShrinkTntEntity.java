@@ -61,9 +61,9 @@ public class ShrinkTntEntity extends TntEntity {
                 if (ScaleLockItem.isProtected(entity)) return;
                 EntityAttributeInstance scaleAttr = entity.getAttributeInstance(EntityAttributes.SCALE);
                 if (scaleAttr != null) {
-                    // Mevcut ölçeği oku ve 0.3 ile çarp (kümülatif küçültme)
+                    // Mevcut ölçeği oku ve 0.5 ile çarp (kümülatif küçültme)
                     double currentScale = scaleAttr.getValue();
-                    double newScale = currentScale * 0.3;
+                    double newScale = currentScale * 0.5;
                     double newModifierValue = newScale - 1.0;
 
                     scaleAttr.removeModifier(SuperTntMod.SCALE_MODIFIER_ID);

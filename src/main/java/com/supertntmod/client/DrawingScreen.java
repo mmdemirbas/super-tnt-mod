@@ -17,15 +17,17 @@ import java.util.Arrays;
 import java.util.Deque;
 
 /**
- * 16x16 piksel çizim ekranı.
+ * 16x16 piksel, 16 katmanlı 3D çizim ekranı.
  * Sol tarafta tuval, sağ tarafta 2x8 renk paleti.
+ * Katman geçişi butonlarıyla 3 boyutlu yapılar çizilebilir.
  * Ctrl+Z ile geri al, hover önizleme, seçili renk göstergesi.
- * "Yap" butonu çizimi yün bloklarından inşa eder.
+ * "Yap" butonu çizimi lego bloklarından inşa eder.
  */
 @Environment(EnvType.CLIENT)
 public class DrawingScreen extends Screen {
 
     private static final int CANVAS_SIZE = 16;
+    private static final int LAYERS = DrawingC2SPayload.LAYERS;
     private static final int CELL_SIZE = 14;
     private static final int PALETTE_CELL = 18;
     private static final int PALETTE_COLS = 2;
@@ -33,10 +35,8 @@ public class DrawingScreen extends Screen {
     private static final int PALETTE_GAP = 2;
     private static final int MAX_UNDO = 30;
 
-    // Yün renkleri (Minecraft yün sırası): beyaz, turuncu, macenta, açık mavi,
-    // sarı, fıstık, pembe, gri, açık gri, camgöbeği, mor, mavi,
-    // kahverengi, yeşil, kırmızı, siyah
-    private static final int[] WOOL_COLORS = {
+    // Lego tuğla renkleri (Minecraft yün sırası ile eşleşir)
+    private static final int[] LEGO_COLORS = {
             0xFFE9ECEC, // white
             0xFFF07613, // orange
             0xFFBD44B3, // magenta
@@ -55,13 +55,13 @@ public class DrawingScreen extends Screen {
             0xFF141519  // black
     };
 
-    // Piksel verileri: 0 = boş, 1-16 = renk indeksi (WOOL_COLORS[i-1])
-    private final byte[] pixels = new byte[CANVAS_SIZE * CANVAS_SIZE];
-    private int selectedColor = 1; // varsayılan: beyaz (indeks 1)
+    // 3D piksel dizisi: [layer * 256 + y * 16 + x], 0=boş, 1-16=renk
+    private final byte[] pixels = new byte[CANVAS_SIZE * CANVAS_SIZE * LAYERS];
+    private int selectedColor = 1;
+    private int currentLayer = 0;
     private final float playerYaw;
     private final Deque<byte[]> undoHistory = new ArrayDeque<>();
 
-    // Tuval ve palet konumları (init'te hesaplanır)
     private int canvasX, canvasY;
     private int paletteX, paletteY;
 
@@ -79,17 +79,15 @@ public class DrawingScreen extends Screen {
         int paletteW = PALETTE_COLS * PALETTE_CELL + (PALETTE_COLS - 1) * PALETTE_GAP;
         int gap = 12;
 
-        // Tuvali ve paleti ortala
         int totalW = totalCanvasW + gap + paletteW;
         int startX = (width - totalW) / 2;
         canvasX = startX;
-        canvasY = (height - totalCanvasH) / 2 - 10;
+        canvasY = (height - totalCanvasH) / 2 - 16;
         paletteX = canvasX + totalCanvasW + gap;
         paletteY = canvasY;
 
-        // Butonlar
         int btnY = canvasY + totalCanvasH + 6;
-        int btnW = 56;
+        int btnW = 54;
         int btnGap = 4;
         int bx = canvasX;
 
@@ -101,7 +99,7 @@ public class DrawingScreen extends Screen {
 
         addDrawableChild(ButtonWidget.builder(
                 Text.translatable("screen.supertntmod.drawing.clear"),
-                btn -> { pushUndo(); clearCanvas(); }
+                btn -> { pushUndo(); clearCurrentLayer(); }
         ).dimensions(bx, btnY, btnW, 20).build());
         bx += btnW + btnGap;
 
@@ -115,10 +113,42 @@ public class DrawingScreen extends Screen {
                 Text.translatable("screen.supertntmod.drawing.undo"),
                 btn -> popUndo()
         ).dimensions(bx, btnY, btnW, 20).build());
+
+        // Katman geçiş butonları
+        int layerBtnY = btnY + 24;
+        int layerBtnW = 64;
+
+        addDrawableChild(ButtonWidget.builder(
+                Text.translatable("screen.supertntmod.drawing.prev_layer"),
+                btn -> { if (currentLayer > 0) currentLayer--; }
+        ).dimensions(canvasX, layerBtnY, layerBtnW, 20).build());
+
+        addDrawableChild(ButtonWidget.builder(
+                Text.translatable("screen.supertntmod.drawing.next_layer"),
+                btn -> { if (currentLayer < LAYERS - 1) currentLayer++; }
+        ).dimensions(canvasX + layerBtnW + 4, layerBtnY, layerBtnW, 20).build());
+    }
+
+    /**
+     * renderBackground: sadece panel alanına koyu arka plan çiz.
+     * Tam ekran dark overlay çizmeyerek hotbar görünür kalır.
+     */
+    @Override
+    public void renderBackground(DrawContext context, int mouseX, int mouseY, float delta) {
+        int totalCanvasW = CANVAS_SIZE * CELL_SIZE;
+        int totalCanvasH = CANVAS_SIZE * CELL_SIZE;
+        int paletteW = PALETTE_COLS * PALETTE_CELL + (PALETTE_COLS - 1) * PALETTE_GAP;
+        int panelPad = 10;
+        int panelX = (width - (totalCanvasW + 12 + paletteW)) / 2 - panelPad;
+        int panelY = (height - totalCanvasH) / 2 - 16 - 22;
+        int panelW = totalCanvasW + 12 + paletteW + panelPad * 2;
+        int panelH = totalCanvasH + 95;
+        context.fill(panelX, panelY, panelX + panelW, panelY + panelH, 0xCC222222);
     }
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+        // super.render = renderBackground (panel only) + tüm widget'lar
         super.render(context, mouseX, mouseY, delta);
 
         int totalCanvasW = CANVAS_SIZE * CELL_SIZE;
@@ -127,21 +157,25 @@ public class DrawingScreen extends Screen {
         // Başlık
         context.drawCenteredTextWithShadow(textRenderer, title, width / 2, canvasY - 14, 0xFFFFFF);
 
-        // Tuval arka planı (koyu gri çerçeve)
+        // Katman göstergesi
+        context.drawTextWithShadow(textRenderer,
+                Text.literal("Katman: " + (currentLayer + 1) + "/" + LAYERS),
+                canvasX, canvasY + totalCanvasH + 30, 0xFFFFAA);
+
+        // Tuval çerçevesi
         context.fill(canvasX - 2, canvasY - 2,
                 canvasX + totalCanvasW + 2, canvasY + totalCanvasH + 2, 0xFF333333);
 
-        // Pikselleri çiz
+        // Pikseller (aktif katman)
+        int layerOffset = currentLayer * CANVAS_SIZE * CANVAS_SIZE;
         for (int y = 0; y < CANVAS_SIZE; y++) {
             for (int x = 0; x < CANVAS_SIZE; x++) {
                 int px = canvasX + x * CELL_SIZE;
                 int py = canvasY + y * CELL_SIZE;
-                int colorIdx = pixels[y * CANVAS_SIZE + x];
+                int colorIdx = pixels[layerOffset + y * CANVAS_SIZE + x];
                 if (colorIdx > 0 && colorIdx <= 16) {
-                    context.fill(px, py, px + CELL_SIZE, py + CELL_SIZE,
-                            WOOL_COLORS[colorIdx - 1]);
+                    context.fill(px, py, px + CELL_SIZE, py + CELL_SIZE, LEGO_COLORS[colorIdx - 1]);
                 } else {
-                    // Boş piksel: beyaz + açık gri dama deseni
                     context.fill(px, py, px + CELL_SIZE, py + CELL_SIZE, 0xFFFFFFFF);
                     if ((x + y) % 2 == 0) {
                         context.fill(px, py, px + CELL_SIZE, py + CELL_SIZE, 0xFFEEEEEE);
@@ -150,15 +184,15 @@ public class DrawingScreen extends Screen {
             }
         }
 
-        // Tuval ızgara çizgileri
+        // Izgara çizgileri
         for (int i = 0; i <= CANVAS_SIZE; i++) {
-            int lx = canvasX + i * CELL_SIZE;
-            int ly = canvasY + i * CELL_SIZE;
-            context.fill(lx, canvasY, lx + 1, canvasY + totalCanvasH, 0x44000000);
-            context.fill(canvasX, ly, canvasX + totalCanvasW, ly + 1, 0x44000000);
+            context.fill(canvasX + i * CELL_SIZE, canvasY,
+                    canvasX + i * CELL_SIZE + 1, canvasY + totalCanvasH, 0x44000000);
+            context.fill(canvasX, canvasY + i * CELL_SIZE,
+                    canvasX + totalCanvasW, canvasY + i * CELL_SIZE + 1, 0x44000000);
         }
 
-        // Tuval hover vurgusu
+        // Hover vurgusu
         if (mouseX >= canvasX && mouseX < canvasX + totalCanvasW
                 && mouseY >= canvasY && mouseY < canvasY + totalCanvasH) {
             int hx = (mouseX - canvasX) / CELL_SIZE;
@@ -167,11 +201,9 @@ public class DrawingScreen extends Screen {
                 int hpx = canvasX + hx * CELL_SIZE;
                 int hpy = canvasY + hy * CELL_SIZE;
                 if (selectedColor > 0 && selectedColor <= 16) {
-                    // Yarı-saydam seçili renk önizlemesi
                     context.fill(hpx, hpy, hpx + CELL_SIZE, hpy + CELL_SIZE,
-                            (WOOL_COLORS[selectedColor - 1] & 0x00FFFFFF) | 0x88000000);
+                            (LEGO_COLORS[selectedColor - 1] & 0x00FFFFFF) | 0x88000000);
                 } else {
-                    // Silgi modu: kırmızı çerçeve
                     context.fill(hpx, hpy, hpx + CELL_SIZE, hpy + 1, 0xAAFF0000);
                     context.fill(hpx, hpy + CELL_SIZE - 1, hpx + CELL_SIZE, hpy + CELL_SIZE, 0xAAFF0000);
                     context.fill(hpx, hpy, hpx + 1, hpy + CELL_SIZE, 0xAAFF0000);
@@ -180,33 +212,27 @@ public class DrawingScreen extends Screen {
             }
         }
 
-        // Renk paleti (2 sütun x 8 satır)
+        // Renk paleti
         for (int i = 0; i < 16; i++) {
             int col = i / PALETTE_ROWS;
             int row = i % PALETTE_ROWS;
             int px = paletteX + col * (PALETTE_CELL + PALETTE_GAP);
             int py = paletteY + row * (PALETTE_CELL + PALETTE_GAP);
-
-            // Seçili renk vurgusu
             if (selectedColor == i + 1) {
-                context.fill(px - 2, py - 2, px + PALETTE_CELL + 2, py + PALETTE_CELL + 2,
-                        0xFFFFFF00);
+                context.fill(px - 2, py - 2, px + PALETTE_CELL + 2, py + PALETTE_CELL + 2, 0xFFFFFF00);
             }
-
-            context.fill(px, py, px + PALETTE_CELL, py + PALETTE_CELL, WOOL_COLORS[i]);
+            context.fill(px, py, px + PALETTE_CELL, py + PALETTE_CELL, LEGO_COLORS[i]);
         }
 
-        // Seçili renk önizlemesi (paletin altında)
+        // Seçili renk önizlemesi
         int previewSize = PALETTE_COLS * PALETTE_CELL + (PALETTE_COLS - 1) * PALETTE_GAP;
         int previewY = paletteY + PALETTE_ROWS * (PALETTE_CELL + PALETTE_GAP) + 8;
         context.fill(paletteX - 1, previewY - 1,
                 paletteX + previewSize + 1, previewY + previewSize + 1, 0xFFAAAAAA);
         if (selectedColor > 0 && selectedColor <= 16) {
             context.fill(paletteX, previewY,
-                    paletteX + previewSize, previewY + previewSize,
-                    WOOL_COLORS[selectedColor - 1]);
+                    paletteX + previewSize, previewY + previewSize, LEGO_COLORS[selectedColor - 1]);
         } else {
-            // Silgi: dama deseni göstergesi
             for (int dy = 0; dy < previewSize; dy += 4) {
                 for (int dx = 0; dx < previewSize; dx += 4) {
                     int color = ((dx / 4 + dy / 4) % 2 == 0) ? 0xFFFFFFFF : 0xFFCCCCCC;
@@ -221,17 +247,12 @@ public class DrawingScreen extends Screen {
     @Override
     public boolean mouseClicked(Click click, boolean bl) {
         if (super.mouseClicked(click, bl)) return true;
-
-        // Tuval tıklaması: undo kaydı yap ve boya
         if (isOnCanvas(click.x(), click.y())) {
             pushUndo();
             tryPaintAt(click.x(), click.y());
             return true;
         }
-
-        // Palet tıklaması
         if (trySelectColor(click.x(), click.y())) return true;
-
         return false;
     }
 
@@ -243,7 +264,6 @@ public class DrawingScreen extends Screen {
 
     @Override
     public boolean keyPressed(KeyInput input) {
-        // Ctrl+Z (veya Cmd+Z): geri al
         if (input.getKeycode() == InputUtil.GLFW_KEY_Z && input.hasCtrlOrCmd()) {
             popUndo();
             return true;
@@ -263,7 +283,7 @@ public class DrawingScreen extends Screen {
         int cx = (int) ((mouseX - canvasX) / CELL_SIZE);
         int cy = (int) ((mouseY - canvasY) / CELL_SIZE);
         if (cx >= 0 && cx < CANVAS_SIZE && cy >= 0 && cy < CANVAS_SIZE) {
-            pixels[cy * CANVAS_SIZE + cx] = (byte) selectedColor;
+            pixels[currentLayer * CANVAS_SIZE * CANVAS_SIZE + cy * CANVAS_SIZE + cx] = (byte) selectedColor;
             return true;
         }
         return false;
@@ -286,9 +306,7 @@ public class DrawingScreen extends Screen {
 
     private void pushUndo() {
         undoHistory.push(pixels.clone());
-        while (undoHistory.size() > MAX_UNDO) {
-            undoHistory.removeLast();
-        }
+        while (undoHistory.size() > MAX_UNDO) undoHistory.removeLast();
     }
 
     private void popUndo() {
@@ -299,23 +317,18 @@ public class DrawingScreen extends Screen {
     }
 
     private void buildAndClose() {
-        // Boş çizim kontrolü
         boolean hasContent = false;
         for (byte p : pixels) {
             if (p != 0) { hasContent = true; break; }
         }
-        if (!hasContent) {
-            close();
-            return;
-        }
-
-        // Çizim verisini server'a gönder
+        if (!hasContent) { close(); return; }
         ClientPlayNetworking.send(new DrawingC2SPayload(pixels.clone(), playerYaw));
         close();
     }
 
-    private void clearCanvas() {
-        Arrays.fill(pixels, (byte) 0);
+    private void clearCurrentLayer() {
+        int offset = currentLayer * CANVAS_SIZE * CANVAS_SIZE;
+        Arrays.fill(pixels, offset, offset + CANVAS_SIZE * CANVAS_SIZE, (byte) 0);
     }
 
     @Override

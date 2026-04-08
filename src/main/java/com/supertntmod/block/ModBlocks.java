@@ -153,6 +153,18 @@ public class ModBlocks {
             new FakeTntBlock(AbstractBlock.Settings.copy(Blocks.CAKE)
                     .registryKey(RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(SuperTntMod.MOD_ID, "fake_tnt")))));
 
+    // 🪞 Ayna - Koyulduğunda parlar, aynaya bakan enderman'lar kendine saldırır
+    public static final MirrorBlock MIRROR = reg("mirror",
+            new MirrorBlock(AbstractBlock.Settings.copy(Blocks.GLASS)
+                    .luminance(state -> 15)
+                    .registryKey(RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(SuperTntMod.MOD_ID, "mirror")))));
+
+    // 💡 Işık Bloğu - Parlar ve 100 blok yarıçapındaki tüm düşman mobları yok eder
+    public static final LightBombBlock LIGHT_BOMB = reg("light_bomb",
+            new LightBombBlock(AbstractBlock.Settings.copy(Blocks.GLOWSTONE)
+                    .luminance(state -> 15)
+                    .registryKey(RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(SuperTntMod.MOD_ID, "light_bomb")))));
+
     // 🧱 Lego Tuğla - Lego TNT tarafından oluşturulan dekoratif blok (16 renk)
     public static final LegoBrickBlock LEGO_BRICK = regBlockOnly("lego_brick",
             new LegoBrickBlock(AbstractBlock.Settings.copy(Blocks.STONE)

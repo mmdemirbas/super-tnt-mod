@@ -65,7 +65,7 @@ public class GrowPotionEntity extends ThrownEntity {
         if (scaleAttr == null) return;
 
         double currentScale = scaleAttr.getValue();
-        double newScale = currentScale * 3.0;
+        double newScale = currentScale * 2.0;
         double newModifierValue = newScale - 1.0;
 
         scaleAttr.removeModifier(SuperTntMod.SCALE_MODIFIER_ID);
