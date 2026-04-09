@@ -11,84 +11,106 @@
   "criteria": {
     "diamond": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": {
-        "recipe_id": "supertntmod:diamond_tnt"
-      }
+      "conditions": { "recipe_id": "supertntmod:diamond_tnt" }
     },
     "gold": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": {
-        "recipe_id": "supertntmod:gold_tnt"
-      }
+      "conditions": { "recipe_id": "supertntmod:gold_tnt" }
     },
     "bedrock": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": {
-        "recipe_id": "supertntmod:bedrock_tnt"
-      }
+      "conditions": { "recipe_id": "supertntmod:bedrock_tnt" }
     },
     "emerald": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": {
-        "recipe_id": "supertntmod:emerald_tnt"
-      }
+      "conditions": { "recipe_id": "supertntmod:emerald_tnt" }
     },
     "lightning": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": {
-        "recipe_id": "supertntmod:lightning_tnt"
-      }
+      "conditions": { "recipe_id": "supertntmod:lightning_tnt" }
     },
     "nuclear": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": {
-        "recipe_id": "supertntmod:nuclear_tnt"
-      }
+      "conditions": { "recipe_id": "supertntmod:nuclear_tnt" }
     },
     "freeze": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": {
-        "recipe_id": "supertntmod:freeze_tnt"
-      }
+      "conditions": { "recipe_id": "supertntmod:freeze_tnt" }
     },
     "wood": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": {
-        "recipe_id": "supertntmod:wood_tnt"
-      }
+      "conditions": { "recipe_id": "supertntmod:wood_tnt" }
     },
     "command": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": {
-        "recipe_id": "supertntmod:command_tnt"
-      }
+      "conditions": { "recipe_id": "supertntmod:command_tnt" }
+    },
+    "walking": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": { "recipe_id": "supertntmod:walking_tnt" }
     },
     "mob_freeze": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": {
-        "recipe_id": "supertntmod:mob_freeze_tnt"
-      }
+      "conditions": { "recipe_id": "supertntmod:mob_freeze_tnt" }
     },
     "water": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": {
-        "recipe_id": "supertntmod:water_tnt"
-      }
+      "conditions": { "recipe_id": "supertntmod:water_tnt" }
     },
     "rainbow": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": {
-        "recipe_id": "supertntmod:rainbow_tnt"
-      }
+      "conditions": { "recipe_id": "supertntmod:rainbow_tnt" }
     },
     "lego": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": {
-        "recipe_id": "supertntmod:lego_tnt"
-      }
+      "conditions": { "recipe_id": "supertntmod:lego_tnt" }
+    },
+    "makarna": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": { "recipe_id": "supertntmod:makarna_tnt" }
+    },
+    "seker": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": { "recipe_id": "supertntmod:seker_tnt" }
+    },
+    "shrink": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": { "recipe_id": "supertntmod:shrink_tnt" }
+    },
+    "growth": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": { "recipe_id": "supertntmod:growth_tnt" }
+    },
+    "cleanse": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": { "recipe_id": "supertntmod:cleanse_tnt" }
+    },
+    "fake": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": { "recipe_id": "supertntmod:fake_tnt" }
+    },
+    "bounce": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": { "recipe_id": "supertntmod:bounce_tnt" }
+    },
+    "magnet": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": { "recipe_id": "supertntmod:magnet_tnt" }
+    },
+    "gravity": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": { "recipe_id": "supertntmod:gravity_tnt" }
+    },
+    "invisible": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": { "recipe_id": "supertntmod:invisible_tnt" }
+    },
+    "swap": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": { "recipe_id": "supertntmod:swap_tnt" }
     }
   },
   "requirements": [
-    ["diamond", "gold", "bedrock", "emerald", "lightning", "nuclear", "freeze", "wood", "command", "mob_freeze", "water", "rainbow", "lego"]
+    ["diamond", "gold", "bedrock", "emerald", "lightning", "nuclear", "freeze", "wood", "command", "walking", "mob_freeze", "water", "rainbow", "lego", "makarna", "seker", "shrink", "growth", "cleanse", "fake", "bounce", "magnet", "gravity", "invisible", "swap"]
   ]
 }

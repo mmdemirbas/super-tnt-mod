@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "CCC",
+    "CBC",
+    "CCC"
+  ],
+  "key": {
+    "C": "minecraft:clay_ball",
+    "B": "minecraft:green_dye"
+  },
+  "result": {
+    "id": "supertntmod:green_lego_brick",
+    "count": 4
+  }
+}

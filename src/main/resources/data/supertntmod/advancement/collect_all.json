@@ -11,81 +11,103 @@
   "criteria": {
     "diamond_tnt": {
       "trigger": "minecraft:inventory_changed",
-      "conditions": {
-        "items": [{ "items": "supertntmod:diamond_tnt" }]
-      }
+      "conditions": { "items": [{ "items": "supertntmod:diamond_tnt" }] }
     },
     "gold_tnt": {
       "trigger": "minecraft:inventory_changed",
-      "conditions": {
-        "items": [{ "items": "supertntmod:gold_tnt" }]
-      }
+      "conditions": { "items": [{ "items": "supertntmod:gold_tnt" }] }
     },
     "bedrock_tnt": {
       "trigger": "minecraft:inventory_changed",
-      "conditions": {
-        "items": [{ "items": "supertntmod:bedrock_tnt" }]
-      }
+      "conditions": { "items": [{ "items": "supertntmod:bedrock_tnt" }] }
     },
     "emerald_tnt": {
       "trigger": "minecraft:inventory_changed",
-      "conditions": {
-        "items": [{ "items": "supertntmod:emerald_tnt" }]
-      }
+      "conditions": { "items": [{ "items": "supertntmod:emerald_tnt" }] }
     },
     "lightning_tnt": {
       "trigger": "minecraft:inventory_changed",
-      "conditions": {
-        "items": [{ "items": "supertntmod:lightning_tnt" }]
-      }
+      "conditions": { "items": [{ "items": "supertntmod:lightning_tnt" }] }
     },
     "nuclear_tnt": {
       "trigger": "minecraft:inventory_changed",
-      "conditions": {
-        "items": [{ "items": "supertntmod:nuclear_tnt" }]
-      }
+      "conditions": { "items": [{ "items": "supertntmod:nuclear_tnt" }] }
     },
     "freeze_tnt": {
       "trigger": "minecraft:inventory_changed",
-      "conditions": {
-        "items": [{ "items": "supertntmod:freeze_tnt" }]
-      }
+      "conditions": { "items": [{ "items": "supertntmod:freeze_tnt" }] }
     },
     "wood_tnt": {
       "trigger": "minecraft:inventory_changed",
-      "conditions": {
-        "items": [{ "items": "supertntmod:wood_tnt" }]
-      }
+      "conditions": { "items": [{ "items": "supertntmod:wood_tnt" }] }
     },
     "command_tnt": {
       "trigger": "minecraft:inventory_changed",
-      "conditions": {
-        "items": [{ "items": "supertntmod:command_tnt" }]
-      }
+      "conditions": { "items": [{ "items": "supertntmod:command_tnt" }] }
+    },
+    "walking_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:walking_tnt" }] }
     },
     "mob_freeze_tnt": {
       "trigger": "minecraft:inventory_changed",
-      "conditions": {
-        "items": [{ "items": "supertntmod:mob_freeze_tnt" }]
-      }
+      "conditions": { "items": [{ "items": "supertntmod:mob_freeze_tnt" }] }
     },
     "water_tnt": {
       "trigger": "minecraft:inventory_changed",
-      "conditions": {
-        "items": [{ "items": "supertntmod:water_tnt" }]
-      }
+      "conditions": { "items": [{ "items": "supertntmod:water_tnt" }] }
     },
     "rainbow_tnt": {
       "trigger": "minecraft:inventory_changed",
-      "conditions": {
-        "items": [{ "items": "supertntmod:rainbow_tnt" }]
-      }
+      "conditions": { "items": [{ "items": "supertntmod:rainbow_tnt" }] }
     },
     "lego_tnt": {
       "trigger": "minecraft:inventory_changed",
-      "conditions": {
-        "items": [{ "items": "supertntmod:lego_tnt" }]
-      }
+      "conditions": { "items": [{ "items": "supertntmod:lego_tnt" }] }
+    },
+    "makarna_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:makarna_tnt" }] }
+    },
+    "seker_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:seker_tnt" }] }
+    },
+    "shrink_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:shrink_tnt" }] }
+    },
+    "growth_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:growth_tnt" }] }
+    },
+    "cleanse_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:cleanse_tnt" }] }
+    },
+    "fake_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:fake_tnt" }] }
+    },
+    "bounce_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:bounce_tnt" }] }
+    },
+    "magnet_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:magnet_tnt" }] }
+    },
+    "gravity_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:gravity_tnt" }] }
+    },
+    "invisible_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:invisible_tnt" }] }
+    },
+    "swap_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:swap_tnt" }] }
     }
   }
 }

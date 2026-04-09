@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "CCC",
+    "CBC",
+    "CCC"
+  ],
+  "key": {
+    "C": "minecraft:clay_ball",
+    "B": "minecraft:pink_dye"
+  },
+  "result": {
+    "id": "supertntmod:pink_lego_brick",
+    "count": 4
+  }
+}
