@@ -13,6 +13,7 @@ Bu bölüm, tüm geliştirme çalışmalarında uyulması gereken kalite standar
 - Değişiklikler anlamsal gruplara ayrılarak commit edilir. Bir commit tek bir mantıksal değişikliği temsil eder.
 - Her commit kendi başına derlenebilir ve tutarlı olmalıdır.
 - Commit mesajı değişikliğin *ne*'sini değil *neden*'ini açıklar.
+- **Başka bir göreve geçmeden önce mevcut değişiklikler commit edilir.** Yarım kalan iş commit'siz bırakılmaz.
 
 ### Belge Güncelliği
 - Kod değişiklikleriyle birlikte ilgili belgeler (README.md, PLAN.md, lang dosyaları) aynı commit'te güncellenir.

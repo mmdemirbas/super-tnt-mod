@@ -103,6 +103,11 @@ Exceptions: TNT Frisbee (feathers + TNT + iron ingot), TNT Door, Encrypted Chest
 - **Recipes:** 24 shaped crafting recipes in `data/supertntmod/recipe/`
 - **Languages:** `en_us.json` and `tr_tr.json` (~68 entries each: block names, tooltips, advancements)
 
+## Commit Kuralları
+
+- Başka bir göreve geçmeden önce mevcut değişiklikler commit edilir. Yarım kalan iş commit'siz bırakılmaz.
+- Değişiklikler anlamsal gruplara ayrılarak commit edilir.
+
 ## Language
 
 Source code comments and documentation (README.md, TODO.md) are in Turkish.
