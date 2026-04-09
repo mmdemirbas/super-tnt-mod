@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "EEE",
+    "ENE",
+    "EEE"
+  ],
+  "key": {
+    "E": "minecraft:ender_pearl",
+    "N": "minecraft:nether_star"
+  },
+  "result": {
+    "id": "supertntmod:ender_send_spawn_egg",
+    "count": 1
+  }
+}

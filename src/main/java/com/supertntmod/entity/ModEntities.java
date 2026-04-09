@@ -172,6 +172,18 @@ public class ModEntities {
                     (type, world) -> new CleanseTntEntity(type, world), SpawnGroup.MISC)
                     .dimensions(0.98f, 0.98f));
 
+    // Ender Send — 20 blok boyunda dev mob
+    public static final EntityType<EnderSendEntity> ENDER_SEND = regHostile("ender_send",
+            EntityType.Builder.<EnderSendEntity>create(
+                    (type, world) -> new EnderSendEntity(type, world), SpawnGroup.MONSTER)
+                    .dimensions(3.0f, 20.0f));
+
+    private static <T extends net.minecraft.entity.mob.HostileEntity> EntityType<T> regHostile(String name, EntityType.Builder<T> builder) {
+        Identifier id = Identifier.of(SuperTntMod.MOD_ID, name);
+        EntityType<T> type = builder.build(RegistryKey.of(RegistryKeys.ENTITY_TYPE, id));
+        return Registry.register(Registries.ENTITY_TYPE, id, type);
+    }
+
     private static <T extends TntEntity> EntityType<T> regTnt(String name, EntityType.Builder<T> builder) {
         Identifier id = Identifier.of(SuperTntMod.MOD_ID, name);
         EntityType<T> type = builder.build(RegistryKey.of(RegistryKeys.ENTITY_TYPE, id));
