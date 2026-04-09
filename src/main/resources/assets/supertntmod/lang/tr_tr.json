@@ -120,6 +120,8 @@
   "item.supertntmod.energy_crystal":                 "Enerji Kristali",
   "item.supertntmod.energy_crystal.tooltip":         "Sağ tıkla: bedrock kırar! Kırdıkça altından yeni bedrock çıkar.",
   "item.supertntmod.energy_crystal.broken":          "Bedrock kırıldı! Altından yeni katman çıktı.",
+  "item.supertntmod.lightning_spell":                  "Yıldırım Büyüsü",
+  "item.supertntmod.lightning_spell.tooltip":          "Sağ tıkla ve baktığın yere yıldırım çaktır! 64 blok menzil.",
   "item.supertntmod.craft_axe":                      "Craft Baltası",
   "item.supertntmod.craft_axe.tooltip":              "1. kır: konum kaydet. 2. kır: aralarına duvar inşa et.",
   "item.supertntmod.craft_axe.first_set":            "İlk nokta seçildi: [%d, %d, %d]. Şimdi ikinci noktayı kır.",

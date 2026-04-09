@@ -107,6 +107,13 @@ public class ModItems {
                     .maxCount(1)
                     .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "craft_axe")))));
 
+    // Yıldırım Büyüsü - bakılan noktaya yıldırım çaktırır
+    public static final LightningSpellItem LIGHTNING_SPELL = register("lightning_spell",
+            new LightningSpellItem(new Item.Settings()
+                    .maxCount(1)
+                    .maxDamage(32)
+                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "lightning_spell")))));
+
     // Çizim Eşyası
     public static final DrawingItem DRAWING_ITEM = register("drawing_item",
             new DrawingItem(new Item.Settings()

@@ -119,6 +119,8 @@ public class SuperTntMod implements ModInitializer {
                             entries.add(ModItems.SPICY_CHIPS);
                             entries.add(ModItems.ENERGY_CRYSTAL);
                             entries.add(ModItems.CRAFT_AXE);
+                            // Yıldırım Büyüsü
+                            entries.add(ModItems.LIGHTNING_SPELL);
                             // Çizim Eşyası
                             entries.add(ModItems.DRAWING_ITEM);
                         })

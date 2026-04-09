@@ -120,6 +120,8 @@
   "item.supertntmod.energy_crystal":                 "Energy Crystal",
   "item.supertntmod.energy_crystal.tooltip":         "Right-click: breaks bedrock! New bedrock spawns below each broken layer.",
   "item.supertntmod.energy_crystal.broken":          "Bedrock broken! A new layer emerged below.",
+  "item.supertntmod.lightning_spell":                  "Lightning Spell",
+  "item.supertntmod.lightning_spell.tooltip":          "Right-click to strike lightning where you look! 64 block range.",
   "item.supertntmod.craft_axe":                      "Craft Axe",
   "item.supertntmod.craft_axe.tooltip":              "Break 1: record position. Break 2: build a wall between them.",
   "item.supertntmod.craft_axe.first_set":            "First point set: [%d, %d, %d]. Now break the second point.",

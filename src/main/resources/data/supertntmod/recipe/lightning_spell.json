@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " L ",
+    "BTB",
+    " B "
+  ],
+  "key": {
+    "L": "minecraft:lightning_rod",
+    "B": "minecraft:blaze_rod",
+    "T": "minecraft:tnt"
+  },
+  "result": {
+    "id": "supertntmod:lightning_spell",
+    "count": 1
+  }
+}
