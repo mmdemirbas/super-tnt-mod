@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "ITI",
+    "TCT",
+    "ITI"
+  ],
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "T": "minecraft:tnt",
+    "C": "minecraft:chest"
+  },
+  "result": {
+    "id": "supertntmod:blocker_chest",
+    "count": 1
+  }
+}

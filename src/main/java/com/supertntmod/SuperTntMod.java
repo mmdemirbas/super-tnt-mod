@@ -112,6 +112,8 @@ public class SuperTntMod implements ModInitializer {
                             entries.add(ModItems.TNT_ARMOR_CHESTPLATE);
                             entries.add(ModItems.TNT_ARMOR_LEGGINGS);
                             entries.add(ModItems.TNT_ARMOR_BOOTS);
+                            // Blocker Sandık
+                            entries.add(ModBlocks.BLOCKER_CHEST);
                             // Ametist Zırh
                             entries.add(ModItems.AMETHYST_HELMET);
                             entries.add(ModItems.AMETHYST_CHESTPLATE);
@@ -124,7 +126,11 @@ public class SuperTntMod implements ModInitializer {
                             entries.add(ModItems.SPICY_CHIPS);
                             entries.add(ModItems.ENERGY_CRYSTAL);
                             entries.add(ModItems.CRAFT_AXE);
-                            // Yıldırım Büyüsü
+                            // Ender Send
+                            entries.add(ModItems.ENDER_SEND_SPAWN_EGG);
+                            // Yeni eşyalar
+                            entries.add(ModItems.CONTROL_REMOTE);
+                            entries.add(ModItems.BLACK_HOLE);
                             entries.add(ModItems.LIGHTNING_SPELL);
                             // Çizim Eşyası
                             entries.add(ModItems.DRAWING_ITEM);
@@ -141,6 +147,7 @@ public class SuperTntMod implements ModInitializer {
             PortalBlock.clearCooldowns();
             com.supertntmod.item.CraftAxeItem.clearAll();
             com.supertntmod.item.AmethystArmorState.clearAll();
+            com.supertntmod.block.BlockerChestBlock.clearBans();
         });
 
         // Yerçekimi TNT: ters yerçekimi zamanlayıcısı
@@ -148,6 +155,10 @@ public class SuperTntMod implements ModInitializer {
 
         // Yürüyen TNT entity özelliklerini kaydet
         FabricDefaultAttributeRegistry.register(ModEntities.WALKING_TNT, WalkingTntEntity.createAttributes());
+
+        // Ender Send entity özelliklerini kaydet
+        FabricDefaultAttributeRegistry.register(ModEntities.ENDER_SEND,
+                com.supertntmod.entity.EnderSendEntity.createAttributes());
 
         // Şifreli TNT sandık için chat mesajı dinleyicisi
         // ALLOW_CHAT_MESSAGE: şifre mesajını iptal edip diğer oyunculara göstermez
@@ -167,7 +178,38 @@ public class SuperTntMod implements ModInitializer {
             TntDoorBlock.onPlayerDisconnect(id);
             PortalGunItem.onPlayerDisconnect(id);
             com.supertntmod.item.AmethystArmorState.onPlayerDisconnect(id);
+            com.supertntmod.block.BlockerChestBlock.onPlayerDisconnect(id);
         });
+
+        // Blocker Sandık: sandık yasağı olan oyuncuların herhangi bir sandığı açmasını engelle
+        net.fabricmc.fabric.api.event.player.UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
+            if (world.isClient()) return net.minecraft.util.ActionResult.PASS;
+            if (!com.supertntmod.block.BlockerChestBlock.isChestBanned(player.getUuid()))
+                return net.minecraft.util.ActionResult.PASS;
+            // Sandık benzeri bloklara etkileşimi engelle
+            net.minecraft.block.BlockState state = world.getBlockState(hitResult.getBlockPos());
+            if (state.getBlock() instanceof net.minecraft.block.ChestBlock
+                    || state.getBlock() instanceof net.minecraft.block.EnderChestBlock
+                    || state.getBlock() instanceof net.minecraft.block.BarrelBlock
+                    || state.getBlock() instanceof EncryptedTntChestBlock
+                    || state.getBlock() instanceof com.supertntmod.block.BlockerChestBlock) {
+                player.sendMessage(net.minecraft.text.Text.translatable(
+                        "message.supertntmod.blocker_chest.banned"), true);
+                return net.minecraft.util.ActionResult.FAIL;
+            }
+            return net.minecraft.util.ActionResult.PASS;
+        });
+
+        // Kontrol Kumandası: C2S payload kaydı + server handler
+        PayloadTypeRegistry.playC2S().register(
+                com.supertntmod.network.ControlRemoteC2SPayload.ID,
+                com.supertntmod.network.ControlRemoteC2SPayload.CODEC);
+        ServerPlayNetworking.registerGlobalReceiver(
+                com.supertntmod.network.ControlRemoteC2SPayload.ID, (payload, context) -> {
+                    ServerPlayerEntity p = context.player();
+                    context.server().execute(() ->
+                            com.supertntmod.item.ControlRemoteItem.activate(p));
+                });
 
         // Çizim eşyası: C2S payload kaydı + server handler
         PayloadTypeRegistry.playC2S().register(DrawingC2SPayload.ID, DrawingC2SPayload.CODEC);
@@ -176,7 +218,7 @@ public class SuperTntMod implements ModInitializer {
             context.server().execute(() -> handleDrawingPayload(player, payload));
         });
 
-        LOGGER.info("Super TNT Modu yüklendi! 25 blok + 16 item hazır.");
+        LOGGER.info("Super TNT Modu yüklendi! 26 blok + 23 item + 1 mob hazır.");
     }
 
     /**

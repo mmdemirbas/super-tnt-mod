@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "supertntmod:block/blocker_chest" },
+    "facing=south": { "model": "supertntmod:block/blocker_chest", "y": 180 },
+    "facing=west":  { "model": "supertntmod:block/blocker_chest", "y": 270 },
+    "facing=east":  { "model": "supertntmod:block/blocker_chest", "y": 90 }
+  }
+}

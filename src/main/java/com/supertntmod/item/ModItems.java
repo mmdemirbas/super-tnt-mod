@@ -107,6 +107,24 @@ public class ModItems {
                     .maxCount(1)
                     .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "craft_axe")))));
 
+    // Ender Send yumurtası — sağ tıklayınca Ender Send spawn eder
+    public static final EnderSendSpawnItem ENDER_SEND_SPAWN_EGG = register("ender_send_spawn_egg",
+            new EnderSendSpawnItem(new Item.Settings()
+                    .maxCount(16)
+                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "ender_send_spawn_egg")))));
+
+    // Kontrol Kumandası — T tuşuyla yakındaki tüm canlıları dondurur
+    public static final ControlRemoteItem CONTROL_REMOTE = register("control_remote",
+            new ControlRemoteItem(new Item.Settings()
+                    .maxCount(1)
+                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "control_remote")))));
+
+    // Kara Delik — yakındaki canlıları kör eder, çeker ve hasar verir
+    public static final BlackHoleItem BLACK_HOLE = register("black_hole",
+            new BlackHoleItem(new Item.Settings()
+                    .maxCount(16)
+                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "black_hole")))));
+
     // Ametist Zırh seti — giyildikten sonra çıkarılamaz (Enerji Kristali ile gevşetilir)
     public static final Item AMETHYST_HELMET = register("amethyst_helmet",
             new TooltipItem(new Item.Settings()

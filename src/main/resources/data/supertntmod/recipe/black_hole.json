@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "OEO",
+    "ENE",
+    "OEO"
+  ],
+  "key": {
+    "O": "minecraft:obsidian",
+    "E": "minecraft:ender_eye",
+    "N": "minecraft:nether_star"
+  },
+  "result": {
+    "id": "supertntmod:black_hole",
+    "count": 1
+  }
+}

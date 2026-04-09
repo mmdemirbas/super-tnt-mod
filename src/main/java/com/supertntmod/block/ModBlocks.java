@@ -153,6 +153,11 @@ public class ModBlocks {
             new FakeTntBlock(AbstractBlock.Settings.copy(Blocks.CAKE)
                     .registryKey(RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(SuperTntMod.MOD_ID, "fake_tnt")))));
 
+    // 🔒 Blocker Sandık - Sadece sahibi açabilir, başkası ölür
+    public static final BlockerChestBlock BLOCKER_CHEST = reg("blocker_chest",
+            new BlockerChestBlock(AbstractBlock.Settings.copy(Blocks.CHEST)
+                    .registryKey(RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(SuperTntMod.MOD_ID, "blocker_chest")))));
+
     // 🪞 Ayna - Koyulduğunda parlar, aynaya bakan enderman'lar kendine saldırır
     public static final MirrorBlock MIRROR = reg("mirror",
             new MirrorBlock(AbstractBlock.Settings.copy(Blocks.GLASS)

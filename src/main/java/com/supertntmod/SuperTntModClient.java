@@ -2,6 +2,7 @@ package com.supertntmod;
 
 import com.supertntmod.block.ModBlocks;
 import com.supertntmod.client.DrawingScreen;
+import com.supertntmod.client.EnderSendEntityRenderer;
 import com.supertntmod.client.GrowBallEntityRenderer;
 import com.supertntmod.client.GrowPotionEntityRenderer;
 import com.supertntmod.client.PortalProjectileEntityRenderer;
@@ -12,17 +13,31 @@ import com.supertntmod.client.TunneledBlockEntityRenderer;
 import com.supertntmod.client.WalkingTntEntityRenderer;
 import com.supertntmod.entity.ModEntities;
 import com.supertntmod.item.ModItems;
+import com.supertntmod.network.ControlRemoteC2SPayload;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.BlockEntityRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.event.player.UseItemCallback;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.render.BlockRenderLayer;
 import net.minecraft.client.render.entity.TntEntityRenderer;
+import net.minecraft.client.util.InputUtil;
 import net.minecraft.util.ActionResult;
+import org.lwjgl.glfw.GLFW;
 
 public class SuperTntModClient implements ClientModInitializer {
+
+    // Kontrol Kumandası aktivasyon tuşu (T)
+    private static final KeyBinding CONTROL_REMOTE_KEY = KeyBindingHelper.registerKeyBinding(
+            new KeyBinding("key.supertntmod.control_remote",
+                    InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_T,
+                    KeyBinding.Category.GAMEPLAY));
+
     @Override
     public void onInitializeClient() {
         // Orijinal TNT entity renderer'lar
@@ -74,6 +89,9 @@ public class SuperTntModClient implements ClientModInitializer {
         EntityRendererRegistry.register(ModEntities.SHRINK_POTION, ShrinkPotionEntityRenderer::new);
         EntityRendererRegistry.register(ModEntities.GROW_POTION, GrowPotionEntityRenderer::new);
 
+        // Ender Send - blok tabanlı dev mob renderer
+        EntityRendererRegistry.register(ModEntities.ENDER_SEND, EnderSendEntityRenderer::new);
+
         // Portal bloğu render katmanı
         BlockRenderLayerMap.putBlock(ModBlocks.PORTAL_BLOCK, BlockRenderLayer.CUTOUT);
 
@@ -88,6 +106,20 @@ public class SuperTntModClient implements ClientModInitializer {
                 return ActionResult.SUCCESS;
             }
             return ActionResult.PASS;
+        });
+
+        // Kontrol Kumandası: T tuşu basıldığında server'a sinyal gönder
+        ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            while (CONTROL_REMOTE_KEY.wasPressed()) {
+                if (client.player != null) {
+                    // Elinde Kontrol Kumandası var mı kontrol et (client-side)
+                    boolean holding = client.player.getMainHandStack().isOf(ModItems.CONTROL_REMOTE)
+                            || client.player.getOffHandStack().isOf(ModItems.CONTROL_REMOTE);
+                    if (holding) {
+                        ClientPlayNetworking.send(new ControlRemoteC2SPayload());
+                    }
+                }
+            }
         });
     }
 }
