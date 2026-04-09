@@ -39,5 +39,25 @@ public final class ModArmorMaterials {
             TNT_ARMOR_ASSET_KEY
     );
 
+    // Ametist Zırh: Elmas seviyesinde koruma, çıkarılamaz (Enerji Kristali ile gevşetilir)
+    public static final RegistryKey<EquipmentAsset> AMETHYST_ARMOR_ASSET_KEY =
+            EquipmentAssetKeys.register("amethyst");
+
+    public static final ArmorMaterial AMETHYST_ARMOR = new ArmorMaterial(
+            33, // durability multiplier (elmas seviyesi)
+            Map.of(
+                    EquipmentType.HELMET, 3,
+                    EquipmentType.CHESTPLATE, 8,
+                    EquipmentType.LEGGINGS, 6,
+                    EquipmentType.BOOTS, 3
+            ),
+            15, // enchantmentValue (elmas = 10)
+            SoundEvents.ITEM_ARMOR_EQUIP_DIAMOND,
+            2.0f, // toughness (elmas = 2.0)
+            0.0f, // knockbackResistance
+            TagKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "amethyst_armor_repair")),
+            AMETHYST_ARMOR_ASSET_KEY
+    );
+
     private ModArmorMaterials() {}
 }

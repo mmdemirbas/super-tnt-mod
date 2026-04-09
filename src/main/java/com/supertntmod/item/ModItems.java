@@ -107,6 +107,27 @@ public class ModItems {
                     .maxCount(1)
                     .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "craft_axe")))));
 
+    // Ametist Zırh seti — giyildikten sonra çıkarılamaz (Enerji Kristali ile gevşetilir)
+    public static final Item AMETHYST_HELMET = register("amethyst_helmet",
+            new TooltipItem(new Item.Settings()
+                    .armor(ModArmorMaterials.AMETHYST_ARMOR, net.minecraft.item.equipment.EquipmentType.HELMET)
+                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "amethyst_helmet")))));
+
+    public static final Item AMETHYST_CHESTPLATE = register("amethyst_chestplate",
+            new TooltipItem(new Item.Settings()
+                    .armor(ModArmorMaterials.AMETHYST_ARMOR, net.minecraft.item.equipment.EquipmentType.CHESTPLATE)
+                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "amethyst_chestplate")))));
+
+    public static final Item AMETHYST_LEGGINGS = register("amethyst_leggings",
+            new TooltipItem(new Item.Settings()
+                    .armor(ModArmorMaterials.AMETHYST_ARMOR, net.minecraft.item.equipment.EquipmentType.LEGGINGS)
+                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "amethyst_leggings")))));
+
+    public static final Item AMETHYST_BOOTS = register("amethyst_boots",
+            new TooltipItem(new Item.Settings()
+                    .armor(ModArmorMaterials.AMETHYST_ARMOR, net.minecraft.item.equipment.EquipmentType.BOOTS)
+                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "amethyst_boots")))));
+
     // Yıldırım Büyüsü - bakılan noktaya yıldırım çaktırır
     public static final LightningSpellItem LIGHTNING_SPELL = register("lightning_spell",
             new LightningSpellItem(new Item.Settings()

@@ -98,6 +98,16 @@
   "item.supertntmod.tnt_armor_boots":                "TNT Boots",
   "item.supertntmod.tnt_armor_boots.tooltip":        "Attackers explode on contact!",
 
+  "item.supertntmod.amethyst_helmet":                 "Amethyst Helmet",
+  "item.supertntmod.amethyst_helmet.tooltip":         "Cannot be removed once equipped! Use Energy Crystal to loosen.",
+  "item.supertntmod.amethyst_chestplate":             "Amethyst Chestplate",
+  "item.supertntmod.amethyst_chestplate.tooltip":     "Cannot be removed once equipped! Use Energy Crystal to loosen.",
+  "item.supertntmod.amethyst_leggings":               "Amethyst Leggings",
+  "item.supertntmod.amethyst_leggings.tooltip":       "Cannot be removed once equipped! Use Energy Crystal to loosen.",
+  "item.supertntmod.amethyst_boots":                  "Amethyst Boots",
+  "item.supertntmod.amethyst_boots.tooltip":          "Cannot be removed once equipped! Use Energy Crystal to loosen.",
+  "message.supertntmod.amethyst_armor.loosened":      "Amethyst armor loosened for 5 seconds!",
+
   "item.supertntmod.drawing_item":                   "Drawing Tool",
   "item.supertntmod.drawing_item.tooltip":           "Right-click to draw — your art becomes real lego blocks! 16 layers of depth.",
   "screen.supertntmod.drawing":                      "Drawing Tool",

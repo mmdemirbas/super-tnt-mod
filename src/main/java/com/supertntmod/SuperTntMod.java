@@ -112,6 +112,11 @@ public class SuperTntMod implements ModInitializer {
                             entries.add(ModItems.TNT_ARMOR_CHESTPLATE);
                             entries.add(ModItems.TNT_ARMOR_LEGGINGS);
                             entries.add(ModItems.TNT_ARMOR_BOOTS);
+                            // Ametist Zırh
+                            entries.add(ModItems.AMETHYST_HELMET);
+                            entries.add(ModItems.AMETHYST_CHESTPLATE);
+                            entries.add(ModItems.AMETHYST_LEGGINGS);
+                            entries.add(ModItems.AMETHYST_BOOTS);
                             // Yeni bloklar
                             entries.add(ModBlocks.MIRROR);
                             entries.add(ModBlocks.LIGHT_BOMB);
@@ -135,6 +140,7 @@ public class SuperTntMod implements ModInitializer {
             GravityTntEntity.clearAll(server);
             PortalBlock.clearCooldowns();
             com.supertntmod.item.CraftAxeItem.clearAll();
+            com.supertntmod.item.AmethystArmorState.clearAll();
         });
 
         // Yerçekimi TNT: ters yerçekimi zamanlayıcısı
@@ -160,6 +166,7 @@ public class SuperTntMod implements ModInitializer {
             EncryptedTntChestBlock.onPlayerDisconnect(id);
             TntDoorBlock.onPlayerDisconnect(id);
             PortalGunItem.onPlayerDisconnect(id);
+            com.supertntmod.item.AmethystArmorState.onPlayerDisconnect(id);
         });
 
         // Çizim eşyası: C2S payload kaydı + server handler

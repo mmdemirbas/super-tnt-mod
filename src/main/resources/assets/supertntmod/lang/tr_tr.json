@@ -98,6 +98,16 @@
   "item.supertntmod.tnt_armor_boots":                "TNT Bot",
   "item.supertntmod.tnt_armor_boots.tooltip":        "Sana vuran patlıyor!",
 
+  "item.supertntmod.amethyst_helmet":                 "Ametist Kask",
+  "item.supertntmod.amethyst_helmet.tooltip":         "Giyildikten sonra çıkarılamaz! Gevşetmek için Enerji Kristali kullan.",
+  "item.supertntmod.amethyst_chestplate":             "Ametist Göğüslük",
+  "item.supertntmod.amethyst_chestplate.tooltip":     "Giyildikten sonra çıkarılamaz! Gevşetmek için Enerji Kristali kullan.",
+  "item.supertntmod.amethyst_leggings":               "Ametist Pantolon",
+  "item.supertntmod.amethyst_leggings.tooltip":       "Giyildikten sonra çıkarılamaz! Gevşetmek için Enerji Kristali kullan.",
+  "item.supertntmod.amethyst_boots":                  "Ametist Bot",
+  "item.supertntmod.amethyst_boots.tooltip":          "Giyildikten sonra çıkarılamaz! Gevşetmek için Enerji Kristali kullan.",
+  "message.supertntmod.amethyst_armor.loosened":      "Ametist zırh 5 saniyeliğine gevşetildi!",
+
   "item.supertntmod.drawing_item":                   "Çizim Eşyası",
   "item.supertntmod.drawing_item.tooltip":           "Sağ tıkla ve çiz — çizimlerin lego bloklarına dönüşür! 16 katman derinlik.",
   "screen.supertntmod.drawing":                      "Çizim Eşyası",
