@@ -1,0 +1,19 @@
+{
+  "display": {
+    "icon": { "id": "supertntmod:lava_crystal" },
+    "title": { "translate": "advancement.supertntmod.lava_crystal.title" },
+    "description": { "translate": "advancement.supertntmod.lava_crystal.description" },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "parent": "supertntmod:root",
+  "criteria": {
+    "has_lava_crystal": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [{ "items": "supertntmod:lava_crystal" }]
+      }
+    }
+  }
+}

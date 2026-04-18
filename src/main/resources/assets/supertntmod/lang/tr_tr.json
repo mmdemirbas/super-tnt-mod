@@ -181,5 +181,13 @@
   "block.supertntmod.herobrine_spawner": "Herobrine Çağırıcı",
   "block.supertntmod.herobrine_spawner.tooltip": "Koy... eğer cesedersen. Herobrine çıkacak.",
   "block.supertntmod.herobrine_spawner.tooltip2": "Herkese saldırır. Seni de ayırt etmez.",
-  "entity.supertntmod.herobrine": "Herobrine"
+  "entity.supertntmod.herobrine": "Herobrine",
+  "advancement.supertntmod.laser_sword.title": "Lazer Hassasiyeti",
+  "advancement.supertntmod.laser_sword.description": "Lazer Kılıcı edin",
+  "advancement.supertntmod.lava_crystal.title": "Yanmaz",
+  "advancement.supertntmod.lava_crystal.description": "Lav Kristali edin",
+  "advancement.supertntmod.herobrine_summoned.title": "Kötü Fikir",
+  "advancement.supertntmod.herobrine_summoned.description": "Herobrine Çağırıcı yerleştir. Seni uyardık.",
+  "advancement.supertntmod.herobrine_slain.title": "Efsane",
+  "advancement.supertntmod.herobrine_slain.description": "Herobrine'ı yok et"
 }

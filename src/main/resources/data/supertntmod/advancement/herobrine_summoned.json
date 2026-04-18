@@ -1,0 +1,19 @@
+{
+  "display": {
+    "icon": { "id": "supertntmod:herobrine_spawner" },
+    "title": { "translate": "advancement.supertntmod.herobrine_summoned.title" },
+    "description": { "translate": "advancement.supertntmod.herobrine_summoned.description" },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "parent": "supertntmod:root",
+  "criteria": {
+    "placed_herobrine_spawner": {
+      "trigger": "minecraft:placed_block",
+      "conditions": {
+        "block": "supertntmod:herobrine_spawner"
+      }
+    }
+  }
+}

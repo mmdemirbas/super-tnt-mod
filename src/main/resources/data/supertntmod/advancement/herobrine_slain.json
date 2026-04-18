@@ -1,0 +1,19 @@
+{
+  "display": {
+    "icon": { "id": "supertntmod:herobrine_spawner" },
+    "title": { "translate": "advancement.supertntmod.herobrine_slain.title" },
+    "description": { "translate": "advancement.supertntmod.herobrine_slain.description" },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "parent": "supertntmod:herobrine_summoned",
+  "criteria": {
+    "killed_herobrine": {
+      "trigger": "minecraft:player_killed_entity",
+      "conditions": {
+        "entity": { "type": "supertntmod:herobrine" }
+      }
+    }
+  }
+}

@@ -1,6 +1,6 @@
 # Super TNT Mod
 
-Fabric 1.21.1 | 34 Blok + 27 Eşya + 1 Mob + 7 Başarım
+Fabric 1.21.1 | 35 Blok + 29 Eşya + 2 Mob + 11 Başarım
 
 ## TNT Türleri
 
@@ -45,6 +45,7 @@ Fabric 1.21.1 | 34 Blok + 27 Eşya + 1 Mob + 7 Başarım
 | Lego Tuğla | Lego TNT tarafından oluşturulan dekoratif blok (16 renk) |
 | Portal | Portal Silahı tarafından oluşturulan ışınlanma portalı |
 | Tünel Blok | Tünel Kazma Aleti ile oluşturulan kısmen kazılmış blok |
+| Herobrine Çağırıcı | Yerleştirince kendini kaldırır ve Herobrine'ı doğurur — herkese saldırır |
 
 ## Eşyalar
 
@@ -70,6 +71,8 @@ Fabric 1.21.1 | 34 Blok + 27 Eşya + 1 Mob + 7 Başarım
 | Ender Send Yumurtası | 20 blok boyunda dev Ender Send mob çağırır |
 | Pembe Lego Tuğla | Portal Silahı crafting malzemesi |
 | Yeşil Lego Tuğla | Portal Silahı crafting malzemesi |
+| Lazer Kılıcı | Sağ tıkla — 9 blok lazer ışını, 15 kalp hasar, 20 sn soğuma |
+| Lav Kristali | Elinde tut — ateş ve lavdan tamamen korunursun |
 
 ## Zırh Setleri
 
@@ -98,6 +101,7 @@ Ametist zırh elmas seviyesinde koruma sağlar. Giyildikten sonra çıkarılamaz
 | Mob | Özellik |
 |-----|---------|
 | Ender Send | 20 blok boyunda dev düşman mob. Göz temasıyla saldırır, ışınlanır. 300 HP. |
+| Herobrine | Herobrine Çağırıcı ile çağrılır. 200 HP, 8 hasar, herkese saldırır. Despawn olmaz. |
 
 ## Kullanım Kılavuzları
 

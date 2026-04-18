@@ -73,3 +73,10 @@
 | P-07 | Bakım | fabric.mod.json açıklaması güncellendi |
 | P-08 | Bakım | Advancement'lar güncellendi (collect_all, first_craft) |
 | P-09 | Bakım | Crafting tarifleri denetimi — Pembe/Yeşil Lego Tuğla eklendi |
+| P-10 | Eşya | Lazer Kılıcı — 9 blok menzil, 30 HP, görsel ışın efekti, 20 sn soğuma |
+| P-11 | Blok/Mob | Herobrine Çağırıcı — herkese saldıran boss mob + blok çağırıcı |
+| P-12 | Eşya | Lav Kristali — elde tutunca ateş direnci tick event ile |
+| P-13 | Fix | Kara Delik 15 kullanım sınırı (maxDamage=15) |
+| P-14 | Bakım | Semantik versiyonlama 1.0.0 → 1.1.0 |
+| P-15 | Test | JUnit kaynak dosya bütünlüğü testleri (5 test) |
+| P-16 | Başarım | 4 yeni advancement: laser_sword, lava_crystal, herobrine_summoned, herobrine_slain |

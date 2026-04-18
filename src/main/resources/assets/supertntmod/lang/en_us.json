@@ -181,5 +181,13 @@
   "block.supertntmod.herobrine_spawner": "Herobrine Spawner",
   "block.supertntmod.herobrine_spawner.tooltip": "Place it... if you dare. Herobrine will appear.",
   "block.supertntmod.herobrine_spawner.tooltip2": "He attacks everyone. No mercy.",
-  "entity.supertntmod.herobrine": "Herobrine"
+  "entity.supertntmod.herobrine": "Herobrine",
+  "advancement.supertntmod.laser_sword.title": "Laser Precision",
+  "advancement.supertntmod.laser_sword.description": "Obtain a Laser Sword",
+  "advancement.supertntmod.lava_crystal.title": "Fire Proof",
+  "advancement.supertntmod.lava_crystal.description": "Obtain a Lava Crystal",
+  "advancement.supertntmod.herobrine_summoned.title": "Bad Idea",
+  "advancement.supertntmod.herobrine_summoned.description": "Place a Herobrine Spawner. Don't say we didn't warn you.",
+  "advancement.supertntmod.herobrine_slain.title": "Legend",
+  "advancement.supertntmod.herobrine_slain.description": "Defeat Herobrine"
 }

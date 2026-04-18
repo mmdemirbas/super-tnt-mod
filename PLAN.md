@@ -19,6 +19,12 @@ Bu bölüm, tüm geliştirme çalışmalarında uyulması gereken kalite standar
 - Kod değişiklikleriyle birlikte ilgili belgeler (README.md, PLAN.md, lang dosyaları) aynı commit'te güncellenir.
 - Belgelerin eskimesine izin verilmez. Bir özellik eklendiyse README.md'de yer almalıdır.
 
+### Vizyon: Oyunun Ruhuna Uygun Geliştirme
+- Spec'te belirtilmeyen detaylar için Minecraft'ın tasarım felsefesi rehber alınır: eğlence, keşif, sürpriz.
+- Efektler görkemli olmalı. Yeni bir eşya veya mob ilk karşılaşmada "vay be" dedirtmeli.
+- Tüm resource dosyaları (texture, model, lang, recipe, items JSON) eksiksiz teslim edilir.
+- Build başarısız bırakılmaz. Her commit `./gradlew build` geçmeli.
+
 ### Commit Öncesi İnceleme Kontrol Listesi
 Her commit öncesi şu perspektiflerden gözden geçir:
 
@@ -52,11 +58,7 @@ Her commit öncesi şu perspektiflerden gözden geçir:
 
 ## Planlanan Görevler
 
-| ID | Durum | Boyut | Kategori | Özet | Detay |
-|----|-------|-------|----------|------|-------|
-| P-10 | Bekliyor | M | Eşya | Lazer Kılıcı | [Detay](#p-10-lazer-kılıcı) |
-| P-11 | Bekliyor | L | Blok | Herobrine Çağırıcı | [Detay](#p-11-herobrine-çağırıcı) |
-| P-12 | Bekliyor | S | Eşya | Lav Kristali | [Detay](#p-12-lav-kristali) |
+Tüm görevler tamamlandı. Yeni görevler için buraya ekle.
 
 ---
 
@@ -69,15 +71,18 @@ Her commit öncesi şu perspektiflerden gözden geçir:
 **Durum:** Bekliyor
 
 **Açıklama:**
-Sol tıkla kullanılan bir kılıç. Dokunulan bloğu anında yok eder. Bir canlıya vurulursa tek seferinde 15 kalp (30 HP) hasar verir — diğer oyuncular dahil.
+Sağ tıkla aktive edilen lazer silahı. Bakılan yönde 9 blok menzilinde lazer atar. Dokunduğu bloğu anında yok eder. Bir canlıya vurursa tek seferinde 15 kalp (30 HP) hasar verir — diğer oyuncular dahil. Dayanıklılık sınırsız. Kullanımdan sonra 20 saniye soğuma süresi.
 
-**Analiz ve Açık Sorular:**
-- **Blok yıkma:** Sol tıkla blok kırmayı özel bir eşyada override etmek için `PlayerBlockBreakEvents` veya `Item.useOnBlock()` kullanılabilir. Yavaş kırma animasyonu atlanarak anında kırma için `world.removeBlock()` çağrılabilir.
-- **Canlıya hasar:** `Item.useOnEntity()` ile `entity.damage(source, 30f)` — 30 HP = 15 kalp.
-- **Raycast / menzil:** Varsayılan saldırı menzili mi (3 blok)? Yoksa daha uzun bir lazer mı? Görsel efekt (partikül çizgisi) gerekir mi?
-- **Ses efekti:** Lazer sesi — özel ses dosyası mı yoksa mevcut bir ses mi?
-- **Denge:** Çok güçlü. Dayanıklılık (kaç kullanım)? Cooldown? Crafting malzemesi pahalı olmalı.
-- **PvP:** Oyunculara 15 kalp tek vuruş çok güçlü. Tasarım gereği mi?
+**Kesinleşmiş Tasarım:**
+- **Kullanım:** Sağ tıkla aktive edilir. Raycasting ile 9 blok menzilinde hedef bulunur.
+- **Hedef önceliği:** Önce entity kontrolü, sonra blok. İlk entity çarpışması kullanılır.
+- **Blok yıkma:** `world.breakBlock()` ile anında yıkım, drop düşer.
+- **Entity hasarı:** 30 HP (15 kalp), tüm canlılar dahil oyuncular.
+- **Görsel efekt:** `END_ROD` + `ELECTRIC_SPARK` + `REVERSE_PORTAL` partikülleri boyunca lazer çizgisi; çarpma noktasında `FLASH` + patlama.
+- **Ses:** `ENTITY_LIGHTNING_BOLT_THUNDER` yüksek pitch (1.8f).
+- **Soğuma:** 400 tick = 20 saniye. `ItemCooldownManager.set(stack, 400)`.
+- **Dayanıklılık:** Sınırsız (maxDamage yok, `maxCount(1)`).
+- **Crafting:** Eye of Ender + Lightning Rod + Blaze Rod (dikey sütun).
 
 ### P-11: Herobrine Çağırıcı
 
@@ -86,17 +91,17 @@ Sol tıkla kullanılan bir kılıç. Dokunulan bloğu anında yok eder. Bir canl
 **Durum:** Bekliyor
 
 **Açıklama:**
-Yere koyulduğunda yanında anında bir Herobrine spawns olur.
+Yere koyulduğunda anında bir Herobrine doğar. Blok koyulduktan sonra kendini kaldırır. Herobrine herkese saldırır — koyduğu kişiyi de ayırt etmez.
 
-**Analiz ve Açık Sorular:**
-- **Herobrine entity:** Vanilla'da Herobrine yoktur. Özel bir mob olarak implemente edilmeli. Görünüm: Steve skin + beyaz gözler. Özel `EntityModel` + texture gerekir.
-- **Davranış:** Agresif mi? Koyduğun kişiye mi saldırır, herkese mi? Herobrine'e özgü bir davranış (ışınlanma, çevre bozma, meşale söndürme)?
-- **Spawn tetikleyicisi:** `Block.onPlaced()` veya `BlockEntity.onPlaced()` ile entity spawn edilebilir.
-- **Blok koyulunca kaybolur mu:** Sadece tetikleyici mi, yoksa kalıcı bir blok mu? Blok koyulunca kaybolursa `world.removeBlock()` + `world.spawnEntity()`.
-- **Sağlık ve hasar:** Herobrine için ne kadar HP ve saldırı gücü?
-- **Loot:** Öldürülünce ne düşürür?
-- **Crafting:** Ne ile yapılır? Nether Yıldızı + özel malzeme mantıklı olabilir.
-- **Teknik not:** Entity model ve texture işi Walking TNT'den daha karmaşık. Blockbench ile .json model önerilir.
+**Kesinleşmiş Tasarım:**
+- **Tetikleyici:** `Block.onPlaced()` → blok kaldırılır, Herobrine entity spawn edilir.
+- **Hedefleme:** `ActiveTargetGoal<LivingEntity>` — tüm canlı varlıklar hedef.
+- **HP:** 200. **Hasar:** 8. **Hız:** 0.3. **Menzil:** 48 blok.
+- **Davranış:** `MeleeAttackGoal` + `WanderAroundFarGoal` + `RevengeGoal`.
+- **Renderer:** Block tabanlı (EnderSendEntity gibi) — beyaz beton kafa + gri beton gövde + beyaz renkli cam gözler.
+- **Spawn efekti:** Wither spawn sesi + büyük duman/portal partikülleri.
+- **Crafting:** 8 Obsidian + 1 Nether Star (merkez).
+- **Despawn:** `cannotDespawn()` = true.
 
 ### P-12: Lav Kristali
 
@@ -105,28 +110,44 @@ Yere koyulduğunda yanında anında bir Herobrine spawns olur.
 **Durum:** Bekliyor
 
 **Açıklama:**
-Elde tutulduğunda (hotbar veya envanter) oyuncuyu ateş ve lav hasarından tamamen korur.
+Elde tutulduğunda (ana el veya yardımcı el) oyuncuyu ateş ve lav hasarından tamamen korur. Aktif olduğunda ateş söndürülür.
 
-**Analiz ve Açık Sorular:**
-- **Koruma mekanizması:** `LivingEntityMixin` ile `fireImmune()` override edilebilir; ya da `EntityDamageEvent` / `LivingEntity.isFireImmune()` hook. Enerji Kristali'nin `items` etkinleştirme mantığı referans alınabilir.
-- **Aktif koşul:** Sadece elde tutulunca mı (main/off hand) yoksa envanterde herhangi bir yerde mi? Ölçek Kilidi'nin `isInInventory()` kontrolü referans alınabilir.
-- **Görsel:** Lav kristali texture — kırmızı/turuncu, kristal şekli.
-- **Crafting:** Magma Bloğu / Ateş Topu + Elmas / Nether Yıldızı kombinasyonu mantıklı.
-- **Tooltip:** "Elinde tut — ateş ve lavdan zarar görmezsin."
+**Kesinleşmiş Tasarım:**
+- **Aktif koşul:** `player.getMainHandStack()` veya `player.getOffHandStack()` = LavaCrystal.
+- **Koruma mekanizması:** `ServerTickEvents.END_SERVER_TICK` → elde tutanlara 40 tick `FIRE_RESISTANCE` uygulanır + ateş söndürülür.
+- **Mixin gerektirmez** — tick event yeterli.
+- **Crafting:** 4 Blaze Rod + 4 Magma Block + 1 Amethyst Shard (merkez).
+- **Tooltip:** "Elinde tut — ateş ve lavdan zarar görmezsin!"
+
+### P-13: Kara Delik 15 Kullanım
+
+**Kategori:** Fix
+**Boyut:** S
+**Durum:** Bekliyor
+
+**Açıklama:**
+Kara Delik mevcut davranışı güncellenir: maxCount(16) yerine maxCount(1) + maxDamage(15). Her kullanımda 1 dayanıklılık düşer, 15 kullanımdan sonra yok olur.
+
+**Değişiklikler:**
+- `ModItems.java`: `maxCount(16)` → `maxCount(1).maxDamage(15)`.
+- `BlackHoleItem.java`: `stack.decrement(1)` → `stack.damage(1, user, slot)`.
 
 ---
 
 ## Açık Sorular ve Tartışma
 
-### Genel Denge Soruları
-- Yeni eşyaların çoğu çok güçlü. Genel bir denge stratejisi belirlenmeli mi? (Cooldown, dayanıklılık, nadir malzeme, tek kullanımlık gibi)
-- PvP dengesi özellikle Kara Delik, Kontrol Kumandası ve Lazer Kılıcı için düşünülmeli.
-
-### fabric.mod.json Versiyonu
-- Mod hâlâ `1.0.0` versiyonunda. Semantik versiyonlama başlatılmalı mı? (1.0.0 → 1.1.0 → ...)
+### Denge
+- Lazer Kılıcı 20 sn cooldown ile dengeli görünüyor. İlk testlerde gözden geçirilmeli.
+- Herobrine Çağırıcı çok pahalı (Nether Star). Bilerek: bu bir "boss çağırma" eşyası.
 
 ### Advancement Genişletmesi
-- Mevcut 7 başarım yeni içerikle orantısız. Yeni eşya/bloklar için ek başarımlar planlanmalı mı?
+Yeni içerikle orantılı olması için planlanan başarımlar (P-16):
+- Lazer Kılıcı edin
+- Herobrine çağır (ve kurtar — yani öldür)
+- Lav Kristali elde et
 
-### Test Stratejisi
-- Şu an sadece manuel test var. Basit bir JUnit test altyapısı kurulmalı mı? (Entity oluşturma, registry doğrulama gibi)
+### Test Stratejisi (P-15)
+JUnit 5 altyapısı zaten `build.gradle`'da mevcut. Oluşturulacak testler:
+- Resource JSON dosyaları geçerli mi?
+- Her `items/*.json` için `models/item/*.json` var mı?
+- Lang dosyaları boş değil mi?
