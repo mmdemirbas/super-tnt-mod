@@ -119,10 +119,11 @@ public class ModItems {
                     .maxCount(1)
                     .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "control_remote")))));
 
-    // Kara Delik — yakındaki canlıları kör eder, çeker ve hasar verir
+    // Kara Delik — yakındaki canlıları kör eder, çeker ve hasar verir (15 kullanım)
     public static final BlackHoleItem BLACK_HOLE = register("black_hole",
             new BlackHoleItem(new Item.Settings()
-                    .maxCount(16)
+                    .maxCount(1)
+                    .maxDamage(15)
                     .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "black_hole")))));
 
     // Ametist Zırh seti — giyildikten sonra çıkarılamaz (Enerji Kristali ile gevşetilir)
@@ -152,6 +153,18 @@ public class ModItems {
                     .maxCount(1)
                     .maxDamage(32)
                     .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "lightning_spell")))));
+
+    // Lazer Kılıcı - 9 blok menzilinde lazer: blok yıkar veya 15 kalp hasar verir, 20 sn cooldown
+    public static final LaserSwordItem LASER_SWORD = register("laser_sword",
+            new LaserSwordItem(new Item.Settings()
+                    .maxCount(1)
+                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "laser_sword")))));
+
+    // Lav Kristali - elde tutulunca ateş ve lav bağışıklığı
+    public static final LavaCrystalItem LAVA_CRYSTAL = register("lava_crystal",
+            new LavaCrystalItem(new Item.Settings()
+                    .maxCount(1)
+                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "lava_crystal")))));
 
     // Çizim Eşyası
     public static final DrawingItem DRAWING_ITEM = register("drawing_item",

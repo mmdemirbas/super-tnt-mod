@@ -97,10 +97,12 @@ public class BlackHoleItem extends Item {
             }
         });
 
-        // Tüket (survival'da)
+        // Dayanıklılık düşür (15 kullanım sınırı)
         ItemStack stack = user.getStackInHand(hand);
         if (!user.isCreative()) {
-            stack.decrement(1);
+            stack.damage(1, user, hand == Hand.MAIN_HAND
+                    ? net.minecraft.entity.EquipmentSlot.MAINHAND
+                    : net.minecraft.entity.EquipmentSlot.OFFHAND);
         }
 
         // Cooldown (10 saniye)
