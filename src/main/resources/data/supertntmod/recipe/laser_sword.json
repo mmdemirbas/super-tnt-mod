@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [" E ", " L ", " B "],
+  "key": {
+    "E": {"item": "minecraft:ender_eye"},
+    "L": {"item": "minecraft:lightning_rod"},
+    "B": {"item": "minecraft:blaze_rod"}
+  },
+  "result": {"id": "supertntmod:laser_sword", "count": 1}
+}
