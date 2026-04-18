@@ -132,6 +132,10 @@ public class SuperTntMod implements ModInitializer {
                             entries.add(ModItems.CONTROL_REMOTE);
                             entries.add(ModItems.BLACK_HOLE);
                             entries.add(ModItems.LIGHTNING_SPELL);
+                            // Yeni P-10..P-12 eşyalar
+                            entries.add(ModItems.LASER_SWORD);
+                            entries.add(ModItems.LAVA_CRYSTAL);
+                            entries.add(ModBlocks.HEROBRINE_SPAWNER);
                             // Çizim Eşyası
                             entries.add(ModItems.DRAWING_ITEM);
                         })
@@ -139,6 +143,18 @@ public class SuperTntMod implements ModInitializer {
 
         // Odun TNT geri yükleme zamanlayıcısı
         ServerTickEvents.END_SERVER_TICK.register(server -> WoodTntEntity.tickRestores());
+
+        // Lav Kristali: elde tutulurken ateş ve lav bağışıklığı ver
+        ServerTickEvents.END_SERVER_TICK.register(server -> {
+            for (net.minecraft.server.network.ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+                boolean holding = player.getMainHandStack().isOf(ModItems.LAVA_CRYSTAL)
+                        || player.getOffHandStack().isOf(ModItems.LAVA_CRYSTAL);
+                if (holding) {
+                    player.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
+                            net.minecraft.entity.effect.StatusEffects.FIRE_RESISTANCE, 40, 0, false, false, false));
+                }
+            }
+        });
 
         // Sunucu kapanınca stale static state'i temizle
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
@@ -159,6 +175,10 @@ public class SuperTntMod implements ModInitializer {
         // Ender Send entity özelliklerini kaydet
         FabricDefaultAttributeRegistry.register(ModEntities.ENDER_SEND,
                 com.supertntmod.entity.EnderSendEntity.createAttributes());
+
+        // Herobrine entity özelliklerini kaydet
+        FabricDefaultAttributeRegistry.register(ModEntities.HEROBRINE,
+                com.supertntmod.entity.HerobrineEntity.createAttributes());
 
         // Şifreli TNT sandık için chat mesajı dinleyicisi
         // ALLOW_CHAT_MESSAGE: şifre mesajını iptal edip diğer oyunculara göstermez
