@@ -92,6 +92,10 @@ public class SuperTntModClient implements ClientModInitializer {
         // Ender Send - blok tabanlı dev mob renderer
         EntityRendererRegistry.register(ModEntities.ENDER_SEND, EnderSendEntityRenderer::new);
 
+        // Herobrine - blok tabanlı insansı renderer
+        EntityRendererRegistry.register(ModEntities.HEROBRINE,
+                com.supertntmod.client.HerobrineEntityRenderer::new);
+
         // Portal bloğu render katmanı
         BlockRenderLayerMap.putBlock(ModBlocks.PORTAL_BLOCK, BlockRenderLayer.CUTOUT);
 

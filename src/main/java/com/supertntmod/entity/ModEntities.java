@@ -178,6 +178,12 @@ public class ModEntities {
                     (type, world) -> new EnderSendEntity(type, world), SpawnGroup.MONSTER)
                     .dimensions(3.0f, 20.0f));
 
+    // Herobrine — 200 HP, tüm canlıları hedef alır
+    public static final EntityType<HerobrineEntity> HEROBRINE = regHostile("herobrine",
+            EntityType.Builder.<HerobrineEntity>create(
+                    (type, world) -> new HerobrineEntity(type, world), SpawnGroup.MONSTER)
+                    .dimensions(0.6f, 1.8f));
+
     private static <T extends net.minecraft.entity.mob.HostileEntity> EntityType<T> regHostile(String name, EntityType.Builder<T> builder) {
         Identifier id = Identifier.of(SuperTntMod.MOD_ID, name);
         EntityType<T> type = builder.build(RegistryKey.of(RegistryKeys.ENTITY_TYPE, id));

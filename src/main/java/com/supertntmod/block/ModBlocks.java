@@ -170,6 +170,13 @@ public class ModBlocks {
                     .luminance(state -> 15)
                     .registryKey(RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(SuperTntMod.MOD_ID, "light_bomb")))));
 
+    // 👁 Herobrine Çağırıcı - Yerleştirilince Herobrine doğurur ve blok kaybolur
+    public static final HerobrineSpawnerBlock HEROBRINE_SPAWNER = reg("herobrine_spawner",
+            new HerobrineSpawnerBlock(AbstractBlock.Settings.copy(Blocks.OBSIDIAN)
+                    .hardness(50.0f)
+                    .resistance(1200.0f)
+                    .registryKey(RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(SuperTntMod.MOD_ID, "herobrine_spawner")))));
+
     // 🧱 Lego Tuğla - Lego TNT tarafından oluşturulan dekoratif blok (16 renk)
     public static final LegoBrickBlock LEGO_BRICK = regBlockOnly("lego_brick",
             new LegoBrickBlock(AbstractBlock.Settings.copy(Blocks.STONE)

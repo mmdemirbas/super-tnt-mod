@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["OOO", "ONO", "OOO"],
+  "key": {
+    "O": {"item": "minecraft:obsidian"},
+    "N": {"item": "minecraft:nether_star"}
+  },
+  "result": {"id": "supertntmod:herobrine_spawner", "count": 1}
+}
