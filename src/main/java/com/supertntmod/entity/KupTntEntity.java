@@ -17,7 +17,7 @@ import java.util.List;
 
 public class KupTntEntity extends TntEntity {
     private static final int HALF = 12;
-    private static final int DEPTH = 25;
+    private static final int DEPTH = 24;
     private static final int BLOCKS_PER_TICK = 50;
 
     private boolean exploded = false;
@@ -36,15 +36,19 @@ public class KupTntEntity extends TntEntity {
 
     @Override
     public void tick() {
-        if (pending != null && !pending.isEmpty()) {
-            World world = getEntityWorld();
-            int processed = 0;
-            while (!pending.isEmpty() && processed < BLOCKS_PER_TICK) {
-                BlockPos pos = pending.remove(pending.size() - 1);
-                if (world.getBlockState(pos).getBlock() != Blocks.BEDROCK) {
-                    world.setBlockState(pos, Blocks.AIR.getDefaultState());
+        if (pending != null) {
+            if (!pending.isEmpty()) {
+                World world = getEntityWorld();
+                int processed = 0;
+                while (!pending.isEmpty() && processed < BLOCKS_PER_TICK) {
+                    BlockPos pos = pending.remove(pending.size() - 1);
+                    if (world.getBlockState(pos).getBlock() != Blocks.BEDROCK) {
+                        world.setBlockState(pos, Blocks.AIR.getDefaultState());
+                    }
+                    processed++;
                 }
-                processed++;
+            } else {
+                this.discard();
             }
             return;
         }
@@ -53,7 +57,6 @@ public class KupTntEntity extends TntEntity {
             exploded = true;
             double x = getX(), y = getY(), z = getZ();
             World world = getEntityWorld();
-            this.discard();
 
             world.playSound(null, x, y, z, SoundEvents.ENTITY_GENERIC_EXPLODE, SoundCategory.BLOCKS, 3.0f, 0.5f);
             world.createExplosion(null, x, y, z, 4.0f, false, World.ExplosionSourceType.TNT);

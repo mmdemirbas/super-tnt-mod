@@ -4,8 +4,6 @@ import net.minecraft.component.type.TooltipDisplayComponent;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.entity.mob.MobEntity;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.tooltip.TooltipType;
@@ -62,8 +60,11 @@ public class ControlRemoteItem extends Item {
                 || offHand.isOf(ModItems.CONTROL_REMOTE);
         if (!holdingRemote) return;
 
+        // Kumandanın bulunduğu el stack'ini belirle
+        ItemStack remoteStack = mainHand.isOf(ModItems.CONTROL_REMOTE) ? mainHand : offHand;
+
         // Cooldown kontrolü
-        if (player.getItemCooldownManager().isCoolingDown(mainHand)) return;
+        if (player.getItemCooldownManager().isCoolingDown(remoteStack)) return;
 
         // Efektler
         world.playSound(null, player.getX(), player.getY(), player.getZ(),
@@ -87,14 +88,6 @@ public class ControlRemoteItem extends Item {
             entity.addStatusEffect(new StatusEffectInstance(
                     StatusEffects.SLOWNESS, EFFECT_DURATION, 255));
 
-            // Mob AI'ı devre dışı bırak
-            if (entity instanceof MobEntity mob) {
-                mob.setAiDisabled(true);
-                // 1.5 dk sonra AI'ı geri aç — bu tick event ile yapılacak
-                // Basit yaklaşım: dondurma süresi bitince etkileri geçer
-                // AI devre dışı bırakma kalıcıdır, o yüzden zamanlayıcı ile geri açalım
-            }
-
             // Dondurma partikülü
             if (world instanceof ServerWorld sw) {
                 sw.spawnParticles(ParticleTypes.SNOWFLAKE,
@@ -104,7 +97,7 @@ public class ControlRemoteItem extends Item {
         });
 
         // Cooldown uygula
-        player.getItemCooldownManager().set(mainHand, COOLDOWN_TICKS);
+        player.getItemCooldownManager().set(remoteStack, COOLDOWN_TICKS);
 
         player.sendMessage(Text.translatable("message.supertntmod.control_remote.activated"), true);
     }

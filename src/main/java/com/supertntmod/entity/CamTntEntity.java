@@ -34,13 +34,17 @@ public class CamTntEntity extends TntEntity {
 
     @Override
     public void tick() {
-        if (pendingGlass != null && !pendingGlass.isEmpty()) {
-            World world = getEntityWorld();
-            int processed = 0;
-            while (!pendingGlass.isEmpty() && processed < BLOCKS_PER_TICK) {
-                BlockPos pos = pendingGlass.remove(pendingGlass.size() - 1);
-                world.breakBlock(pos, false);
-                processed++;
+        if (pendingGlass != null) {
+            if (!pendingGlass.isEmpty()) {
+                World world = getEntityWorld();
+                int processed = 0;
+                while (!pendingGlass.isEmpty() && processed < BLOCKS_PER_TICK) {
+                    BlockPos pos = pendingGlass.remove(pendingGlass.size() - 1);
+                    world.breakBlock(pos, false);
+                    processed++;
+                }
+            } else {
+                this.discard();
             }
             return;
         }
@@ -49,7 +53,6 @@ public class CamTntEntity extends TntEntity {
             exploded = true;
             double x = getX(), y = getY(), z = getZ();
             World world = getEntityWorld();
-            this.discard();
 
             world.playSound(null, x, y, z, SoundEvents.BLOCK_GLASS_BREAK, SoundCategory.BLOCKS, 3.0f, 0.5f);
             world.createExplosion(null, x, y, z, 2.0f, false, World.ExplosionSourceType.TNT);

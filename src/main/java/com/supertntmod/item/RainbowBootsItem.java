@@ -25,15 +25,13 @@ public class RainbowBootsItem extends Item {
         ServerWorld world = (ServerWorld) player.getEntityWorld();
 
         BlockPos feetPos = player.getBlockPos();
-        // Ayağın altındaki blok ve ayak bloğu hava ise yün koy
         BlockPos below = feetPos.down();
+        // Önce altı doldur (düşmeyi önlemek için), sonra ayak bloğu (serbest düşüş)
+        if (world.getBlockState(below).isAir()) {
+            world.setBlockState(below, Blocks.WHITE_WOOL.getDefaultState());
+        }
         if (world.getBlockState(feetPos).isAir()) {
             world.setBlockState(feetPos, Blocks.WHITE_WOOL.getDefaultState());
-        }
-        if (world.getBlockState(below).isAir() && !world.getBlockState(feetPos).isAir()) {
-            // Sadece feetPos doluysa below'u atla (zaten ayakta)
-        } else if (world.getBlockState(below).isAir()) {
-            world.setBlockState(below, Blocks.WHITE_WOOL.getDefaultState());
         }
     }
 }

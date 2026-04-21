@@ -66,7 +66,7 @@ public class ShrinkBallEntity extends ThrownEntity {
 
         double actualScale = scaleAttr.getValue(); // clamp sonrası gerçek değer
         if (owner instanceof PlayerEntity player) {
-            if (Math.abs(actualScale - currentScale) < 0.00001) {
+            if (Math.abs(actualScale - currentScale) < 0.001) {
                 player.sendMessage(
                     Text.literal("En küçük ölçektesin! Sıfırlamak için Temizleyici TNT kullan.").formatted(Formatting.YELLOW),
                     true);
