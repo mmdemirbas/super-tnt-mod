@@ -1,0 +1,17 @@
+{
+  "display": {
+    "icon": { "id": "supertntmod:ghost_block" },
+    "title": { "translate": "advancement.supertntmod.ghost_block.title" },
+    "description": { "translate": "advancement.supertntmod.ghost_block.description" },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false
+  },
+  "parent": "supertntmod:root",
+  "criteria": {
+    "has_ghost_block": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:ghost_block" }] }
+    }
+  }
+}

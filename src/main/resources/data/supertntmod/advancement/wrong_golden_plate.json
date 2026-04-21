@@ -1,0 +1,17 @@
+{
+  "display": {
+    "icon": { "id": "supertntmod:wrong_golden_plate" },
+    "title": { "translate": "advancement.supertntmod.wrong_golden_plate.title" },
+    "description": { "translate": "advancement.supertntmod.wrong_golden_plate.description" },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "parent": "supertntmod:root",
+  "criteria": {
+    "has_wrong_golden_plate": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:wrong_golden_plate" }] }
+    }
+  }
+}

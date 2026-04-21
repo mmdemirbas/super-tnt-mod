@@ -1,0 +1,17 @@
+{
+  "display": {
+    "icon": { "id": "supertntmod:end_gate" },
+    "title": { "translate": "advancement.supertntmod.end_gate.title" },
+    "description": { "translate": "advancement.supertntmod.end_gate.description" },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "parent": "supertntmod:root",
+  "criteria": {
+    "has_end_gate": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:end_gate" }] }
+    }
+  }
+}

@@ -108,6 +108,30 @@
     "swap_tnt": {
       "trigger": "minecraft:inventory_changed",
       "conditions": { "items": [{ "items": "supertntmod:swap_tnt" }] }
+    },
+    "nether_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:nether_tnt" }] }
+    },
+    "end_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:end_tnt" }] }
+    },
+    "cam_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:cam_tnt" }] }
+    },
+    "gizli_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:gizli_tnt" }] }
+    },
+    "ureyen_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:ureyen_tnt" }] }
+    },
+    "kup_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:kup_tnt" }] }
     }
   }
 }

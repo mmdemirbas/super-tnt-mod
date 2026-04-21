@@ -1,0 +1,17 @@
+{
+  "display": {
+    "icon": { "id": "supertntmod:gizli_tnt" },
+    "title": { "translate": "advancement.supertntmod.gizli_tnt.title" },
+    "description": { "translate": "advancement.supertntmod.gizli_tnt.description" },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "parent": "supertntmod:root",
+  "criteria": {
+    "has_gizli_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:gizli_tnt" }] }
+    }
+  }
+}

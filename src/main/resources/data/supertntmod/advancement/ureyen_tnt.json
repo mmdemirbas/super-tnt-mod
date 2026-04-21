@@ -1,0 +1,17 @@
+{
+  "display": {
+    "icon": { "id": "supertntmod:ureyen_tnt" },
+    "title": { "translate": "advancement.supertntmod.ureyen_tnt.title" },
+    "description": { "translate": "advancement.supertntmod.ureyen_tnt.description" },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "parent": "supertntmod:root",
+  "criteria": {
+    "has_ureyen_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:ureyen_tnt" }] }
+    }
+  }
+}

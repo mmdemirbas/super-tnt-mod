@@ -1,0 +1,17 @@
+{
+  "display": {
+    "icon": { "id": "supertntmod:rainbow_boots" },
+    "title": { "translate": "advancement.supertntmod.rainbow_boots.title" },
+    "description": { "translate": "advancement.supertntmod.rainbow_boots.description" },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false
+  },
+  "parent": "supertntmod:root",
+  "criteria": {
+    "has_rainbow_boots": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:rainbow_boots" }] }
+    }
+  }
+}

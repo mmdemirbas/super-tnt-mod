@@ -100,6 +100,57 @@ class ResourceFileTest {
     }
 
     @Test
+    void advancementFilesAreValidJson() throws IOException {
+        Path advancements = DATA.resolve("advancement");
+        assertTrue(Files.exists(advancements), "advancement directory must exist");
+
+        try (Stream<Path> files = Files.list(advancements)) {
+            List<Path> jsonFiles = files
+                    .filter(p -> p.toString().endsWith(".json"))
+                    .collect(Collectors.toList());
+            assertFalse(jsonFiles.isEmpty(), "must have at least one advancement");
+            for (Path file : jsonFiles) {
+                String name = file.getFileName().toString();
+                String content = Files.readString(file).strip();
+                assertTrue(content.startsWith("{"), name + " must be a JSON object");
+                if (!name.equals("root.json")) {
+                    assertTrue(content.contains("\"parent\""), name + " must have a parent field");
+                    assertTrue(content.contains("\"criteria\""), name + " must have a criteria field");
+                    assertTrue(content.contains("\"display\""), name + " must have a display field");
+                }
+            }
+        }
+    }
+
+    @Test
+    void advancementLangKeysExistInBothLangFiles() throws IOException {
+        Path advancements = DATA.resolve("advancement");
+        Path en = ASSETS.resolve("lang/en_us.json");
+        Path tr = ASSETS.resolve("lang/tr_tr.json");
+        String enContent = Files.readString(en);
+        String trContent = Files.readString(tr);
+
+        try (Stream<Path> files = Files.list(advancements)) {
+            List<String> names = files
+                    .map(p -> p.getFileName().toString().replace(".json", ""))
+                    .filter(n -> !n.equals("root"))
+                    .collect(Collectors.toList());
+            for (String name : names) {
+                String titleKey = "advancement.supertntmod." + name + ".title";
+                String descKey  = "advancement.supertntmod." + name + ".description";
+                assertTrue(enContent.contains(titleKey),
+                        "en_us.json missing key: " + titleKey);
+                assertTrue(trContent.contains(titleKey),
+                        "tr_tr.json missing key: " + titleKey);
+                assertTrue(enContent.contains(descKey),
+                        "en_us.json missing key: " + descKey);
+                assertTrue(trContent.contains(descKey),
+                        "tr_tr.json missing key: " + descKey);
+            }
+        }
+    }
+
+    @Test
     void modIdFollowsNamingConvention() {
         String modId = "supertntmod";
         assertTrue(modId.matches("[a-z][a-z0-9_]*"),

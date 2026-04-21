@@ -1,0 +1,17 @@
+{
+  "display": {
+    "icon": { "id": "supertntmod:nether_pearl" },
+    "title": { "translate": "advancement.supertntmod.nether_pearl.title" },
+    "description": { "translate": "advancement.supertntmod.nether_pearl.description" },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "parent": "supertntmod:root",
+  "criteria": {
+    "has_nether_pearl": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:nether_pearl" }] }
+    }
+  }
+}

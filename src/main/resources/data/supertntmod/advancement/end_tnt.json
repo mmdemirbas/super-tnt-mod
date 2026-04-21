@@ -1,0 +1,17 @@
+{
+  "display": {
+    "icon": { "id": "supertntmod:end_tnt" },
+    "title": { "translate": "advancement.supertntmod.end_tnt.title" },
+    "description": { "translate": "advancement.supertntmod.end_tnt.description" },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "parent": "supertntmod:root",
+  "criteria": {
+    "has_end_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:end_tnt" }] }
+    }
+  }
+}
