@@ -56,7 +56,7 @@ public class FreezeTntEntity extends TntEntity {
                 }
                 // Havayı kar katmanıyla kaplama (%40 şans)
                 else if (state.isOf(Blocks.AIR) &&
-                         world.getBlockState(pos.down()).isSolid() &&
+                         world.getBlockState(pos.down()).isSolidBlock(world, pos.down()) &&
                          world.random.nextFloat() < 0.4f) {
                     world.setBlockState(pos, Blocks.SNOW.getDefaultState());
                 }
@@ -74,7 +74,7 @@ public class FreezeTntEntity extends TntEntity {
 
             // Küçük patlama (görsel efekt)
             world.createExplosion(null, center.getX() + 0.5, center.getY(),
-                    center.getZ() + 0.5, 2.0f, false, World.ExplosionSourceType.TNT);
+                    center.getZ() + 0.5, 0.0f, false, World.ExplosionSourceType.NONE);
             return;
         }
         if (!done) super.tick();
