@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["NNN", "NTN", "NNN"],
+  "key": {
+    "N": "minecraft:netherrack",
+    "T": "minecraft:tnt"
+  },
+  "result": {
+    "id": "supertntmod:nether_tnt",
+    "count": 1
+  }
+}

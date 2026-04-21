@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["SSS", "EPE", "EEE"],
+  "key": {
+    "S": "minecraft:stone",
+    "E": "minecraft:ender_eye",
+    "P": "minecraft:ender_pearl"
+  },
+  "result": {
+    "id": "supertntmod:end_pearl",
+    "count": 4
+  }
+}

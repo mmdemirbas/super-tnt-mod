@@ -166,6 +166,30 @@ public class ModItems {
                     .maxCount(1)
                     .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "lava_crystal")))));
 
+    // Günlük - sadece sahibi okuyabilir/yazabilir
+    public static final DiaryItem DIARY = register("diary",
+            new DiaryItem(new Item.Settings()
+                    .maxCount(1)
+                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "diary")))));
+
+    // End İncisi - atılınca End kaynakları verir / Dragon öldürür
+    public static final EndPearlItem END_PEARL = register("end_pearl",
+            new EndPearlItem(new Item.Settings()
+                    .maxCount(16)
+                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "end_pearl")))));
+
+    // Nether İncisi - atılınca Nether'e ışınlar ve Blaze Rod verir
+    public static final NetherPearlItem NETHER_PEARL = register("nether_pearl",
+            new NetherPearlItem(new Item.Settings()
+                    .maxCount(16)
+                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "nether_pearl")))));
+
+    // Gökkuşağı Botları - giyilince bastığın yerde yün blok çıkar
+    public static final RainbowBootsItem RAINBOW_BOOTS = register("rainbow_boots",
+            new RainbowBootsItem(new Item.Settings()
+                    .maxCount(1)
+                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "rainbow_boots")))));
+
     // Çizim Eşyası
     public static final DrawingItem DRAWING_ITEM = register("drawing_item",
             new DrawingItem(new Item.Settings()

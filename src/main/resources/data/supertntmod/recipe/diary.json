@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [" S ", " E ", " O "],
+  "key": {
+    "S": "minecraft:stone",
+    "E": "minecraft:enchanting_table",
+    "O": "minecraft:obsidian"
+  },
+  "result": {
+    "id": "supertntmod:diary",
+    "count": 1
+  }
+}

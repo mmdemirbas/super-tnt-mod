@@ -178,6 +178,26 @@ public class ModEntities {
                     (type, world) -> new EnderSendEntity(type, world), SpawnGroup.MONSTER)
                     .dimensions(3.0f, 20.0f));
 
+    public static final EntityType<NetherTntEntity> NETHER_TNT = regTnt("nether_tnt",
+            EntityType.Builder.<NetherTntEntity>create(
+                    (type, world) -> new NetherTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    public static final EntityType<EndTntEntity> END_TNT = regTnt("end_tnt",
+            EntityType.Builder.<EndTntEntity>create(
+                    (type, world) -> new EndTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    public static final EntityType<EndPearlEntity> END_PEARL = regThrown("end_pearl",
+            EntityType.Builder.<EndPearlEntity>create(
+                    (type, world) -> new EndPearlEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.25f, 0.25f));
+
+    public static final EntityType<NetherPearlEntity> NETHER_PEARL = regThrown("nether_pearl",
+            EntityType.Builder.<NetherPearlEntity>create(
+                    (type, world) -> new NetherPearlEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.25f, 0.25f));
+
     // Herobrine — 200 HP, tüm canlıları hedef alır
     public static final EntityType<HerobrineEntity> HEROBRINE = regHostile("herobrine",
             EntityType.Builder.<HerobrineEntity>create(
@@ -209,6 +229,6 @@ public class ModEntities {
     }
 
     public static void register() {
-        SuperTntMod.LOGGER.info("23 entity türü kaydedildi.");
+        SuperTntMod.LOGGER.info("27 entity türü kaydedildi.");
     }
 }

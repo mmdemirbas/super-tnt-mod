@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["GGG", "GGG"],
+  "key": {
+    "G": "minecraft:gold_ingot"
+  },
+  "result": {
+    "id": "supertntmod:right_golden_plate",
+    "count": 1
+  }
+}

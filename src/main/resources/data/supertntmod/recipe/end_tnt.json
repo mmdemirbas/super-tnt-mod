@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["III", "WTW", "OOO"],
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "W": "minecraft:white_wool",
+    "T": "minecraft:tnt",
+    "O": "minecraft:obsidian"
+  },
+  "result": {
+    "id": "supertntmod:end_tnt",
+    "count": 1
+  }
+}

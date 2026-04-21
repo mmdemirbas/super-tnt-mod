@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["TTT", "TET", "TTT"],
+  "key": {
+    "T": "minecraft:tnt",
+    "E": "minecraft:ender_eye"
+  },
+  "result": {
+    "id": "supertntmod:end_gate",
+    "count": 1
+  }
+}

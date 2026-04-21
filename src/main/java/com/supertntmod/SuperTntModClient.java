@@ -96,8 +96,18 @@ public class SuperTntModClient implements ClientModInitializer {
         EntityRendererRegistry.register(ModEntities.HEROBRINE,
                 com.supertntmod.client.HerobrineEntityRenderer::new);
 
+        // Yeni TNT ve projectile renderer'ları
+        EntityRendererRegistry.register(ModEntities.NETHER_TNT, TntEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.END_TNT, TntEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.END_PEARL,
+                com.supertntmod.client.EndPearlEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.NETHER_PEARL,
+                com.supertntmod.client.NetherPearlEntityRenderer::new);
+
         // Portal bloğu render katmanı
         BlockRenderLayerMap.putBlock(ModBlocks.PORTAL_BLOCK, BlockRenderLayer.CUTOUT);
+        BlockRenderLayerMap.putBlock(ModBlocks.END_GATE, BlockRenderLayer.TRANSLUCENT);
+        BlockRenderLayerMap.putBlock(ModBlocks.GHOST_BLOCK, BlockRenderLayer.TRANSLUCENT);
 
         // Tünellenmiş blok - özel BlockEntity renderer
         BlockEntityRendererRegistry.register(ModBlocks.TUNNELED_BLOCK_ENTITY_TYPE, TunneledBlockEntityRenderer::new);

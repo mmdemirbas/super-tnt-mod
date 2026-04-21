@@ -138,6 +138,18 @@ public class SuperTntMod implements ModInitializer {
                             entries.add(ModBlocks.HEROBRINE_SPAWNER);
                             // Çizim Eşyası
                             entries.add(ModItems.DRAWING_ITEM);
+                            // Yeni bloklar
+                            entries.add(ModBlocks.END_GATE);
+                            entries.add(ModBlocks.GHOST_BLOCK);
+                            entries.add(ModBlocks.WRONG_GOLDEN_PLATE);
+                            entries.add(ModBlocks.RIGHT_GOLDEN_PLATE);
+                            entries.add(ModBlocks.NETHER_TNT);
+                            entries.add(ModBlocks.END_TNT);
+                            // Yeni eşyalar
+                            entries.add(ModItems.DIARY);
+                            entries.add(ModItems.END_PEARL);
+                            entries.add(ModItems.NETHER_PEARL);
+                            entries.add(ModItems.RAINBOW_BOOTS);
                         })
                         .build());
 
@@ -161,6 +173,7 @@ public class SuperTntMod implements ModInitializer {
             WoodTntEntity.clearAll();
             GravityTntEntity.clearAll(server);
             PortalBlock.clearCooldowns();
+            com.supertntmod.block.EndGateBlock.clearCooldowns();
             com.supertntmod.item.CraftAxeItem.clearAll();
             com.supertntmod.item.AmethystArmorState.clearAll();
             com.supertntmod.block.BlockerChestBlock.clearBans();
@@ -180,15 +193,14 @@ public class SuperTntMod implements ModInitializer {
         FabricDefaultAttributeRegistry.register(ModEntities.HEROBRINE,
                 com.supertntmod.entity.HerobrineEntity.createAttributes());
 
-        // Şifreli TNT sandık için chat mesajı dinleyicisi
-        // ALLOW_CHAT_MESSAGE: şifre mesajını iptal edip diğer oyunculara göstermez
+        // Şifreli TNT sandık + Günlük için chat mesajı dinleyicisi
         ServerMessageEvents.ALLOW_CHAT_MESSAGE.register((message, sender, params) -> {
             String text = message.getContent().getString();
             if (sender instanceof ServerPlayerEntity player) {
-                boolean handled = EncryptedTntChestBlock.handleChatMessage(player, text);
-                if (handled) return false; // Şifre mesajını iptal et, kimse görmesin
+                if (EncryptedTntChestBlock.handleChatMessage(player, text)) return false;
+                if (com.supertntmod.item.DiaryItem.handleChatMessage(player, text)) return false;
             }
-            return true; // Normal mesaj, devam et
+            return true;
         });
 
         // Oyuncu ayrılınca ephemeral per-player state'i temizle
@@ -199,6 +211,14 @@ public class SuperTntMod implements ModInitializer {
             PortalGunItem.onPlayerDisconnect(id);
             com.supertntmod.item.AmethystArmorState.onPlayerDisconnect(id);
             com.supertntmod.block.BlockerChestBlock.onPlayerDisconnect(id);
+            com.supertntmod.item.DiaryItem.clearWriteMode(id);
+        });
+
+        // Gökkuşağı Botları: her tick ayak altına yün koy
+        ServerTickEvents.END_SERVER_TICK.register(server -> {
+            for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+                com.supertntmod.item.RainbowBootsItem.onTick(player);
+            }
         });
 
         // Blocker Sandık: sandık yasağı olan oyuncuların herhangi bir sandığı açmasını engelle

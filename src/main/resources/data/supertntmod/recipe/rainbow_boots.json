@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["RRR", "WTW", "WWW"],
+  "key": {
+    "R": "minecraft:red_wool",
+    "W": "minecraft:white_wool",
+    "T": "minecraft:obsidian"
+  },
+  "result": {
+    "id": "supertntmod:rainbow_boots",
+    "count": 1
+  }
+}

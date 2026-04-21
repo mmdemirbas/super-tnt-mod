@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["GGG", "G G", "GGG"],
+  "key": {
+    "G": "minecraft:glass"
+  },
+  "result": {
+    "id": "supertntmod:ghost_block",
+    "count": 4
+  }
+}

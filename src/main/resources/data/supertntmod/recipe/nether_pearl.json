@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["CCC", "CDC", "CCC"],
+  "key": {
+    "C": "minecraft:coal",
+    "D": "minecraft:dirt"
+  },
+  "result": {
+    "id": "supertntmod:nether_pearl",
+    "count": 4
+  }
+}

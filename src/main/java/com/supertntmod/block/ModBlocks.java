@@ -198,6 +198,41 @@ public class ModBlocks {
                     .luminance(state -> 11)
                     .registryKey(RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(SuperTntMod.MOD_ID, "portal_block")))));
 
+    // 🚪 End Kapısı - Yerleştirilebilir, içinden geçince End'e ışınlar
+    public static final EndGateBlock END_GATE = reg("end_gate",
+            new EndGateBlock(AbstractBlock.Settings.copy(Blocks.OBSIDIAN)
+                    .nonOpaque()
+                    .noCollision()
+                    .luminance(state -> 12)
+                    .registryKey(RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(SuperTntMod.MOD_ID, "end_gate")))));
+
+    // 👻 Hayalet Blok - İçinden geçilebilir, cam gibi görünür
+    public static final GhostBlock GHOST_BLOCK = reg("ghost_block",
+            new GhostBlock(AbstractBlock.Settings.copy(Blocks.GLASS)
+                    .nonOpaque()
+                    .noCollision()
+                    .registryKey(RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(SuperTntMod.MOD_ID, "ghost_block")))));
+
+    // ⚠ Yanlış Altın Plaka - Üstüne basan ölür, kırılamaz
+    public static final WrongGoldenPlateBlock WRONG_GOLDEN_PLATE = reg("wrong_golden_plate",
+            new WrongGoldenPlateBlock(AbstractBlock.Settings.copy(Blocks.GOLD_BLOCK)
+                    .hardness(-1.0f).resistance(3600000.0f)
+                    .registryKey(RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(SuperTntMod.MOD_ID, "wrong_golden_plate")))));
+
+    // ✅ Doğru Altın Plaka - Üstüne basılabilir, kırılamaz
+    public static final RightGoldenPlateBlock RIGHT_GOLDEN_PLATE = reg("right_golden_plate",
+            new RightGoldenPlateBlock(AbstractBlock.Settings.copy(Blocks.GOLD_BLOCK)
+                    .hardness(-1.0f).resistance(3600000.0f)
+                    .registryKey(RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(SuperTntMod.MOD_ID, "right_golden_plate")))));
+
+    // 🌋 Nether TNT - Havada netherrack adası + 15 nether portalı
+    public static final NetherTntBlock NETHER_TNT = reg("nether_tnt",
+            new NetherTntBlock(hardTntSettings("nether_tnt")));
+
+    // 🌌 End TNT - Havada end taşı adası + açık end portalları
+    public static final EndTntBlock END_TNT = reg("end_tnt",
+            new EndTntBlock(hardTntSettings("end_tnt")));
+
     // TunneledBlock için BlockEntity tipi
     public static final BlockEntityType<TunneledBlockEntity> TUNNELED_BLOCK_ENTITY_TYPE =
             Registry.register(Registries.BLOCK_ENTITY_TYPE,
@@ -231,6 +266,6 @@ public class ModBlocks {
     }
 
     public static void register() {
-        SuperTntMod.LOGGER.info("25 blok kaydedildi.");
+        SuperTntMod.LOGGER.info("31 blok kaydedildi.");
     }
 }
