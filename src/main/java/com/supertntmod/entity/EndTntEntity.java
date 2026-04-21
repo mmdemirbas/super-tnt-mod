@@ -43,7 +43,6 @@ public class EndTntEntity extends TntEntity {
             done = true;
             World world = getEntityWorld();
             double cx = getX(), cy = getY() + 20, cz = getZ();
-            discard();
 
             world.playSound(null, cx, cy, cz,
                     SoundEvents.BLOCK_END_PORTAL_SPAWN, SoundCategory.BLOCKS, 2.0f, 0.5f);
@@ -83,6 +82,11 @@ public class EndTntEntity extends TntEntity {
                 placeEndPortal(world, portal);
                 count += portal.length;
             }
+
+            if (pendingIsland.isEmpty() && pendingPortals.isEmpty()) {
+                this.discard();
+            }
+            return;
         }
 
         if (!done) super.tick();

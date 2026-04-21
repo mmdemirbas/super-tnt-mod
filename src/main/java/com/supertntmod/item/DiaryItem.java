@@ -92,6 +92,10 @@ public class DiaryItem extends Item {
         WRITE_MODE.remove(playerId);
     }
 
+    public static void clearAll() {
+        WRITE_MODE.clear();
+    }
+
     private static String getStr(NbtCompound nbt, String key) {
         return nbt.getString(key).orElse("");
     }

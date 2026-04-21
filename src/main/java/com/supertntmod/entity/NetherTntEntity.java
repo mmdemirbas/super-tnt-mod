@@ -1,13 +1,10 @@
 package com.supertntmod.entity;
 
-import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.NetherPortalBlock;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.TntEntity;
-import net.minecraft.particle.ParticleTypes;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.math.BlockPos;
@@ -26,7 +23,6 @@ public class NetherTntEntity extends TntEntity {
     private boolean done = false;
     private final List<BlockPos[]> pendingPortals = new ArrayList<>();
     private final List<BlockPos> pendingIsland = new ArrayList<>();
-    private int buildTick = 0;
     private static final int BLOCKS_PER_TICK = 50;
 
     public NetherTntEntity(EntityType<? extends TntEntity> type, World world) {
@@ -47,7 +43,6 @@ public class NetherTntEntity extends TntEntity {
             done = true;
             World world = getEntityWorld();
             double cx = getX(), cy = getY() + 20, cz = getZ();
-            discard();
 
             world.playSound(null, cx, cy, cz,
                     SoundEvents.BLOCK_PORTAL_TRIGGER, SoundCategory.BLOCKS, 2.0f, 0.5f);
@@ -97,9 +92,10 @@ public class NetherTntEntity extends TntEntity {
             }
 
             if (!pendingIsland.isEmpty() || !pendingPortals.isEmpty()) {
-                buildTick++;
                 return;
             }
+            this.discard();
+            return;
         }
 
         if (!done) super.tick();
