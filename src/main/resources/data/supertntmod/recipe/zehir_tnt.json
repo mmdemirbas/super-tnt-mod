@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["FFF", "FTF", "FFF"],
+  "key": {
+    "F": "minecraft:fermented_spider_eye",
+    "T": "minecraft:tnt"
+  },
+  "result": {
+    "id": "supertntmod:zehir_tnt",
+    "count": 1
+  }
+}

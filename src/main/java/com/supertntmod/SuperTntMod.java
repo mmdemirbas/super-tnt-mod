@@ -149,6 +149,16 @@ public class SuperTntMod implements ModInitializer {
                             entries.add(ModBlocks.GIZLI_TNT);
                             entries.add(ModBlocks.UREYEN_TNT);
                             entries.add(ModBlocks.KUP_TNT);
+                            // Zeynep TNT'leri
+                            entries.add(ModBlocks.ELMAS_ZIRH_TNT);
+                            entries.add(ModBlocks.KALP_TNT);
+                            entries.add(ModBlocks.HARF_TNT);
+                            entries.add(ModBlocks.GUNES_TNT);
+                            entries.add(ModBlocks.BULUT_TNT);
+                            entries.add(ModBlocks.SIMSEK_YAGMUR_TNT);
+                            entries.add(ModBlocks.ZEHIR_TNT);
+                            entries.add(ModBlocks.OLUMCUL_SU_TNT);
+                            entries.add(ModBlocks.ZEYNEP_KOMUT_TNT);
                             // Yeni eşyalar
                             entries.add(ModItems.DIARY);
                             entries.add(ModItems.END_PEARL);

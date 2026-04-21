@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["BBB", "BTB", "BBB"],
+  "key": {
+    "B": "minecraft:water_bucket",
+    "T": "minecraft:tnt"
+  },
+  "result": {
+    "id": "supertntmod:olumcul_su_tnt",
+    "count": 1
+  }
+}

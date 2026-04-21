@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["OOO", "ONO", "OOO"],
+  "key": {
+    "O": "minecraft:orange_wool",
+    "N": "minecraft:nether_star"
+  },
+  "result": {
+    "id": "supertntmod:zeynep_komut_tnt",
+    "count": 1
+  }
+}

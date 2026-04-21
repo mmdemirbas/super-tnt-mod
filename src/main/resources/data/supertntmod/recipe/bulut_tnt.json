@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["SSS", "STS", "SSS"],
+  "key": {
+    "S": "minecraft:string",
+    "T": "minecraft:tnt"
+  },
+  "result": {
+    "id": "supertntmod:bulut_tnt",
+    "count": 1
+  }
+}

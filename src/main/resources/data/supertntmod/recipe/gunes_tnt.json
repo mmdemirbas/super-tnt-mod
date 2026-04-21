@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["GGG", "GTG", "GGG"],
+  "key": {
+    "G": "minecraft:glowstone",
+    "T": "minecraft:tnt"
+  },
+  "result": {
+    "id": "supertntmod:gunes_tnt",
+    "count": 1
+  }
+}

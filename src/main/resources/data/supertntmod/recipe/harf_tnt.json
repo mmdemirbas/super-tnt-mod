@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["PPP", "PTP", "PPP"],
+  "key": {
+    "P": "minecraft:paper",
+    "T": "minecraft:tnt"
+  },
+  "result": {
+    "id": "supertntmod:harf_tnt",
+    "count": 1
+  }
+}

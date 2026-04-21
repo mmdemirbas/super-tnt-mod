@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["LLL", "LTL", "LLL"],
+  "key": {
+    "L": "minecraft:lightning_rod",
+    "T": "minecraft:tnt"
+  },
+  "result": {
+    "id": "supertntmod:simsek_yagmur_tnt",
+    "count": 1
+  }
+}

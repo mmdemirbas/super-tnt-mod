@@ -4,7 +4,6 @@ import com.supertntmod.SuperTntMod;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnGroup;
 import net.minecraft.entity.TntEntity;
-import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.mob.PathAwareEntity;
 import net.minecraft.entity.projectile.thrown.ThrownEntity;
 import net.minecraft.registry.Registries;
@@ -216,6 +215,51 @@ public class ModEntities {
     public static final EntityType<KupTntEntity> KUP_TNT = regTnt("kup_tnt",
             EntityType.Builder.<KupTntEntity>create(
                     (type, world) -> new KupTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    public static final EntityType<ElmasZirhTntEntity> ELMAS_ZIRH_TNT = regTnt("elmas_zirh_tnt",
+            EntityType.Builder.<ElmasZirhTntEntity>create(
+                    (type, world) -> new ElmasZirhTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    public static final EntityType<KalpTntEntity> KALP_TNT = regTnt("kalp_tnt",
+            EntityType.Builder.<KalpTntEntity>create(
+                    (type, world) -> new KalpTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    public static final EntityType<HarfTntEntity> HARF_TNT = regTnt("harf_tnt",
+            EntityType.Builder.<HarfTntEntity>create(
+                    (type, world) -> new HarfTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    public static final EntityType<GunesTntEntity> GUNES_TNT = regTnt("gunes_tnt",
+            EntityType.Builder.<GunesTntEntity>create(
+                    (type, world) -> new GunesTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    public static final EntityType<BulutTntEntity> BULUT_TNT = regTnt("bulut_tnt",
+            EntityType.Builder.<BulutTntEntity>create(
+                    (type, world) -> new BulutTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    public static final EntityType<SimsekYagmurTntEntity> SIMSEK_YAGMUR_TNT = regTnt("simsek_yagmur_tnt",
+            EntityType.Builder.<SimsekYagmurTntEntity>create(
+                    (type, world) -> new SimsekYagmurTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    public static final EntityType<ZehirTntEntity> ZEHIR_TNT = regTnt("zehir_tnt",
+            EntityType.Builder.<ZehirTntEntity>create(
+                    (type, world) -> new ZehirTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    public static final EntityType<OlumculSuTntEntity> OLUMCUL_SU_TNT = regTnt("olumcul_su_tnt",
+            EntityType.Builder.<OlumculSuTntEntity>create(
+                    (type, world) -> new OlumculSuTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    public static final EntityType<ZeynepKomutTntEntity> ZEYNEP_KOMUT_TNT = regTnt("zeynep_komut_tnt",
+            EntityType.Builder.<ZeynepKomutTntEntity>create(
+                    (type, world) -> new ZeynepKomutTntEntity(type, world), SpawnGroup.MISC)
                     .dimensions(0.98f, 0.98f));
 
     // Herobrine — 200 HP, tüm canlıları hedef alır

@@ -249,6 +249,42 @@ public class ModBlocks {
     public static final KupTntBlock KUP_TNT = reg("kup_tnt",
             new KupTntBlock(hardTntSettings("kup_tnt")));
 
+    // 💎 Elmas Zırh TNT - Tüm canlıları öldürür ve oyunu kapatır
+    public static final ElmasZirhTntBlock ELMAS_ZIRH_TNT = reg("elmas_zirh_tnt",
+            new ElmasZirhTntBlock(veryHardTntSettings("elmas_zirh_tnt")));
+
+    // ❤ Kalp TNT - Sağlık verir, efektleri temizler, boyutu sıfırlar
+    public static final KalpTntBlock KALP_TNT = reg("kalp_tnt",
+            new KalpTntBlock(tntSettings("kalp_tnt")));
+
+    // 🔤 Harf TNT - Kağıt fırlatır, can yeniler
+    public static final HarfTntBlock HARF_TNT = reg("harf_tnt",
+            new HarfTntBlock(tntSettings("harf_tnt")));
+
+    // ☀ Güneş TNT - End kristalleri yaratır, 5 sn sonra 1 kalır
+    public static final GunesTntBlock GUNES_TNT = reg("gunes_tnt",
+            new GunesTntBlock(tntSettings("gunes_tnt")));
+
+    // ☁ Bulut TNT - Yağmur başlatır
+    public static final BulutTntBlock BULUT_TNT = reg("bulut_tnt",
+            new BulutTntBlock(tntSettings("bulut_tnt")));
+
+    // ⛈ Şimşek Yağmur TNT - Fırtına başlatır ve yıldırım yağdırır
+    public static final SimsekYagmurTntBlock SIMSEK_YAGMUR_TNT = reg("simsek_yagmur_tnt",
+            new SimsekYagmurTntBlock(hardTntSettings("simsek_yagmur_tnt")));
+
+    // 🟢 Zehir TNT - Yavaşlatma ve zehir verir
+    public static final ZehirTntBlock ZEHIR_TNT = reg("zehir_tnt",
+            new ZehirTntBlock(tntSettings("zehir_tnt")));
+
+    // 💧 Ölümcül Su TNT - Su yaratır ve hasar verir
+    public static final OlumculSuTntBlock OLUMCUL_SU_TNT = reg("olumcul_su_tnt",
+            new OlumculSuTntBlock(tntSettings("olumcul_su_tnt")));
+
+    // 🟠 Zeynep Komut TNT - Tüm güçlü efektleri ve eşyaları verir
+    public static final ZeynepKomutTntBlock ZEYNEP_KOMUT_TNT = reg("zeynep_komut_tnt",
+            new ZeynepKomutTntBlock(veryHardTntSettings("zeynep_komut_tnt")));
+
     // TunneledBlock için BlockEntity tipi
     public static final BlockEntityType<TunneledBlockEntity> TUNNELED_BLOCK_ENTITY_TYPE =
             Registry.register(Registries.BLOCK_ENTITY_TYPE,

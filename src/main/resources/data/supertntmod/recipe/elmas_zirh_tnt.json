@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["DDD", "DTD", "DDD"],
+  "key": {
+    "D": "minecraft:diamond",
+    "T": "minecraft:tnt"
+  },
+  "result": {
+    "id": "supertntmod:elmas_zirh_tnt",
+    "count": 1
+  }
+}
