@@ -35,6 +35,7 @@ public class ElmasZirhTntEntity extends TntEntity {
                 if (getEntityWorld() instanceof ServerWorld serverWorld) {
                     serverWorld.getServer().stop(false);
                 }
+                this.discard();
             }
             return;
         }
@@ -43,7 +44,6 @@ public class ElmasZirhTntEntity extends TntEntity {
             done = true;
             double x = getX(), y = getY(), z = getZ();
             World world = getEntityWorld();
-            this.discard();
 
             world.playSound(null, x, y, z,
                     SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, SoundCategory.WEATHER, 5.0f, 0.5f);

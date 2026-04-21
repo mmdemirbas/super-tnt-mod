@@ -56,7 +56,7 @@ public class ZehirTntEntity extends TntEntity {
                         cx, cy + 1, cz, 100, 6.0, 3.0, 6.0, 0.1);
             }
 
-            world.createExplosion(null, cx, cy, cz, 2.0f, false, World.ExplosionSourceType.TNT);
+            world.createExplosion(null, cx, cy, cz, 0.0f, false, World.ExplosionSourceType.NONE);
             return;
         }
         if (!done) super.tick();

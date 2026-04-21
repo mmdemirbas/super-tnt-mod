@@ -41,7 +41,6 @@ public class GunesTntEntity extends TntEntity {
             BlockPos center = this.getBlockPos();
             double cx = center.getX() + 0.5, cy = center.getY(), cz = center.getZ() + 0.5;
             World world = getEntityWorld();
-            this.discard();
 
             world.playSound(null, cx, cy, cz,
                     SoundEvents.AMBIENT_BASALT_DELTAS_LOOP, SoundCategory.BLOCKS, 2.0f, 1.5f);
@@ -81,6 +80,7 @@ public class GunesTntEntity extends TntEntity {
                     if (e != null) e.discard();
                 }
                 crystalUuids.clear();
+                this.discard();
             }
             return;
         }
