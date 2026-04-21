@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["DID", "ITI", "DID"],
+  "key": {
+    "D": "minecraft:diamond",
+    "I": "minecraft:iron_ingot",
+    "T": "minecraft:tnt"
+  },
+  "result": {
+    "id": "supertntmod:kup_tnt",
+    "count": 1
+  }
+}

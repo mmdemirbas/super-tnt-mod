@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["GGG", "GTG", "GGG"],
+  "key": {
+    "G": "minecraft:glass",
+    "T": "minecraft:tnt"
+  },
+  "result": {
+    "id": "supertntmod:cam_tnt",
+    "count": 1
+  }
+}

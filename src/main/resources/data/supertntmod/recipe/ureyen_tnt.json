@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["SSS", "STS", "SSS"],
+  "key": {
+    "S": "minecraft:slime_ball",
+    "T": "minecraft:tnt"
+  },
+  "result": {
+    "id": "supertntmod:ureyen_tnt",
+    "count": 1
+  }
+}

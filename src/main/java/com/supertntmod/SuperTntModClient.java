@@ -103,10 +103,15 @@ public class SuperTntModClient implements ClientModInitializer {
                 com.supertntmod.client.EndPearlEntityRenderer::new);
         EntityRendererRegistry.register(ModEntities.NETHER_PEARL,
                 com.supertntmod.client.NetherPearlEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.CAM_TNT, TntEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.GIZLI_TNT, TntEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.UREYEN_TNT, TntEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.KUP_TNT, TntEntityRenderer::new);
 
         // Portal bloğu render katmanı
         BlockRenderLayerMap.putBlock(ModBlocks.PORTAL_BLOCK, BlockRenderLayer.CUTOUT);
         BlockRenderLayerMap.putBlock(ModBlocks.END_GATE, BlockRenderLayer.TRANSLUCENT);
+        BlockRenderLayerMap.putBlock(ModBlocks.GIZLI_TNT, BlockRenderLayer.TRANSLUCENT);
         BlockRenderLayerMap.putBlock(ModBlocks.GHOST_BLOCK, BlockRenderLayer.TRANSLUCENT);
 
         // Tünellenmiş blok - özel BlockEntity renderer

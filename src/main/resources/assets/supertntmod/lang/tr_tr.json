@@ -209,5 +209,13 @@
   "item.supertntmod.nether_pearl": "Nether İncisi",
   "item.supertntmod.nether_pearl.tooltip": "Fırlat ve Nether'a ışınlan + 64 blaze çubuğu kazan!",
   "item.supertntmod.rainbow_boots": "Gökkuşağı Botları",
-  "item.supertntmod.rainbow_boots.tooltip": "Giy ve uçurum korkusunu unut — adımların altında yün çıkar!"
+  "item.supertntmod.rainbow_boots.tooltip": "Giy ve uçurum korkusunu unut — adımların altında yün çıkar!",
+  "block.supertntmod.cam_tnt": "Cam TNT",
+  "block.supertntmod.cam_tnt.tooltip": "Patlayınca sunucudaki tüm cam bloklarını kırar!",
+  "block.supertntmod.gizli_tnt": "Gizli TNT",
+  "block.supertntmod.gizli_tnt.tooltip": "Görünmez — 25 blok yarıçapındaki tüm canlıları anında öldürür!",
+  "block.supertntmod.ureyen_tnt": "Üreyen TNT",
+  "block.supertntmod.ureyen_tnt.tooltip": "Bedrock çıkana kadar çoğalarak yayılır ve patlar!",
+  "block.supertntmod.kup_tnt": "Küp TNT",
+  "block.supertntmod.kup_tnt.tooltip": "Yerin içine doğru 25×25×25 küp şeklinde kazı yapar!"
 }

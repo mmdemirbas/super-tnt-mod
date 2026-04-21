@@ -198,6 +198,26 @@ public class ModEntities {
                     (type, world) -> new NetherPearlEntity(type, world), SpawnGroup.MISC)
                     .dimensions(0.25f, 0.25f));
 
+    public static final EntityType<CamTntEntity> CAM_TNT = regTnt("cam_tnt",
+            EntityType.Builder.<CamTntEntity>create(
+                    (type, world) -> new CamTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    public static final EntityType<GizliTntEntity> GIZLI_TNT = regTnt("gizli_tnt",
+            EntityType.Builder.<GizliTntEntity>create(
+                    (type, world) -> new GizliTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    public static final EntityType<UreyenTntEntity> UREYEN_TNT = regTnt("ureyen_tnt",
+            EntityType.Builder.<UreyenTntEntity>create(
+                    (type, world) -> new UreyenTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    public static final EntityType<KupTntEntity> KUP_TNT = regTnt("kup_tnt",
+            EntityType.Builder.<KupTntEntity>create(
+                    (type, world) -> new KupTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
     // Herobrine — 200 HP, tüm canlıları hedef alır
     public static final EntityType<HerobrineEntity> HEROBRINE = regHostile("herobrine",
             EntityType.Builder.<HerobrineEntity>create(

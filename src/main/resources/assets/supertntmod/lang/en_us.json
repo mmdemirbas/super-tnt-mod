@@ -209,5 +209,13 @@
   "item.supertntmod.nether_pearl": "Nether Pearl",
   "item.supertntmod.nether_pearl.tooltip": "Throw to teleport to the Nether + receive 64 blaze rods!",
   "item.supertntmod.rainbow_boots": "Rainbow Boots",
-  "item.supertntmod.rainbow_boots.tooltip": "Wear and forget falling — wool blocks appear under every step!"
+  "item.supertntmod.rainbow_boots.tooltip": "Wear and forget falling — wool blocks appear under every step!",
+  "block.supertntmod.cam_tnt": "Glass TNT",
+  "block.supertntmod.cam_tnt.tooltip": "Explodes and shatters every glass block on the server!",
+  "block.supertntmod.gizli_tnt": "Hidden TNT",
+  "block.supertntmod.gizli_tnt.tooltip": "Invisible — instantly kills all living entities within 25 blocks!",
+  "block.supertntmod.ureyen_tnt": "Breeding TNT",
+  "block.supertntmod.ureyen_tnt.tooltip": "Multiplies and spreads until it hits bedrock, then explodes!",
+  "block.supertntmod.kup_tnt": "Cubic TNT",
+  "block.supertntmod.kup_tnt.tooltip": "Excavates a 25×25×25 cube straight down underground!"
 }

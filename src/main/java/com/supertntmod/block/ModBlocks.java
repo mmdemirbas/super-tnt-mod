@@ -233,6 +233,22 @@ public class ModBlocks {
     public static final EndTntBlock END_TNT = reg("end_tnt",
             new EndTntBlock(hardTntSettings("end_tnt")));
 
+    // 🪟 Cam TNT - Tüm cam bloklarını kırar
+    public static final CamTntBlock CAM_TNT = reg("cam_tnt",
+            new CamTntBlock(tntSettings("cam_tnt")));
+
+    // 👁 Gizli TNT - Görünmez, 25 blok yarıçapındaki herkesi öldürür
+    public static final GizliTntBlock GIZLI_TNT = reg("gizli_tnt",
+            new GizliTntBlock(tntSettings("gizli_tnt")));
+
+    // 🐇 Üreyen TNT - Bedrock çıkana kadar çoğalır
+    public static final UreyenTntBlock UREYEN_TNT = reg("ureyen_tnt",
+            new UreyenTntBlock(tntSettings("ureyen_tnt")));
+
+    // 📦 Küp TNT - Yerin içine 25 blok küp şeklinde patlatır
+    public static final KupTntBlock KUP_TNT = reg("kup_tnt",
+            new KupTntBlock(hardTntSettings("kup_tnt")));
+
     // TunneledBlock için BlockEntity tipi
     public static final BlockEntityType<TunneledBlockEntity> TUNNELED_BLOCK_ENTITY_TYPE =
             Registry.register(Registries.BLOCK_ENTITY_TYPE,

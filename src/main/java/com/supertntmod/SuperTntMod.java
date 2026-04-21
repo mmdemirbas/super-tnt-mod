@@ -145,6 +145,10 @@ public class SuperTntMod implements ModInitializer {
                             entries.add(ModBlocks.RIGHT_GOLDEN_PLATE);
                             entries.add(ModBlocks.NETHER_TNT);
                             entries.add(ModBlocks.END_TNT);
+                            entries.add(ModBlocks.CAM_TNT);
+                            entries.add(ModBlocks.GIZLI_TNT);
+                            entries.add(ModBlocks.UREYEN_TNT);
+                            entries.add(ModBlocks.KUP_TNT);
                             // Yeni eşyalar
                             entries.add(ModItems.DIARY);
                             entries.add(ModItems.END_PEARL);
