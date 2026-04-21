@@ -117,6 +117,11 @@ public class CommandTntBlock extends CustomTntBlock {
         RADII.remove(pos);
     }
 
+    public static void clearAll() {
+        TARGET_BLOCKS.clear();
+        RADII.clear();
+    }
+
     @Override
     public BlockState onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
         TARGET_BLOCKS.remove(pos);

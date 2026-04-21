@@ -6,7 +6,6 @@ import net.minecraft.block.ShapeContext;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemPlacementContext;
-import net.minecraft.item.ItemStack;
 import net.minecraft.screen.GenericContainerScreenHandler;
 import net.minecraft.screen.SimpleNamedScreenHandlerFactory;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -135,11 +134,15 @@ public class EncryptedTntChestBlock extends Block {
         UUID uuid = player.getUuid();
         if (!AWAITING_PASSWORD.containsKey(uuid)) return false;
 
-        DimPos dimPos = AWAITING_PASSWORD.remove(uuid);
-        boolean isSettingPassword = AWAITING_SET_PASSWORD.remove(uuid);
+        // Dünyayı önce doğrula; başarısız olursa haritadan çıkarma — oyuncu tekrar deneyebilir
+        DimPos dimPos = AWAITING_PASSWORD.get(uuid);
+        boolean isSettingPassword = AWAITING_SET_PASSWORD.getOrDefault(uuid, false);
         if (!(player.getEntityWorld() instanceof net.minecraft.server.world.ServerWorld currentWorld)) return false;
         net.minecraft.server.world.ServerWorld targetWorld = currentWorld.getServer().getWorld(dimPos.dimension());
         if (targetWorld == null) return false;
+
+        AWAITING_PASSWORD.remove(uuid);
+        AWAITING_SET_PASSWORD.remove(uuid);
         BlockPos pos = dimPos.pos();
         ChestPersistentState chestState = ChestPersistentState.get(targetWorld);
 

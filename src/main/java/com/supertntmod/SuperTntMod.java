@@ -181,6 +181,7 @@ public class SuperTntMod implements ModInitializer {
             com.supertntmod.item.CraftAxeItem.clearAll();
             com.supertntmod.item.AmethystArmorState.clearAll();
             com.supertntmod.block.BlockerChestBlock.clearBans();
+            com.supertntmod.block.CommandTntBlock.clearAll();
         });
 
         // Yerçekimi TNT: ters yerçekimi zamanlayıcısı
