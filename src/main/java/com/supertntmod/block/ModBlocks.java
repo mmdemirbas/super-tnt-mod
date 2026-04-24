@@ -318,6 +318,6 @@ public class ModBlocks {
     }
 
     public static void register() {
-        SuperTntMod.LOGGER.info("31 blok kaydedildi.");
+        SuperTntMod.LOGGER.info("54 blok kaydedildi.");
     }
 }

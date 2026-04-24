@@ -293,6 +293,6 @@ public class ModEntities {
     }
 
     public static void register() {
-        SuperTntMod.LOGGER.info("27 entity türü kaydedildi.");
+        SuperTntMod.LOGGER.info("50 entity türü kaydedildi.");
     }
 }
