@@ -2,7 +2,6 @@ package com.supertntmod.block;
 
 import com.supertntmod.entity.BounceTntEntity;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 

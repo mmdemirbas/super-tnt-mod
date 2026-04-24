@@ -70,7 +70,7 @@ public class EndPearlEntity extends ThrownEntity {
 
         // Eşyaları ver
         give(player, new ItemStack(net.minecraft.block.Blocks.END_STONE, 64));
-        give(player, new ItemStack(net.minecraft.item.Items.END_CRYSTAL, 8));
+        give(player, new ItemStack(Items.END_CRYSTAL, 8));
         give(player, new ItemStack(net.minecraft.block.Blocks.BEDROCK, 64));
 
         player.sendMessage(

@@ -4,7 +4,6 @@ import com.supertntmod.block.ModBlocks;
 import com.supertntmod.block.TunneledBlock;
 import com.supertntmod.block.TunneledBlockEntity;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
 import net.minecraft.component.type.TooltipDisplayComponent;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributes;
