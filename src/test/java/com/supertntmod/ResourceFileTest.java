@@ -156,4 +156,81 @@ class ResourceFileTest {
         assertTrue(modId.matches("[a-z][a-z0-9_]*"),
                 "Mod ID must be lowercase alphanumeric + underscores, no spaces");
     }
+
+    @Test
+    void everyTntRecipeResultHasCollectAllCriterion() throws IOException {
+        Path recipes = DATA.resolve("recipe");
+        Path collectAll = DATA.resolve("advancement/collect_all.json");
+        assertTrue(Files.exists(collectAll), "collect_all.json must exist");
+
+        String collectContent = Files.readString(collectAll);
+
+        try (Stream<Path> files = Files.list(recipes)) {
+            List<String> tntResults = files
+                    .map(p -> p.getFileName().toString().replace(".json", ""))
+                    .filter(name -> name.endsWith("_tnt"))
+                    .collect(Collectors.toList());
+
+            for (String name : tntResults) {
+                String marker = "\"supertntmod:" + name + "\"";
+                assertTrue(collectContent.contains(marker),
+                        "collect_all.json missing criterion for TNT: " + name);
+            }
+        }
+    }
+
+    @Test
+    void everyBlockLangKeyCorrespondsToRecipeOrEntity() throws IOException {
+        Path recipes = DATA.resolve("recipe");
+        Path en = ASSETS.resolve("lang/en_us.json");
+        Path tr = ASSETS.resolve("lang/tr_tr.json");
+        String enContent = Files.readString(en);
+        String trContent = Files.readString(tr);
+
+        try (Stream<Path> files = Files.list(recipes)) {
+            List<String> tntResults = files
+                    .map(p -> p.getFileName().toString().replace(".json", ""))
+                    .filter(name -> name.endsWith("_tnt"))
+                    .collect(Collectors.toList());
+
+            for (String name : tntResults) {
+                String key = "\"block.supertntmod." + name + "\"";
+                assertTrue(enContent.contains(key),
+                        "en_us.json missing block name for TNT: " + name);
+                assertTrue(trContent.contains(key),
+                        "tr_tr.json missing block name for TNT: " + name);
+                String tooltipKey = "\"block.supertntmod." + name + ".tooltip\"";
+                assertTrue(enContent.contains(tooltipKey),
+                        "en_us.json missing tooltip for TNT: " + name);
+                assertTrue(trContent.contains(tooltipKey),
+                        "tr_tr.json missing tooltip for TNT: " + name);
+            }
+        }
+    }
+
+    @Test
+    void everyBlockstateHasItemsJsonForCrafting() throws IOException {
+        Path blockstates = ASSETS.resolve("blockstates");
+        Path items = ASSETS.resolve("items");
+        Path recipes = DATA.resolve("recipe");
+
+        try (Stream<Path> recipeStream = Files.list(recipes)) {
+            List<String> craftable = recipeStream
+                    .map(p -> p.getFileName().toString().replace(".json", ""))
+                    .collect(Collectors.toList());
+
+            try (Stream<Path> bsStream = Files.list(blockstates)) {
+                List<String> blockNames = bsStream
+                        .map(p -> p.getFileName().toString().replace(".json", ""))
+                        .filter(craftable::contains)
+                        .collect(Collectors.toList());
+
+                for (String name : blockNames) {
+                    Path itemFile = items.resolve(name + ".json");
+                    assertTrue(Files.exists(itemFile),
+                            "items/" + name + ".json missing (required in MC 1.21.11 for craftable blocks)");
+                }
+            }
+        }
+    }
 }
