@@ -50,9 +50,11 @@ public class FreezeTntEntity extends TntEntity {
 
                 var state = world.getBlockState(pos);
 
-                // Suyu buza dönüştür
+                // Suyu buza dönüştür. PACKED_ICE kullanılıyor çünkü vanilla ICE
+                // güneş alan biyomda 1-2 saniye içinde geri suya eriyor; kid
+                // dönüşümü göremeden kayboluyordu.
                 if (state.isOf(Blocks.WATER)) {
-                    world.setBlockState(pos, Blocks.ICE.getDefaultState());
+                    world.setBlockState(pos, Blocks.PACKED_ICE.getDefaultState());
                 }
                 // Havayı kar katmanıyla kaplama (%40 şans)
                 else if (state.isOf(Blocks.AIR) &&
