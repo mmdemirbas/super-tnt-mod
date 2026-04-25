@@ -1,6 +1,7 @@
 package com.supertntmod.entity;
 
 import com.supertntmod.SuperTntMod;
+import com.supertntmod.item.ScaleLockItem;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
@@ -48,6 +49,16 @@ public class GrowBallEntity extends ThrownEntity {
 
     private void applyToOwner() {
         if (!(this.getOwner() instanceof LivingEntity owner)) return;
+
+        // Ölçek Kilidi takan oyuncuya etki etmez (tooltip: "all scale-changing effects")
+        if (ScaleLockItem.isProtected(owner)) {
+            if (owner instanceof PlayerEntity player) {
+                player.sendMessage(
+                        Text.literal("Ölçek Kilidi etkiyi engelledi.").formatted(Formatting.YELLOW),
+                        true);
+            }
+            return;
+        }
 
         EntityAttributeInstance scaleAttr = owner.getAttributeInstance(EntityAttributes.SCALE);
         if (scaleAttr == null) return;

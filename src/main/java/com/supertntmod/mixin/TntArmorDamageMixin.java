@@ -25,9 +25,16 @@ public abstract class TntArmorDamageMixin {
             EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET
     };
 
+    // İki TNT-zırh giyen oyuncu birbirine vurursa karşılıklı tetiklemeyle
+    // sonsuz özyineleme oluşur. Bu thread-local bayrak, mixin yürütülüyorken
+    // tekrar çağrılırsa içeriden hiçbir şey yapmamasını sağlar.
+    private static final ThreadLocal<Boolean> IN_PROGRESS = ThreadLocal.withInitial(() -> false);
+
     @Inject(method = "damage", at = @At("HEAD"))
     private void supertntmod$onDamage(ServerWorld world, DamageSource source, float amount,
                                        CallbackInfoReturnable<Boolean> cir) {
+        if (IN_PROGRESS.get()) return;
+
         LivingEntity self = (LivingEntity) (Object) this;
         if (!(self instanceof ServerPlayerEntity player)) return;
 
@@ -47,18 +54,22 @@ public abstract class TntArmorDamageMixin {
 
         if (wearingTntArmor) {
             // Sadece saldırgana hasar — patlama görseldir, etrafa (giyenin de
-            // dahil olduğu) hasar vermez. Aksi halde bitişik melee saldırılar
-            // sahibi de patlatır.
-            if (attacker instanceof LivingEntity livingAttacker) {
-                livingAttacker.damage(world,
-                        world.getDamageSources().explosion(player, player), 8.0f);
+            // dahil olduğu) hasar vermez.
+            IN_PROGRESS.set(true);
+            try {
+                if (attacker instanceof LivingEntity livingAttacker) {
+                    livingAttacker.damage(world,
+                            world.getDamageSources().explosion(player, player), 8.0f);
+                }
+                world.createExplosion(
+                        null,
+                        attacker.getX(), attacker.getBodyY(0.5), attacker.getZ(),
+                        0.0f,
+                        World.ExplosionSourceType.NONE
+                );
+            } finally {
+                IN_PROGRESS.set(false);
             }
-            world.createExplosion(
-                    null,
-                    attacker.getX(), attacker.getBodyY(0.5), attacker.getZ(),
-                    0.0f,
-                    World.ExplosionSourceType.NONE
-            );
         }
     }
 

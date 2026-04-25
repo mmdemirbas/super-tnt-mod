@@ -187,9 +187,18 @@ public class EncryptedTntChestBlock extends Block {
     public BlockState onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
         if (world instanceof net.minecraft.server.world.ServerWorld serverWorld) {
             ChestPersistentState chestState = ChestPersistentState.get(serverWorld);
+            // Sandık kırıldığında envanterdeki eşyaları yere düşür (kayıp yaşanmasın).
+            SimpleInventory inv = chestState.inventories.remove(pos);
+            if (inv != null) {
+                for (int i = 0; i < inv.size(); i++) {
+                    net.minecraft.item.ItemStack stack = inv.getStack(i);
+                    if (!stack.isEmpty()) {
+                        Block.dropStack(world, pos, stack);
+                    }
+                }
+            }
             chestState.owners.remove(pos);
             chestState.passwords.remove(pos);
-            chestState.inventories.remove(pos);
             chestState.markDirty();
         }
         return super.onBreak(world, pos, state, player);

@@ -2,7 +2,6 @@ package com.supertntmod.block;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
 import net.minecraft.block.ShapeContext;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.SimpleInventory;
@@ -142,8 +141,17 @@ public class BlockerChestBlock extends Block {
     public BlockState onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
         if (world instanceof ServerWorld serverWorld) {
             BlockerChestPersistentState chestState = BlockerChestPersistentState.get(serverWorld);
+            // Sandık kırıldığında envanterdeki eşyaları yere düşür (kayıp yaşanmasın).
+            SimpleInventory inv = chestState.inventories.remove(pos);
+            if (inv != null) {
+                for (int i = 0; i < inv.size(); i++) {
+                    net.minecraft.item.ItemStack stack = inv.getStack(i);
+                    if (!stack.isEmpty()) {
+                        Block.dropStack(world, pos, stack);
+                    }
+                }
+            }
             chestState.owners.remove(pos);
-            chestState.inventories.remove(pos);
             chestState.markDirty();
         }
         return super.onBreak(world, pos, state, player);

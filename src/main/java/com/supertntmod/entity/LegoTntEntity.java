@@ -36,12 +36,6 @@ public class LegoTntEntity extends TntEntity {
         this.setFuse(80);
     }
 
-    /** Rastgele renkli lego tuğlası BlockState döndürür */
-    private BlockState randomLegoBrick(World world) {
-        int color = world.random.nextInt(16);
-        return ModBlocks.LEGO_BRICK.getDefaultState().with(LegoBrickBlock.COLOR, color);
-    }
-
     @Override
     public void tick() {
         if (!done && this.getFuse() <= 1 && !this.getEntityWorld().isClient()) {
@@ -56,9 +50,9 @@ public class LegoTntEntity extends TntEntity {
             world.playSound(null, center.getX(), center.getY(), center.getZ(),
                     SoundEvents.ENTITY_FIREWORK_ROCKET_LARGE_BLAST, SoundCategory.BLOCKS, 2.0f, 0.8f);
 
-            // Küçük patlama efekti
+            // Küçük patlama efekti — yapı bloğu olduğundan ateş yaratmaz
             world.createExplosion(null, center.getX() + 0.5, center.getY(),
-                    center.getZ() + 0.5, 3.0f, true, World.ExplosionSourceType.TNT);
+                    center.getZ() + 0.5, 3.0f, false, World.ExplosionSourceType.TNT);
 
             // Yüzeyi bul
             int surfaceY = center.getY();
