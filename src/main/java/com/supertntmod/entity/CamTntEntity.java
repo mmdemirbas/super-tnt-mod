@@ -15,7 +15,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CamTntEntity extends TntEntity {
-    private static final int RADIUS = 100;
+    // RADIUS=100 tek tick'te 4M+ pozisyon tarayıp sunucuyu 4-30 saniye
+    // donduruyordu. 30 makul (vanilla TNT~30 ile uyumlu) ve tarama hâlâ
+    // tek tick'te ~14k pozisyon — 50 ms civarı, kabul edilebilir.
+    private static final int RADIUS = 30;
     private static final int BLOCKS_PER_TICK = 100;
 
     private boolean exploded = false;
@@ -63,15 +66,16 @@ public class CamTntEntity extends TntEntity {
 
             BlockPos center = BlockPos.ofFloored(x, y, z);
             pendingGlass = new ArrayList<>();
+            BlockPos.Mutable cursor = new BlockPos.Mutable();
             for (int dx = -RADIUS; dx <= RADIUS; dx++) {
                 for (int dy = -RADIUS; dy <= RADIUS; dy++) {
                     for (int dz = -RADIUS; dz <= RADIUS; dz++) {
                         if (dx * dx + dy * dy + dz * dz > RADIUS * RADIUS) continue;
-                        BlockPos pos = center.add(dx, dy, dz);
-                        var block = world.getBlockState(pos).getBlock();
+                        cursor.set(center.getX() + dx, center.getY() + dy, center.getZ() + dz);
+                        var block = world.getBlockState(cursor).getBlock();
                         String blockPath = net.minecraft.registry.Registries.BLOCK.getId(block).getPath();
                         if (blockPath.contains("glass")) {
-                            pendingGlass.add(pos);
+                            pendingGlass.add(cursor.toImmutable());
                         }
                     }
                 }

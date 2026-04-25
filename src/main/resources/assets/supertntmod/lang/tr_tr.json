@@ -211,7 +211,7 @@
   "item.supertntmod.rainbow_boots": "Gökkuşağı Botları",
   "item.supertntmod.rainbow_boots.tooltip": "Giy ve uçurum korkusunu unut — adımların altında yün çıkar!",
   "block.supertntmod.cam_tnt": "Cam TNT",
-  "block.supertntmod.cam_tnt.tooltip": "Patlayınca sunucudaki tüm cam bloklarını kırar!",
+  "block.supertntmod.cam_tnt.tooltip": "Patlayınca 30 blok yarıçapındaki tüm cam bloklarını kırar!",
   "block.supertntmod.gizli_tnt": "Gizli TNT",
   "block.supertntmod.gizli_tnt.tooltip": "Görünmez — 25 blok yarıçapındaki tüm canlıları anında öldürür!",
   "block.supertntmod.ureyen_tnt": "Üreyen TNT",

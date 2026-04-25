@@ -88,8 +88,10 @@ public class SekerTntEntity extends TntEntity {
             if (idx >= total) {
                 processing = false;
 
-                // Yakındaki oyunculara şeker enerjisi (hız + zıplama)
-                world.getEntitiesByClass(LivingEntity.class,
+                // Yakındaki oyunculara şeker enerjisi (hız + zıplama).
+                // Düşman mobların da hızlanması kid için tehlikeli olduğundan
+                // sadece PlayerEntity hedefliyoruz.
+                world.getEntitiesByClass(net.minecraft.entity.player.PlayerEntity.class,
                         new net.minecraft.util.math.Box(center).expand(RADIUS),
                         e -> true
                 ).forEach(entity -> {

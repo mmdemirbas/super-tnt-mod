@@ -211,7 +211,7 @@
   "item.supertntmod.rainbow_boots": "Rainbow Boots",
   "item.supertntmod.rainbow_boots.tooltip": "Wear and forget falling — wool blocks appear under every step!",
   "block.supertntmod.cam_tnt": "Glass TNT",
-  "block.supertntmod.cam_tnt.tooltip": "Explodes and shatters every glass block on the server!",
+  "block.supertntmod.cam_tnt.tooltip": "Explodes and shatters every glass block within 30 blocks!",
   "block.supertntmod.gizli_tnt": "Hidden TNT",
   "block.supertntmod.gizli_tnt.tooltip": "Invisible — instantly kills all living entities within 25 blocks!",
   "block.supertntmod.ureyen_tnt": "Breeding TNT",
