@@ -209,6 +209,73 @@ class ResourceFileTest {
     }
 
     @Test
+    void shapedRecipePatternCharactersAreMappedOrSpace() throws IOException {
+        Path recipes = DATA.resolve("recipe");
+        try (Stream<Path> files = Files.list(recipes)) {
+            for (Path file : files.collect(Collectors.toList())) {
+                String content = Files.readString(file);
+                if (!content.contains("crafting_shaped")) continue;
+
+                // Çok kaba ama yeterli tarama: pattern içindeki tüm karakterleri
+                // çıkar ve key listesinde bulunmuyorsa hata. Boşluk her zaman
+                // boş hücre — bu testin amacı '.' gibi yanlış sentinel'ları yakalamak.
+                int patStart = content.indexOf("\"pattern\"");
+                int patBracketStart = content.indexOf('[', patStart);
+                int patBracketEnd = content.indexOf(']', patBracketStart);
+                String patternBlock = content.substring(patBracketStart, patBracketEnd);
+
+                java.util.Set<Character> patternChars = new java.util.HashSet<>();
+                boolean inString = false;
+                for (char c : patternBlock.toCharArray()) {
+                    if (c == '"') { inString = !inString; continue; }
+                    if (inString && c != ' ') patternChars.add(c);
+                }
+
+                // Key blokunun gerçek sonunu iç içe { } sayarak bul (object-form
+                // anahtarlar için "X": {"item": "..."} kullanılıyor; ilk } iç
+                // nesnenin sonu, anahtar haritasının değil).
+                int keyStart = content.indexOf("\"key\"");
+                int keyBraceStart = content.indexOf('{', keyStart);
+                int keyBraceEnd = keyBraceStart;
+                int braceDepth = 0;
+                for (int i = keyBraceStart; i < content.length(); i++) {
+                    char c = content.charAt(i);
+                    if (c == '{') braceDepth++;
+                    else if (c == '}') {
+                        braceDepth--;
+                        if (braceDepth == 0) { keyBraceEnd = i; break; }
+                    }
+                }
+                String keyBlock = content.substring(keyBraceStart, keyBraceEnd);
+
+                // Yalnızca üst seviyedeki (depth==1) tek karakterli alıntıları topla
+                java.util.Set<Character> keyChars = new java.util.HashSet<>();
+                int innerDepth = 0;
+                int i = 0;
+                while (i < keyBlock.length()) {
+                    char c = keyBlock.charAt(i);
+                    if (c == '{') innerDepth++;
+                    else if (c == '}') innerDepth--;
+                    else if (c == '"' && innerDepth == 1) {
+                        int next = keyBlock.indexOf('"', i + 1);
+                        if (next < 0) break;
+                        String token = keyBlock.substring(i + 1, next);
+                        if (token.length() == 1) keyChars.add(token.charAt(0));
+                        i = next;
+                    }
+                    i++;
+                }
+
+                for (char c : patternChars) {
+                    assertTrue(keyChars.contains(c),
+                            file.getFileName() + " pattern karakter '" + c
+                                    + "' key haritada yok (boşluk yerine '.' yazılmış olabilir)");
+                }
+            }
+        }
+    }
+
+    @Test
     void everyBlockstateHasItemsJsonForCrafting() throws IOException {
         Path blockstates = ASSETS.resolve("blockstates");
         Path items = ASSETS.resolve("items");
