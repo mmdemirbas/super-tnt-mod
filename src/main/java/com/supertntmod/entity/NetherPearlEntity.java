@@ -14,6 +14,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.EntityHitResult;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 import java.util.Set;
@@ -72,8 +73,33 @@ public class NetherPearlEntity extends ThrownEntity {
                     Text.literal("Nether'e hoş geldin! 64 Blaze Rod verildi.")
                             .formatted(Formatting.RED), false);
 
-            player.teleport(netherWorld, player.getX() / 8.0, 64.0, player.getZ() / 8.0,
+            double tx = player.getX() / 8.0;
+            double tz = player.getZ() / 8.0;
+            double safeY = findSafeY(netherWorld, tx, tz);
+            player.teleport(netherWorld, tx, safeY, tz,
                     Set.of(), player.getYaw(), player.getPitch(), false);
         }
+    }
+
+    /**
+     * Nether'de iki ardışık hava bloğu bulur — oyuncu içinde durabileceği güvenli Y.
+     * Nether'in Y aralığı sabit 0-127; tavanın altından (Y=120) aşağı tarar.
+     */
+    private static double findSafeY(ServerWorld nether, double x, double z) {
+        BlockPos.Mutable cursor = new BlockPos.Mutable();
+        int floorX = (int) Math.floor(x);
+        int floorZ = (int) Math.floor(z);
+        for (int y = 120; y >= 8; y--) {
+            cursor.set(floorX, y, floorZ);
+            if (!nether.getBlockState(cursor).isAir()) continue;
+            cursor.set(floorX, y + 1, floorZ);
+            if (!nether.getBlockState(cursor).isAir()) continue;
+            cursor.set(floorX, y - 1, floorZ);
+            if (nether.getBlockState(cursor).isAir()) continue;
+            // y ve y+1 hava, y-1 katı: güvenli
+            return y;
+        }
+        // Fallback: Nether tavanının hemen altı
+        return 122.0;
     }
 }

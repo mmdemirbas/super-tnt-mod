@@ -52,6 +52,8 @@ public class GunesTntEntity extends TntEntity {
                 EndCrystalEntity crystal = new EndCrystalEntity(EntityType.END_CRYSTAL, world);
                 crystal.setPos(ex, cy + 1, ez);
                 crystal.setShowBottom(false);
+                // Saldırılarla zincirleme patlamayı engelle
+                crystal.setInvulnerable(true);
                 world.spawnEntity(crystal);
                 crystalUuids.add(crystal.getUuid());
             }

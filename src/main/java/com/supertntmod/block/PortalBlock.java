@@ -117,9 +117,10 @@ public class PortalBlock extends Block {
             return;
         }
 
-        // Işınla
+        // Işınla — duvar/blok içine düşmemek için güvenli Y bul
+        BlockPos safeDest = findSafeTeleportSpot(world, targetPos);
         entity.teleport((ServerWorld) world,
-                targetPos.getX() + 0.5, targetPos.getY() + 1.0, targetPos.getZ() + 0.5,
+                safeDest.getX() + 0.5, safeDest.getY(), safeDest.getZ() + 0.5,
                 java.util.Set.of(), entity.getYaw(), entity.getPitch(), false);
 
         TELEPORT_COOLDOWNS.entrySet().removeIf(e -> currentTick - e.getValue() > TELEPORT_COOLDOWN);
@@ -127,6 +128,24 @@ public class PortalBlock extends Block {
 
         world.playSound(null, targetPos.getX() + 0.5, targetPos.getY() + 0.5, targetPos.getZ() + 0.5,
                 SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.PLAYERS, 1.0f, 1.0f);
+    }
+
+    /**
+     * Hedef portaldan başlayıp yukarı doğru iki üst üste hava bloğu bulur.
+     * Bulunamazsa hedef portalın 1 üstü (mevcut davranış) döner.
+     */
+    private static BlockPos findSafeTeleportSpot(World world, BlockPos portalPos) {
+        for (int dy = 1; dy <= 4; dy++) {
+            BlockPos candidate = portalPos.up(dy);
+            BlockState s1 = world.getBlockState(candidate);
+            BlockState s2 = world.getBlockState(candidate.up());
+            // Hava + üstte hava + alttaki blok (portal veya solid) — güvenli ayak basma noktası
+            if ((s1.isAir() || s1.getBlock() instanceof PortalBlock)
+                    && (s2.isAir() || s2.getBlock() instanceof PortalBlock)) {
+                return candidate;
+            }
+        }
+        return portalPos.up();
     }
 
     @Override
