@@ -139,22 +139,33 @@ public class BlockerChestBlock extends Block {
 
     @Override
     public BlockState onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
-        if (world instanceof ServerWorld serverWorld) {
-            BlockerChestPersistentState chestState = BlockerChestPersistentState.get(serverWorld);
-            // Sandık kırıldığında envanterdeki eşyaları yere düşür (kayıp yaşanmasın).
-            SimpleInventory inv = chestState.inventories.remove(pos);
-            if (inv != null) {
-                for (int i = 0; i < inv.size(); i++) {
-                    net.minecraft.item.ItemStack stack = inv.getStack(i);
-                    if (!stack.isEmpty()) {
-                        Block.dropStack(world, pos, stack);
-                    }
+        clearAndDrop(world, pos);
+        return super.onBreak(world, pos, state, player);
+    }
+
+    @Override
+    public void onDestroyedByExplosion(ServerWorld world, BlockPos pos,
+            net.minecraft.world.explosion.Explosion explosion) {
+        // Patlama ile yıkıldığında onBreak çalışmaz; envanter ve sahip UUID
+        // map'te yetim kalır. Burada da temizle ve eşyaları yere düşür.
+        clearAndDrop(world, pos);
+        super.onDestroyedByExplosion(world, pos, explosion);
+    }
+
+    private static void clearAndDrop(World world, BlockPos pos) {
+        if (!(world instanceof ServerWorld serverWorld)) return;
+        BlockerChestPersistentState chestState = BlockerChestPersistentState.get(serverWorld);
+        SimpleInventory inv = chestState.inventories.remove(pos);
+        if (inv != null) {
+            for (int i = 0; i < inv.size(); i++) {
+                net.minecraft.item.ItemStack stack = inv.getStack(i);
+                if (!stack.isEmpty()) {
+                    Block.dropStack(world, pos, stack);
                 }
             }
-            chestState.owners.remove(pos);
-            chestState.markDirty();
         }
-        return super.onBreak(world, pos, state, player);
+        chestState.owners.remove(pos);
+        chestState.markDirty();
     }
 
     public static void clearBans() {

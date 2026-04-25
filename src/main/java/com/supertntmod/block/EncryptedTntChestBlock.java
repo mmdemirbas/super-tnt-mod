@@ -195,22 +195,33 @@ public class EncryptedTntChestBlock extends Block {
 
     @Override
     public BlockState onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
-        if (world instanceof net.minecraft.server.world.ServerWorld serverWorld) {
-            ChestPersistentState chestState = ChestPersistentState.get(serverWorld);
-            // Sandık kırıldığında envanterdeki eşyaları yere düşür (kayıp yaşanmasın).
-            SimpleInventory inv = chestState.inventories.remove(pos);
-            if (inv != null) {
-                for (int i = 0; i < inv.size(); i++) {
-                    net.minecraft.item.ItemStack stack = inv.getStack(i);
-                    if (!stack.isEmpty()) {
-                        Block.dropStack(world, pos, stack);
-                    }
+        clearAndDrop(world, pos);
+        return super.onBreak(world, pos, state, player);
+    }
+
+    @Override
+    public void onDestroyedByExplosion(net.minecraft.server.world.ServerWorld world, BlockPos pos,
+            net.minecraft.world.explosion.Explosion explosion) {
+        // Patlamayla yıkım onBreak'i atlar — envanter, sahip ve şifre yetim
+        // kalmasın diye burada da temizle.
+        clearAndDrop(world, pos);
+        super.onDestroyedByExplosion(world, pos, explosion);
+    }
+
+    private static void clearAndDrop(World world, BlockPos pos) {
+        if (!(world instanceof net.minecraft.server.world.ServerWorld serverWorld)) return;
+        ChestPersistentState chestState = ChestPersistentState.get(serverWorld);
+        SimpleInventory inv = chestState.inventories.remove(pos);
+        if (inv != null) {
+            for (int i = 0; i < inv.size(); i++) {
+                net.minecraft.item.ItemStack stack = inv.getStack(i);
+                if (!stack.isEmpty()) {
+                    Block.dropStack(world, pos, stack);
                 }
             }
-            chestState.owners.remove(pos);
-            chestState.passwords.remove(pos);
-            chestState.markDirty();
         }
-        return super.onBreak(world, pos, state, player);
+        chestState.owners.remove(pos);
+        chestState.passwords.remove(pos);
+        chestState.markDirty();
     }
 }

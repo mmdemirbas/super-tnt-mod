@@ -150,16 +150,28 @@ public class PortalBlock extends Block {
 
     @Override
     public BlockState onBreak(World world, BlockPos pos, BlockState state, net.minecraft.entity.player.PlayerEntity player) {
-        if (world instanceof ServerWorld serverWorld) {
-            PortalPersistentState portalState = PortalPersistentState.get(serverWorld);
-            UUID ownerUuid = portalState.portalOwners.remove(pos.toImmutable());
-            if (ownerUuid != null) {
-                boolean isPink = state.get(IS_PINK);
-                (isPink ? portalState.pinkPortals : portalState.greenPortals).remove(ownerUuid);
-                portalState.markDirty();
-            }
-        }
+        clearOwner(world, pos, state);
         return super.onBreak(world, pos, state, player);
+    }
+
+    @Override
+    public void onDestroyedByExplosion(ServerWorld world, BlockPos pos,
+            net.minecraft.world.explosion.Explosion explosion) {
+        // Patlama onBreak'i atlar; portal-sahip eşlemesi yetim kalmasın.
+        clearOwner(world, pos, world.getBlockState(pos));
+        super.onDestroyedByExplosion(world, pos, explosion);
+    }
+
+    private static void clearOwner(World world, BlockPos pos, BlockState state) {
+        if (!(world instanceof ServerWorld serverWorld)) return;
+        if (!(state.getBlock() instanceof PortalBlock)) return;
+        PortalPersistentState portalState = PortalPersistentState.get(serverWorld);
+        UUID ownerUuid = portalState.portalOwners.remove(pos.toImmutable());
+        if (ownerUuid != null) {
+            boolean isPink = state.get(IS_PINK);
+            (isPink ? portalState.pinkPortals : portalState.greenPortals).remove(ownerUuid);
+            portalState.markDirty();
+        }
     }
 
     // Partikül efektleri
