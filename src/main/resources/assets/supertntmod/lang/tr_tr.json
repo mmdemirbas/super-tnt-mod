@@ -39,7 +39,7 @@
   "block.supertntmod.walking_tnt.tooltip": "Göz teması kuranları takip eder",
   "block.supertntmod.walking_tnt.tooltip2": "Temas edince patlar! Sahibi güvende.",
   "block.supertntmod.mob_freeze_tnt.tooltip": "TÜM düşman canavarları 10 dakika dondurur ve buz içine hapseder",
-  "block.supertntmod.water_tnt.tooltip": "Ateşleri söndürür, su dalgasıyla iter",
+  "block.supertntmod.water_tnt.tooltip": "Ateşleri söndürür, su dalgasıyla iter, küçük su birikintileri bırakır",
   "block.supertntmod.rainbow_tnt.tooltip": "Blokları renkli yüne dönüştürür (30 blok yarıçap)",
   "block.supertntmod.lego_tnt.tooltip": "Çıkıntılı lego tuğlalarından yapılar inşa eder!",
   "block.supertntmod.makarna_tnt.tooltip": "Blokları yenilebilen bloklara dönüştürür - afiyet olsun!",

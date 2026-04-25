@@ -7,6 +7,8 @@ import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.storage.ReadView;
+import net.minecraft.storage.WriteView;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
@@ -62,5 +64,19 @@ public class ElmasZirhTntEntity extends TntEntity {
             return;
         }
         if (!done) super.tick();
+    }
+
+    @Override
+    public void readData(ReadView reader) {
+        super.readData(reader);
+        done = reader.getBoolean("done", false);
+        ticksAfterExplode = reader.getInt("ticksAfterExplode", -1);
+    }
+
+    @Override
+    public void writeData(WriteView writer) {
+        super.writeData(writer);
+        writer.putBoolean("done", done);
+        writer.putInt("ticksAfterExplode", ticksAfterExplode);
     }
 }

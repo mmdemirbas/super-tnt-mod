@@ -66,7 +66,9 @@ public class ZeynepKomutTntEntity extends TntEntity {
                         cx, cy + 2, cz, 300, 8.0, 5.0, 8.0, 0.6);
             }
 
-            world.createExplosion(null, cx, cy, cz, 5.0f, false, World.ExplosionSourceType.TNT);
+            // Buff TNT — bloklara zarar vermez. Tooltip "güçlü efektler verir"
+            // diyor, "evi yıkar" demiyor; kid kendi yapısını kaybedince üzülür.
+            world.createExplosion(null, cx, cy, cz, 0.0f, false, World.ExplosionSourceType.NONE);
             return;
         }
         if (!done) super.tick();

@@ -39,7 +39,7 @@
   "block.supertntmod.walking_tnt.tooltip": "Follows players who make eye contact",
   "block.supertntmod.walking_tnt.tooltip2": "Explodes on contact! Owner is safe.",
   "block.supertntmod.mob_freeze_tnt.tooltip": "Freezes ALL hostile mobs for 10 minutes and encases them in ice",
-  "block.supertntmod.water_tnt.tooltip": "Extinguishes fires, pushes entities with water wave",
+  "block.supertntmod.water_tnt.tooltip": "Extinguishes fires, pushes entities with water wave, leaves small puddles",
   "block.supertntmod.rainbow_tnt.tooltip": "Transforms blocks into colorful wool (30 block radius)",
   "block.supertntmod.lego_tnt.tooltip": "Builds structures from real Lego bricks with studs!",
   "block.supertntmod.makarna_tnt.tooltip": "Transforms blocks into edible food blocks - bon appetit!",
