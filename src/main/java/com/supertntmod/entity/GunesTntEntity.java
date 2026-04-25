@@ -8,6 +8,8 @@ import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.storage.ReadView;
+import net.minecraft.storage.WriteView;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
@@ -88,5 +90,34 @@ public class GunesTntEntity extends TntEntity {
         }
 
         if (!exploded) super.tick();
+    }
+
+    @Override
+    public void readData(ReadView reader) {
+        super.readData(reader);
+        exploded = reader.getBoolean("exploded", false);
+        ticksAfterExplode = reader.getInt("ticksAfterExplode", -1);
+        crystalUuids.clear();
+        reader.getOptionalString("crystalUuids").ifPresent(s -> {
+            if (s.isEmpty()) return;
+            for (String part : s.split(",")) {
+                try { crystalUuids.add(UUID.fromString(part)); } catch (IllegalArgumentException ignored) {}
+            }
+        });
+    }
+
+    @Override
+    public void writeData(WriteView writer) {
+        super.writeData(writer);
+        writer.putBoolean("exploded", exploded);
+        writer.putInt("ticksAfterExplode", ticksAfterExplode);
+        if (!crystalUuids.isEmpty()) {
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < crystalUuids.size(); i++) {
+                if (i > 0) sb.append(',');
+                sb.append(crystalUuids.get(i).toString());
+            }
+            writer.putString("crystalUuids", sb.toString());
+        }
     }
 }
