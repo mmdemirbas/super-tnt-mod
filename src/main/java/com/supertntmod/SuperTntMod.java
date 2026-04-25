@@ -193,6 +193,8 @@ public class SuperTntMod implements ModInitializer {
             com.supertntmod.block.BlockerChestBlock.clearBans();
             com.supertntmod.block.CommandTntBlock.clearAll();
             com.supertntmod.item.DiaryItem.clearAll();
+            com.supertntmod.item.PortalGunItem.clearAll();
+            com.supertntmod.block.TntDoorBlock.clearAll();
         });
 
         // Yerçekimi TNT: ters yerçekimi zamanlayıcısı
@@ -228,6 +230,18 @@ public class SuperTntMod implements ModInitializer {
             com.supertntmod.item.AmethystArmorState.onPlayerDisconnect(id);
             com.supertntmod.block.BlockerChestBlock.onPlayerDisconnect(id);
             com.supertntmod.item.DiaryItem.clearWriteMode(id);
+        });
+
+        // Oyuncu bağlanınca crash sonrası stale state'i toparla:
+        // GravityTnt etkin haldeyken sunucu çakarsa noGravity=true NBT'de kalır;
+        // oyuncu kalıcı havada kalır. Server stop normal akışta clearAll'ü çağırır
+        // ama crash'te çalışmaz, dolayısıyla join'de güvenli bir reset uygulanır.
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+            ServerPlayerEntity player = handler.player;
+            if (player.hasNoGravity()
+                    && !GravityTntEntity.GRAVITY_INVERTED.containsKey(player.getUuid())) {
+                player.setNoGravity(false);
+            }
         });
 
         // Gökkuşağı Botları: her tick ayak altına yün koy
@@ -274,7 +288,7 @@ public class SuperTntMod implements ModInitializer {
             context.server().execute(() -> handleDrawingPayload(player, payload));
         });
 
-        LOGGER.info("Super TNT Modu yüklendi! 26 blok + 23 item + 1 mob hazır.");
+        LOGGER.info("Super TNT Modu yüklendi.");
     }
 
     /**

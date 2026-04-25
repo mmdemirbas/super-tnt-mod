@@ -14,9 +14,9 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
 import net.minecraft.world.World;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 /**
@@ -26,7 +26,7 @@ import java.util.function.Consumer;
  */
 public class PortalGunItem extends Item {
     // Oyuncu başına sonraki atış rengi (true = pembe)
-    private static final Map<UUID, Boolean> NEXT_IS_PINK = new HashMap<>();
+    private static final Map<UUID, Boolean> NEXT_IS_PINK = new ConcurrentHashMap<>();
 
     public PortalGunItem(Settings settings) {
         super(settings);
@@ -67,5 +67,9 @@ public class PortalGunItem extends Item {
 
     public static void onPlayerDisconnect(java.util.UUID uuid) {
         NEXT_IS_PINK.remove(uuid);
+    }
+
+    public static void clearAll() {
+        NEXT_IS_PINK.clear();
     }
 }

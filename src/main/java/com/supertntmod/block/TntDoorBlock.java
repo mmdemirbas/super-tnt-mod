@@ -15,9 +15,9 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.block.BlockSetType;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * TNT Kapı: Sahibi güvenle geçebilir, başkaları patlar.
@@ -25,7 +25,7 @@ import java.util.UUID;
  */
 public class TntDoorBlock extends DoorBlock {
     // Uyarı alan oyuncular (ikinci denemede patlar) — ephemeral, no persistence needed
-    private static final Map<UUID, BlockPos> WARNED_PLAYERS = new HashMap<>();
+    private static final Map<UUID, BlockPos> WARNED_PLAYERS = new ConcurrentHashMap<>();
 
     public TntDoorBlock(Settings settings) {
         super(BlockSetType.IRON, settings);
@@ -88,6 +88,10 @@ public class TntDoorBlock extends DoorBlock {
 
     public static void onPlayerDisconnect(java.util.UUID uuid) {
         WARNED_PLAYERS.remove(uuid);
+    }
+
+    public static void clearAll() {
+        WARNED_PLAYERS.clear();
     }
 
     @Override

@@ -24,9 +24,9 @@ import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Şifreli TNT Sandık:
@@ -46,8 +46,8 @@ public class EncryptedTntChestBlock extends Block {
     private record DimPos(RegistryKey<World> dimension, BlockPos pos) {}
 
     // Şifre girişi bekleyen oyuncular (ephemeral, no persistence needed)
-    static final Map<UUID, DimPos> AWAITING_PASSWORD = new HashMap<>();
-    public static final Map<UUID, Boolean> AWAITING_SET_PASSWORD = new HashMap<>();
+    static final Map<UUID, DimPos> AWAITING_PASSWORD = new ConcurrentHashMap<>();
+    public static final Map<UUID, Boolean> AWAITING_SET_PASSWORD = new ConcurrentHashMap<>();
 
     public EncryptedTntChestBlock(Settings settings) {
         super(settings);
@@ -155,7 +155,14 @@ public class EncryptedTntChestBlock extends Block {
 
         // Şifre doğrulama (sadece sahip buraya ulaşır)
         String correctPassword = chestState.passwords.get(pos);
-        if (correctPassword != null && correctPassword.equals(message)) {
+        if (correctPassword == null) {
+            // Şifre kaydı kayıp — yeniden belirleme moduna düş
+            AWAITING_PASSWORD.put(uuid, dimPos);
+            AWAITING_SET_PASSWORD.put(uuid, true);
+            player.sendMessage(Text.translatable("message.supertntmod.encrypted_tnt_chest.set_password"), false);
+            return true;
+        }
+        if (correctPassword.equals(message)) {
             // Doğru şifre - sandığı aç
             SimpleInventory inventory = chestState.inventories.get(pos);
             if (inventory != null) {
