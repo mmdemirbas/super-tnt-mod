@@ -24,6 +24,8 @@ public abstract class AmethystArmorEquipMixin {
     private void supertntmod$preventAmethystReplace(EquipmentSlot slot, ItemStack stack, CallbackInfo ci) {
         LivingEntity self = (LivingEntity) (Object) this;
         if (!(self instanceof ServerPlayerEntity player)) return;
+        // Creative/spectator: kilitleme yok — yapıcı modda her şey serbest.
+        if (player.isCreative() || player.isSpectator()) return;
         if (AmethystArmorState.isLoosened(player.getUuid())) return;
 
         // Yalnızca zırh slot'larında geçerli (HEAD/CHEST/LEGS/FEET)

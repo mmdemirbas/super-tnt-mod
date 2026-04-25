@@ -95,7 +95,9 @@ public class EnergyCrystalItem extends Item {
 
         // Boşluğa düşmemek için: bu bedrock dünya tabanındaysa kırma.
         // Aksi halde altında bedrock varsa olduğu gibi kalır, yoksa altına yeni bedrock yerleşir.
-        if (pos.getY() <= world.getBottomY()) {
+        // Creative oyuncu zaten uçabilir, kısıtlama uygulamıyoruz.
+        boolean creative = player != null && player.isCreative();
+        if (!creative && pos.getY() <= world.getBottomY()) {
             if (player != null) {
                 player.sendMessage(Text.literal("Dünya tabanı! Bunu kıramazsın.")
                         .formatted(Formatting.RED), true);

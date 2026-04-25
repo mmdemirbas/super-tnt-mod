@@ -96,24 +96,25 @@ public class TntDoorBlock extends DoorBlock {
 
     @Override
     public BlockState onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
-        clearOwner(world, pos, state);
+        BlockPos basePos = state.get(HALF) == DoubleBlockHalf.UPPER ? pos.down() : pos;
+        clearOwner(world, basePos);
         return super.onBreak(world, pos, state, player);
     }
 
     @Override
     public void onDestroyedByExplosion(ServerWorld world, BlockPos pos,
             net.minecraft.world.explosion.Explosion explosion) {
-        // Patlama onBreak'i atlar; sahip UUID'i map'te yetim kalmasın.
-        BlockState state = world.getBlockState(pos);
-        clearOwner(world, pos, state);
+        // Patlama anında blok zaten hava olduğu için state.HALF okunamaz.
+        // Hangi yarım kırıldıysa basePos = pos veya pos.down(); her ikisini
+        // de map'ten kaldır. Sadece ilki bulunur, diğeri no-op.
+        clearOwner(world, pos);
+        clearOwner(world, pos.down());
         super.onDestroyedByExplosion(world, pos, explosion);
     }
 
-    private static void clearOwner(World world, BlockPos pos, BlockState state) {
+    private static void clearOwner(World world, BlockPos basePos) {
         if (!(world instanceof ServerWorld serverWorld)) return;
-        if (!(state.getBlock() instanceof TntDoorBlock)) return;
         TntDoorPersistentState doorState = TntDoorPersistentState.get(serverWorld);
-        BlockPos basePos = state.get(HALF) == DoubleBlockHalf.UPPER ? pos.down() : pos;
         if (doorState.owners.remove(basePos) != null) {
             doorState.markDirty();
         }

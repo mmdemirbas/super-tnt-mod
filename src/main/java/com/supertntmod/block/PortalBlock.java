@@ -150,7 +150,7 @@ public class PortalBlock extends Block {
 
     @Override
     public BlockState onBreak(World world, BlockPos pos, BlockState state, net.minecraft.entity.player.PlayerEntity player) {
-        clearOwner(world, pos, state);
+        clearOwner(world, pos);
         return super.onBreak(world, pos, state, player);
     }
 
@@ -158,20 +158,27 @@ public class PortalBlock extends Block {
     public void onDestroyedByExplosion(ServerWorld world, BlockPos pos,
             net.minecraft.world.explosion.Explosion explosion) {
         // Patlama onBreak'i atlar; portal-sahip eşlemesi yetim kalmasın.
-        clearOwner(world, pos, world.getBlockState(pos));
+        // Bu noktada blok zaten hava olduğu için BlockState'e güvenemeyiz —
+        // owner UUID üzerinden ters arama ile pinkPortals/greenPortals'dan
+        // doğru olanı kaldırıyoruz.
+        clearOwner(world, pos);
         super.onDestroyedByExplosion(world, pos, explosion);
     }
 
-    private static void clearOwner(World world, BlockPos pos, BlockState state) {
+    private static void clearOwner(World world, BlockPos pos) {
         if (!(world instanceof ServerWorld serverWorld)) return;
-        if (!(state.getBlock() instanceof PortalBlock)) return;
         PortalPersistentState portalState = PortalPersistentState.get(serverWorld);
-        UUID ownerUuid = portalState.portalOwners.remove(pos.toImmutable());
-        if (ownerUuid != null) {
-            boolean isPink = state.get(IS_PINK);
-            (isPink ? portalState.pinkPortals : portalState.greenPortals).remove(ownerUuid);
-            portalState.markDirty();
+        BlockPos key = pos.toImmutable();
+        UUID ownerUuid = portalState.portalOwners.remove(key);
+        if (ownerUuid == null) return;
+        // Hangi renk olduğunu bilmediğimiz için her iki haritayı da kontrol et.
+        if (key.equals(portalState.pinkPortals.get(ownerUuid))) {
+            portalState.pinkPortals.remove(ownerUuid);
         }
+        if (key.equals(portalState.greenPortals.get(ownerUuid))) {
+            portalState.greenPortals.remove(ownerUuid);
+        }
+        portalState.markDirty();
     }
 
     // Partikül efektleri

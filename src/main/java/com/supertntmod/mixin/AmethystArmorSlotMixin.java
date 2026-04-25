@@ -25,8 +25,9 @@ public abstract class AmethystArmorSlotMixin {
                                                       SlotActionType actionType,
                                                       PlayerEntity player,
                                                       CallbackInfo ci) {
-        if (!(player instanceof ServerPlayerEntity)) return;
-
+        if (!(player instanceof ServerPlayerEntity sp)) return;
+        // Creative/spectator: kilitleme yok
+        if (sp.isCreative() || sp.isSpectator()) return;
         // Zaten gevşetilmişse engelleme
         if (AmethystArmorState.isLoosened(player.getUuid())) return;
 
