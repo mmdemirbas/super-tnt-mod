@@ -230,6 +230,7 @@ public class SuperTntMod implements ModInitializer {
             com.supertntmod.item.AmethystArmorState.onPlayerDisconnect(id);
             com.supertntmod.block.BlockerChestBlock.onPlayerDisconnect(id);
             com.supertntmod.item.DiaryItem.clearWriteMode(id);
+            com.supertntmod.item.CraftAxeItem.onPlayerDisconnect(id);
         });
 
         // Oyuncu bağlanınca crash sonrası stale state'i toparla:

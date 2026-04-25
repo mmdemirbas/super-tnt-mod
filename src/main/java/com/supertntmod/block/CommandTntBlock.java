@@ -18,8 +18,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Komut Bloğu TNT: Elindeki blokla sağ tıkla hedef ayarla, eğil+sağ tıkla yarıçap değiştir.
@@ -33,8 +33,8 @@ import java.util.Map;
 public class CommandTntBlock extends CustomTntBlock {
 
     // Blok pozisyonuna göre ayarlar
-    private static final Map<BlockPos, Block> TARGET_BLOCKS = new HashMap<>();
-    private static final Map<BlockPos, Integer> RADII = new HashMap<>();
+    private static final Map<BlockPos, Block> TARGET_BLOCKS = new ConcurrentHashMap<>();
+    private static final Map<BlockPos, Integer> RADII = new ConcurrentHashMap<>();
 
     // Yarıçap seçenekleri
     private static final int[] RADIUS_OPTIONS = {10, 20, 30, 50};

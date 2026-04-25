@@ -93,6 +93,16 @@ public class EnergyCrystalItem extends Item {
             return ActionResult.SUCCESS;
         }
 
+        // Boşluğa düşmemek için: bu bedrock dünya tabanındaysa kırma.
+        // Aksi halde altında bedrock varsa olduğu gibi kalır, yoksa altına yeni bedrock yerleşir.
+        if (pos.getY() <= world.getBottomY()) {
+            if (player != null) {
+                player.sendMessage(Text.literal("Dünya tabanı! Bunu kıramazsın.")
+                        .formatted(Formatting.RED), true);
+            }
+            return ActionResult.FAIL;
+        }
+
         // Bedrock'u kır (hava ile değiştir)
         world.setBlockState(pos, Blocks.AIR.getDefaultState());
 

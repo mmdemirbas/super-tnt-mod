@@ -107,4 +107,8 @@ public class CraftAxeItem extends Item {
     public static void clearAll() {
         FIRST_TARGET.clear();
     }
+
+    public static void onPlayerDisconnect(UUID uuid) {
+        FIRST_TARGET.remove(uuid);
+    }
 }
