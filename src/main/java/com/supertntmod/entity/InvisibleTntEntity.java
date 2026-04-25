@@ -34,8 +34,9 @@ public class InvisibleTntEntity extends TntEntity {
             World world = getEntityWorld();
             this.discard();
 
-            // Standart TNT patlaması (güç 4.0)
-            world.createExplosion(null, x + 0.5, y, z + 0.5,
+            // Standart TNT patlaması (güç 4.0). x/y/z zaten blok merkezi
+            // (CustomTntBlock.prime '+0.5' ekledi) — tekrar eklemeyiz.
+            world.createExplosion(null, x, y, z,
                     4.0f, true, World.ExplosionSourceType.TNT);
             return;
         }

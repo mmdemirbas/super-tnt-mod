@@ -24,14 +24,12 @@ public class RainbowBootsItem extends Item {
         if (!boots.isOf(ModItems.RAINBOW_BOOTS)) return;
         ServerWorld world = (ServerWorld) player.getEntityWorld();
 
-        BlockPos feetPos = player.getBlockPos();
-        BlockPos below = feetPos.down();
-        // Önce altı doldur (düşmeyi önlemek için), sonra ayak bloğu (serbest düşüş)
+        // Yalnızca ayağın hemen altını doldur. feetPos'a yün koymak oyuncuyu
+        // bloğun içinde bırakıp çarpışma fiziği ile yukarı itiyordu — zıplama
+        // kırılıyor ve dar tavanlı koridorda kid kapana kısılıyordu.
+        BlockPos below = player.getBlockPos().down();
         if (world.getBlockState(below).isAir()) {
             world.setBlockState(below, Blocks.WHITE_WOOL.getDefaultState());
-        }
-        if (world.getBlockState(feetPos).isAir()) {
-            world.setBlockState(feetPos, Blocks.WHITE_WOOL.getDefaultState());
         }
     }
 }

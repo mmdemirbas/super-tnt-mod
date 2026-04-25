@@ -134,12 +134,22 @@ public class EncryptedTntChestBlock extends Block {
         UUID uuid = player.getUuid();
         if (!AWAITING_PASSWORD.containsKey(uuid)) return false;
 
-        // Dünyayı önce doğrula; başarısız olursa haritadan çıkarma — oyuncu tekrar deneyebilir
+        // Dünya/sunucu çözümü başarısız olsa bile chat'i yutuyoruz — oyuncu
+        // şifresini herkese yazıyor sanıyor olabilir, public chat'e sızmasın.
         DimPos dimPos = AWAITING_PASSWORD.get(uuid);
         boolean isSettingPassword = AWAITING_SET_PASSWORD.getOrDefault(uuid, false);
-        if (!(player.getEntityWorld() instanceof net.minecraft.server.world.ServerWorld currentWorld)) return false;
+        if (!(player.getEntityWorld() instanceof net.minecraft.server.world.ServerWorld currentWorld)) {
+            AWAITING_PASSWORD.remove(uuid);
+            AWAITING_SET_PASSWORD.remove(uuid);
+            return true;
+        }
         net.minecraft.server.world.ServerWorld targetWorld = currentWorld.getServer().getWorld(dimPos.dimension());
-        if (targetWorld == null) return false;
+        if (targetWorld == null) {
+            AWAITING_PASSWORD.remove(uuid);
+            AWAITING_SET_PASSWORD.remove(uuid);
+            player.sendMessage(Text.literal("Sandık bulunamadı.").formatted(net.minecraft.util.Formatting.RED), true);
+            return true;
+        }
 
         AWAITING_PASSWORD.remove(uuid);
         AWAITING_SET_PASSWORD.remove(uuid);

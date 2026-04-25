@@ -28,7 +28,9 @@ public class MakarnaTntEntity extends TntEntity {
     private int idx = 0;
     private static final int MODIFICATIONS_PER_TICK = 1000;
 
-    // Yenilebilen bloklar menüsü
+    // Yenilebilen bloklar menüsü — yalnızca tam blok olan ve canSurvive
+    // koşulu olmayanlar (POTATOES/CARROTS/WHEAT/SWEET_BERRY_BUSH farmland
+    // veya çim ister, taş üstünde anında düşer ve kid görmez bile).
     private static final Block[] FOOD_BLOCKS = {
             Blocks.CAKE,
             Blocks.MELON,
@@ -39,10 +41,6 @@ public class MakarnaTntEntity extends TntEntity {
             Blocks.RED_MUSHROOM_BLOCK,
             Blocks.HONEY_BLOCK,
             Blocks.HONEYCOMB_BLOCK,
-            Blocks.POTATOES,
-            Blocks.CARROTS,
-            Blocks.WHEAT,
-            Blocks.SWEET_BERRY_BUSH,
     };
 
     public MakarnaTntEntity(EntityType<? extends TntEntity> type, World world) {

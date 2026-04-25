@@ -85,7 +85,12 @@ public class DiaryItem extends Item {
                 return true;
             }
         }
-        return false;
+        // Sahip olduğu günlük bulunamadı — yine de chat'e sızdırma:
+        // oyuncu "gizli giriş" beklediği için herkesin görmesi mahremiyet ihlali.
+        player.sendMessage(
+                Text.literal("Günlük bulunamadı; yazı kaydedilmedi.").formatted(Formatting.RED),
+                true);
+        return true;
     }
 
     public static void clearWriteMode(UUID playerId) {

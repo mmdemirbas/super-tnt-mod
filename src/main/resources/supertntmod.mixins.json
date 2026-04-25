@@ -6,7 +6,8 @@
     "ClampedEntityAttributeAccessor",
     "BlockItemMixin",
     "TntArmorDamageMixin",
-    "AmethystArmorSlotMixin"
+    "AmethystArmorSlotMixin",
+    "AmethystArmorEquipMixin"
   ],
   "injectors": {
     "defaultRequire": 1
