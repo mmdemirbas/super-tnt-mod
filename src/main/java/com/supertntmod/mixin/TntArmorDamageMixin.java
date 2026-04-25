@@ -46,12 +46,18 @@ public abstract class TntArmorDamageMixin {
         }
 
         if (wearingTntArmor) {
-            // Saldıranın konumunda patlama oluştur
+            // Sadece saldırgana hasar — patlama görseldir, etrafa (giyenin de
+            // dahil olduğu) hasar vermez. Aksi halde bitişik melee saldırılar
+            // sahibi de patlatır.
+            if (attacker instanceof LivingEntity livingAttacker) {
+                livingAttacker.damage(world,
+                        world.getDamageSources().explosion(player, player), 8.0f);
+            }
             world.createExplosion(
-                    null, // patlama kaynağı yok (oyuncuya zarar vermez)
+                    null,
                     attacker.getX(), attacker.getBodyY(0.5), attacker.getZ(),
-                    3.0f,
-                    World.ExplosionSourceType.TNT
+                    0.0f,
+                    World.ExplosionSourceType.NONE
             );
         }
     }

@@ -38,33 +38,19 @@ public abstract class AmethystArmorSlotMixin {
         Slot slot = handler.slots.get(slotIndex);
         ItemStack stackInSlot = slot.getStack();
 
-        // Slot'taki item ametist zırh parçası mı?
-        if (isAmethystArmorPiece(stackInSlot)) {
+        // Sadece zırh slot'unda (PlayerScreenHandler'da 5-8) ametist zırh varken
+        // çıkarmayı engelle — envanter slot'larındaki kopyalar serbestçe taşınabilir,
+        // aksi halde oyuncu zırhı hiç giyemez.
+        boolean isArmorSlot = slotIndex >= 5 && slotIndex <= 8;
+        if (isArmorSlot && isAmethystArmorPiece(stackInSlot)) {
             ci.cancel();
             return;
         }
 
-        // Shift-click ile ametist zırhı taşıma girişimi (başka slot'tan zırh slot'una)
-        if (actionType == SlotActionType.QUICK_MOVE) {
-            // Bu durumda zaten slot'taki item kontrol edildi, ek kontrol gerekmez
-            return;
-        }
-
-        // Swap (numpad) ile zırh slot'undaki ametist zırhı değiştirme girişimi
-        if (actionType == SlotActionType.SWAP) {
-            // 5-8 arası armor slot'ları (PlayerScreenHandler'da)
-            // Swap edilen slot'u kontrol et
-            for (int armorSlot = 5; armorSlot <= 8; armorSlot++) {
-                if (armorSlot < handler.slots.size()) {
-                    ItemStack armorStack = handler.slots.get(armorSlot).getStack();
-                    if (isAmethystArmorPiece(armorStack) && slotIndex != armorSlot) {
-                        // Numpad ile swap edilen slot armor slot'unu hedefliyorsa
-                        // Button değeri hotbar slot indeksini temsil eder
-                        ci.cancel();
-                        return;
-                    }
-                }
-            }
+        // Numpad SWAP: hotbar tuşuyla zırh slot'undaki ametist zırhı kullanılan
+        // hotbar slot'una atmaya çalışıyor — engelle.
+        if (actionType == SlotActionType.SWAP && isArmorSlot && isAmethystArmorPiece(stackInSlot)) {
+            ci.cancel();
         }
     }
 

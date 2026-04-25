@@ -304,6 +304,12 @@ public class SuperTntMod implements ModInitializer {
         byte[] pixels = payload.pixels();
         if (pixels.length != DrawingC2SPayload.PIXEL_COUNT) return;
 
+        // Yetki kontrolü: oyuncu çizim eşyasını gerçekten elinde tutmalı.
+        // (Aksi halde hacked client payload spam'i ile bedava lego basar.)
+        boolean holdingDrawingItem = player.getMainHandStack().isOf(ModItems.DRAWING_ITEM)
+                || player.getOffHandStack().isOf(ModItems.DRAWING_ITEM);
+        if (!holdingDrawingItem) return;
+
         // Oyuncunun baktığı yönü hesapla (4 ana yön)
         float yaw = payload.yaw() % 360;
         if (yaw < 0) yaw += 360;
