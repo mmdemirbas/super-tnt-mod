@@ -12,9 +12,8 @@ import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 
 /**
- * Hayalet Blok: içinden geçilebilir (no collision).
- * Komşu bloklara bakarak en yaygın bloğu tespit eder;
- * şu an için görsel olarak cam gibi render edilir.
+ * Hayalet Blok: Cam gibi görünen, içinden geçilebilen blok.
+ * Hiçbir varlık ile çarpışmaz; mobların yol bulması üzerinde engel teşkil etmez.
  */
 public class GhostBlock extends Block {
 
@@ -22,7 +21,6 @@ public class GhostBlock extends Block {
         super(settings);
     }
 
-    /** Geçilebilir — çarpışma şekli yok. */
     @Override
     protected VoxelShape getCollisionShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
         return VoxelShapes.empty();
@@ -33,15 +31,37 @@ public class GhostBlock extends Block {
         return VoxelShapes.fullCube();
     }
 
+    /** Düşen blok ya da minecart gibi taşıyıcılar tarafından desteklenmemeli. */
+    @Override
+    protected VoxelShape getCameraCollisionShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
+        return VoxelShapes.empty();
+    }
+
+    /** Boğulmaya neden olmasın. */
+    @Override
+    protected VoxelShape getCullingShape(BlockState state) {
+        return VoxelShapes.empty();
+    }
+
     @Override
     public void randomDisplayTick(BlockState state, World world, BlockPos pos, Random random) {
-        // Hafif bir işaret partiküllü görünüm
-        if (random.nextInt(4) == 0) {
-            world.addParticleClient(ParticleTypes.SMOKE,
+        // Hayalet titreşimi: rastgele konumda hafif duman + kıvılcım
+        if (random.nextInt(6) == 0) {
+            world.addParticleClient(ParticleTypes.SOUL,
                     pos.getX() + random.nextDouble(),
                     pos.getY() + random.nextDouble(),
                     pos.getZ() + random.nextDouble(),
-                    0, 0.01, 0);
+                    (random.nextDouble() - 0.5) * 0.02,
+                    0.01,
+                    (random.nextDouble() - 0.5) * 0.02);
+        }
+        if (random.nextInt(20) == 0) {
+            world.addParticleClient(ParticleTypes.END_ROD,
+                    pos.getX() + 0.5,
+                    pos.getY() + random.nextDouble(),
+                    pos.getZ() + 0.5,
+                    0, 0, 0);
         }
     }
+
 }
