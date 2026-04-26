@@ -1,6 +1,9 @@
 {
-  "parent": "minecraft:block/cube_all",
+  "parent": "minecraft:block/cube_bottom_top",
   "textures": {
-    "all": "minecraft:block/glass"
+    "particle": "minecraft:block/grass_block_side",
+    "top": "minecraft:block/grass_block_top",
+    "side": "minecraft:block/grass_block_side",
+    "bottom": "minecraft:block/dirt"
   }
 }

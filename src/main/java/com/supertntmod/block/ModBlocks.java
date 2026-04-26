@@ -206,12 +206,19 @@ public class ModBlocks {
                     .luminance(state -> 12)
                     .registryKey(RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(SuperTntMod.MOD_ID, "end_gate")))));
 
-    // 👻 Hayalet Blok - İçinden geçilebilir, cam gibi görünür
+    // 👻 Hayalet Blok - İçinden geçilebilir, çim bloğu gibi görünür
     public static final GhostBlock GHOST_BLOCK = reg("ghost_block",
-            new GhostBlock(AbstractBlock.Settings.copy(Blocks.GLASS)
+            new GhostBlock(AbstractBlock.Settings.copy(Blocks.GRASS_BLOCK)
                     .nonOpaque()
                     .noCollision()
                     .registryKey(RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(SuperTntMod.MOD_ID, "ghost_block")))));
+
+    // 🪵 Tahta Hayalet Blok - İçinden geçilebilir, tahta görünümlü
+    public static final GhostBlock WOODEN_GHOST_BLOCK = reg("wooden_ghost_block",
+            new GhostBlock(AbstractBlock.Settings.copy(Blocks.OAK_PLANKS)
+                    .nonOpaque()
+                    .noCollision()
+                    .registryKey(RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(SuperTntMod.MOD_ID, "wooden_ghost_block")))));
 
     // ⚠ Yanlış Altın Plaka - Üstüne basan ölür, kırılamaz
     public static final WrongGoldenPlateBlock WRONG_GOLDEN_PLATE = reg("wrong_golden_plate",

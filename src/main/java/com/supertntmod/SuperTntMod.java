@@ -141,6 +141,7 @@ public class SuperTntMod implements ModInitializer {
                             // Yeni bloklar
                             entries.add(ModBlocks.END_GATE);
                             entries.add(ModBlocks.GHOST_BLOCK);
+                            entries.add(ModBlocks.WOODEN_GHOST_BLOCK);
                             entries.add(ModBlocks.WRONG_GOLDEN_PLATE);
                             entries.add(ModBlocks.RIGHT_GOLDEN_PLATE);
                             entries.add(ModBlocks.NETHER_TNT);

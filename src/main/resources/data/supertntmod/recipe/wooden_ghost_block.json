@@ -1,12 +1,12 @@
 {
   "type": "minecraft:crafting_shaped",
-  "pattern": ["GGG", "GPG", "GGG"],
+  "pattern": ["WWW", "WPW", "WWW"],
   "key": {
-    "G": "minecraft:grass_block",
+    "W": "minecraft:oak_planks",
     "P": "minecraft:phantom_membrane"
   },
   "result": {
-    "id": "supertntmod:ghost_block",
+    "id": "supertntmod:wooden_ghost_block",
     "count": 4
   }
 }

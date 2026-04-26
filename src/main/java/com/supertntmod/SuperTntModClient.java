@@ -123,7 +123,16 @@ public class SuperTntModClient implements ClientModInitializer {
         BlockRenderLayerMap.putBlock(ModBlocks.PORTAL_BLOCK, BlockRenderLayer.CUTOUT);
         BlockRenderLayerMap.putBlock(ModBlocks.END_GATE, BlockRenderLayer.TRANSLUCENT);
         BlockRenderLayerMap.putBlock(ModBlocks.GIZLI_TNT, BlockRenderLayer.TRANSLUCENT);
-        BlockRenderLayerMap.putBlock(ModBlocks.GHOST_BLOCK, BlockRenderLayer.TRANSLUCENT);
+        BlockRenderLayerMap.putBlock(ModBlocks.GHOST_BLOCK, BlockRenderLayer.CUTOUT);
+        BlockRenderLayerMap.putBlock(ModBlocks.WOODEN_GHOST_BLOCK, BlockRenderLayer.CUTOUT);
+
+        // Çim Hayalet Bloğu — vanilla çim bloğu gibi biyom tonlamalı yeşil
+        net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry.BLOCK.register(
+                (state, world, pos, tintIndex) -> {
+                    if (tintIndex != 0) return -1;
+                    if (world == null || pos == null) return 0x91BD59;
+                    return net.minecraft.client.color.world.BiomeColors.getGrassColor(world, pos);
+                }, ModBlocks.GHOST_BLOCK);
 
         // Tünellenmiş blok - özel BlockEntity renderer
         BlockEntityRendererRegistry.register(ModBlocks.TUNNELED_BLOCK_ENTITY_TYPE, TunneledBlockEntityRenderer::new);
