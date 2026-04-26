@@ -44,12 +44,15 @@ public class HarfTntEntity extends TntEntity {
             world.playSound(null, cx, cy, cz,
                     SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, SoundCategory.BLOCKS, 2.0f, 1.2f);
 
-            world.getEntitiesByClass(LivingEntity.class,
+            // Sadece oyunculara can yenileme ve kalkan ver. Hostile mob'lara
+            // buff vermek kid için tehlikeliydi — eskisi tüm LivingEntity'ye
+            // veriyordu, zombileri/iskeletleri zorlaştırıyordu.
+            world.getEntitiesByClass(net.minecraft.entity.player.PlayerEntity.class,
                     new net.minecraft.util.math.Box(center).expand(RADIUS),
                     e -> true
-            ).forEach(entity -> {
-                entity.addStatusEffect(new StatusEffectInstance(StatusEffects.REGENERATION, 400, 1));
-                entity.addStatusEffect(new StatusEffectInstance(StatusEffects.ABSORPTION, 400, 2));
+            ).forEach(player -> {
+                player.addStatusEffect(new StatusEffectInstance(StatusEffects.REGENERATION, 400, 1));
+                player.addStatusEffect(new StatusEffectInstance(StatusEffects.ABSORPTION, 400, 2));
             });
 
             for (int i = 0; i < 30; i++) {
