@@ -1,6 +1,5 @@
 package com.supertntmod.mixin;
 
-import com.supertntmod.SuperTntMod;
 import com.supertntmod.block.ModBlocks;
 import com.supertntmod.block.TunneledBlock;
 import com.supertntmod.block.TunneledBlockEntity;
@@ -22,8 +21,9 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * Küçülmüş oyuncu blok yerleştirdiğinde, bloğu boyutuyla orantılı
- * küçük bir TunneledBlock olarak yerleştirir.
+ * Küçülmüş oyuncu blok yerleştirdiğinde, bloğu boyutuyla orantılı bir
+ * TunneledBlock olarak yerleştirir. Her blok türü desteklenir; sub-voxel
+ * yüzeyi tıklanan tarafa yapıştırılır.
  */
 @Mixin(BlockItem.class)
 public class BlockItemMixin {
@@ -47,11 +47,9 @@ public class BlockItemMixin {
         BlockPos pos = context.getBlockPos();
         BlockState placedState = world.getBlockState(pos);
 
-        // TunneledBlock, BlockEntity'li veya mod'a ait blokları dönüştürme
+        // TunneledBlock veya BlockEntity'li blokları dönüştürme (özel durum stateleri kaybolur)
         if (placedState.getBlock() instanceof TunneledBlock) return;
         if (placedState.hasBlockEntity()) return;
-        // Supertntmod bloklarını dönüştürme — TNT ve özel bloklar tam boyutlu kalmalı
-        if (Registries.BLOCK.getId(placedState.getBlock()).getNamespace().equals(SuperTntMod.MOD_ID)) return;
 
         // Sub-voxel sayısını hesapla (eksen başına)
         int count = Math.max(1, (int) Math.ceil(scale * 4));
@@ -78,22 +76,22 @@ public class BlockItemMixin {
             case WEST -> startX = 4 - count;
         }
 
-        // Bitmask oluştur: sadece belirtilen bölgeyi doldur
-        long mask = 0L;
-        for (int z = startZ; z < startZ + count; z++) {
-            for (int y = startY; y < startY + count; y++) {
-                for (int x = startX; x < startX + count; x++) {
-                    mask |= (1L << TunneledBlockEntity.subVoxelIndex(x, y, z));
-                }
-            }
-        }
-
-        // Orijinal blok bilgisini kaydet ve TunneledBlock'a dönüştür
         Identifier blockId = Registries.BLOCK.getId(placedState.getBlock());
         world.setBlockState(pos, ModBlocks.TUNNELED_BLOCK.getDefaultState());
         if (world.getBlockEntity(pos) instanceof TunneledBlockEntity entity) {
             entity.setOriginalBlockId(blockId);
-            entity.setSubVoxelMask(mask);
+            // Önce tümünü boşalt, sonra hedef alt-bölgeyi blockId ile doldur
+            entity.setSubVoxelMask(0L);
+            int[][] coords = new int[count * count * count][];
+            int i = 0;
+            for (int z = startZ; z < startZ + count; z++) {
+                for (int y = startY; y < startY + count; y++) {
+                    for (int x = startX; x < startX + count; x++) {
+                        coords[i++] = new int[]{x, y, z};
+                    }
+                }
+            }
+            entity.fillSubVoxels(coords, blockId);
         }
     }
 }

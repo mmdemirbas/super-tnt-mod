@@ -271,6 +271,11 @@ public class SuperTntMod implements ModInitializer {
             return net.minecraft.util.ActionResult.PASS;
         });
 
+        // Tünel boşluklarına blok yerleştirme: tünellenmiş bloğa BlockItem ile sağ tıklanınca
+        // boş sub-voxel'leri doldur. Komşu konumdaki yerleşim normal akışa bırakılır.
+        net.fabricmc.fabric.api.event.player.UseBlockCallback.EVENT.register((player, world, hand, hitResult) ->
+                com.supertntmod.block.TunnelFillHandler.handle(player, world, hand, hitResult));
+
         // Kontrol Kumandası: C2S payload kaydı + server handler
         PayloadTypeRegistry.playC2S().register(
                 com.supertntmod.network.ControlRemoteC2SPayload.ID,
