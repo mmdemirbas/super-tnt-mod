@@ -1,8 +1,0 @@
-{
-  "parent": "minecraft:block/cube_bottom_top",
-  "textures": {
-    "top": "minecraft:block/pink_concrete",
-    "bottom": "minecraft:block/pink_concrete",
-    "side": "minecraft:block/white_concrete"
-  }
-}

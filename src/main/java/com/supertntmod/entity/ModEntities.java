@@ -217,19 +217,9 @@ public class ModEntities {
                     (type, world) -> new KupTntEntity(type, world), SpawnGroup.MISC)
                     .dimensions(0.98f, 0.98f));
 
-    public static final EntityType<ElmasZirhTntEntity> ELMAS_ZIRH_TNT = regTnt("elmas_zirh_tnt",
-            EntityType.Builder.<ElmasZirhTntEntity>create(
-                    (type, world) -> new ElmasZirhTntEntity(type, world), SpawnGroup.MISC)
-                    .dimensions(0.98f, 0.98f));
-
     public static final EntityType<KalpTntEntity> KALP_TNT = regTnt("kalp_tnt",
             EntityType.Builder.<KalpTntEntity>create(
                     (type, world) -> new KalpTntEntity(type, world), SpawnGroup.MISC)
-                    .dimensions(0.98f, 0.98f));
-
-    public static final EntityType<HarfTntEntity> HARF_TNT = regTnt("harf_tnt",
-            EntityType.Builder.<HarfTntEntity>create(
-                    (type, world) -> new HarfTntEntity(type, world), SpawnGroup.MISC)
                     .dimensions(0.98f, 0.98f));
 
     public static final EntityType<GunesTntEntity> GUNES_TNT = regTnt("gunes_tnt",
@@ -260,16 +250,6 @@ public class ModEntities {
     public static final EntityType<ZeynepKomutTntEntity> ZEYNEP_KOMUT_TNT = regTnt("zeynep_komut_tnt",
             EntityType.Builder.<ZeynepKomutTntEntity>create(
                     (type, world) -> new ZeynepKomutTntEntity(type, world), SpawnGroup.MISC)
-                    .dimensions(0.98f, 0.98f));
-
-    public static final EntityType<ZeynepTntEntity> ZEYNEP_TNT = regTnt("zeynep_tnt",
-            EntityType.Builder.<ZeynepTntEntity>create(
-                    (type, world) -> new ZeynepTntEntity(type, world), SpawnGroup.MISC)
-                    .dimensions(0.98f, 0.98f));
-
-    public static final EntityType<ZebraTntEntity> ZEBRA_TNT = regTnt("zebra_tnt",
-            EntityType.Builder.<ZebraTntEntity>create(
-                    (type, world) -> new ZebraTntEntity(type, world), SpawnGroup.MISC)
                     .dimensions(0.98f, 0.98f));
 
     // Herobrine — 200 HP, tüm canlıları hedef alır
