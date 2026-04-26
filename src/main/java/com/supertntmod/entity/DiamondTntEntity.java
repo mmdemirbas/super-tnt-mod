@@ -42,8 +42,9 @@ public class DiamondTntEntity extends TntEntity {
             world.playSound(null, x, y, z,
                     SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.BLOCKS, 2.0f, 0.5f);
 
-            // 2.5x patlama gücü (normal=4, biz=10)
-            world.createExplosion(null, x, y, z, 10.0f, true,
+            // 2.5x patlama gücü (normal=4, biz=10). createFire=false: tooltip
+            // "dev kraterler" diyor, ateş yağmuru değil; eskisi yangın çıkarıyordu.
+            world.createExplosion(null, x, y, z, 10.0f, false,
                     World.ExplosionSourceType.TNT);
 
             // Büyük patlama partikülleri
