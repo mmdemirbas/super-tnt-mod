@@ -62,7 +62,7 @@ public class WaterTntEntity extends TntEntity {
             for (BlockPos pos : BlockPos.iterateOutwards(center, 5, 5, 5)) {
                 if (!pos.isWithinDistance(center, 5)) continue;
                 if (world.getBlockState(pos).isOf(Blocks.AIR) &&
-                    world.getBlockState(pos.down()).isSolid() &&
+                    world.getBlockState(pos.down()).isSolidBlock(world, pos.down()) &&
                     world.random.nextFloat() < 0.3f) {
                     world.setBlockState(pos, Blocks.WATER.getDefaultState());
                 }
