@@ -19,24 +19,28 @@ import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
-import net.minecraft.util.math.Direction;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.Hand;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.function.Consumer;
 
 /**
  * Tünelleme aleti: 1/12 ölçeğe küçülünce otomatik olarak verilen özel item.
- * Bloklara sağ tıklayarak 4×4×4 sub-voxel grid üzerinden delik açar.
- * Her tıklama, oyuncunun gövde kesitine göre, blok kesintisinde tüm derinliği deler.
+ * Sağ tıklayarak ışın yönündeki ilk dolu sub-voxel'i tek tek deler.
+ *
+ * Standart MC raycast'i sadece blok kenarını yakalar; tünel boyunca düz bakan
+ * oyuncunun tıklaması "boşluğa" giderse useOnBlock hiç çağrılmaz. Bu yüzden
+ * use() içinde özel sub-voxel raycast yapılır: ışın boyunca ilk dolu malzeme
+ * (normal blok veya TunneledBlock'un dolu sub-voxel'i) aranıp delinir.
  */
 public class TunnelingItem extends Item {
     public static final double SCALE_THRESHOLD = 1.0 / 12.0;
+    private static final double REACH = 6.0;
+    private static final double STEP = 0.05;
 
     public TunnelingItem(Settings settings) {
         super(settings);
@@ -50,140 +54,107 @@ public class TunnelingItem extends Item {
         textConsumer.accept(Text.translatable("item.supertntmod.tunneling_item.tooltip").formatted(Formatting.GRAY));
     }
 
+    /**
+     * Standart blok tıklamaları için useOnBlock; ancak hiçbir şey yapmadan PASS
+     * döner ki MC akışı use()'a düşsün ve oradaki birleşik sub-voxel raycast
+     * çalışsın. Aksi halde tünelden geçen ışınlar useOnBlock'u tetiklemediği
+     * için drill çalışmıyor görünüyordu.
+     */
     @Override
     public ActionResult useOnBlock(ItemUsageContext context) {
-        World world = context.getWorld();
-        PlayerEntity player = context.getPlayer();
-        BlockPos pos = context.getBlockPos();
+        return ActionResult.PASS;
+    }
 
-        if (world.isClient() || player == null) return ActionResult.PASS;
+    @Override
+    public ActionResult use(World world, PlayerEntity user, Hand hand) {
+        if (world.isClient()) return ActionResult.SUCCESS;
 
-        // Ölçek kontrolü: sadece 1/12 veya daha küçükken çalışır
-        EntityAttributeInstance scaleAttr = player.getAttributeInstance(EntityAttributes.SCALE);
+        EntityAttributeInstance scaleAttr = user.getAttributeInstance(EntityAttributes.SCALE);
         if (scaleAttr == null || scaleAttr.getValue() > SCALE_THRESHOLD) {
-            player.sendMessage(Text.translatable("item.supertntmod.tunneling_item.too_large"), true);
+            user.sendMessage(Text.translatable("item.supertntmod.tunneling_item.too_large"), true);
             return ActionResult.FAIL;
         }
 
-        BlockState targetState = world.getBlockState(pos);
-        if (targetState.isAir() || !targetState.getFluidState().isEmpty()) {
-            return ActionResult.PASS;
-        }
+        Vec3d eye = user.getEyePos();
+        Vec3d direction = user.getRotationVec(1.0f);
+        Hit hit = subVoxelRaycast(world, eye, direction);
+        if (hit == null) return ActionResult.PASS;
 
-        Vec3d hitPos = context.getHitPos();
-        double localX = hitPos.x - pos.getX();
-        double localY = hitPos.y - pos.getY();
-        double localZ = hitPos.z - pos.getZ();
-        int subX = clamp((int) (localX * 4));
-        int subY = clamp((int) (localY * 4));
-        int subZ = clamp((int) (localZ * 4));
+        drill(world, hit);
+        return ActionResult.SUCCESS;
+    }
 
-        // Kesit boyutu oyuncu gövdesine göre. Derinlik daima blok sonuna kadar.
-        int drillH = Math.max(1, (int) Math.round(player.getHeight() / 2.0 / 0.25));
-        int drillW = Math.max(1, (int) Math.round(player.getWidth() / 0.25));
-
-        Direction face = context.getSide();
-        int[][] offsets = computeDrillOffsets(face, subX, subY, subZ, drillW, drillH);
-
-        // Sadece dolu sub-voxel'leri filtrele
-        boolean isTunneled = targetState.getBlock() instanceof TunneledBlock;
-        TunneledBlockEntity existingEntity = isTunneled
-                && world.getBlockEntity(pos) instanceof TunneledBlockEntity te ? te : null;
-
-        int[][] filledOffsets = Arrays.stream(offsets).filter(off -> {
-            if (isTunneled) {
-                return existingEntity != null && existingEntity.isSubVoxelFilled(off[0], off[1], off[2]);
+    /**
+     * Oyuncunun bakış ışını boyunca ilk dolu sub-voxel'i bulur.
+     * STEP=0.05 (sub-voxel boyu 0.25'in 1/5'i) ile yeterli çözünürlük sağlar.
+     */
+    private Hit subVoxelRaycast(World world, Vec3d eye, Vec3d direction) {
+        int maxSteps = (int) Math.ceil(REACH / STEP);
+        BlockPos lastBlockPos = null;
+        for (int i = 1; i <= maxSteps; i++) {
+            Vec3d point = eye.add(direction.multiply(i * STEP));
+            BlockPos blockPos = BlockPos.ofFloored(point);
+            // Aynı block içinde tekrar tekrar BlockState/BlockEntity okumayı önlemek için
+            // bir mikro-optimizasyon yapılabilirdi; ancak 6/0.05 = 120 adımda anlamlı değil.
+            if (lastBlockPos != null && blockPos.equals(lastBlockPos)) {
+                // continue with finer-grained sub-voxel check below
             }
-            return true;
-        }).toArray(int[][]::new);
+            lastBlockPos = blockPos;
 
-        if (filledOffsets.length == 0) {
-            return ActionResult.PASS;
-        }
+            BlockState state = world.getBlockState(blockPos);
+            if (state.isAir()) continue;
+            if (!state.getFluidState().isEmpty()) continue;
 
-        if (isTunneled) {
-            if (existingEntity != null) {
-                existingEntity.removeSubVoxels(filledOffsets);
-                if (existingEntity.getSubVoxels() == 0) {
-                    world.removeBlock(pos, false);
+            double localX = point.x - blockPos.getX();
+            double localY = point.y - blockPos.getY();
+            double localZ = point.z - blockPos.getZ();
+            int subX = clamp((int) (localX * 4));
+            int subY = clamp((int) (localY * 4));
+            int subZ = clamp((int) (localZ * 4));
+
+            if (state.getBlock() instanceof TunneledBlock) {
+                if (world.getBlockEntity(blockPos) instanceof TunneledBlockEntity entity) {
+                    if (!entity.isSubVoxelFilled(subX, subY, subZ)) continue;
+                    return new Hit(blockPos, subX, subY, subZ, true);
                 }
-                playDrillEffect(world, pos, subX, subY, subZ);
-                return ActionResult.SUCCESS;
-            }
-        } else {
-            // Block entity'li blokları (sandık, fırın vb.) delme
-            if (targetState.hasBlockEntity()) {
-                return ActionResult.PASS;
+                continue;
             }
 
-            var originalId = Registries.BLOCK.getId(targetState.getBlock());
-            world.setBlockState(pos, ModBlocks.TUNNELED_BLOCK.getDefaultState());
-            if (world.getBlockEntity(pos) instanceof TunneledBlockEntity entity) {
-                entity.setOriginalBlockId(originalId);
-                entity.removeSubVoxels(filledOffsets);
+            // Normal blok: BlockEntity'li blokları es geç (sandık, fırın vb.)
+            if (state.hasBlockEntity()) continue;
+            return new Hit(blockPos, subX, subY, subZ, false);
+        }
+        return null;
+    }
+
+    private void drill(World world, Hit hit) {
+        if (hit.fromTunneled) {
+            if (world.getBlockEntity(hit.pos) instanceof TunneledBlockEntity entity) {
+                entity.removeSubVoxel(hit.subX, hit.subY, hit.subZ);
                 if (entity.getSubVoxels() == 0) {
-                    world.removeBlock(pos, false);
+                    world.removeBlock(hit.pos, false);
                 }
+                playDrillEffect(world, hit.pos, hit.subX, hit.subY, hit.subZ);
             }
-            playDrillEffect(world, pos, subX, subY, subZ);
-            return ActionResult.SUCCESS;
+            return;
         }
 
-        return ActionResult.PASS;
+        // Normal bloku TunneledBlock'a dönüştür ve hit sub-voxel'i kaldır
+        BlockState original = world.getBlockState(hit.pos);
+        Identifier originalId = Registries.BLOCK.getId(original.getBlock());
+        world.setBlockState(hit.pos, ModBlocks.TUNNELED_BLOCK.getDefaultState());
+        if (world.getBlockEntity(hit.pos) instanceof TunneledBlockEntity entity) {
+            entity.setOriginalBlockId(originalId);
+            entity.removeSubVoxel(hit.subX, hit.subY, hit.subZ);
+            if (entity.getSubVoxels() == 0) {
+                world.removeBlock(hit.pos, false);
+            }
+        }
+        playDrillEffect(world, hit.pos, hit.subX, hit.subY, hit.subZ);
     }
 
     private static int clamp(int v) {
         return Math.min(3, Math.max(0, v));
-    }
-
-    /**
-     * Delme alanını hesaplar: tıklanan yüzeye dik eksende blok sonuna kadar tüm
-     * sub-voxel'leri delerek bedene uygun bir tünel açar.
-     * Kesit, drillW (yatay) ve drillH (dikey) ile belirlenir.
-     */
-    private int[][] computeDrillOffsets(Direction face, int subX, int subY, int subZ, int drillW, int drillH) {
-        List<int[]> result = new ArrayList<>();
-        int halfW = drillW / 2;
-
-        if (face.getAxis() == Direction.Axis.Y) {
-            // Üst/alt yüzey: kesit X-Z düzleminde, derinlik Y boyunca
-            for (int dx = -halfW; dx < drillW - halfW; dx++) {
-                for (int dz = -halfW; dz < drillW - halfW; dz++) {
-                    int sx = subX + dx, sz = subZ + dz;
-                    if (sx < 0 || sx >= 4 || sz < 0 || sz >= 4) continue;
-                    for (int sy = 0; sy < 4; sy++) {
-                        result.add(new int[]{sx, sy, sz});
-                    }
-                }
-            }
-        } else if (face.getAxis() == Direction.Axis.X) {
-            // Doğu/batı yüzey: kesit Y-Z düzleminde, derinlik X boyunca
-            for (int dy = 0; dy < drillH; dy++) {
-                for (int dw = -halfW; dw < drillW - halfW; dw++) {
-                    int sy = subY + dy, sz = subZ + dw;
-                    if (sy < 0 || sy >= 4 || sz < 0 || sz >= 4) continue;
-                    for (int sx = 0; sx < 4; sx++) {
-                        result.add(new int[]{sx, sy, sz});
-                    }
-                }
-            }
-        } else {
-            // Kuzey/güney yüzey: kesit Y-X düzleminde, derinlik Z boyunca
-            for (int dy = 0; dy < drillH; dy++) {
-                for (int dw = -halfW; dw < drillW - halfW; dw++) {
-                    int sy = subY + dy, sx = subX + dw;
-                    if (sy < 0 || sy >= 4 || sx < 0 || sx >= 4) continue;
-                    for (int sz = 0; sz < 4; sz++) {
-                        result.add(new int[]{sx, sy, sz});
-                    }
-                }
-            }
-        }
-
-        if (result.isEmpty()) {
-            result.add(new int[]{subX, subY, subZ});
-        }
-        return result.toArray(new int[0][]);
     }
 
     private void playDrillEffect(World world, BlockPos pos, int subX, int subY, int subZ) {
@@ -198,5 +169,8 @@ public class TunnelingItem extends Item {
             serverWorld.spawnParticles(ParticleTypes.DUST_PLUME,
                     cx, cy, cz, 3, 0.05, 0.05, 0.05, 0.01);
         }
+    }
+
+    private record Hit(BlockPos pos, int subX, int subY, int subZ, boolean fromTunneled) {
     }
 }
