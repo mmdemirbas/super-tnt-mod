@@ -170,6 +170,10 @@ public class SuperTntMod implements ModInitializer {
         // Odun TNT geri yükleme zamanlayıcısı
         ServerTickEvents.END_SERVER_TICK.register(server -> WoodTntEntity.tickRestores());
 
+        // Su TNT'nin geçici su birikintilerini kuruma zamanlayıcısı
+        ServerTickEvents.END_SERVER_TICK.register(server ->
+                com.supertntmod.entity.WaterTntEntity.tickRemovals());
+
         // Lav Kristali: elde tutulurken ateş ve lav bağışıklığı ver
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             for (net.minecraft.server.network.ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
@@ -185,6 +189,7 @@ public class SuperTntMod implements ModInitializer {
         // Sunucu kapanınca stale static state'i temizle
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
             WoodTntEntity.clearAll();
+            com.supertntmod.entity.WaterTntEntity.clearAll();
             GravityTntEntity.clearAll(server);
             PortalBlock.clearCooldowns();
             com.supertntmod.block.EndGateBlock.clearCooldowns();

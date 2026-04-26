@@ -16,13 +16,19 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+
 /**
  * Su TNT: 10 blok yarıçapındaki ateşleri söndürür.
  * Yakındaki entity'leri su dalgasıyla iter.
- * Geçici su birikintileri oluşturur.
+ * Geçici su birikintileri oluşturur (10 saniye sonra kuruyor).
  */
 public class WaterTntEntity extends TntEntity {
     private static final int RADIUS = 10;
+    /** Su birikintilerinin ömrü (tick) — 10 saniye. */
+    private static final int WATER_LIFETIME = 200;
     private boolean done = false;
 
     public WaterTntEntity(EntityType<? extends TntEntity> type, World world) {
@@ -58,13 +64,19 @@ public class WaterTntEntity extends TntEntity {
                 }
             }
 
-            // Yakın çevreye su birikintileri (%30 şans, 5 blok yarıçap, sadece yüzeyde)
-            for (BlockPos pos : BlockPos.iterateOutwards(center, 5, 5, 5)) {
-                if (!pos.isWithinDistance(center, 5)) continue;
-                if (world.getBlockState(pos).isOf(Blocks.AIR) &&
-                    world.getBlockState(pos.down()).isSolidBlock(world, pos.down()) &&
-                    world.random.nextFloat() < 0.3f) {
-                    world.setBlockState(pos, Blocks.WATER.getDefaultState());
+            // Yakın çevreye geçici su birikintileri (%30 şans, 5 blok yarıçap, sadece yüzeyde).
+            // Eskisi kalıcı su yerleştiriyordu; düz alanlarda dünya seliyle birleşiyordu.
+            // Şimdi WATER_LIFETIME tick sonra otomatik kuruyor.
+            if (world instanceof ServerWorld serverWorld) {
+                for (BlockPos pos : BlockPos.iterateOutwards(center, 5, 5, 5)) {
+                    if (!pos.isWithinDistance(center, 5)) continue;
+                    if (world.getBlockState(pos).isOf(Blocks.AIR) &&
+                        world.getBlockState(pos.down()).isSolidBlock(world, pos.down()) &&
+                        world.random.nextFloat() < 0.3f) {
+                        world.setBlockState(pos, Blocks.WATER.getDefaultState());
+                        pendingRemovals.add(new PendingWaterRemoval(
+                                serverWorld, pos.toImmutable(), WATER_LIFETIME));
+                    }
                 }
             }
 
@@ -107,5 +119,45 @@ public class WaterTntEntity extends TntEntity {
             return;
         }
         if (!done) super.tick();
+    }
+
+    // ── Geçici su birikintilerinin temizlenmesi ───────────────────────────
+
+    private static final List<PendingWaterRemoval> pendingRemovals = new CopyOnWriteArrayList<>();
+
+    private record PendingWaterRemoval(ServerWorld world, BlockPos pos, int ticksRemaining) {
+        PendingWaterRemoval tick() {
+            return new PendingWaterRemoval(world, pos, ticksRemaining - 1);
+        }
+    }
+
+    public static void clearAll() {
+        pendingRemovals.clear();
+    }
+
+    /**
+     * SuperTntMod.onInitialize() içinde ServerTickEvents.END_SERVER_TICK ile
+     * kaydedilmeli. Ömrü dolan su birikintilerini havaya çevirir.
+     */
+    public static void tickRemovals() {
+        if (pendingRemovals.isEmpty()) return;
+
+        List<PendingWaterRemoval> completed = new ArrayList<>();
+        List<PendingWaterRemoval> updated = new ArrayList<>();
+
+        for (PendingWaterRemoval r : pendingRemovals) {
+            if (r.ticksRemaining() <= 0) completed.add(r);
+            else updated.add(r.tick());
+        }
+
+        for (PendingWaterRemoval r : completed) {
+            // Sadece hâlâ su olanları temizle (oyuncu üzerine başka blok koymuş olabilir).
+            if (r.world().getBlockState(r.pos()).isOf(Blocks.WATER)) {
+                r.world().setBlockState(r.pos(), Blocks.AIR.getDefaultState());
+            }
+        }
+
+        pendingRemovals.clear();
+        pendingRemovals.addAll(updated);
     }
 }
