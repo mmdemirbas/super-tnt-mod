@@ -262,6 +262,16 @@ public class ModEntities {
                     (type, world) -> new ZeynepKomutTntEntity(type, world), SpawnGroup.MISC)
                     .dimensions(0.98f, 0.98f));
 
+    public static final EntityType<ZeynepTntEntity> ZEYNEP_TNT = regTnt("zeynep_tnt",
+            EntityType.Builder.<ZeynepTntEntity>create(
+                    (type, world) -> new ZeynepTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    public static final EntityType<ZebraTntEntity> ZEBRA_TNT = regTnt("zebra_tnt",
+            EntityType.Builder.<ZebraTntEntity>create(
+                    (type, world) -> new ZebraTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
     // Herobrine — 200 HP, tüm canlıları hedef alır
     public static final EntityType<HerobrineEntity> HEROBRINE = regHostile("herobrine",
             EntityType.Builder.<HerobrineEntity>create(

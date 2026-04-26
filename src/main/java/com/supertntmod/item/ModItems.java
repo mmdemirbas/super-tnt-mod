@@ -196,6 +196,24 @@ public class ModItems {
                     .maxCount(1)
                     .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "drawing_item")))));
 
+    // Kanlı Kılıç — vurulan canlıdan kırmızı sıvı saçar
+    public static final BloodSwordItem BLOOD_SWORD = register("blood_sword",
+            new BloodSwordItem(new Item.Settings()
+                    .maxCount(1)
+                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "blood_sword")))));
+
+    // Kalp Baltası — mob'u tek vuruşta öldürür, oyuncuya 250 can hasar
+    public static final HeartAxeItem HEART_AXE = register("heart_axe",
+            new HeartAxeItem(new Item.Settings()
+                    .maxCount(1)
+                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "heart_axe")))));
+
+    // Delici Aleti (trol) — kullanılınca 10 sn boyunca önündeki blokları siler
+    public static final DeliciItem DELICI = register("delici",
+            new DeliciItem(new Item.Settings()
+                    .maxCount(1)
+                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "delici")))));
+
     private static <T extends Item> T register(String name, T item) {
         Identifier id = Identifier.of(SuperTntMod.MOD_ID, name);
         return Registry.register(Registries.ITEM, id, item);

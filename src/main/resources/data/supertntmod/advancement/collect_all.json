@@ -168,6 +168,14 @@
     "zeynep_komut_tnt": {
       "trigger": "minecraft:inventory_changed",
       "conditions": { "items": [{ "items": "supertntmod:zeynep_komut_tnt" }] }
+    },
+    "zeynep_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:zeynep_tnt" }] }
+    },
+    "zebra_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:zebra_tnt" }] }
     }
   }
 }

@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["LL ", "LS ", " S "],
+  "key": {
+    "L": "minecraft:lapis_block",
+    "S": "minecraft:stick"
+  },
+  "result": {
+    "id": "supertntmod:heart_axe",
+    "count": 1
+  }
+}

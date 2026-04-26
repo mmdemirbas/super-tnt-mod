@@ -160,11 +160,16 @@ public class SuperTntMod implements ModInitializer {
                             entries.add(ModBlocks.ZEHIR_TNT);
                             entries.add(ModBlocks.OLUMCUL_SU_TNT);
                             entries.add(ModBlocks.ZEYNEP_KOMUT_TNT);
+                            entries.add(ModBlocks.ZEYNEP_TNT);
+                            entries.add(ModBlocks.ZEBRA_TNT);
                             // Yeni eşyalar
                             entries.add(ModItems.DIARY);
                             entries.add(ModItems.END_PEARL);
                             entries.add(ModItems.NETHER_PEARL);
                             entries.add(ModItems.RAINBOW_BOOTS);
+                            entries.add(ModItems.BLOOD_SWORD);
+                            entries.add(ModItems.HEART_AXE);
+                            entries.add(ModItems.DELICI);
                         })
                         .build());
 
@@ -174,6 +179,9 @@ public class SuperTntMod implements ModInitializer {
         // Su TNT'nin geçici su birikintilerini kuruma zamanlayıcısı
         ServerTickEvents.END_SERVER_TICK.register(server ->
                 com.supertntmod.entity.WaterTntEntity.tickRemovals());
+
+        // Delici Aleti — aktif kullanıcıların önündeki blokları sil
+        ServerTickEvents.END_SERVER_TICK.register(com.supertntmod.item.DeliciItem::tick);
 
         // Lav Kristali: elde tutulurken ateş ve lav bağışıklığı ver
         ServerTickEvents.END_SERVER_TICK.register(server -> {
@@ -191,6 +199,7 @@ public class SuperTntMod implements ModInitializer {
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
             WoodTntEntity.clearAll();
             com.supertntmod.entity.WaterTntEntity.clearAll();
+            com.supertntmod.item.DeliciItem.clearAll();
             GravityTntEntity.clearAll(server);
             PortalBlock.clearCooldowns();
             com.supertntmod.block.EndGateBlock.clearCooldowns();
@@ -237,6 +246,7 @@ public class SuperTntMod implements ModInitializer {
             com.supertntmod.block.BlockerChestBlock.onPlayerDisconnect(id);
             com.supertntmod.item.DiaryItem.clearWriteMode(id);
             com.supertntmod.item.CraftAxeItem.onPlayerDisconnect(id);
+            com.supertntmod.item.DeliciItem.onPlayerDisconnect(id);
         });
 
         // Oyuncu bağlanınca crash sonrası stale state'i toparla:

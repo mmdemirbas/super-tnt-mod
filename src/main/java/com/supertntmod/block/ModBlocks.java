@@ -292,6 +292,14 @@ public class ModBlocks {
     public static final ZeynepKomutTntBlock ZEYNEP_KOMUT_TNT = reg("zeynep_komut_tnt",
             new ZeynepKomutTntBlock(veryHardTntSettings("zeynep_komut_tnt")));
 
+    // 💙 Zeynep TNT - Lacivert, etrafa boş kağıt saçar
+    public static final ZeynepTntBlock ZEYNEP_TNT = reg("zeynep_tnt",
+            new ZeynepTntBlock(tntSettings("zeynep_tnt")));
+
+    // 🦓 Zebra TNT - Etrafa kağıt saçar + zebra/at sesi çıkarır
+    public static final ZebraTntBlock ZEBRA_TNT = reg("zebra_tnt",
+            new ZebraTntBlock(tntSettings("zebra_tnt")));
+
     // TunneledBlock için BlockEntity tipi
     public static final BlockEntityType<TunneledBlockEntity> TUNNELED_BLOCK_ENTITY_TYPE =
             Registry.register(Registries.BLOCK_ENTITY_TYPE,
