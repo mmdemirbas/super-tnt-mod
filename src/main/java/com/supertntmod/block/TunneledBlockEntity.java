@@ -14,16 +14,26 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
+import org.jetbrains.annotations.Nullable;
 
 /**
- * Tünellenmiş bloğun verilerini tutar: orijinal blok kimliği ve
- * 4×4×4 sub-voxel bitmask (64 bit).
+ * Tünellenmiş bloğun verilerini tutar: 4×4×4 sub-voxel grid (64 bit) ve
+ * her dolu sub-voxel için orijinal blok kimliği.
  * Bit 1 = dolu, bit 0 = kazılmış.
+ *
+ * Eski format (subBlocks NBT yok) ile yüklenirse, dolu tüm sub-voxel'ler
+ * originalBlockId ile yüklenir.
  */
 public class TunneledBlockEntity extends BlockEntity {
+    private static final int VOXEL_COUNT = 64;
+
     // 64 bit: 4×4×4 grid. Tüm bitler 1 = tam dolu blok.
     private long subVoxels = 0xFFFFFFFFFFFFFFFFL;
     private Identifier originalBlockId;
+
+    // Sub-voxel başına blok kimliği (lazy: null = tümü originalBlockId)
+    @Nullable private Identifier[] subVoxelBlocks;
+
     private VoxelShape cachedShape;
 
     public TunneledBlockEntity(BlockPos pos, BlockState state) {
@@ -43,16 +53,14 @@ public class TunneledBlockEntity extends BlockEntity {
     }
 
     /**
-     * Sub-voxel bitmask'ını doğrudan ayarlar.
+     * Sub-voxel bitmask'ını doğrudan ayarlar. Yeni dolu sub-voxel'ler
+     * originalBlockId varsayılanını kullanır (subVoxelBlocks değişmez).
      * Küçülmüş oyuncunun blok yerleştirmesi için kullanılır.
      */
     public void setSubVoxelMask(long mask) {
         this.subVoxels = mask;
         this.cachedShape = null;
-        markDirty();
-        if (world != null) {
-            world.updateListeners(pos, getCachedState(), getCachedState(), 3);
-        }
+        sync();
     }
 
     /**
@@ -67,28 +75,79 @@ public class TunneledBlockEntity extends BlockEntity {
     }
 
     /**
+     * Belirli sub-voxel'in blok kimliğini döndürür. Belirli ID
+     * atanmamışsa originalBlockId fallback'i döner.
+     */
+    public Identifier getBlockIdAt(int x, int y, int z) {
+        if (subVoxelBlocks != null) {
+            Identifier id = subVoxelBlocks[subVoxelIndex(x, y, z)];
+            if (id != null) return id;
+        }
+        return originalBlockId;
+    }
+
+    /**
      * Belirli sub-voxel'i kaldırır. Tüm sub-voxel'ler boşsa true döner
      * (blok tamamen kaldırılmalı).
      */
     public boolean removeSubVoxel(int x, int y, int z) {
-        subVoxels &= ~(1L << subVoxelIndex(x, y, z));
+        int idx = subVoxelIndex(x, y, z);
+        subVoxels &= ~(1L << idx);
+        if (subVoxelBlocks != null) subVoxelBlocks[idx] = null;
         cachedShape = null;
-        markDirty();
-        if (world != null) {
-            world.updateListeners(pos, getCachedState(), getCachedState(), 3);
-        }
+        sync();
         return subVoxels == 0;
     }
 
     /**
      * Birden fazla sub-voxel'i tek seferde kaldırır.
-     * Tek bir update bildirimi gönderir.
      */
     public void removeSubVoxels(int[][] coords) {
         for (int[] c : coords) {
-            subVoxels &= ~(1L << subVoxelIndex(c[0], c[1], c[2]));
+            int idx = subVoxelIndex(c[0], c[1], c[2]);
+            subVoxels &= ~(1L << idx);
+            if (subVoxelBlocks != null) subVoxelBlocks[idx] = null;
         }
         cachedShape = null;
+        sync();
+    }
+
+    /**
+     * Bir sub-voxel'i belirli bir blok kimliği ile doldurur.
+     * Yerleştirme akışı için kullanılır.
+     */
+    public void fillSubVoxel(int x, int y, int z, Identifier blockId) {
+        int idx = subVoxelIndex(x, y, z);
+        subVoxels |= (1L << idx);
+        if (blockId != null && !blockId.equals(originalBlockId)) {
+            if (subVoxelBlocks == null) subVoxelBlocks = new Identifier[VOXEL_COUNT];
+            subVoxelBlocks[idx] = blockId;
+        } else if (subVoxelBlocks != null) {
+            subVoxelBlocks[idx] = null;
+        }
+        cachedShape = null;
+        sync();
+    }
+
+    /**
+     * Birden fazla sub-voxel'i tek seferde doldurur.
+     */
+    public void fillSubVoxels(int[][] coords, Identifier blockId) {
+        for (int[] c : coords) {
+            int idx = subVoxelIndex(c[0], c[1], c[2]);
+            subVoxels |= (1L << idx);
+            if (blockId != null && !blockId.equals(originalBlockId)) {
+                if (subVoxelBlocks == null) subVoxelBlocks = new Identifier[VOXEL_COUNT];
+                subVoxelBlocks[idx] = blockId;
+            } else if (subVoxelBlocks != null) {
+                subVoxelBlocks[idx] = null;
+            }
+        }
+        cachedShape = null;
+        sync();
+    }
+
+    private void sync() {
         markDirty();
         if (world != null) {
             world.updateListeners(pos, getCachedState(), getCachedState(), 3);
@@ -125,6 +184,19 @@ public class TunneledBlockEntity extends BlockEntity {
     protected void readData(ReadView reader) {
         this.subVoxels = reader.getLong("subVoxels", 0xFFFFFFFFFFFFFFFFL);
         reader.getOptionalString("originalBlock").ifPresent(s -> this.originalBlockId = Identifier.of(s));
+        this.subVoxelBlocks = null;
+        // Sparse map: anahtarlar "0".."63", değerler blok kimlikleri
+        reader.read("subBlocks", NbtCompound.CODEC).ifPresent(nbt -> {
+            this.subVoxelBlocks = new Identifier[VOXEL_COUNT];
+            for (String key : nbt.getKeys()) {
+                try {
+                    int idx = Integer.parseInt(key);
+                    if (idx < 0 || idx >= VOXEL_COUNT) continue;
+                    nbt.getString(key).ifPresent(s -> this.subVoxelBlocks[idx] = Identifier.of(s));
+                } catch (NumberFormatException ignored) {
+                }
+            }
+        });
         this.cachedShape = null;
     }
 
@@ -133,6 +205,16 @@ public class TunneledBlockEntity extends BlockEntity {
         writer.putLong("subVoxels", this.subVoxels);
         if (this.originalBlockId != null) {
             writer.putString("originalBlock", this.originalBlockId.toString());
+        }
+        if (subVoxelBlocks != null) {
+            NbtCompound nbt = new NbtCompound();
+            for (int i = 0; i < VOXEL_COUNT; i++) {
+                Identifier id = subVoxelBlocks[i];
+                if (id != null) nbt.putString(Integer.toString(i), id.toString());
+            }
+            if (!nbt.isEmpty()) {
+                writer.put("subBlocks", NbtCompound.CODEC, nbt);
+            }
         }
     }
 
@@ -149,11 +231,23 @@ public class TunneledBlockEntity extends BlockEntity {
     }
 
     /**
-     * Orijinal bloğun BlockState'ini döndürür (render için).
+     * Orijinal bloğun BlockState'ini döndürür (fallback render için).
      */
     public BlockState getOriginalBlockState() {
         if (originalBlockId == null) return null;
         var block = Registries.BLOCK.get(originalBlockId);
+        return block != null ? block.getDefaultState() : null;
+    }
+
+    /**
+     * Sub-voxel'in bağlı olduğu blok için BlockState döner.
+     * Sub-voxel boş ise null döner.
+     */
+    public @Nullable BlockState getBlockStateAt(int x, int y, int z) {
+        if (!isSubVoxelFilled(x, y, z)) return null;
+        Identifier id = getBlockIdAt(x, y, z);
+        if (id == null) return null;
+        var block = Registries.BLOCK.get(id);
         return block != null ? block.getDefaultState() : null;
     }
 }
