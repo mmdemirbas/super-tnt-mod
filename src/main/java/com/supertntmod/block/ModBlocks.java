@@ -256,17 +256,9 @@ public class ModBlocks {
     public static final KupTntBlock KUP_TNT = reg("kup_tnt",
             new KupTntBlock(hardTntSettings("kup_tnt")));
 
-    // 💎 Elmas Zırh TNT - Tüm canlıları öldürür ve oyunu kapatır
-    public static final ElmasZirhTntBlock ELMAS_ZIRH_TNT = reg("elmas_zirh_tnt",
-            new ElmasZirhTntBlock(veryHardTntSettings("elmas_zirh_tnt")));
-
     // ❤ Kalp TNT - Sağlık verir, efektleri temizler, boyutu sıfırlar
     public static final KalpTntBlock KALP_TNT = reg("kalp_tnt",
             new KalpTntBlock(tntSettings("kalp_tnt")));
-
-    // 🔤 Harf TNT - Kağıt fırlatır, can yeniler
-    public static final HarfTntBlock HARF_TNT = reg("harf_tnt",
-            new HarfTntBlock(tntSettings("harf_tnt")));
 
     // ☀ Güneş TNT - End kristalleri yaratır, 5 sn sonra 1 kalır
     public static final GunesTntBlock GUNES_TNT = reg("gunes_tnt",
@@ -291,14 +283,6 @@ public class ModBlocks {
     // 🟠 Zeynep Komut TNT - Tüm güçlü efektleri ve eşyaları verir
     public static final ZeynepKomutTntBlock ZEYNEP_KOMUT_TNT = reg("zeynep_komut_tnt",
             new ZeynepKomutTntBlock(veryHardTntSettings("zeynep_komut_tnt")));
-
-    // 💙 Zeynep TNT - Lacivert, etrafa boş kağıt saçar
-    public static final ZeynepTntBlock ZEYNEP_TNT = reg("zeynep_tnt",
-            new ZeynepTntBlock(tntSettings("zeynep_tnt")));
-
-    // 🦓 Zebra TNT - Etrafa kağıt saçar + zebra/at sesi çıkarır
-    public static final ZebraTntBlock ZEBRA_TNT = reg("zebra_tnt",
-            new ZebraTntBlock(tntSettings("zebra_tnt")));
 
     // TunneledBlock için BlockEntity tipi
     public static final BlockEntityType<TunneledBlockEntity> TUNNELED_BLOCK_ENTITY_TYPE =

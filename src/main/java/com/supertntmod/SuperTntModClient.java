@@ -108,18 +108,14 @@ public class SuperTntModClient implements ClientModInitializer {
         EntityRendererRegistry.register(ModEntities.UREYEN_TNT, TntEntityRenderer::new);
         EntityRendererRegistry.register(ModEntities.KUP_TNT, TntEntityRenderer::new);
 
-        // Zeynep TNT renderer'ları
-        EntityRendererRegistry.register(ModEntities.ELMAS_ZIRH_TNT, TntEntityRenderer::new);
+        // Yeni TNT renderer'ları
         EntityRendererRegistry.register(ModEntities.KALP_TNT, TntEntityRenderer::new);
-        EntityRendererRegistry.register(ModEntities.HARF_TNT, TntEntityRenderer::new);
         EntityRendererRegistry.register(ModEntities.GUNES_TNT, TntEntityRenderer::new);
         EntityRendererRegistry.register(ModEntities.BULUT_TNT, TntEntityRenderer::new);
         EntityRendererRegistry.register(ModEntities.SIMSEK_YAGMUR_TNT, TntEntityRenderer::new);
         EntityRendererRegistry.register(ModEntities.ZEHIR_TNT, TntEntityRenderer::new);
         EntityRendererRegistry.register(ModEntities.OLUMCUL_SU_TNT, TntEntityRenderer::new);
         EntityRendererRegistry.register(ModEntities.ZEYNEP_KOMUT_TNT, TntEntityRenderer::new);
-        EntityRendererRegistry.register(ModEntities.ZEYNEP_TNT, TntEntityRenderer::new);
-        EntityRendererRegistry.register(ModEntities.ZEBRA_TNT, TntEntityRenderer::new);
 
         // Portal bloğu render katmanı
         BlockRenderLayerMap.putBlock(ModBlocks.PORTAL_BLOCK, BlockRenderLayer.CUTOUT);
