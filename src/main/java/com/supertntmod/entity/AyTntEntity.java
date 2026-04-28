@@ -43,7 +43,7 @@ public class AyTntEntity extends TntEntity {
                 long t = serverWorld.getTimeOfDay();
                 long tod = t % 24000L;
                 if (tod < 12300L) {
-                    // Gündüz — greceye çevir (18000 = gece yarısı)
+                    // Gündüz — geceye çevir (18000 = gece yarısı)
                     serverWorld.setTimeOfDay(t + (18000L - tod + 24000L) % 24000L);
                 }
                 serverWorld.spawnParticles(ParticleTypes.END_ROD,

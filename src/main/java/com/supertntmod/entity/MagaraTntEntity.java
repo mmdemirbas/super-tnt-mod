@@ -90,7 +90,6 @@ public class MagaraTntEntity extends TntEntity {
             World world = getEntityWorld();
             center = this.getBlockPos();
             double cx = center.getX() + 0.5, cy = center.getY(), cz = center.getZ() + 0.5;
-            this.discard();
 
             caveCenters = new BlockPos[CAVE_COUNT];
             for (int i = 0; i < CAVE_COUNT; i++) {

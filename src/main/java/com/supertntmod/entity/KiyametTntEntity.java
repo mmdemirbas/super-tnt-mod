@@ -86,7 +86,6 @@ public class KiyametTntEntity extends TntEntity {
             World world = getEntityWorld();
             center = this.getBlockPos();
             double cx = center.getX() + 0.5, cy = center.getY(), cz = center.getZ() + 0.5;
-            this.discard();
 
             // Tüm oyuncuları öldür
             if (world instanceof ServerWorld serverWorld) {

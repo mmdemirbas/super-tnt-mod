@@ -46,7 +46,7 @@ public class ZGunesTntEntity extends TntEntity {
                     // Gece — gündüze çevir (6000 = öğle)
                     serverWorld.setTimeOfDay(t + (6000L - tod + 24000L) % 24000L);
                     // Havayı da temizle
-                    serverWorld.setWeather(0, 24000, false, false);
+                    serverWorld.setWeather(24000, 0, false, false);
                 }
                 serverWorld.spawnParticles(ParticleTypes.TOTEM_OF_UNDYING,
                         cx, cy + 3, cz, 300, 6.0, 4.0, 6.0, 0.3);
