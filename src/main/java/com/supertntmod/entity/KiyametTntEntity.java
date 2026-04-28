@@ -1,5 +1,6 @@
 package com.supertntmod.entity;
 
+import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
@@ -55,8 +56,8 @@ public class KiyametTntEntity extends TntEntity {
 
                 BlockPos pos = center.add(lx, ly, lz);
                 if (!pos.isWithinDistance(center, RADIUS)) continue;
-                if (!world.getBlockState(pos).isOf(Blocks.AIR)
-                        && !world.getBlockState(pos).isOf(Blocks.BEDROCK)) {
+                BlockState bs = world.getBlockState(pos);
+                if (!bs.isAir() && !bs.isOf(Blocks.BEDROCK)) {
                     world.breakBlock(pos, false);
                     modified++;
                 }

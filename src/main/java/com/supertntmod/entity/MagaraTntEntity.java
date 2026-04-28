@@ -1,5 +1,6 @@
 package com.supertntmod.entity;
 
+import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
@@ -76,8 +77,8 @@ public class MagaraTntEntity extends TntEntity {
                 BlockPos cc = caveCenters[cavePhase];
                 BlockPos pos = cc.add(lx, ly, lz);
                 if (!pos.isWithinDistance(cc, CAVE_RADIUS)) continue;
-                if (!world.getBlockState(pos).isOf(Blocks.AIR)
-                        && !world.getBlockState(pos).isOf(Blocks.BEDROCK)) {
+                BlockState bs = world.getBlockState(pos);
+                if (!bs.isAir() && !bs.isOf(Blocks.BEDROCK)) {
                     world.breakBlock(pos, false);
                     modified++;
                 }

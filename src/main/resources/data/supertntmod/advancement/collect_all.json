@@ -176,6 +176,26 @@
     "zebra_tnt": {
       "trigger": "minecraft:inventory_changed",
       "conditions": { "items": [{ "items": "supertntmod:zebra_tnt" }] }
+    },
+    "dag_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:dag_tnt" }] }
+    },
+    "magara_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:magara_tnt" }] }
+    },
+    "ay_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:ay_tnt" }] }
+    },
+    "z_gunes_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:z_gunes_tnt" }] }
+    },
+    "kiyamet_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:kiyamet_tnt" }] }
     }
   }
 }
