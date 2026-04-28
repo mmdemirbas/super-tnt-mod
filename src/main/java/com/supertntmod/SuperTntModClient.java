@@ -120,6 +120,11 @@ public class SuperTntModClient implements ClientModInitializer {
         EntityRendererRegistry.register(ModEntities.ZEYNEP_KOMUT_TNT, TntEntityRenderer::new);
         EntityRendererRegistry.register(ModEntities.ZEYNEP_TNT, TntEntityRenderer::new);
         EntityRendererRegistry.register(ModEntities.ZEBRA_TNT, TntEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.DAG_TNT, TntEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.MAGARA_TNT, TntEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.AY_TNT, TntEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.Z_GUNES_TNT, TntEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.KIYAMET_TNT, TntEntityRenderer::new);
 
         // Portal bloğu render katmanı
         BlockRenderLayerMap.putBlock(ModBlocks.PORTAL_BLOCK, BlockRenderLayer.CUTOUT);

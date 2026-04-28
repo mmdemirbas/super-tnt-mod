@@ -300,6 +300,26 @@ public class ModBlocks {
     public static final ZebraTntBlock ZEBRA_TNT = reg("zebra_tnt",
             new ZebraTntBlock(tntSettings("zebra_tnt")));
 
+    // ⛰ Dağ TNT - Etrafa rastgele dağlar saçar
+    public static final DagTntBlock DAG_TNT = reg("dag_tnt",
+            new DagTntBlock(tntSettings("dag_tnt")));
+
+    // 🕳 Mağara TNT - Mağaralar oluşturur ve yaratık doğurur
+    public static final MagaraTntBlock MAGARA_TNT = reg("magara_tnt",
+            new MagaraTntBlock(hardTntSettings("magara_tnt")));
+
+    // 🌙 Ay TNT - Gündüzü geceye çevirir
+    public static final AyTntBlock AY_TNT = reg("ay_tnt",
+            new AyTntBlock(tntSettings("ay_tnt")));
+
+    // ☀ Z-Güneş TNT - Geceyi gündüze çevirir
+    public static final ZGunesTntBlock Z_GUNES_TNT = reg("z_gunes_tnt",
+            new ZGunesTntBlock(tntSettings("z_gunes_tnt")));
+
+    // 💀 Kıyamet TNT - Tüm oyuncuları öldürür + dev yıkım
+    public static final KiyametTntBlock KIYAMET_TNT = reg("kiyamet_tnt",
+            new KiyametTntBlock(veryHardTntSettings("kiyamet_tnt")));
+
     // TunneledBlock için BlockEntity tipi
     public static final BlockEntityType<TunneledBlockEntity> TUNNELED_BLOCK_ENTITY_TYPE =
             Registry.register(Registries.BLOCK_ENTITY_TYPE,
@@ -333,6 +353,6 @@ public class ModBlocks {
     }
 
     public static void register() {
-        SuperTntMod.LOGGER.info("54 blok kaydedildi.");
+        SuperTntMod.LOGGER.info("59 blok kaydedildi.");
     }
 }

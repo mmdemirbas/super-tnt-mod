@@ -1,0 +1,6 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["MMM", "MTM", "MMM"],
+  "key": { "M": "minecraft:coal_block", "T": "minecraft:tnt" },
+  "result": { "id": "supertntmod:magara_tnt", "count": 1 }
+}

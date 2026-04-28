@@ -277,5 +277,15 @@
   "advancement.supertntmod.nether_pearl.title": "Nether Traveler",
   "advancement.supertntmod.nether_pearl.description": "Obtain a Nether Pearl",
   "advancement.supertntmod.rainbow_boots.title": "Rainbow Walk",
-  "advancement.supertntmod.rainbow_boots.description": "Obtain Rainbow Boots"
+  "advancement.supertntmod.rainbow_boots.description": "Obtain Rainbow Boots",
+  "block.supertntmod.dag_tnt": "Mountain TNT",
+  "block.supertntmod.dag_tnt.tooltip": "Scatters random mountains around the explosion!",
+  "block.supertntmod.magara_tnt": "Cave TNT",
+  "block.supertntmod.magara_tnt.tooltip": "Carves caves underground and spawns terrifying monsters!",
+  "block.supertntmod.ay_tnt": "Moon TNT",
+  "block.supertntmod.ay_tnt.tooltip": "If it's day, turns the sun into the moon — it becomes night.",
+  "block.supertntmod.z_gunes_tnt": "Z-Sun TNT",
+  "block.supertntmod.z_gunes_tnt.tooltip": "If it's night, turns the moon into the sun — it becomes day.",
+  "block.supertntmod.kiyamet_tnt": "Doomsday TNT",
+  "block.supertntmod.kiyamet_tnt.tooltip": "Destroys everything and kills all players — the world survives, you don't."
 }

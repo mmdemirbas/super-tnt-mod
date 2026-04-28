@@ -1,0 +1,6 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["MMM", "MTM", "MMM"],
+  "key": { "M": "minecraft:crying_obsidian", "T": "minecraft:tnt" },
+  "result": { "id": "supertntmod:kiyamet_tnt", "count": 1 }
+}

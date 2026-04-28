@@ -272,6 +272,36 @@ public class ModEntities {
                     (type, world) -> new ZebraTntEntity(type, world), SpawnGroup.MISC)
                     .dimensions(0.98f, 0.98f));
 
+    // ⛰ Dağ TNT - Etrafa dağlar saçar
+    public static final EntityType<DagTntEntity> DAG_TNT = regTnt("dag_tnt",
+            EntityType.Builder.<DagTntEntity>create(
+                    (type, world) -> new DagTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    // 🕳 Mağara TNT - Mağaralar oyar ve yaratık doğurur
+    public static final EntityType<MagaraTntEntity> MAGARA_TNT = regTnt("magara_tnt",
+            EntityType.Builder.<MagaraTntEntity>create(
+                    (type, world) -> new MagaraTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    // 🌙 Ay TNT - Gündüzü geceye çevirir
+    public static final EntityType<AyTntEntity> AY_TNT = regTnt("ay_tnt",
+            EntityType.Builder.<AyTntEntity>create(
+                    (type, world) -> new AyTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    // ☀ Z-Güneş TNT - Geceyi gündüze çevirir
+    public static final EntityType<ZGunesTntEntity> Z_GUNES_TNT = regTnt("z_gunes_tnt",
+            EntityType.Builder.<ZGunesTntEntity>create(
+                    (type, world) -> new ZGunesTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    // 💀 Kıyamet TNT - Tüm oyuncuları öldürür + dev yıkım
+    public static final EntityType<KiyametTntEntity> KIYAMET_TNT = regTnt("kiyamet_tnt",
+            EntityType.Builder.<KiyametTntEntity>create(
+                    (type, world) -> new KiyametTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
     // Herobrine — 200 HP, tüm canlıları hedef alır
     public static final EntityType<HerobrineEntity> HEROBRINE = regHostile("herobrine",
             EntityType.Builder.<HerobrineEntity>create(
@@ -303,6 +333,6 @@ public class ModEntities {
     }
 
     public static void register() {
-        SuperTntMod.LOGGER.info("50 entity türü kaydedildi.");
+        SuperTntMod.LOGGER.info("55 entity türü kaydedildi.");
     }
 }

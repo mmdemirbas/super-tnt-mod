@@ -277,5 +277,15 @@
   "advancement.supertntmod.nether_pearl.title": "Nether Yolcusu",
   "advancement.supertntmod.nether_pearl.description": "Nether İncisi edin",
   "advancement.supertntmod.rainbow_boots.title": "Gökkuşağı Yürüyüşü",
-  "advancement.supertntmod.rainbow_boots.description": "Gökkuşağı Botları edin"
+  "advancement.supertntmod.rainbow_boots.description": "Gökkuşağı Botları edin",
+  "block.supertntmod.dag_tnt": "Dağ TNT",
+  "block.supertntmod.dag_tnt.tooltip": "Etrafa rastgele dağlar saçar!",
+  "block.supertntmod.magara_tnt": "Mağara TNT",
+  "block.supertntmod.magara_tnt.tooltip": "Yer altında mağaralar oyar ve korkunç yaratıklar doğurur!",
+  "block.supertntmod.ay_tnt": "Ay TNT",
+  "block.supertntmod.ay_tnt.tooltip": "Gündüzse güneşi aya dönüştürür — gece olur.",
+  "block.supertntmod.z_gunes_tnt": "Z-Güneş TNT",
+  "block.supertntmod.z_gunes_tnt.tooltip": "Geceyse ayı güneşe dönüştürür — gündüz olur.",
+  "block.supertntmod.kiyamet_tnt": "Kıyamet TNT",
+  "block.supertntmod.kiyamet_tnt.tooltip": "Her şeyi yok eder ve tüm oyuncuları öldürür — dünya sıfırlanmaz, sen öldün."
 }
