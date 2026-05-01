@@ -252,6 +252,24 @@ public class ModEntities {
                     (type, world) -> new ZeynepKomutTntEntity(type, world), SpawnGroup.MISC)
                     .dimensions(0.98f, 0.98f));
 
+    // 🔴 Redstone TNT - Yüksek güç + hız/güç verir
+    public static final EntityType<RedstoneTntEntity> REDSTONE_TNT = regTnt("redstone_tnt",
+            EntityType.Builder.<RedstoneTntEntity>create(
+                    (type, world) -> new RedstoneTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    // ⛏ Maden TNT - Her madenden 10 tane verir
+    public static final EntityType<MadenTntEntity> MADEN_TNT = regTnt("maden_tnt",
+            EntityType.Builder.<MadenTntEntity>create(
+                    (type, world) -> new MadenTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    // 🪚 Crafting Table TNT - Altın kask, netherite kılıç, demir balta saçar
+    public static final EntityType<CraftingTableTntEntity> CRAFTING_TABLE_TNT = regTnt("crafting_table_tnt",
+            EntityType.Builder.<CraftingTableTntEntity>create(
+                    (type, world) -> new CraftingTableTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
     // Herobrine — 200 HP, tüm canlıları hedef alır
     public static final EntityType<HerobrineEntity> HEROBRINE = regHostile("herobrine",
             EntityType.Builder.<HerobrineEntity>create(
@@ -283,6 +301,6 @@ public class ModEntities {
     }
 
     public static void register() {
-        SuperTntMod.LOGGER.info("50 entity türü kaydedildi.");
+        SuperTntMod.LOGGER.info("53 entity türü kaydedildi.");
     }
 }

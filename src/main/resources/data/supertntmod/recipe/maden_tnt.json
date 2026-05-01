@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["LRL", "RIR", "LRL"],
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "R": "minecraft:redstone",
+    "L": "minecraft:lapis_block"
+  },
+  "result": {
+    "id": "supertntmod:maden_tnt",
+    "count": 1
+  }
+}

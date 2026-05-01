@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["TPT", "PCP", "TPT"],
+  "key": {
+    "C": "minecraft:crafting_table",
+    "P": "minecraft:oak_planks",
+    "T": "minecraft:tnt"
+  },
+  "result": {
+    "id": "supertntmod:crafting_table_tnt",
+    "count": 1
+  }
+}

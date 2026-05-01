@@ -208,12 +208,18 @@ public class ModItems {
                     .maxCount(1)
                     .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "heart_axe")))));
 
+    // Hız Eşyası — kullanılınca 60 sn hız verir; süre içinde çarpılırsa patlar
+    public static final HizEsyasiItem HIZ_ESYASI = register("hiz_esyasi",
+            new HizEsyasiItem(new Item.Settings()
+                    .maxCount(16)
+                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "hiz_esyasi")))));
+
     private static <T extends Item> T register(String name, T item) {
         Identifier id = Identifier.of(SuperTntMod.MOD_ID, name);
         return Registry.register(Registries.ITEM, id, item);
     }
 
     public static void register() {
-        SuperTntMod.LOGGER.info("16 item kaydedildi.");
+        SuperTntMod.LOGGER.info("17 item kaydedildi.");
     }
 }

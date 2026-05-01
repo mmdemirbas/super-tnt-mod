@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["PRP", "RTR", "PRP"],
+  "key": {
+    "R": "minecraft:redstone_block",
+    "T": "minecraft:redstone",
+    "P": "minecraft:rabbit_foot"
+  },
+  "result": {
+    "id": "supertntmod:redstone_tnt",
+    "count": 1
+  }
+}

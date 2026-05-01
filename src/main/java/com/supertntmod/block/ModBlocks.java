@@ -284,6 +284,18 @@ public class ModBlocks {
     public static final ZeynepKomutTntBlock ZEYNEP_KOMUT_TNT = reg("zeynep_komut_tnt",
             new ZeynepKomutTntBlock(veryHardTntSettings("zeynep_komut_tnt")));
 
+    // 🔴 Redstone TNT - Yüksek güç + hız/güç verir
+    public static final RedstoneTntBlock REDSTONE_TNT = reg("redstone_tnt",
+            new RedstoneTntBlock(hardTntSettings("redstone_tnt")));
+
+    // ⛏ Maden TNT - Her madenden 10 tane verir
+    public static final MadenTntBlock MADEN_TNT = reg("maden_tnt",
+            new MadenTntBlock(tntSettings("maden_tnt")));
+
+    // 🪚 Crafting Table TNT - Altın kask, netherite kılıç, demir balta saçar
+    public static final CraftingTableTntBlock CRAFTING_TABLE_TNT = reg("crafting_table_tnt",
+            new CraftingTableTntBlock(tntSettings("crafting_table_tnt")));
+
     // TunneledBlock için BlockEntity tipi
     public static final BlockEntityType<TunneledBlockEntity> TUNNELED_BLOCK_ENTITY_TYPE =
             Registry.register(Registries.BLOCK_ENTITY_TYPE,
@@ -317,6 +329,6 @@ public class ModBlocks {
     }
 
     public static void register() {
-        SuperTntMod.LOGGER.info("54 blok kaydedildi.");
+        SuperTntMod.LOGGER.info("57 blok kaydedildi.");
     }
 }

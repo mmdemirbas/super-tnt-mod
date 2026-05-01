@@ -160,6 +160,18 @@
     "zeynep_komut_tnt": {
       "trigger": "minecraft:inventory_changed",
       "conditions": { "items": [{ "items": "supertntmod:zeynep_komut_tnt" }] }
+    },
+    "redstone_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:redstone_tnt" }] }
+    },
+    "maden_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:maden_tnt" }] }
+    },
+    "crafting_table_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:crafting_table_tnt" }] }
     }
   }
 }

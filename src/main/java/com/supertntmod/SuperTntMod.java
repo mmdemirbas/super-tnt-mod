@@ -165,6 +165,11 @@ public class SuperTntMod implements ModInitializer {
                             entries.add(ModItems.RAINBOW_BOOTS);
                             entries.add(ModItems.BLOOD_SWORD);
                             entries.add(ModItems.HEART_AXE);
+                            // Yeni TNT'ler — paylaşılan
+                            entries.add(ModBlocks.REDSTONE_TNT);
+                            entries.add(ModBlocks.MADEN_TNT);
+                            entries.add(ModBlocks.CRAFTING_TABLE_TNT);
+                            entries.add(ModItems.HIZ_ESYASI);
                         })
                         .build());
 
@@ -174,6 +179,42 @@ public class SuperTntMod implements ModInitializer {
         // Su TNT'nin geçici su birikintilerini kuruma zamanlayıcısı
         ServerTickEvents.END_SERVER_TICK.register(server ->
                 com.supertntmod.entity.WaterTntEntity.tickRemovals());
+
+        // Hız Eşyası — aktif kullanıcılar çarpılırsa patlat
+        ServerTickEvents.END_SERVER_TICK.register(server -> {
+            var iter = com.supertntmod.item.HizEsyasiItem.ACTIVE.entrySet().iterator();
+            while (iter.hasNext()) {
+                var entry = iter.next();
+                java.util.UUID id = entry.getKey();
+                int remaining = entry.getValue();
+                net.minecraft.server.network.ServerPlayerEntity player = server.getPlayerManager().getPlayer(id);
+                if (player == null || !player.isAlive()) {
+                    iter.remove();
+                    continue;
+                }
+                // Çarpışma: yatay engele çarpma veya 5+ blok düşüş
+                boolean crashed = player.horizontalCollision || player.fallDistance > 5.0f;
+                if (crashed) {
+                    net.minecraft.server.world.ServerWorld w = (net.minecraft.server.world.ServerWorld) player.getEntityWorld();
+                    double x = player.getX(), y = player.getY(), z = player.getZ();
+                    w.playSound(null, x, y, z,
+                            net.minecraft.sound.SoundEvents.ENTITY_GENERIC_EXPLODE,
+                            net.minecraft.sound.SoundCategory.PLAYERS, 3.0f, 1.0f);
+                    w.spawnParticles(net.minecraft.particle.ParticleTypes.EXPLOSION_EMITTER,
+                            x, y, z, 5, 1.0, 1.0, 1.0, 0.1);
+                    // Patlatan dahil herkese hasar veren patlama
+                    w.createExplosion(player, x, y, z, 4.0f, false,
+                            net.minecraft.world.World.ExplosionSourceType.TNT);
+                    iter.remove();
+                    continue;
+                }
+                if (remaining <= 1) {
+                    iter.remove();
+                } else {
+                    entry.setValue(remaining - 1);
+                }
+            }
+        });
 
         // Lav Kristali: elde tutulurken ateş ve lav bağışıklığı ver
         ServerTickEvents.END_SERVER_TICK.register(server -> {
@@ -201,6 +242,7 @@ public class SuperTntMod implements ModInitializer {
             com.supertntmod.item.DiaryItem.clearAll();
             com.supertntmod.item.PortalGunItem.clearAll();
             com.supertntmod.block.TntDoorBlock.clearAll();
+            com.supertntmod.item.HizEsyasiItem.ACTIVE.clear();
         });
 
         // Yerçekimi TNT: ters yerçekimi zamanlayıcısı

@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["BRB", "RPR", "BRB"],
+  "key": {
+    "P": "minecraft:rabbit_foot",
+    "R": "minecraft:redstone",
+    "B": "minecraft:redstone_block"
+  },
+  "result": {
+    "id": "supertntmod:hiz_esyasi",
+    "count": 1
+  }
+}

@@ -265,5 +265,15 @@
   "advancement.supertntmod.nether_pearl.title": "Nether Yolcusu",
   "advancement.supertntmod.nether_pearl.description": "Nether İncisi edin",
   "advancement.supertntmod.rainbow_boots.title": "Gökkuşağı Yürüyüşü",
-  "advancement.supertntmod.rainbow_boots.description": "Gökkuşağı Botları edin"
+  "advancement.supertntmod.rainbow_boots.description": "Gökkuşağı Botları edin",
+  "block.supertntmod.redstone_tnt": "Redstone TNT",
+  "block.supertntmod.redstone_tnt.tooltip": "Dev patlama; yakındaki oyunculara 1 dakika Hız II ve Güç II verir.",
+  "block.supertntmod.maden_tnt": "Maden TNT",
+  "block.supertntmod.maden_tnt.tooltip": "Her madenden 10 tane saçar.",
+  "block.supertntmod.crafting_table_tnt": "Tezgah TNT",
+  "block.supertntmod.crafting_table_tnt.tooltip": "Etrafa altın kasklar, netherite kılıçlar, demir baltalar ve bir netherite külçesi saçar.",
+  "item.supertntmod.hiz_esyasi": "Hız Eşyası",
+  "item.supertntmod.hiz_esyasi.tooltip": "Kullanınca 60 sn hız + sıçrama verir. Bu süre içinde duvara çarparsan veya sert düşersen patlarsın!",
+  "item.supertntmod.hiz_esyasi.tooltip2": "Kullandıktan sonra dikkatli koş.",
+  "item.supertntmod.hiz_esyasi.activated": "⚡ Hız Eşyası aktif! 60 saniye içinde çarparsan PATLARSIN!"
 }
