@@ -220,6 +220,11 @@ public class ModItems {
                     .maxCount(16)
                     .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "koku_bombasi")))));
 
+    // 🧊 Dondurucu — atılan canlıyı dondurur, spawn egg'ini verir
+    public static final DondurucuItem DONDURUCU = register("dondurucu",
+            new DondurucuItem(new Item.Settings()
+                    .maxCount(16)
+                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "dondurucu")))));
 
     private static <T extends Item> T register(String name, T item) {
         Identifier id = Identifier.of(SuperTntMod.MOD_ID, name);
@@ -227,6 +232,6 @@ public class ModItems {
     }
 
     public static void register() {
-        SuperTntMod.LOGGER.info("18 item kaydedildi.");
+        SuperTntMod.LOGGER.info("19 item kaydedildi.");
     }
 }

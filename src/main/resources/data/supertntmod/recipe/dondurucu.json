@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "_comment": "Dondurucu: ortaya denizin kalbi, kenarlara kar topu",
+  "pattern": ["SSS", "SHS", "SSS"],
+  "key": {
+    "S": "minecraft:snowball",
+    "H": "minecraft:heart_of_the_sea"
+  },
+  "result": {
+    "id": "supertntmod:dondurucu",
+    "count": 4
+  }
+}

@@ -280,5 +280,8 @@
   "block.supertntmod.soru_blogu.tooltip": "Break it for a surprise — war loot, lava, or an angry mob.",
   "item.supertntmod.koku_bombasi": "Stink Bomb",
   "item.supertntmod.koku_bombasi.tooltip": "Throws a green egg — anyone touching the toxic soil dies instantly. Soil decays in 60 seconds.",
-  "block.supertntmod.zehir_toprak": "Toxic Soil"
+  "block.supertntmod.zehir_toprak": "Toxic Soil",
+  "item.supertntmod.dondurucu": "Freezer",
+  "item.supertntmod.dondurucu.tooltip": "Hits a mob → the mob dies and you receive its spawn egg.",
+  "item.supertntmod.dondurucu.cant_freeze": "%s cannot be frozen."
 }

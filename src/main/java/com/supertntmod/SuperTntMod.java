@@ -173,6 +173,7 @@ public class SuperTntMod implements ModInitializer {
                             // Paylaşılan yeni eşyalar (her iki branch'e ait)
                             entries.add(ModBlocks.SORU_BLOGU);
                             entries.add(ModItems.KOKU_BOMBASI);
+                            entries.add(ModItems.DONDURUCU);
                         })
                         .build());
 

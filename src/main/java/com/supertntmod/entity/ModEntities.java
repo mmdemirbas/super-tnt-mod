@@ -276,6 +276,12 @@ public class ModEntities {
                     (type, world) -> new KokuBombasiEntity(type, world), SpawnGroup.MISC)
                     .dimensions(0.25f, 0.25f));
 
+    // 🧊 Dondurucu - canlıyı dondurur, spawn egg'ini atan oyuncuya verir
+    public static final EntityType<DondurucuEntity> DONDURUCU = regThrown("dondurucu",
+            EntityType.Builder.<DondurucuEntity>create(
+                    (type, world) -> new DondurucuEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.25f, 0.25f));
+
     // Herobrine — 200 HP, tüm canlıları hedef alır
     public static final EntityType<HerobrineEntity> HEROBRINE = regHostile("herobrine",
             EntityType.Builder.<HerobrineEntity>create(
@@ -307,6 +313,6 @@ public class ModEntities {
     }
 
     public static void register() {
-        SuperTntMod.LOGGER.info("54 entity türü kaydedildi.");
+        SuperTntMod.LOGGER.info("55 entity türü kaydedildi.");
     }
 }

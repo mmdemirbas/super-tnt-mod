@@ -125,6 +125,9 @@ public class SuperTntModClient implements ClientModInitializer {
         // Paylaşılan: Koku Bombası — küçük yeşil küp
         EntityRendererRegistry.register(ModEntities.KOKU_BOMBASI,
                 com.supertntmod.client.KokuBombasiEntityRenderer::new);
+        // Paylaşılan: Dondurucu — küçük dark prismarine küpü
+        EntityRendererRegistry.register(ModEntities.DONDURUCU,
+                com.supertntmod.client.DondurucuEntityRenderer::new);
 
 
         // Portal bloğu render katmanı
