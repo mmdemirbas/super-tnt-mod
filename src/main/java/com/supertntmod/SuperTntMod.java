@@ -165,6 +165,7 @@ public class SuperTntMod implements ModInitializer {
                             entries.add(ModItems.RAINBOW_BOOTS);
                             entries.add(ModItems.BLOOD_SWORD);
                             entries.add(ModItems.HEART_AXE);
+                            entries.add(ModItems.DELICI);
                             // Yeni TNT'ler — paylaşılan
                             entries.add(ModBlocks.REDSTONE_TNT);
                             entries.add(ModBlocks.MADEN_TNT);
@@ -184,6 +185,9 @@ public class SuperTntMod implements ModInitializer {
         // Su TNT'nin geçici su birikintilerini kuruma zamanlayıcısı
         ServerTickEvents.END_SERVER_TICK.register(server ->
                 com.supertntmod.entity.WaterTntEntity.tickRemovals());
+
+        // Delici Aleti — aktif kullanıcıların önündeki blokları sil
+        ServerTickEvents.END_SERVER_TICK.register(com.supertntmod.item.DeliciItem::tick);
 
         // Hız Eşyası — aktif kullanıcılar çarpılırsa patlat
         ServerTickEvents.END_SERVER_TICK.register(server -> {
@@ -247,6 +251,7 @@ public class SuperTntMod implements ModInitializer {
             com.supertntmod.item.DiaryItem.clearAll();
             com.supertntmod.item.PortalGunItem.clearAll();
             com.supertntmod.block.TntDoorBlock.clearAll();
+            com.supertntmod.item.DeliciItem.clearAll();
             com.supertntmod.item.HizEsyasiItem.ACTIVE.clear();
         });
 
@@ -284,6 +289,7 @@ public class SuperTntMod implements ModInitializer {
             com.supertntmod.block.BlockerChestBlock.onPlayerDisconnect(id);
             com.supertntmod.item.DiaryItem.clearWriteMode(id);
             com.supertntmod.item.CraftAxeItem.onPlayerDisconnect(id);
+            com.supertntmod.item.DeliciItem.onPlayerDisconnect(id);
         });
 
         // Oyuncu bağlanınca crash sonrası stale state'i toparla:
