@@ -214,12 +214,19 @@ public class ModItems {
                     .maxCount(16)
                     .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "hiz_esyasi")))));
 
+    // 🥚 Koku Bombası — atıldığında zehir toprağı saçar
+    public static final KokuBombasiItem KOKU_BOMBASI = register("koku_bombasi",
+            new KokuBombasiItem(new Item.Settings()
+                    .maxCount(16)
+                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "koku_bombasi")))));
+
+
     private static <T extends Item> T register(String name, T item) {
         Identifier id = Identifier.of(SuperTntMod.MOD_ID, name);
         return Registry.register(Registries.ITEM, id, item);
     }
 
     public static void register() {
-        SuperTntMod.LOGGER.info("17 item kaydedildi.");
+        SuperTntMod.LOGGER.info("18 item kaydedildi.");
     }
 }

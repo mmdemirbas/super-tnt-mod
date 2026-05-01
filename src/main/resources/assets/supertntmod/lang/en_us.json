@@ -277,5 +277,8 @@
   "item.supertntmod.hiz_esyasi.tooltip2": "Run carefully after using.",
   "item.supertntmod.hiz_esyasi.activated": "⚡ Speed Item active! Crash within 60 seconds and you EXPLODE!",
   "block.supertntmod.soru_blogu": "Question Block",
-  "block.supertntmod.soru_blogu.tooltip": "Break it for a surprise — war loot, lava, or an angry mob."
+  "block.supertntmod.soru_blogu.tooltip": "Break it for a surprise — war loot, lava, or an angry mob.",
+  "item.supertntmod.koku_bombasi": "Stink Bomb",
+  "item.supertntmod.koku_bombasi.tooltip": "Throws a green egg — anyone touching the toxic soil dies instantly. Soil decays in 60 seconds.",
+  "block.supertntmod.zehir_toprak": "Toxic Soil"
 }

@@ -122,6 +122,11 @@ public class SuperTntModClient implements ClientModInitializer {
         EntityRendererRegistry.register(ModEntities.MADEN_TNT, TntEntityRenderer::new);
         EntityRendererRegistry.register(ModEntities.CRAFTING_TABLE_TNT, TntEntityRenderer::new);
 
+        // Paylaşılan: Koku Bombası — küçük yeşil küp
+        EntityRendererRegistry.register(ModEntities.KOKU_BOMBASI,
+                com.supertntmod.client.KokuBombasiEntityRenderer::new);
+
+
         // Portal bloğu render katmanı
         BlockRenderLayerMap.putBlock(ModBlocks.PORTAL_BLOCK, BlockRenderLayer.CUTOUT);
         BlockRenderLayerMap.putBlock(ModBlocks.END_GATE, BlockRenderLayer.TRANSLUCENT);

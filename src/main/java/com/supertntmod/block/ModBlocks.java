@@ -301,6 +301,12 @@ public class ModBlocks {
             new SoruBloguBlock(AbstractBlock.Settings.copy(Blocks.GRASS_BLOCK)
                     .registryKey(RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(SuperTntMod.MOD_ID, "soru_blogu")))));
 
+    // 🦠 Zehir Toprağı - sadece Koku Bombası ile yerleşir; değen ölür; 60 sn sonra yok olur
+    public static final ZehirToprakBlock ZEHIR_TOPRAK = regBlockOnly("zehir_toprak",
+            new ZehirToprakBlock(AbstractBlock.Settings.copy(Blocks.MOSS_BLOCK)
+                    .registryKey(RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(SuperTntMod.MOD_ID, "zehir_toprak")))
+                    .strength(0.5f)));
+
     // TunneledBlock için BlockEntity tipi
     public static final BlockEntityType<TunneledBlockEntity> TUNNELED_BLOCK_ENTITY_TYPE =
             Registry.register(Registries.BLOCK_ENTITY_TYPE,
@@ -334,6 +340,6 @@ public class ModBlocks {
     }
 
     public static void register() {
-        SuperTntMod.LOGGER.info("58 blok kaydedildi.");
+        SuperTntMod.LOGGER.info("59 blok kaydedildi.");
     }
 }

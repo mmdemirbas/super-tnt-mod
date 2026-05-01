@@ -270,6 +270,12 @@ public class ModEntities {
                     (type, world) -> new CraftingTableTntEntity(type, world), SpawnGroup.MISC)
                     .dimensions(0.98f, 0.98f));
 
+    // 🥚 Koku Bombası - atılınca zehir toprağı saçar
+    public static final EntityType<KokuBombasiEntity> KOKU_BOMBASI = regThrown("koku_bombasi",
+            EntityType.Builder.<KokuBombasiEntity>create(
+                    (type, world) -> new KokuBombasiEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.25f, 0.25f));
+
     // Herobrine — 200 HP, tüm canlıları hedef alır
     public static final EntityType<HerobrineEntity> HEROBRINE = regHostile("herobrine",
             EntityType.Builder.<HerobrineEntity>create(
@@ -301,6 +307,6 @@ public class ModEntities {
     }
 
     public static void register() {
-        SuperTntMod.LOGGER.info("53 entity türü kaydedildi.");
+        SuperTntMod.LOGGER.info("54 entity türü kaydedildi.");
     }
 }

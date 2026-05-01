@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "_comment": "Koku Bombası: ortaya zümrüt bloğu, kenarlara toprak",
+  "pattern": ["DDD", "DED", "DDD"],
+  "key": {
+    "D": "minecraft:dirt",
+    "E": "minecraft:emerald_block"
+  },
+  "result": {
+    "id": "supertntmod:koku_bombasi",
+    "count": 4
+  }
+}

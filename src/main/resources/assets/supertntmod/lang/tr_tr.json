@@ -277,5 +277,8 @@
   "item.supertntmod.hiz_esyasi.tooltip2": "Kullandıktan sonra dikkatli koş.",
   "item.supertntmod.hiz_esyasi.activated": "⚡ Hız Eşyası aktif! 60 saniye içinde çarparsan PATLARSIN!",
   "block.supertntmod.soru_blogu": "? Bloğu",
-  "block.supertntmod.soru_blogu.tooltip": "Kırılınca rastgele savaş eşyası, lav veya saldırgan mob çıkar."
+  "block.supertntmod.soru_blogu.tooltip": "Kırılınca rastgele savaş eşyası, lav veya saldırgan mob çıkar.",
+  "item.supertntmod.koku_bombasi": "Koku Bombası",
+  "item.supertntmod.koku_bombasi.tooltip": "Atılan yeşil yumurta — saçılan zehir toprağına değen anında ölür. Toprak 60 saniyede solar.",
+  "block.supertntmod.zehir_toprak": "Zehir Toprağı"
 }
