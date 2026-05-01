@@ -284,6 +284,22 @@ public class ModBlocks {
     public static final ZeynepKomutTntBlock ZEYNEP_KOMUT_TNT = reg("zeynep_komut_tnt",
             new ZeynepKomutTntBlock(veryHardTntSettings("zeynep_komut_tnt")));
 
+    // 💎 Elmas Zırh TNT
+    public static final ElmasZirhTntBlock ELMAS_ZIRH_TNT = reg("elmas_zirh_tnt",
+            new ElmasZirhTntBlock(veryHardTntSettings("elmas_zirh_tnt")));
+
+    // 🔤 Harf TNT - Kağıt fırlatır, can yeniler
+    public static final HarfTntBlock HARF_TNT = reg("harf_tnt",
+            new HarfTntBlock(tntSettings("harf_tnt")));
+
+    // 💙 Zeynep TNT - Lacivert, etrafa boş kağıt saçar
+    public static final ZeynepTntBlock ZEYNEP_TNT = reg("zeynep_tnt",
+            new ZeynepTntBlock(tntSettings("zeynep_tnt")));
+
+    // 🦓 Zebra TNT - Etrafa kağıt saçar + zebra/at sesi çıkarır
+    public static final ZebraTntBlock ZEBRA_TNT = reg("zebra_tnt",
+            new ZebraTntBlock(tntSettings("zebra_tnt")));
+
     // 🔴 Redstone TNT - Yüksek güç + hız/güç verir
     public static final RedstoneTntBlock REDSTONE_TNT = reg("redstone_tnt",
             new RedstoneTntBlock(hardTntSettings("redstone_tnt")));
@@ -340,6 +356,6 @@ public class ModBlocks {
     }
 
     public static void register() {
-        SuperTntMod.LOGGER.info("59 blok kaydedildi.");
+        SuperTntMod.LOGGER.info("63 blok kaydedildi.");
     }
 }

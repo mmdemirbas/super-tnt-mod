@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "_comment": "4 beyaz yün (köşeler) + 1 siyah yün (merkez)",
+  "pattern": ["W W", " B ", "W W"],
+  "key": {
+    "W": "minecraft:white_wool",
+    "B": "minecraft:black_wool"
+  },
+  "result": {
+    "id": "supertntmod:zebra_tnt",
+    "count": 1
+  }
+}

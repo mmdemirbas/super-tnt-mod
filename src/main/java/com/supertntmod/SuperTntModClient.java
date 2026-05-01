@@ -116,6 +116,10 @@ public class SuperTntModClient implements ClientModInitializer {
         EntityRendererRegistry.register(ModEntities.ZEHIR_TNT, TntEntityRenderer::new);
         EntityRendererRegistry.register(ModEntities.OLUMCUL_SU_TNT, TntEntityRenderer::new);
         EntityRendererRegistry.register(ModEntities.ZEYNEP_KOMUT_TNT, TntEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.ELMAS_ZIRH_TNT, TntEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.HARF_TNT, TntEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.ZEYNEP_TNT, TntEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.ZEBRA_TNT, TntEntityRenderer::new);
 
         // Yeni paylaşılan TNT renderer'ları
         EntityRendererRegistry.register(ModEntities.REDSTONE_TNT, TntEntityRenderer::new);

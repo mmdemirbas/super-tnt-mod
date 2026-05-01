@@ -161,6 +161,22 @@
       "trigger": "minecraft:inventory_changed",
       "conditions": { "items": [{ "items": "supertntmod:zeynep_komut_tnt" }] }
     },
+    "elmas_zirh_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:elmas_zirh_tnt" }] }
+    },
+    "harf_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:harf_tnt" }] }
+    },
+    "zeynep_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:zeynep_tnt" }] }
+    },
+    "zebra_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:zebra_tnt" }] }
+    },
     "redstone_tnt": {
       "trigger": "minecraft:inventory_changed",
       "conditions": { "items": [{ "items": "supertntmod:redstone_tnt" }] }
