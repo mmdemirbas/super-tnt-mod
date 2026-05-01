@@ -283,5 +283,10 @@
   "block.supertntmod.zehir_toprak": "Toxic Soil",
   "item.supertntmod.dondurucu": "Freezer",
   "item.supertntmod.dondurucu.tooltip": "Hits a mob → the mob dies and you receive its spawn egg.",
-  "item.supertntmod.dondurucu.cant_freeze": "%s cannot be frozen."
+  "item.supertntmod.dondurucu.cant_freeze": "%s cannot be frozen.",
+  "item.supertntmod.esya_calmaca": "Item Stealer",
+  "item.supertntmod.esya_calmaca.tooltip": "Right-click to peek into the inventory of the nearest player within 10 blocks.",
+  "item.supertntmod.esya_calmaca.no_target": "No player within 10 blocks.",
+  "item.supertntmod.esya_calmaca.title": "Stealing from %s",
+  "item.supertntmod.esya_calmaca.target_warned": "%s is rummaging through your inventory!"
 }

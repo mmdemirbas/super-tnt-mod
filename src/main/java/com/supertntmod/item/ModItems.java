@@ -226,12 +226,18 @@ public class ModItems {
                     .maxCount(16)
                     .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "dondurucu")))));
 
+    // 🦝 Eşya Çalmaca — 10 blok yarıçaptaki en yakın oyuncunun envanterini açar
+    public static final EsyaCalmacaItem ESYA_CALMACA = register("esya_calmaca",
+            new EsyaCalmacaItem(new Item.Settings()
+                    .maxCount(1)
+                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "esya_calmaca")))));
+
     private static <T extends Item> T register(String name, T item) {
         Identifier id = Identifier.of(SuperTntMod.MOD_ID, name);
         return Registry.register(Registries.ITEM, id, item);
     }
 
     public static void register() {
-        SuperTntMod.LOGGER.info("19 item kaydedildi.");
+        SuperTntMod.LOGGER.info("20 item kaydedildi.");
     }
 }

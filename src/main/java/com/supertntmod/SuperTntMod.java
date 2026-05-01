@@ -174,6 +174,7 @@ public class SuperTntMod implements ModInitializer {
                             entries.add(ModBlocks.SORU_BLOGU);
                             entries.add(ModItems.KOKU_BOMBASI);
                             entries.add(ModItems.DONDURUCU);
+                            entries.add(ModItems.ESYA_CALMACA);
                         })
                         .build());
 

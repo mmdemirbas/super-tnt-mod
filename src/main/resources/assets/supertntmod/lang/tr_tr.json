@@ -283,5 +283,10 @@
   "block.supertntmod.zehir_toprak": "Zehir Toprağı",
   "item.supertntmod.dondurucu": "Dondurucu",
   "item.supertntmod.dondurucu.tooltip": "Bir canlıya çarpınca onu öldürür ve sana o canlının spawn egg'ini verir.",
-  "item.supertntmod.dondurucu.cant_freeze": "%s dondurulamaz."
+  "item.supertntmod.dondurucu.cant_freeze": "%s dondurulamaz.",
+  "item.supertntmod.esya_calmaca": "Eşya Çalmaca",
+  "item.supertntmod.esya_calmaca.tooltip": "Sağ tıkla — 10 blok yarıçaptaki en yakın oyuncunun envanterini açar.",
+  "item.supertntmod.esya_calmaca.no_target": "10 blok yarıçapında oyuncu yok.",
+  "item.supertntmod.esya_calmaca.title": "%s'in Envanteri",
+  "item.supertntmod.esya_calmaca.target_warned": "%s envanterini karıştırıyor!"
 }

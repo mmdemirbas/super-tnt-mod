@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "_comment": "Eşya Çalmaca: ortaya mor yün, kenarlara lapis bloğu (lacivert taş)",
+  "pattern": ["LLL", "LWL", "LLL"],
+  "key": {
+    "L": "minecraft:lapis_block",
+    "W": "minecraft:purple_wool"
+  },
+  "result": {
+    "id": "supertntmod:esya_calmaca",
+    "count": 1
+  }
+}
