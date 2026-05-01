@@ -74,9 +74,7 @@ public class KokuBombasiEntity extends ThrownEntity {
                 if (!here.isAir() && !here.isReplaceable()) continue;
 
                 world.setBlockState(surface, ModBlocks.ZEHIR_TOPRAK.getDefaultState(), 3);
-                // ScheduledTick onBlockAdded'da kuruldu; ayrıca burada da garanti olsun:
-                world.scheduleBlockTick(surface, ModBlocks.ZEHIR_TOPRAK,
-                        com.supertntmod.block.ZehirToprakBlock.DECAY_TICKS);
+                // Decay zamanlaması ZehirToprakBlock.onBlockAdded içinde kuruluyor.
             }
         }
     }
