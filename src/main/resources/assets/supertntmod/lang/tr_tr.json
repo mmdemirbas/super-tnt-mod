@@ -275,5 +275,7 @@
   "item.supertntmod.hiz_esyasi": "Hız Eşyası",
   "item.supertntmod.hiz_esyasi.tooltip": "Kullanınca 60 sn hız + sıçrama verir. Bu süre içinde duvara çarparsan veya sert düşersen patlarsın!",
   "item.supertntmod.hiz_esyasi.tooltip2": "Kullandıktan sonra dikkatli koş.",
-  "item.supertntmod.hiz_esyasi.activated": "⚡ Hız Eşyası aktif! 60 saniye içinde çarparsan PATLARSIN!"
+  "item.supertntmod.hiz_esyasi.activated": "⚡ Hız Eşyası aktif! 60 saniye içinde çarparsan PATLARSIN!",
+  "block.supertntmod.soru_blogu": "? Bloğu",
+  "block.supertntmod.soru_blogu.tooltip": "Kırılınca rastgele savaş eşyası, lav veya saldırgan mob çıkar."
 }

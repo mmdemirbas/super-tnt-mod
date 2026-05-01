@@ -275,5 +275,7 @@
   "item.supertntmod.hiz_esyasi": "Speed Item",
   "item.supertntmod.hiz_esyasi.tooltip": "Grants Speed II + Jump Boost for 60s. If you crash into a wall or fall hard during that time, you EXPLODE!",
   "item.supertntmod.hiz_esyasi.tooltip2": "Run carefully after using.",
-  "item.supertntmod.hiz_esyasi.activated": "⚡ Speed Item active! Crash within 60 seconds and you EXPLODE!"
+  "item.supertntmod.hiz_esyasi.activated": "⚡ Speed Item active! Crash within 60 seconds and you EXPLODE!",
+  "block.supertntmod.soru_blogu": "Question Block",
+  "block.supertntmod.soru_blogu.tooltip": "Break it for a surprise — war loot, lava, or an angry mob."
 }

@@ -296,6 +296,11 @@ public class ModBlocks {
     public static final CraftingTableTntBlock CRAFTING_TABLE_TNT = reg("crafting_table_tnt",
             new CraftingTableTntBlock(tntSettings("crafting_table_tnt")));
 
+    // ❓ Soru Bloğu - kırılınca rastgele savaş eşyası / lav / saldırgan mob
+    public static final SoruBloguBlock SORU_BLOGU = reg("soru_blogu",
+            new SoruBloguBlock(AbstractBlock.Settings.copy(Blocks.GRASS_BLOCK)
+                    .registryKey(RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(SuperTntMod.MOD_ID, "soru_blogu")))));
+
     // TunneledBlock için BlockEntity tipi
     public static final BlockEntityType<TunneledBlockEntity> TUNNELED_BLOCK_ENTITY_TYPE =
             Registry.register(Registries.BLOCK_ENTITY_TYPE,
@@ -329,6 +334,6 @@ public class ModBlocks {
     }
 
     public static void register() {
-        SuperTntMod.LOGGER.info("57 blok kaydedildi.");
+        SuperTntMod.LOGGER.info("58 blok kaydedildi.");
     }
 }

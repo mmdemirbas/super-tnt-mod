@@ -170,6 +170,8 @@ public class SuperTntMod implements ModInitializer {
                             entries.add(ModBlocks.MADEN_TNT);
                             entries.add(ModBlocks.CRAFTING_TABLE_TNT);
                             entries.add(ModItems.HIZ_ESYASI);
+                            // Paylaşılan yeni eşyalar (her iki branch'e ait)
+                            entries.add(ModBlocks.SORU_BLOGU);
                         })
                         .build());
 

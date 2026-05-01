@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "_comment": "? Bloğu: kenarlara çim blok, ortaya redstone bloğu",
+  "pattern": ["GGG", "GRG", "GGG"],
+  "key": {
+    "G": "minecraft:grass_block",
+    "R": "minecraft:redstone_block"
+  },
+  "result": {
+    "id": "supertntmod:soru_blogu",
+    "count": 4
+  }
+}
