@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["BWB", "WPW", "BWB"],
+  "key": {
+    "P": "minecraft:phantom_membrane",
+    "W": "minecraft:pink_wool",
+    "B": "minecraft:red_bed"
+  },
+  "result": {
+    "id": "supertntmod:uyku_tnt",
+    "count": 1
+  }
+}

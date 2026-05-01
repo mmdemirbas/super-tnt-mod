@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["BWB", "WEW", "BWB"],
+  "key": {
+    "E": "minecraft:ender_pearl",
+    "W": "minecraft:orange_wool",
+    "B": "minecraft:blue_ice"
+  },
+  "result": {
+    "id": "supertntmod:dunya_tnt",
+    "count": 1
+  }
+}

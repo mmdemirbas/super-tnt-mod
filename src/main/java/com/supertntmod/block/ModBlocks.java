@@ -256,9 +256,17 @@ public class ModBlocks {
     public static final KupTntBlock KUP_TNT = reg("kup_tnt",
             new KupTntBlock(hardTntSettings("kup_tnt")));
 
+    // 💎 Elmas Zırh TNT - Tüm canlıları öldürür ve oyunu kapatır
+    public static final ElmasZirhTntBlock ELMAS_ZIRH_TNT = reg("elmas_zirh_tnt",
+            new ElmasZirhTntBlock(veryHardTntSettings("elmas_zirh_tnt")));
+
     // ❤ Kalp TNT - Sağlık verir, efektleri temizler, boyutu sıfırlar
     public static final KalpTntBlock KALP_TNT = reg("kalp_tnt",
             new KalpTntBlock(tntSettings("kalp_tnt")));
+
+    // 🔤 Harf TNT - Kağıt fırlatır, can yeniler
+    public static final HarfTntBlock HARF_TNT = reg("harf_tnt",
+            new HarfTntBlock(tntSettings("harf_tnt")));
 
     // ☀ Güneş TNT - End kristalleri yaratır, 5 sn sonra 1 kalır
     public static final GunesTntBlock GUNES_TNT = reg("gunes_tnt",
@@ -284,14 +292,6 @@ public class ModBlocks {
     public static final ZeynepKomutTntBlock ZEYNEP_KOMUT_TNT = reg("zeynep_komut_tnt",
             new ZeynepKomutTntBlock(veryHardTntSettings("zeynep_komut_tnt")));
 
-    // 💎 Elmas Zırh TNT
-    public static final ElmasZirhTntBlock ELMAS_ZIRH_TNT = reg("elmas_zirh_tnt",
-            new ElmasZirhTntBlock(veryHardTntSettings("elmas_zirh_tnt")));
-
-    // 🔤 Harf TNT - Kağıt fırlatır, can yeniler
-    public static final HarfTntBlock HARF_TNT = reg("harf_tnt",
-            new HarfTntBlock(tntSettings("harf_tnt")));
-
     // 💙 Zeynep TNT - Lacivert, etrafa boş kağıt saçar
     public static final ZeynepTntBlock ZEYNEP_TNT = reg("zeynep_tnt",
             new ZeynepTntBlock(tntSettings("zeynep_tnt")));
@@ -299,6 +299,26 @@ public class ModBlocks {
     // 🦓 Zebra TNT - Etrafa kağıt saçar + zebra/at sesi çıkarır
     public static final ZebraTntBlock ZEBRA_TNT = reg("zebra_tnt",
             new ZebraTntBlock(tntSettings("zebra_tnt")));
+
+    // ⛰ Dağ TNT - Etrafa rastgele dağlar saçar
+    public static final DagTntBlock DAG_TNT = reg("dag_tnt",
+            new DagTntBlock(tntSettings("dag_tnt")));
+
+    // 🕳 Mağara TNT - Mağaralar oluşturur ve yaratık doğurur
+    public static final MagaraTntBlock MAGARA_TNT = reg("magara_tnt",
+            new MagaraTntBlock(hardTntSettings("magara_tnt")));
+
+    // 🌙 Ay TNT - Gündüzü geceye çevirir
+    public static final AyTntBlock AY_TNT = reg("ay_tnt",
+            new AyTntBlock(tntSettings("ay_tnt")));
+
+    // ☀ Z-Güneş TNT - Geceyi gündüze çevirir
+    public static final ZGunesTntBlock Z_GUNES_TNT = reg("z_gunes_tnt",
+            new ZGunesTntBlock(tntSettings("z_gunes_tnt")));
+
+    // 💀 Kıyamet TNT - Tüm oyuncuları öldürür + dev yıkım
+    public static final KiyametTntBlock KIYAMET_TNT = reg("kiyamet_tnt",
+            new KiyametTntBlock(veryHardTntSettings("kiyamet_tnt")));
 
     // 🔴 Redstone TNT - Yüksek güç + hız/güç verir
     public static final RedstoneTntBlock REDSTONE_TNT = reg("redstone_tnt",
@@ -311,6 +331,90 @@ public class ModBlocks {
     // 🪚 Crafting Table TNT - Altın kask, netherite kılıç, demir balta saçar
     public static final CraftingTableTntBlock CRAFTING_TABLE_TNT = reg("crafting_table_tnt",
             new CraftingTableTntBlock(tntSettings("crafting_table_tnt")));
+
+    // 💨 Pırt TNT - Pırt kokusu ve sesi (pembe)
+    public static final PirtTntBlock PIRT_TNT = reg("pirt_tnt",
+            new PirtTntBlock(tntSettings("pirt_tnt")));
+
+    // 🟡 Gülen Yüz Çıngırak TNT - Dünyayı sarıya boyar (sarı)
+    public static final GulenYuzTntBlock GULEN_YUZ_TNT = reg("gulen_yuz_tnt",
+            new GulenYuzTntBlock(tntSettings("gulen_yuz_tnt")));
+
+    // 🟣 Zeynep Redstone TNT - Dev yıkım + tüm oyuncuları öldürür (mor)
+    public static final ZeynepRedstoneTntBlock ZEYNEP_REDSTONE_TNT = reg("zeynep_redstone_tnt",
+            new ZeynepRedstoneTntBlock(veryHardTntSettings("zeynep_redstone_tnt")));
+
+    // 🟠 Dünya TNT - Etrafa "dünya" itemleri saçar (turuncu)
+    public static final DunyaTntBlock DUNYA_TNT = reg("dunya_tnt",
+            new DunyaTntBlock(tntSettings("dunya_tnt")));
+
+    // ✏ Çizgi Çalışması TNT - Etrafa kağıt ve mürekkep saçar (pembe)
+    public static final CizgiTntBlock CIZGI_TNT = reg("cizgi_tnt",
+            new CizgiTntBlock(tntSettings("cizgi_tnt")));
+
+    // 🦠 Virüs TNT - Görsel partiküller; hiçbir şey olmaz (pembe)
+    public static final VirusTntBlock VIRUS_TNT = reg("virus_tnt",
+            new VirusTntBlock(tntSettings("virus_tnt")));
+
+    // 😴 Uyku TNT - Patlatan hariç tüm oyuncuları "uyutur" (pembe)
+    public static final UykuTntBlock UYKU_TNT = reg("uyku_tnt",
+            new UykuTntBlock(tntSettings("uyku_tnt")));
+
+    // 🌈 Gökkuşağı TNT - Renkli partiküller + renkli yünler (turuncu)
+    public static final GokkusagiTntBlock GOKKUSAGI_TNT = reg("gokkusagi_tnt",
+            new GokkusagiTntBlock(tntSettings("gokkusagi_tnt")));
+
+    // 🧊 Buz TNT - Dünyayı buzla kaplar (pembe)
+    public static final BuzTntBlock BUZ_TNT = reg("buz_tnt",
+            new BuzTntBlock(tntSettings("buz_tnt")));
+
+    // 🌧 Yağmur TNT - 5 saniye yağmur + üşütme (pembe)
+    public static final YagmurTntBlock YAGMUR_TNT = reg("yagmur_tnt",
+            new YagmurTntBlock(tntSettings("yagmur_tnt")));
+
+    // 👩 Anne TNT - "Anne" isimli köylüler saçar
+    public static final AnneTntBlock ANNE_TNT = reg("anne_tnt",
+            new AnneTntBlock(tntSettings("anne_tnt")));
+
+    // 👨 Baba TNT - "Baba" isimli köylüler saçar
+    public static final BabaTntBlock BABA_TNT = reg("baba_tnt",
+            new BabaTntBlock(tntSettings("baba_tnt")));
+
+    // 👶 Bebek TNT - "Bebek" isimli yavru köylüler saçar
+    public static final BebekTntBlock BEBEK_TNT = reg("bebek_tnt",
+            new BebekTntBlock(tntSettings("bebek_tnt")));
+
+    // 👦 Abi TNT - "Abi" isimli köylüler saçar
+    public static final AbiTntBlock ABI_TNT = reg("abi_tnt",
+            new AbiTntBlock(tntSettings("abi_tnt")));
+
+    // 👧 Çoklu Zeynep TNT - "Zeynep" isimli köylüler saçar
+    public static final CokluZeynepTntBlock COKLU_ZEYNEP_TNT = reg("coklu_zeynep_tnt",
+            new CokluZeynepTntBlock(tntSettings("coklu_zeynep_tnt")));
+
+    // 💵 200 TL TNT - 200 TL banknotları saçar
+    public static final IkiYuzTlTntBlock IKI_YUZ_TL_TNT = reg("iki_yuz_tl_tnt",
+            new IkiYuzTlTntBlock(tntSettings("iki_yuz_tl_tnt")));
+
+    // 🎂 Pasta TNT - pastalar saçar
+    public static final PastaTntBlock PASTA_TNT = reg("pasta_tnt",
+            new PastaTntBlock(tntSettings("pasta_tnt")));
+
+    // 💎 Elmas Diyarı TNT - elmas saçar + dünyayı elmasa çevirir
+    public static final ElmasDiyariTntBlock ELMAS_DIYARI_TNT = reg("elmas_diyari_tnt",
+            new ElmasDiyariTntBlock(hardTntSettings("elmas_diyari_tnt")));
+
+    // 💚 Zümrüt Yağmuru TNT - zümrüt blokları saçar
+    public static final ZumrutYagmuruTntBlock ZUMRUT_YAGMURU_TNT = reg("zumrut_yagmuru_tnt",
+            new ZumrutYagmuruTntBlock(tntSettings("zumrut_yagmuru_tnt")));
+
+    // 🪙 Kuruş TNT - 1 kuruş paraları saçar
+    public static final KurusTntBlock KURUS_TNT = reg("kurus_tnt",
+            new KurusTntBlock(tntSettings("kurus_tnt")));
+
+    // 🌀 Karışık Kuruşuk TNT - dünyayı ezik büzük yapar
+    public static final KarisikKurusukTntBlock KARISIK_KURUSUK_TNT = reg("karisik_kurusuk_tnt",
+            new KarisikKurusukTntBlock(hardTntSettings("karisik_kurusuk_tnt")));
 
     // ❓ Soru Bloğu - kırılınca rastgele savaş eşyası / lav / saldırgan mob
     public static final SoruBloguBlock SORU_BLOGU = reg("soru_blogu",
@@ -356,6 +460,6 @@ public class ModBlocks {
     }
 
     public static void register() {
-        SuperTntMod.LOGGER.info("63 blok kaydedildi.");
+        SuperTntMod.LOGGER.info("85 blok kaydedildi.");
     }
 }

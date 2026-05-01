@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "_comment": "Zümrüt Yağmuru TNT: zümrüt + yeşil yün + TNT",
+  "pattern": ["EWE", "WTW", "EWE"],
+  "key": {
+    "E": "minecraft:emerald",
+    "W": "minecraft:lime_wool",
+    "T": "minecraft:tnt"
+  },
+  "result": {
+    "id": "supertntmod:zumrut_yagmuru_tnt",
+    "count": 2
+  }
+}

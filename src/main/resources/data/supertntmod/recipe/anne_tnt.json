@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "_comment": "Anne TNT: gül + pembe yün + TNT",
+  "pattern": ["FWF", "WTW", "FWF"],
+  "key": {
+    "F": "minecraft:poppy",
+    "W": "minecraft:pink_wool",
+    "T": "minecraft:tnt"
+  },
+  "result": {
+    "id": "supertntmod:anne_tnt",
+    "count": 2
+  }
+}

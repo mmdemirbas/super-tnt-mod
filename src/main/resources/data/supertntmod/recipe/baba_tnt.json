@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "_comment": "Baba TNT: tatlı taze + altın elma + TNT",
+  "pattern": ["AWA", "WTW", "AWA"],
+  "key": {
+    "A": "minecraft:golden_apple",
+    "W": "minecraft:pink_wool",
+    "T": "minecraft:tnt"
+  },
+  "result": {
+    "id": "supertntmod:baba_tnt",
+    "count": 2
+  }
+}

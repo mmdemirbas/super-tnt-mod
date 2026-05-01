@@ -1,0 +1,6 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["MMM", "MTM", "MMM"],
+  "key": { "M": "minecraft:glowstone_dust", "T": "minecraft:tnt" },
+  "result": { "id": "supertntmod:z_gunes_tnt", "count": 1 }
+}

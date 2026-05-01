@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "_comment": "Pasta TNT: pasta + mor yün + TNT",
+  "pattern": ["CWC", "WTW", "CWC"],
+  "key": {
+    "C": "minecraft:cake",
+    "W": "minecraft:purple_wool",
+    "T": "minecraft:tnt"
+  },
+  "result": {
+    "id": "supertntmod:pasta_tnt",
+    "count": 2
+  }
+}

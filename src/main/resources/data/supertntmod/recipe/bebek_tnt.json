@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "_comment": "Bebek TNT: yumurta + biberon (süt kovası) + TNT",
+  "pattern": ["EWE", "WTW", "EWE"],
+  "key": {
+    "E": "minecraft:egg",
+    "W": "minecraft:pink_wool",
+    "T": "minecraft:tnt"
+  },
+  "result": {
+    "id": "supertntmod:bebek_tnt",
+    "count": 2
+  }
+}

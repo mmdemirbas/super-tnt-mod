@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "particle": "minecraft:block/yellow_concrete",
+    "top": "minecraft:block/gold_block",
+    "side": "minecraft:block/yellow_concrete",
+    "bottom": "minecraft:block/gold_block"
+  }
+}

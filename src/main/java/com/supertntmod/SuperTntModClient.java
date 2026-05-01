@@ -108,23 +108,53 @@ public class SuperTntModClient implements ClientModInitializer {
         EntityRendererRegistry.register(ModEntities.UREYEN_TNT, TntEntityRenderer::new);
         EntityRendererRegistry.register(ModEntities.KUP_TNT, TntEntityRenderer::new);
 
-        // Yeni TNT renderer'ları
+        // Zeynep TNT renderer'ları
+        EntityRendererRegistry.register(ModEntities.ELMAS_ZIRH_TNT, TntEntityRenderer::new);
         EntityRendererRegistry.register(ModEntities.KALP_TNT, TntEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.HARF_TNT, TntEntityRenderer::new);
         EntityRendererRegistry.register(ModEntities.GUNES_TNT, TntEntityRenderer::new);
         EntityRendererRegistry.register(ModEntities.BULUT_TNT, TntEntityRenderer::new);
         EntityRendererRegistry.register(ModEntities.SIMSEK_YAGMUR_TNT, TntEntityRenderer::new);
         EntityRendererRegistry.register(ModEntities.ZEHIR_TNT, TntEntityRenderer::new);
         EntityRendererRegistry.register(ModEntities.OLUMCUL_SU_TNT, TntEntityRenderer::new);
         EntityRendererRegistry.register(ModEntities.ZEYNEP_KOMUT_TNT, TntEntityRenderer::new);
-        EntityRendererRegistry.register(ModEntities.ELMAS_ZIRH_TNT, TntEntityRenderer::new);
-        EntityRendererRegistry.register(ModEntities.HARF_TNT, TntEntityRenderer::new);
         EntityRendererRegistry.register(ModEntities.ZEYNEP_TNT, TntEntityRenderer::new);
         EntityRendererRegistry.register(ModEntities.ZEBRA_TNT, TntEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.DAG_TNT, TntEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.MAGARA_TNT, TntEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.AY_TNT, TntEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.Z_GUNES_TNT, TntEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.KIYAMET_TNT, TntEntityRenderer::new);
 
         // Yeni paylaşılan TNT renderer'ları
         EntityRendererRegistry.register(ModEntities.REDSTONE_TNT, TntEntityRenderer::new);
         EntityRendererRegistry.register(ModEntities.MADEN_TNT, TntEntityRenderer::new);
         EntityRendererRegistry.register(ModEntities.CRAFTING_TABLE_TNT, TntEntityRenderer::new);
+
+        // Yeni Zeynep TNT renderer'ları
+        EntityRendererRegistry.register(ModEntities.PIRT_TNT, TntEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.GULEN_YUZ_TNT, TntEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.ZEYNEP_REDSTONE_TNT, TntEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.DUNYA_TNT, TntEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.CIZGI_TNT, TntEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.VIRUS_TNT, TntEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.UYKU_TNT, TntEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.GOKKUSAGI_TNT, TntEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.BUZ_TNT, TntEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.YAGMUR_TNT, TntEntityRenderer::new);
+
+        // Yeni Zeynep TNT renderer'ları (Anne/Baba/Bebek/Abi/Çoklu Zeynep/200 TL/Pasta/Elmas Diyarı/Zümrüt Yağmuru/Kuruş/Karışık Kuruşuk)
+        EntityRendererRegistry.register(ModEntities.ANNE_TNT, TntEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.BABA_TNT, TntEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.BEBEK_TNT, TntEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.ABI_TNT, TntEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.COKLU_ZEYNEP_TNT, TntEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.IKI_YUZ_TL_TNT, TntEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.PASTA_TNT, TntEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.ELMAS_DIYARI_TNT, TntEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.ZUMRUT_YAGMURU_TNT, TntEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.KURUS_TNT, TntEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.KARISIK_KURUSUK_TNT, TntEntityRenderer::new);
 
         // Paylaşılan: Koku Bombası — küçük yeşil küp
         EntityRendererRegistry.register(ModEntities.KOKU_BOMBASI,
@@ -132,7 +162,6 @@ public class SuperTntModClient implements ClientModInitializer {
         // Paylaşılan: Dondurucu — küçük dark prismarine küpü
         EntityRendererRegistry.register(ModEntities.DONDURUCU,
                 com.supertntmod.client.DondurucuEntityRenderer::new);
-
 
         // Portal bloğu render katmanı
         BlockRenderLayerMap.putBlock(ModBlocks.PORTAL_BLOCK, BlockRenderLayer.CUTOUT);

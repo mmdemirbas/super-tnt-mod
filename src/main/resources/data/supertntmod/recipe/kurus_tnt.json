@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "_comment": "Kuruş TNT: altın külçe + sarı yün + TNT",
+  "pattern": ["GWG", "WTW", "GWG"],
+  "key": {
+    "G": "minecraft:gold_nugget",
+    "W": "minecraft:yellow_wool",
+    "T": "minecraft:tnt"
+  },
+  "result": {
+    "id": "supertntmod:kurus_tnt",
+    "count": 4
+  }
+}

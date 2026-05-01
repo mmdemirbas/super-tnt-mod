@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["DWD", "WBW", "DWD"],
+  "key": {
+    "B": "minecraft:water_bucket",
+    "W": "minecraft:pink_wool",
+    "D": "minecraft:blue_dye"
+  },
+  "result": {
+    "id": "supertntmod:yagmur_tnt",
+    "count": 1
+  }
+}

@@ -133,9 +133,17 @@
       "trigger": "minecraft:inventory_changed",
       "conditions": { "items": [{ "items": "supertntmod:kup_tnt" }] }
     },
+    "elmas_zirh_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:elmas_zirh_tnt" }] }
+    },
     "kalp_tnt": {
       "trigger": "minecraft:inventory_changed",
       "conditions": { "items": [{ "items": "supertntmod:kalp_tnt" }] }
+    },
+    "harf_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:harf_tnt" }] }
     },
     "gunes_tnt": {
       "trigger": "minecraft:inventory_changed",
@@ -161,14 +169,6 @@
       "trigger": "minecraft:inventory_changed",
       "conditions": { "items": [{ "items": "supertntmod:zeynep_komut_tnt" }] }
     },
-    "elmas_zirh_tnt": {
-      "trigger": "minecraft:inventory_changed",
-      "conditions": { "items": [{ "items": "supertntmod:elmas_zirh_tnt" }] }
-    },
-    "harf_tnt": {
-      "trigger": "minecraft:inventory_changed",
-      "conditions": { "items": [{ "items": "supertntmod:harf_tnt" }] }
-    },
     "zeynep_tnt": {
       "trigger": "minecraft:inventory_changed",
       "conditions": { "items": [{ "items": "supertntmod:zeynep_tnt" }] }
@@ -176,6 +176,26 @@
     "zebra_tnt": {
       "trigger": "minecraft:inventory_changed",
       "conditions": { "items": [{ "items": "supertntmod:zebra_tnt" }] }
+    },
+    "dag_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:dag_tnt" }] }
+    },
+    "magara_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:magara_tnt" }] }
+    },
+    "ay_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:ay_tnt" }] }
+    },
+    "z_gunes_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:z_gunes_tnt" }] }
+    },
+    "kiyamet_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:kiyamet_tnt" }] }
     },
     "redstone_tnt": {
       "trigger": "minecraft:inventory_changed",
@@ -188,6 +208,46 @@
     "crafting_table_tnt": {
       "trigger": "minecraft:inventory_changed",
       "conditions": { "items": [{ "items": "supertntmod:crafting_table_tnt" }] }
+    },
+    "pirt_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:pirt_tnt" }] }
+    },
+    "gulen_yuz_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:gulen_yuz_tnt" }] }
+    },
+    "zeynep_redstone_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:zeynep_redstone_tnt" }] }
+    },
+    "dunya_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:dunya_tnt" }] }
+    },
+    "cizgi_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:cizgi_tnt" }] }
+    },
+    "virus_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:virus_tnt" }] }
+    },
+    "uyku_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:uyku_tnt" }] }
+    },
+    "gokkusagi_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:gokkusagi_tnt" }] }
+    },
+    "buz_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:buz_tnt" }] }
+    },
+    "yagmur_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:yagmur_tnt" }] }
     }
   }
 }

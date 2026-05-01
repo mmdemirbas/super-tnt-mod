@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["PWP", "WSW", "PWP"],
+  "key": {
+    "S": "minecraft:spider_eye",
+    "W": "minecraft:pink_wool",
+    "P": "minecraft:poisonous_potato"
+  },
+  "result": {
+    "id": "supertntmod:virus_tnt",
+    "count": 1
+  }
+}

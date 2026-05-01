@@ -220,6 +220,16 @@ public class ModItems {
                     .maxCount(16)
                     .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "hiz_esyasi")))));
 
+    // 200 TL banknotu — Pembe 200 TL TNT'sinden saçılan döküntü
+    public static final Item IKI_YUZ_TL = register("iki_yuz_tl",
+            new Item(new Item.Settings()
+                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "iki_yuz_tl")))));
+
+    // 1 Kuruş — Sarı Kuruş TNT'sinden saçılan döküntü
+    public static final Item KURUS = register("kurus",
+            new Item(new Item.Settings()
+                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "kurus")))));
+
     // 🥚 Koku Bombası — atıldığında zehir toprağı saçar
     public static final KokuBombasiItem KOKU_BOMBASI = register("koku_bombasi",
             new KokuBombasiItem(new Item.Settings()
@@ -244,6 +254,6 @@ public class ModItems {
     }
 
     public static void register() {
-        SuperTntMod.LOGGER.info("21 item kaydedildi.");
+        SuperTntMod.LOGGER.info("22 item kaydedildi.");
     }
 }

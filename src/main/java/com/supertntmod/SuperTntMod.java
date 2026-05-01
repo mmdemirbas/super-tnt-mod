@@ -150,17 +150,16 @@ public class SuperTntMod implements ModInitializer {
                             entries.add(ModBlocks.GIZLI_TNT);
                             entries.add(ModBlocks.UREYEN_TNT);
                             entries.add(ModBlocks.KUP_TNT);
-                            // Yeni TNT'ler
+                            // Zeynep TNT'leri
+                            entries.add(ModBlocks.ELMAS_ZIRH_TNT);
                             entries.add(ModBlocks.KALP_TNT);
+                            entries.add(ModBlocks.HARF_TNT);
                             entries.add(ModBlocks.GUNES_TNT);
                             entries.add(ModBlocks.BULUT_TNT);
                             entries.add(ModBlocks.SIMSEK_YAGMUR_TNT);
                             entries.add(ModBlocks.ZEHIR_TNT);
                             entries.add(ModBlocks.OLUMCUL_SU_TNT);
                             entries.add(ModBlocks.ZEYNEP_KOMUT_TNT);
-                            // Zeynep TNT'leri (main'in trim'lediği — develop'ta korunur)
-                            entries.add(ModBlocks.ELMAS_ZIRH_TNT);
-                            entries.add(ModBlocks.HARF_TNT);
                             entries.add(ModBlocks.ZEYNEP_TNT);
                             entries.add(ModBlocks.ZEBRA_TNT);
                             // Yeni eşyalar
@@ -171,11 +170,43 @@ public class SuperTntMod implements ModInitializer {
                             entries.add(ModItems.BLOOD_SWORD);
                             entries.add(ModItems.HEART_AXE);
                             entries.add(ModItems.DELICI);
+                            // Dağ/Mağara/Ay/Z-Güneş/Kıyamet TNT'leri
+                            entries.add(ModBlocks.DAG_TNT);
+                            entries.add(ModBlocks.MAGARA_TNT);
+                            entries.add(ModBlocks.AY_TNT);
+                            entries.add(ModBlocks.Z_GUNES_TNT);
+                            entries.add(ModBlocks.KIYAMET_TNT);
                             // Yeni TNT'ler — paylaşılan
                             entries.add(ModBlocks.REDSTONE_TNT);
                             entries.add(ModBlocks.MADEN_TNT);
                             entries.add(ModBlocks.CRAFTING_TABLE_TNT);
                             entries.add(ModItems.HIZ_ESYASI);
+                            // Yeni TNT'ler — Zeynep
+                            entries.add(ModBlocks.PIRT_TNT);
+                            entries.add(ModBlocks.GULEN_YUZ_TNT);
+                            entries.add(ModBlocks.ZEYNEP_REDSTONE_TNT);
+                            entries.add(ModBlocks.DUNYA_TNT);
+                            entries.add(ModBlocks.CIZGI_TNT);
+                            entries.add(ModBlocks.VIRUS_TNT);
+                            entries.add(ModBlocks.UYKU_TNT);
+                            entries.add(ModBlocks.GOKKUSAGI_TNT);
+                            entries.add(ModBlocks.BUZ_TNT);
+                            entries.add(ModBlocks.YAGMUR_TNT);
+                            // Yeni Zeynep TNT'leri (Anne/Baba/Bebek/Abi/Çoklu Zeynep/200 TL/Pasta/Elmas Diyarı/Zümrüt Yağmuru/Kuruş/Karışık Kuruşuk)
+                            entries.add(ModBlocks.ANNE_TNT);
+                            entries.add(ModBlocks.BABA_TNT);
+                            entries.add(ModBlocks.BEBEK_TNT);
+                            entries.add(ModBlocks.ABI_TNT);
+                            entries.add(ModBlocks.COKLU_ZEYNEP_TNT);
+                            entries.add(ModBlocks.IKI_YUZ_TL_TNT);
+                            entries.add(ModBlocks.PASTA_TNT);
+                            entries.add(ModBlocks.ELMAS_DIYARI_TNT);
+                            entries.add(ModBlocks.ZUMRUT_YAGMURU_TNT);
+                            entries.add(ModBlocks.KURUS_TNT);
+                            entries.add(ModBlocks.KARISIK_KURUSUK_TNT);
+                            // Yeni döküntü item'ler
+                            entries.add(ModItems.IKI_YUZ_TL);
+                            entries.add(ModItems.KURUS);
                             // Paylaşılan yeni eşyalar (her iki branch'e ait)
                             entries.add(ModBlocks.SORU_BLOGU);
                             entries.add(ModItems.KOKU_BOMBASI);
@@ -246,6 +277,7 @@ public class SuperTntMod implements ModInitializer {
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
             WoodTntEntity.clearAll();
             com.supertntmod.entity.WaterTntEntity.clearAll();
+            com.supertntmod.item.DeliciItem.clearAll();
             GravityTntEntity.clearAll(server);
             PortalBlock.clearCooldowns();
             com.supertntmod.block.EndGateBlock.clearCooldowns();
@@ -256,7 +288,6 @@ public class SuperTntMod implements ModInitializer {
             com.supertntmod.item.DiaryItem.clearAll();
             com.supertntmod.item.PortalGunItem.clearAll();
             com.supertntmod.block.TntDoorBlock.clearAll();
-            com.supertntmod.item.DeliciItem.clearAll();
             com.supertntmod.item.HizEsyasiItem.ACTIVE.clear();
         });
 

@@ -108,32 +108,6 @@ Exceptions: TNT Frisbee (feathers + TNT + iron ingot), TNT Door, Encrypted Chest
 - Başka bir göreve geçmeden önce mevcut değişiklikler commit edilir. Yarım kalan iş commit'siz bırakılmaz.
 - Değişiklikler anlamsal gruplara ayrılarak commit edilir.
 
-## Branch Topolojisi
-
-İki branch var ve aralarında **strict ancestor** ilişkisi korunur:
-
-- **`main`** — sadece "merge edilmesine karar verilmiş" iş. Tek doğrultulu lineer geçmiş.
-- **`zeynep`** — develop branch. Tüm geliştirme burada yapılır. Her zaman `main` üzerinde rebase edilmiş durumda kalır (`main` her zaman `zeynep`'in atasıdır).
-
-**Kurallar:**
-
-- `zeynep` üzerindeki zeynep-özel commit'ler tip'te tutulur, **ayrı ayrı** (her mantıksal özellik için bir commit). Tek squash commit kullanma — gelecekte main'e seçici cherry-pick gerektiğinde history divergence olur.
-- Yeni paylaşılan iş geldiğinde:
-  1. Önce `main`'e (ya direkt ya da ayrı bir feature branch'ten merge ile) eklenir.
-  2. `zeynep` `main` üstüne rebase edilir (`git rebase main`). Zeynep-özel commit'ler tip'te kalır.
-- Yeni zeynep-özel iş geldiğinde:
-  1. `zeynep` üstünde commit edilir (tip'e eklenir).
-  2. `main`'e dokunma.
-- Her iki branch'e gidecek bir geliştirme `main`'e gider; sonra `zeynep` rebase edilir. Çift commit asla yapılmaz.
-
-**Doğrulama:**
-
-```bash
-git merge-base --is-ancestor main zeynep && echo "OK"   # main, zeynep'in atası mı?
-git log main..zeynep --oneline                          # zeynep-özel commit'ler
-git diff main..zeynep --stat                            # zeynep-özel içerik özeti
-```
-
 ## Language
 
 Source code comments and documentation (README.md, TODO.md) are in Turkish.

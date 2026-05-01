@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["GWG", "WPW", "GWG"],
+  "key": {
+    "P": "minecraft:prismarine_crystals",
+    "W": "minecraft:orange_wool",
+    "G": "minecraft:glow_ink_sac"
+  },
+  "result": {
+    "id": "supertntmod:gokkusagi_tnt",
+    "count": 1
+  }
+}

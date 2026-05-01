@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["IWI", "WPW", "IWI"],
+  "key": {
+    "P": "minecraft:paper",
+    "W": "minecraft:pink_wool",
+    "I": "minecraft:ink_sac"
+  },
+  "result": {
+    "id": "supertntmod:cizgi_tnt",
+    "count": 1
+  }
+}

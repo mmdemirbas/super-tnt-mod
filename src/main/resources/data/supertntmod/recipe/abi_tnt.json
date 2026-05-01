@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "_comment": "Abi TNT: demir + pembe yün + TNT",
+  "pattern": ["IWI", "WTW", "IWI"],
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "W": "minecraft:pink_wool",
+    "T": "minecraft:tnt"
+  },
+  "result": {
+    "id": "supertntmod:abi_tnt",
+    "count": 2
+  }
+}

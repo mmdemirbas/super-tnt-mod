@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "_comment": "Karışık Kuruşuk TNT: ortada denizin kalbi, kenarlara ender gözü, köşelere çim blok",
+  "pattern": ["GEG", "EHE", "GEG"],
+  "key": {
+    "G": "minecraft:grass_block",
+    "E": "minecraft:ender_eye",
+    "H": "minecraft:heart_of_the_sea"
+  },
+  "result": {
+    "id": "supertntmod:karisik_kurusuk_tnt",
+    "count": 1
+  }
+}

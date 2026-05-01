@@ -217,9 +217,19 @@ public class ModEntities {
                     (type, world) -> new KupTntEntity(type, world), SpawnGroup.MISC)
                     .dimensions(0.98f, 0.98f));
 
+    public static final EntityType<ElmasZirhTntEntity> ELMAS_ZIRH_TNT = regTnt("elmas_zirh_tnt",
+            EntityType.Builder.<ElmasZirhTntEntity>create(
+                    (type, world) -> new ElmasZirhTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
     public static final EntityType<KalpTntEntity> KALP_TNT = regTnt("kalp_tnt",
             EntityType.Builder.<KalpTntEntity>create(
                     (type, world) -> new KalpTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    public static final EntityType<HarfTntEntity> HARF_TNT = regTnt("harf_tnt",
+            EntityType.Builder.<HarfTntEntity>create(
+                    (type, world) -> new HarfTntEntity(type, world), SpawnGroup.MISC)
                     .dimensions(0.98f, 0.98f));
 
     public static final EntityType<GunesTntEntity> GUNES_TNT = regTnt("gunes_tnt",
@@ -252,16 +262,6 @@ public class ModEntities {
                     (type, world) -> new ZeynepKomutTntEntity(type, world), SpawnGroup.MISC)
                     .dimensions(0.98f, 0.98f));
 
-    public static final EntityType<ElmasZirhTntEntity> ELMAS_ZIRH_TNT = regTnt("elmas_zirh_tnt",
-            EntityType.Builder.<ElmasZirhTntEntity>create(
-                    (type, world) -> new ElmasZirhTntEntity(type, world), SpawnGroup.MISC)
-                    .dimensions(0.98f, 0.98f));
-
-    public static final EntityType<HarfTntEntity> HARF_TNT = regTnt("harf_tnt",
-            EntityType.Builder.<HarfTntEntity>create(
-                    (type, world) -> new HarfTntEntity(type, world), SpawnGroup.MISC)
-                    .dimensions(0.98f, 0.98f));
-
     public static final EntityType<ZeynepTntEntity> ZEYNEP_TNT = regTnt("zeynep_tnt",
             EntityType.Builder.<ZeynepTntEntity>create(
                     (type, world) -> new ZeynepTntEntity(type, world), SpawnGroup.MISC)
@@ -270,6 +270,36 @@ public class ModEntities {
     public static final EntityType<ZebraTntEntity> ZEBRA_TNT = regTnt("zebra_tnt",
             EntityType.Builder.<ZebraTntEntity>create(
                     (type, world) -> new ZebraTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    // ⛰ Dağ TNT - Etrafa dağlar saçar
+    public static final EntityType<DagTntEntity> DAG_TNT = regTnt("dag_tnt",
+            EntityType.Builder.<DagTntEntity>create(
+                    (type, world) -> new DagTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    // 🕳 Mağara TNT - Mağaralar oyar ve yaratık doğurur
+    public static final EntityType<MagaraTntEntity> MAGARA_TNT = regTnt("magara_tnt",
+            EntityType.Builder.<MagaraTntEntity>create(
+                    (type, world) -> new MagaraTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    // 🌙 Ay TNT - Gündüzü geceye çevirir
+    public static final EntityType<AyTntEntity> AY_TNT = regTnt("ay_tnt",
+            EntityType.Builder.<AyTntEntity>create(
+                    (type, world) -> new AyTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    // ☀ Z-Güneş TNT - Geceyi gündüze çevirir
+    public static final EntityType<ZGunesTntEntity> Z_GUNES_TNT = regTnt("z_gunes_tnt",
+            EntityType.Builder.<ZGunesTntEntity>create(
+                    (type, world) -> new ZGunesTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    // 💀 Kıyamet TNT - Tüm oyuncuları öldürür + dev yıkım
+    public static final EntityType<KiyametTntEntity> KIYAMET_TNT = regTnt("kiyamet_tnt",
+            EntityType.Builder.<KiyametTntEntity>create(
+                    (type, world) -> new KiyametTntEntity(type, world), SpawnGroup.MISC)
                     .dimensions(0.98f, 0.98f));
 
     // 🔴 Redstone TNT - Yüksek güç + hız/güç verir
@@ -288,6 +318,132 @@ public class ModEntities {
     public static final EntityType<CraftingTableTntEntity> CRAFTING_TABLE_TNT = regTnt("crafting_table_tnt",
             EntityType.Builder.<CraftingTableTntEntity>create(
                     (type, world) -> new CraftingTableTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    // 💨 Pırt TNT - Pırt kokusu ve sesi
+    public static final EntityType<PirtTntEntity> PIRT_TNT = regTnt("pirt_tnt",
+            EntityType.Builder.<PirtTntEntity>create(
+                    (type, world) -> new PirtTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    // 🟡 Gülen Yüz Çıngırak TNT - Dünyayı sarıya boyar
+    public static final EntityType<GulenYuzTntEntity> GULEN_YUZ_TNT = regTnt("gulen_yuz_tnt",
+            EntityType.Builder.<GulenYuzTntEntity>create(
+                    (type, world) -> new GulenYuzTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    // 🟣 Zeynep Redstone TNT - Dev yıkım + tüm oyuncuları öldürür (patlatan hariç)
+    public static final EntityType<ZeynepRedstoneTntEntity> ZEYNEP_REDSTONE_TNT = regTnt("zeynep_redstone_tnt",
+            EntityType.Builder.<ZeynepRedstoneTntEntity>create(
+                    (type, world) -> new ZeynepRedstoneTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    // 🟠 Dünya TNT - Etrafa "dünya" itemleri saçar
+    public static final EntityType<DunyaTntEntity> DUNYA_TNT = regTnt("dunya_tnt",
+            EntityType.Builder.<DunyaTntEntity>create(
+                    (type, world) -> new DunyaTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    // ✏ Çizgi Çalışması TNT - Etrafa kağıt ve mürekkep saçar
+    public static final EntityType<CizgiTntEntity> CIZGI_TNT = regTnt("cizgi_tnt",
+            EntityType.Builder.<CizgiTntEntity>create(
+                    (type, world) -> new CizgiTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    // 🦠 Virüs TNT - Görsel partiküller; sonra hiçbir şey olmaz
+    public static final EntityType<VirusTntEntity> VIRUS_TNT = regTnt("virus_tnt",
+            EntityType.Builder.<VirusTntEntity>create(
+                    (type, world) -> new VirusTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    // 😴 Uyku TNT - Patlatan hariç tüm oyuncuları "uyutur"
+    public static final EntityType<UykuTntEntity> UYKU_TNT = regTnt("uyku_tnt",
+            EntityType.Builder.<UykuTntEntity>create(
+                    (type, world) -> new UykuTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    // 🌈 Gökkuşağı TNT - Renkli partiküller + renkli yünler saçar (rainbow_tnt'den farklı)
+    public static final EntityType<GokkusagiTntEntity> GOKKUSAGI_TNT = regTnt("gokkusagi_tnt",
+            EntityType.Builder.<GokkusagiTntEntity>create(
+                    (type, world) -> new GokkusagiTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    // 🧊 Buz TNT - Dünyayı buzla kaplar + oyuncuları dondurur (patlatan hariç)
+    public static final EntityType<BuzTntEntity> BUZ_TNT = regTnt("buz_tnt",
+            EntityType.Builder.<BuzTntEntity>create(
+                    (type, world) -> new BuzTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    // 🌧 Yağmur TNT - 5 saniye yağmur + üşütme
+    public static final EntityType<YagmurTntEntity> YAGMUR_TNT = regTnt("yagmur_tnt",
+            EntityType.Builder.<YagmurTntEntity>create(
+                    (type, world) -> new YagmurTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    // 👩 Anne TNT - "Anne" isimli köylüler saçar
+    public static final EntityType<AnneTntEntity> ANNE_TNT = regTnt("anne_tnt",
+            EntityType.Builder.<AnneTntEntity>create(
+                    (type, world) -> new AnneTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    // 👨 Baba TNT - "Baba" isimli köylüler saçar
+    public static final EntityType<BabaTntEntity> BABA_TNT = regTnt("baba_tnt",
+            EntityType.Builder.<BabaTntEntity>create(
+                    (type, world) -> new BabaTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    // 👶 Bebek TNT - "Bebek" isimli yavru köylüler saçar
+    public static final EntityType<BebekTntEntity> BEBEK_TNT = regTnt("bebek_tnt",
+            EntityType.Builder.<BebekTntEntity>create(
+                    (type, world) -> new BebekTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    // 👦 Abi TNT - "Abi" isimli köylüler saçar
+    public static final EntityType<AbiTntEntity> ABI_TNT = regTnt("abi_tnt",
+            EntityType.Builder.<AbiTntEntity>create(
+                    (type, world) -> new AbiTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    // 👧 Çoklu Zeynep TNT - "Zeynep" isimli köylüler saçar
+    public static final EntityType<CokluZeynepTntEntity> COKLU_ZEYNEP_TNT = regTnt("coklu_zeynep_tnt",
+            EntityType.Builder.<CokluZeynepTntEntity>create(
+                    (type, world) -> new CokluZeynepTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    // 💵 200 TL TNT - 200 TL banknotları saçar
+    public static final EntityType<IkiYuzTlTntEntity> IKI_YUZ_TL_TNT = regTnt("iki_yuz_tl_tnt",
+            EntityType.Builder.<IkiYuzTlTntEntity>create(
+                    (type, world) -> new IkiYuzTlTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    // 🎂 Pasta TNT - pastalar saçar
+    public static final EntityType<PastaTntEntity> PASTA_TNT = regTnt("pasta_tnt",
+            EntityType.Builder.<PastaTntEntity>create(
+                    (type, world) -> new PastaTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    // 💎 Elmas Diyarı TNT - elmas saçar + dünyayı elmasa çevirir
+    public static final EntityType<ElmasDiyariTntEntity> ELMAS_DIYARI_TNT = regTnt("elmas_diyari_tnt",
+            EntityType.Builder.<ElmasDiyariTntEntity>create(
+                    (type, world) -> new ElmasDiyariTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    // 💚 Zümrüt Yağmuru TNT - zümrüt blokları saçar
+    public static final EntityType<ZumrutYagmuruTntEntity> ZUMRUT_YAGMURU_TNT = regTnt("zumrut_yagmuru_tnt",
+            EntityType.Builder.<ZumrutYagmuruTntEntity>create(
+                    (type, world) -> new ZumrutYagmuruTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    // 🪙 Kuruş TNT - 1 kuruş madeni paraları saçar
+    public static final EntityType<KurusTntEntity> KURUS_TNT = regTnt("kurus_tnt",
+            EntityType.Builder.<KurusTntEntity>create(
+                    (type, world) -> new KurusTntEntity(type, world), SpawnGroup.MISC)
+                    .dimensions(0.98f, 0.98f));
+
+    // 🌀 Karışık Kuruşuk TNT - dünyayı ezik büzük yapar
+    public static final EntityType<KarisikKurusukTntEntity> KARISIK_KURUSUK_TNT = regTnt("karisik_kurusuk_tnt",
+            EntityType.Builder.<KarisikKurusukTntEntity>create(
+                    (type, world) -> new KarisikKurusukTntEntity(type, world), SpawnGroup.MISC)
                     .dimensions(0.98f, 0.98f));
 
     // 🥚 Koku Bombası - atılınca zehir toprağı saçar
@@ -333,6 +489,6 @@ public class ModEntities {
     }
 
     public static void register() {
-        SuperTntMod.LOGGER.info("59 entity türü kaydedildi.");
+        SuperTntMod.LOGGER.info("82 entity türü kaydedildi.");
     }
 }

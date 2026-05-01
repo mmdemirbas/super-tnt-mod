@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "_comment": "Çoklu Zeynep TNT: kağıt + pembe yün + Zeynep TNT",
+  "pattern": ["PWP", "WZW", "PWP"],
+  "key": {
+    "P": "minecraft:paper",
+    "W": "minecraft:pink_wool",
+    "Z": "supertntmod:zeynep_tnt"
+  },
+  "result": {
+    "id": "supertntmod:coklu_zeynep_tnt",
+    "count": 2
+  }
+}

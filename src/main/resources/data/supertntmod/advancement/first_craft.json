@@ -133,9 +133,17 @@
       "trigger": "minecraft:recipe_crafted",
       "conditions": { "recipe_id": "supertntmod:kup_tnt" }
     },
+    "elmas_zirh": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": { "recipe_id": "supertntmod:elmas_zirh_tnt" }
+    },
     "kalp": {
       "trigger": "minecraft:recipe_crafted",
       "conditions": { "recipe_id": "supertntmod:kalp_tnt" }
+    },
+    "harf": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": { "recipe_id": "supertntmod:harf_tnt" }
     },
     "gunes": {
       "trigger": "minecraft:recipe_crafted",
@@ -163,6 +171,6 @@
     }
   },
   "requirements": [
-    ["diamond", "gold", "bedrock", "emerald", "lightning", "nuclear", "freeze", "wood", "command", "walking", "mob_freeze", "water", "rainbow", "lego", "makarna", "seker", "shrink", "growth", "cleanse", "fake", "bounce", "magnet", "gravity", "invisible", "swap", "nether", "end", "cam", "gizli", "ureyen", "kup", "kalp", "gunes", "bulut", "simsek_yagmur", "zehir", "olumcul_su", "zeynep_komut"]
+    ["diamond", "gold", "bedrock", "emerald", "lightning", "nuclear", "freeze", "wood", "command", "walking", "mob_freeze", "water", "rainbow", "lego", "makarna", "seker", "shrink", "growth", "cleanse", "fake", "bounce", "magnet", "gravity", "invisible", "swap", "nether", "end", "cam", "gizli", "ureyen", "kup", "elmas_zirh", "kalp", "harf", "gunes", "bulut", "simsek_yagmur", "zehir", "olumcul_su", "zeynep_komut"]
   ]
 }

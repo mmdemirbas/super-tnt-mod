@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "_comment": "200 TL TNT: zümrüt + pembe yün + TNT (zümrütler para anlamında)",
+  "pattern": ["EWE", "WTW", "EWE"],
+  "key": {
+    "E": "minecraft:emerald",
+    "W": "minecraft:pink_wool",
+    "T": "minecraft:tnt"
+  },
+  "result": {
+    "id": "supertntmod:iki_yuz_tl_tnt",
+    "count": 2
+  }
+}

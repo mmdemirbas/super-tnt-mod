@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "_comment": "Elmas Diyarı TNT: 4 elmas bloğu + TNT",
+  "pattern": ["DBD", "BTB", "DBD"],
+  "key": {
+    "D": "minecraft:diamond",
+    "B": "minecraft:diamond_block",
+    "T": "minecraft:tnt"
+  },
+  "result": {
+    "id": "supertntmod:elmas_diyari_tnt",
+    "count": 1
+  }
+}

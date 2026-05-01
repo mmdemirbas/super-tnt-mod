@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "particle": "minecraft:block/lime_concrete",
+    "top": "minecraft:block/green_concrete",
+    "side": "minecraft:block/lime_concrete",
+    "bottom": "minecraft:block/green_concrete"
+  }
+}

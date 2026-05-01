@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["GWG", "WBW", "GWG"],
+  "key": {
+    "B": "minecraft:bell",
+    "W": "minecraft:yellow_wool",
+    "G": "minecraft:gold_ingot"
+  },
+  "result": {
+    "id": "supertntmod:gulen_yuz_tnt",
+    "count": 1
+  }
+}

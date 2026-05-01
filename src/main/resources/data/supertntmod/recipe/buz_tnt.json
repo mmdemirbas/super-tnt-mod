@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["SWS", "WBW", "SWS"],
+  "key": {
+    "B": "minecraft:blue_ice",
+    "W": "minecraft:pink_wool",
+    "S": "minecraft:snow_block"
+  },
+  "result": {
+    "id": "supertntmod:buz_tnt",
+    "count": 1
+  }
+}

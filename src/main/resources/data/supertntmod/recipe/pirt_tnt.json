@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["GWG", "WRW", "GWG"],
+  "key": {
+    "R": "minecraft:rotten_flesh",
+    "W": "minecraft:pink_wool",
+    "G": "minecraft:gunpowder"
+  },
+  "result": {
+    "id": "supertntmod:pirt_tnt",
+    "count": 1
+  }
+}

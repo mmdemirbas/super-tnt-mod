@@ -1,0 +1,6 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["MMM", "MTM", "MMM"],
+  "key": { "M": "minecraft:stone", "T": "minecraft:tnt" },
+  "result": { "id": "supertntmod:dag_tnt", "count": 1 }
+}
