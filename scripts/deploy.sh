@@ -14,20 +14,25 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 CACHE_DIR="${SUPER_TNT_DEPLOY_CACHE:-$HOME/.cache/super-tnt-mod-deploy}"
 
-POJAV_MODS_CANDIDATES=(
-  "/sdcard/games/PojavLauncher/.minecraft/mods"
-  "/storage/emulated/0/games/PojavLauncher/.minecraft/mods"
-  "/sdcard/Android/data/net.kdt.pojavlaunch/files/.minecraft/mods"
-  "/storage/emulated/0/Android/data/net.kdt.pojavlaunch/files/.minecraft/mods"
-)
-POJAV_MINECRAFT_CANDIDATES=(
+# Legacy world-readable PojavLauncher path (older versions, no scoped storage).
+LEGACY_POJAV_MINECRAFT=(
   "/sdcard/games/PojavLauncher/.minecraft"
   "/storage/emulated/0/games/PojavLauncher/.minecraft"
-  "/sdcard/Android/data/net.kdt.pojavlaunch/files/.minecraft"
-  "/storage/emulated/0/Android/data/net.kdt.pojavlaunch/files/.minecraft"
 )
 
+# Modern (Android 11+) PojavLauncher and forks live under scoped storage:
+#   /sdcard/Android/data/<package>/files/.minecraft
+# Discovered dynamically via `pm list packages`.
+POJAV_PACKAGE_PATTERN='pojavlaunch|zalithlauncher|pojav'
+
 MODRINTH_FABRIC_API_PROJECT_ID="P7dR8mSH"
+
+# ANSI colors
+C_INFO=$'\033[1;34m'
+C_WARN=$'\033[1;33m'
+C_ERR=$'\033[1;31m'
+C_OK=$'\033[1;32m'
+C_OFF=$'\033[0m'
 
 # ---- Args -----------------------------------------------------------------
 SKIP_BUILD=0
@@ -47,9 +52,10 @@ done
 ADB=(adb)
 [[ -n "$ADB_SERIAL" ]] && ADB+=(-s "$ADB_SERIAL")
 
-log() { printf '\033[1;34m==>\033[0m %s\n' "$*"; }
-warn() { printf '\033[1;33m!! \033[0m %s\n' "$*" >&2; }
-die()  { printf '\033[1;31mxx \033[0m %s\n' "$*" >&2; exit 1; }
+log()  { printf '%s==>%s %s\n' "$C_INFO" "$C_OFF" "$*"; }
+warn() { printf '%s!! %s %s\n'  "$C_WARN" "$C_OFF" "$*" >&2; }
+die()  { printf '%sxx %s %s\n'  "$C_ERR"  "$C_OFF" "$*" >&2; exit 1; }
+ok()   { printf '%sOK%s %s\n'   "$C_OK"   "$C_OFF" "$*"; }
 
 # ---- Read project metadata ------------------------------------------------
 prop() {
@@ -119,36 +125,89 @@ DEVICE_LINE="$("${ADB[@]}" devices | awk 'NR>1 && $2=="device"' | head -1 || tru
   || die "No authorized adb device. Plug tablet in, enable USB debugging, allow the prompt."
 
 # ---- 4. Resolve mods dir on device ---------------------------------------
-adb_dir_exists() { "${ADB[@]}" shell "[ -d '$1' ] && echo yes" 2>/dev/null | tr -d '\r' | grep -q yes; }
+adb_dir_exists() {
+  "${ADB[@]}" shell "[ -d '$1' ] && echo yes" 2>/dev/null | tr -d '\r' | grep -q yes
+}
 
-MODS_DIR=""
+# Build the list of candidate .minecraft roots: legacy paths + every installed
+# PojavLauncher-family package's scoped-storage path. The "real" .minecraft is
+# the one that contains versions/ (the launcher writes that on first run).
+discover_minecraft_dirs() {
+  local pkg path
+  for path in "${LEGACY_POJAV_MINECRAFT[@]}"; do
+    printf '%s\n' "$path"
+  done
+  while IFS= read -r pkg; do
+    [[ -z "$pkg" ]] && continue
+    printf '/sdcard/Android/data/%s/files/.minecraft\n' "$pkg"
+  done < <("${ADB[@]}" shell "pm list packages 2>/dev/null" \
+           | tr -d '\r' \
+           | sed -n 's/^package://p' \
+           | grep -iE "$POJAV_PACKAGE_PATTERN" || true)
+}
+
+MINECRAFT_DIR=""
 if [[ -n "$MODS_DIR_OVERRIDE" ]]; then
+  if ! adb_dir_exists "$MODS_DIR_OVERRIDE"; then
+    log "Override path $MODS_DIR_OVERRIDE doesn't exist — creating it"
+    "${ADB[@]}" shell "mkdir -p '$MODS_DIR_OVERRIDE'" \
+      || die "Cannot create $MODS_DIR_OVERRIDE"
+  fi
   MODS_DIR="$MODS_DIR_OVERRIDE"
+else
+  # Prefer a .minecraft that has versions/ (proves it's the live install).
+  while IFS= read -r path; do
+    [[ -z "$path" ]] && continue
+    if adb_dir_exists "$path/versions"; then
+      MINECRAFT_DIR="$path"
+      log "Live PojavLauncher install: $path (has versions/)"
+      break
+    fi
+  done < <(discover_minecraft_dirs)
+
+  # Fallback: any existing .minecraft, even if empty.
+  if [[ -z "$MINECRAFT_DIR" ]]; then
+    while IFS= read -r path; do
+      [[ -z "$path" ]] && continue
+      if adb_dir_exists "$path"; then
+        MINECRAFT_DIR="$path"
+        warn "No .minecraft has versions/; using $path as fallback. Open PojavLauncher once to materialise the install, then re-run."
+        break
+      fi
+    done < <(discover_minecraft_dirs)
+  fi
+
+  [[ -n "$MINECRAFT_DIR" ]] \
+    || die "Could not locate PojavLauncher .minecraft on device. Pass --mods-dir <abs path>."
+
+  MODS_DIR="$MINECRAFT_DIR/mods"
   if ! adb_dir_exists "$MODS_DIR"; then
-    log "Override path $MODS_DIR doesn't exist — creating it"
     "${ADB[@]}" shell "mkdir -p '$MODS_DIR'" || die "Cannot create $MODS_DIR"
   fi
-else
-  for path in "${POJAV_MODS_CANDIDATES[@]}"; do
-    if adb_dir_exists "$path"; then MODS_DIR="$path"; break; fi
-  done
-  if [[ -z "$MODS_DIR" ]]; then
-    for parent in "${POJAV_MINECRAFT_CANDIDATES[@]}"; do
-      if adb_dir_exists "$parent"; then
-        log "Found PojavLauncher .minecraft at $parent — creating mods/"
-        "${ADB[@]}" shell "mkdir -p '$parent/mods'" \
-          && MODS_DIR="$parent/mods" && break
-      fi
-    done
-  fi
 fi
-
-[[ -n "$MODS_DIR" ]] \
-  || die "Could not locate PojavLauncher .minecraft on device. Pass --mods-dir <abs path>."
 
 log "Target mods dir: $MODS_DIR"
 
 # ---- 5. Push --------------------------------------------------------------
+# Clean stale jars from any non-target .minecraft we know about (e.g. an empty
+# legacy path the user accidentally pushed to before).
+if [[ -z "$MODS_DIR_OVERRIDE" ]]; then
+  while IFS= read -r path; do
+    [[ -z "$path" ]] && continue
+    [[ "$path/mods" == "$MODS_DIR" ]] && continue
+    if adb_dir_exists "$path/mods"; then
+      stray="$("${ADB[@]}" shell \
+        "ls '$path/mods/${ARCHIVE_BASE}-'*.jar '$path/mods/fabric-api-'*.jar 2>/dev/null" \
+        | tr -d '\r')"
+      if [[ -n "$stray" ]]; then
+        warn "Removing stray jars from $path/mods (not the live install)"
+        "${ADB[@]}" shell \
+          "rm -f '$path/mods/${ARCHIVE_BASE}-'*.jar '$path/mods/fabric-api-'*.jar" || true
+      fi
+    fi
+  done < <(discover_minecraft_dirs)
+fi
+
 log "Removing previous super-tnt-mod / fabric-api jars on device"
 "${ADB[@]}" shell "rm -f '$MODS_DIR/${ARCHIVE_BASE}-'*.jar '$MODS_DIR/fabric-api-'*.jar" || true
 
