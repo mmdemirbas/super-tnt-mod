@@ -64,15 +64,19 @@ prop() {
 }
 
 MC_VERSION="$(prop minecraft_version)"
-FABRIC_API_RAW="$(prop fabric_version)"     # e.g. "0.139.4+1.21.11"
+LOADER_VERSION="$(prop loader_version)"     # fabric-loader, e.g. "0.18.2"
+FABRIC_API_RAW="$(prop fabric_version)"     # fabric-api, e.g. "0.139.4+1.21.11"
 MOD_VERSION="$(prop mod_version)"
 ARCHIVE_BASE="$(prop archives_base_name)"
 
-[[ -n "$MC_VERSION" && -n "$FABRIC_API_RAW" ]] \
+[[ -n "$MC_VERSION" && -n "$LOADER_VERSION" && -n "$FABRIC_API_RAW" ]] \
   || die "Could not read versions from gradle.properties"
 
 FABRIC_API_FILENAME="fabric-api-${FABRIC_API_RAW}.jar"
 FABRIC_API_CACHE="$CACHE_DIR/$FABRIC_API_FILENAME"
+FABRIC_PROFILE_ID="fabric-loader-${LOADER_VERSION}-${MC_VERSION}"
+VANILLA_DIR_CACHE="$CACHE_DIR/versions/${MC_VERSION}"
+FABRIC_DIR_CACHE="$CACHE_DIR/versions/${FABRIC_PROFILE_ID}"
 
 # ---- Tooling check --------------------------------------------------------
 command -v adb >/dev/null     || die "adb not found in PATH (install platform-tools)"
@@ -116,6 +120,56 @@ PY
   mv "$FABRIC_API_CACHE.part" "$FABRIC_API_CACHE"
 else
   log "Fabric API cached: $FABRIC_API_CACHE"
+fi
+
+# ---- 2b. Vanilla MC + Fabric profile (cached) -----------------------------
+# Cache the vanilla version JSON and client jar from Mojang, plus the Fabric
+# loader profile JSON from Fabric meta. PojavLauncher fetches the rest
+# (libraries, assets) on first launch when these files are present.
+mkdir -p "$VANILLA_DIR_CACHE" "$FABRIC_DIR_CACHE"
+
+VANILLA_JSON="$VANILLA_DIR_CACHE/${MC_VERSION}.json"
+VANILLA_JAR="$VANILLA_DIR_CACHE/${MC_VERSION}.jar"
+FABRIC_JSON="$FABRIC_DIR_CACHE/${FABRIC_PROFILE_ID}.json"
+
+if [[ ! -f "$VANILLA_JSON" || ! -f "$VANILLA_JAR" ]]; then
+  log "Resolving vanilla Minecraft ${MC_VERSION} via Mojang manifest"
+  read -r MC_JSON_URL MC_JAR_URL <<< "$(python3 - <<PY
+import json, sys, urllib.request
+mc = "$MC_VERSION"
+manifest = json.load(urllib.request.urlopen(
+    "https://launchermeta.mojang.com/mc/game/version_manifest_v2.json", timeout=30))
+entry = next((v for v in manifest["versions"] if v["id"] == mc), None)
+if entry is None:
+    sys.exit("Mojang manifest has no entry for " + mc)
+ver = json.load(urllib.request.urlopen(entry["url"], timeout=30))
+client = ver.get("downloads", {}).get("client")
+if not client:
+    sys.exit("Mojang version JSON has no client download for " + mc)
+print(entry["url"], client["url"])
+PY
+)"
+  [[ -n "$MC_JSON_URL" && -n "$MC_JAR_URL" ]] \
+    || die "Could not resolve Mojang URLs for $MC_VERSION"
+
+  log "Downloading vanilla ${MC_VERSION}.json"
+  curl -fL --retry 3 --retry-delay 2 -o "$VANILLA_JSON.part" "$MC_JSON_URL"
+  mv "$VANILLA_JSON.part" "$VANILLA_JSON"
+  log "Downloading vanilla ${MC_VERSION}.jar (~25MB)"
+  curl -fL --retry 3 --retry-delay 2 -o "$VANILLA_JAR.part" "$MC_JAR_URL"
+  mv "$VANILLA_JAR.part" "$VANILLA_JAR"
+else
+  log "Vanilla ${MC_VERSION} cached"
+fi
+
+if [[ ! -f "$FABRIC_JSON" ]]; then
+  log "Downloading Fabric profile ${FABRIC_PROFILE_ID}"
+  FABRIC_PROFILE_URL="https://meta.fabricmc.net/v2/versions/loader/${MC_VERSION}/${LOADER_VERSION}/profile/json"
+  curl -fL --retry 3 --retry-delay 2 -o "$FABRIC_JSON.part" "$FABRIC_PROFILE_URL" \
+    || die "Fabric meta has no loader ${LOADER_VERSION} for MC ${MC_VERSION}"
+  mv "$FABRIC_JSON.part" "$FABRIC_JSON"
+else
+  log "Fabric profile cached: $FABRIC_PROFILE_ID"
 fi
 
 # ---- 3. Device check ------------------------------------------------------
@@ -187,6 +241,54 @@ else
 fi
 
 log "Target mods dir: $MODS_DIR"
+
+# ---- 4b. Install Fabric profile on device ---------------------------------
+# Skip when --mods-dir override is used (we don't know the .minecraft root).
+if [[ -z "$MODS_DIR_OVERRIDE" && -n "$MINECRAFT_DIR" ]]; then
+  log "Installing vanilla ${MC_VERSION} into device versions/"
+  "${ADB[@]}" shell "mkdir -p '$MINECRAFT_DIR/versions/${MC_VERSION}'"
+  "${ADB[@]}" push "$VANILLA_JSON" \
+    "$MINECRAFT_DIR/versions/${MC_VERSION}/${MC_VERSION}.json" >/dev/null
+  "${ADB[@]}" push "$VANILLA_JAR" \
+    "$MINECRAFT_DIR/versions/${MC_VERSION}/${MC_VERSION}.jar" >/dev/null
+
+  log "Installing Fabric profile ${FABRIC_PROFILE_ID}"
+  "${ADB[@]}" shell "mkdir -p '$MINECRAFT_DIR/versions/${FABRIC_PROFILE_ID}'"
+  "${ADB[@]}" push "$FABRIC_JSON" \
+    "$MINECRAFT_DIR/versions/${FABRIC_PROFILE_ID}/${FABRIC_PROFILE_ID}.json" >/dev/null
+
+  log "Merging launcher_profiles.json (adding Fabric profile)"
+  PROFILES_LOCAL="$CACHE_DIR/launcher_profiles.${MC_VERSION}.json"
+  "${ADB[@]}" pull "$MINECRAFT_DIR/launcher_profiles.json" "$PROFILES_LOCAL" >/dev/null 2>&1 \
+    || printf '{"profiles":{}}\n' > "$PROFILES_LOCAL"
+
+  python3 - "$PROFILES_LOCAL" "$FABRIC_PROFILE_ID" <<'PY'
+import json, os, sys, uuid, datetime
+path, version_id = sys.argv[1], sys.argv[2]
+with open(path) as f:
+    data = json.load(f)
+profiles = data.setdefault("profiles", {})
+existing = next((pid for pid, p in profiles.items()
+                 if p.get("lastVersionId") == version_id), None)
+if existing is None:
+    pid = str(uuid.uuid4())
+    profiles[pid] = {
+        "name": "Fabric " + version_id.replace("fabric-loader-", ""),
+        "type": "custom",
+        "lastVersionId": version_id,
+        "created": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S") + "Z",
+        "lastUsed": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S") + "Z",
+    }
+    print("added profile", pid, "->", version_id)
+else:
+    print("profile already present:", existing)
+data["profiles"] = profiles
+with open(path, "w") as f:
+    json.dump(data, f, indent=2)
+PY
+  "${ADB[@]}" push "$PROFILES_LOCAL" "$MINECRAFT_DIR/launcher_profiles.json" >/dev/null
+  ok "Fabric ${MC_VERSION} profile installed. PojavLauncher will fetch libraries+assets on first launch."
+fi
 
 # ---- 5. Push --------------------------------------------------------------
 # Clean stale jars from any non-target .minecraft we know about (e.g. an empty
