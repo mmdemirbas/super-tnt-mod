@@ -248,6 +248,50 @@
     "yagmur_tnt": {
       "trigger": "minecraft:inventory_changed",
       "conditions": { "items": [{ "items": "supertntmod:yagmur_tnt" }] }
+    },
+    "abi_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:abi_tnt" }] }
+    },
+    "anne_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:anne_tnt" }] }
+    },
+    "baba_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:baba_tnt" }] }
+    },
+    "bebek_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:bebek_tnt" }] }
+    },
+    "coklu_zeynep_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:coklu_zeynep_tnt" }] }
+    },
+    "elmas_diyari_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:elmas_diyari_tnt" }] }
+    },
+    "iki_yuz_tl_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:iki_yuz_tl_tnt" }] }
+    },
+    "karisik_kurusuk_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:karisik_kurusuk_tnt" }] }
+    },
+    "kurus_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:kurus_tnt" }] }
+    },
+    "pasta_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:pasta_tnt" }] }
+    },
+    "zumrut_yagmuru_tnt": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "supertntmod:zumrut_yagmuru_tnt" }] }
     }
   }
 }
