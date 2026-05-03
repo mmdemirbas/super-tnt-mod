@@ -292,9 +292,15 @@ if [[ -z "$MODS_DIR_OVERRIDE" && -n "$MINECRAFT_DIR" ]]; then
   # ({type, created, lastUsed, ...}) that PojavLauncher's UI did not surface in
   # the version dropdown — we now coerce any matching entry back to the
   # minimal form.
-  PYOUT="$(python3 - "$PROFILES_LOCAL" "$FABRIC_PROFILE_ID" <<'PY'
+  # javaDir pins this profile to JRE-21 (Pojav v3 honors per-profile
+  # javaDir from the Mojang launcher schema), so the launcher leaves the
+  # global defaultRuntime alone — older 1.7.10 / Java 8 profiles keep
+  # working. selectedProfile at the root makes the dropdown default to
+  # our Fabric profile so the user does not have to pick it manually.
+  JRE_DEVICE_PATH="/data/user/0/${POJAV_PKG}/runtimes/${JRE_NAME}"
+  PYOUT="$(python3 - "$PROFILES_LOCAL" "$FABRIC_PROFILE_ID" "$JRE_DEVICE_PATH" <<'PY'
 import json, sys, uuid
-path, version_id = sys.argv[1], sys.argv[2]
+path, version_id, java_dir = sys.argv[1:4]
 with open(path) as f:
     data = json.load(f)
 profiles = data.setdefault("profiles", {})
@@ -304,11 +310,13 @@ if pid is None:
     pid = str(uuid.uuid4())
 profiles[pid] = {
     "icon": "fabric",
+    "javaDir": java_dir,
     "lastVersionId": version_id,
     "logConfigIsXML": False,
     "name": "Fabric " + version_id.replace("fabric-loader-", ""),
 }
 data["profiles"] = profiles
+data["selectedProfile"] = pid
 with open(path, "w") as f:
     json.dump(data, f, indent=2)
 print("PROFILE_UUID=" + pid)
@@ -382,43 +390,46 @@ if [[ -n "$POJAV_PKG" ]]; then
   fi
 fi
 
-# ---- 4d. Update PojavLauncher prefs (defaultRuntime + currentProfile) -----
-if [[ -n "$POJAV_PKG" && -n "$NEW_PROFILE_UUID" ]]; then
-  log "Force-stopping PojavLauncher to safely edit shared_prefs"
+# ---- 4d. Set shared_prefs.defaultRuntime = JRE-21 -------------------------
+# APK string analysis: Pojav v3 (gladiolus) reads selectedProfile from
+# launcher_profiles.json (good — set in 4b) but does NOT honor a per-profile
+# javaDir field. Runtime selection is therefore global, controlled by the
+# shared_prefs entry <string name="defaultRuntime">. We set it to JRE-21 so
+# the Fabric 1.21.x profile launches with Java 21.
+#
+# Trade-off: any pre-existing Java 8 profile (e.g. 1.7.10) will now fail
+# with bytecode-version errors. To run those, the user must temporarily
+# flip Settings → Java to "Internal" inside PojavLauncher.
+if [[ -n "$POJAV_PKG" ]]; then
+  log "Setting shared_prefs.defaultRuntime to $JRE_NAME"
   "${ADB[@]}" shell "am force-stop $POJAV_PKG" >/dev/null || true
 
   PREF_FILE="${POJAV_PKG}_preferences.xml"
   PREF_LOCAL="$CACHE_DIR/$PREF_FILE"
 
-  # Snapshot via exec-out (raw byte stream — no CRLF translation, unlike
-  # `adb shell` which can mangle XML on some hosts). The file lives inside
-  # the app sandbox; only run-as can read it. Staging via /data/local/tmp
-  # also fails because the runas_app SELinux domain cannot write there.
   "${ADB[@]}" exec-out "run-as $POJAV_PKG cat shared_prefs/$PREF_FILE" > "$PREF_LOCAL" \
     || die "Cannot snapshot shared_prefs/$PREF_FILE"
   [[ -s "$PREF_LOCAL" ]] || die "Empty snapshot of shared_prefs/$PREF_FILE"
 
-  python3 - "$PREF_LOCAL" "$JRE_NAME" "$NEW_PROFILE_UUID" <<'PY'
+  python3 - "$PREF_LOCAL" "$JRE_NAME" <<'PY'
 import sys, xml.etree.ElementTree as ET
-path, runtime, profile = sys.argv[1:4]
+path, runtime = sys.argv[1:3]
 tree = ET.parse(path)
 root = tree.getroot()
-def upsert_string(name, value):
-    for child in root:
-        if child.attrib.get("name") == name and child.tag == "string":
-            child.text = value
-            return
+for child in root:
+    if child.attrib.get("name") == "defaultRuntime" and child.tag == "string":
+        child.text = runtime
+        break
+else:
     el = ET.SubElement(root, "string")
-    el.set("name", name)
-    el.text = value
-upsert_string("defaultRuntime", runtime)
-upsert_string("currentProfile", profile)
+    el.set("name", "defaultRuntime")
+    el.text = runtime
 tree.write(path, xml_declaration=True, encoding="utf-8")
 PY
 
-  "${ADB[@]}" shell "run-as $POJAV_PKG sh -c 'cat > shared_prefs/$PREF_FILE'" < "$PREF_LOCAL" \
-    || die "Cannot write shared_prefs/$PREF_FILE"
-  ok "PojavLauncher prefs: defaultRuntime=$JRE_NAME, currentProfile=$NEW_PROFILE_UUID"
+  "${ADB[@]}" shell "run-as $POJAV_PKG sh -c 'cat > shared_prefs/$PREF_FILE'" \
+    < "$PREF_LOCAL" || die "Cannot write shared_prefs/$PREF_FILE"
+  ok "defaultRuntime=$JRE_NAME"
 fi
 
 # ---- 5. Push --------------------------------------------------------------
