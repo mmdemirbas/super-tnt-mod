@@ -172,6 +172,17 @@ else
   log "Fabric profile cached: $FABRIC_PROFILE_ID"
 fi
 
+# ---- 2c. JRE 21 — extracted from PojavLauncher APK on first run -----------
+# MC 1.21.x requires Java 21. PojavLauncher's bundled "Internal" runtime is
+# Java 8, but the APK ships JRE 21 binaries under assets/components/jre-21/.
+# We pull the APK once, extract the universal + arm64 tarballs, and re-pack
+# them as a single uncompressed .tar so the device-side toybox can extract
+# without xz support.
+JRE_NAME="JRE-21"
+JRE_CACHE_DIR="$CACHE_DIR/runtime"
+JRE_TAR_LOCAL="$JRE_CACHE_DIR/$JRE_NAME.tar"
+mkdir -p "$JRE_CACHE_DIR"
+
 # ---- 3. Device check ------------------------------------------------------
 log "Checking adb device"
 DEVICE_LINE="$("${ADB[@]}" devices | awk 'NR>1 && $2=="device"' | head -1 || true)"
@@ -242,8 +253,22 @@ fi
 
 log "Target mods dir: $MODS_DIR"
 
+# Parse the PojavLauncher package out of MINECRAFT_DIR so we can target
+# scoped storage and run-as for runtimes / shared_prefs. Empty for legacy
+# (/sdcard/games/PojavLauncher/...) installs and for --mods-dir overrides.
+POJAV_PKG=""
+if [[ -n "$MINECRAFT_DIR" ]]; then
+  POJAV_PKG="$(printf '%s\n' "$MINECRAFT_DIR" \
+    | sed -nE 's|^/sdcard/Android/data/([^/]+)/files/\.minecraft$|\1|p')"
+fi
+
+adb_runas_dir_exists() {
+  "${ADB[@]}" shell "run-as $POJAV_PKG sh -c '[ -d \"$1\" ] && echo yes'" 2>/dev/null \
+    | tr -d '\r' | grep -q yes
+}
+
 # ---- 4b. Install Fabric profile on device ---------------------------------
-# Skip when --mods-dir override is used (we don't know the .minecraft root).
+NEW_PROFILE_UUID=""
 if [[ -z "$MODS_DIR_OVERRIDE" && -n "$MINECRAFT_DIR" ]]; then
   log "Installing vanilla ${MC_VERSION} into device versions/"
   "${ADB[@]}" shell "mkdir -p '$MINECRAFT_DIR/versions/${MC_VERSION}'"
@@ -262,32 +287,138 @@ if [[ -z "$MODS_DIR_OVERRIDE" && -n "$MINECRAFT_DIR" ]]; then
   "${ADB[@]}" pull "$MINECRAFT_DIR/launcher_profiles.json" "$PROFILES_LOCAL" >/dev/null 2>&1 \
     || printf '{"profiles":{}}\n' > "$PROFILES_LOCAL"
 
-  python3 - "$PROFILES_LOCAL" "$FABRIC_PROFILE_ID" <<'PY'
-import json, os, sys, uuid, datetime
+  # PojavLauncher-friendly minimal profile shape: icon / lastVersionId /
+  # logConfigIsXML / name. Earlier runs of this script wrote an extended shape
+  # ({type, created, lastUsed, ...}) that PojavLauncher's UI did not surface in
+  # the version dropdown — we now coerce any matching entry back to the
+  # minimal form.
+  PYOUT="$(python3 - "$PROFILES_LOCAL" "$FABRIC_PROFILE_ID" <<'PY'
+import json, sys, uuid
 path, version_id = sys.argv[1], sys.argv[2]
 with open(path) as f:
     data = json.load(f)
 profiles = data.setdefault("profiles", {})
-existing = next((pid for pid, p in profiles.items()
-                 if p.get("lastVersionId") == version_id), None)
-if existing is None:
+pid = next((p for p, prof in profiles.items()
+            if prof.get("lastVersionId") == version_id), None)
+if pid is None:
     pid = str(uuid.uuid4())
-    profiles[pid] = {
-        "name": "Fabric " + version_id.replace("fabric-loader-", ""),
-        "type": "custom",
-        "lastVersionId": version_id,
-        "created": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S") + "Z",
-        "lastUsed": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S") + "Z",
-    }
-    print("added profile", pid, "->", version_id)
-else:
-    print("profile already present:", existing)
+profiles[pid] = {
+    "icon": "fabric",
+    "lastVersionId": version_id,
+    "logConfigIsXML": False,
+    "name": "Fabric " + version_id.replace("fabric-loader-", ""),
+}
 data["profiles"] = profiles
 with open(path, "w") as f:
     json.dump(data, f, indent=2)
+print("PROFILE_UUID=" + pid)
 PY
+)"
+  NEW_PROFILE_UUID="$(printf '%s\n' "$PYOUT" | sed -n 's/^PROFILE_UUID=//p')"
+  [[ -n "$NEW_PROFILE_UUID" ]] || die "Failed to allocate profile UUID"
+
   "${ADB[@]}" push "$PROFILES_LOCAL" "$MINECRAFT_DIR/launcher_profiles.json" >/dev/null
-  ok "Fabric ${MC_VERSION} profile installed. PojavLauncher will fetch libraries+assets on first launch."
+  ok "Fabric profile present: $NEW_PROFILE_UUID -> $FABRIC_PROFILE_ID"
+fi
+
+# ---- 4c. Install JRE 21 from PojavLauncher APK ----------------------------
+# MC 1.21.x needs Java 21. Pojav's "Internal" runtime is Java 8. The APK ships
+# a JRE 21 universal+arm64 tarball pair under assets/components/jre-21/. We
+# extract once locally, repack as plain .tar (toybox tar has no xz support),
+# and push under runtimes/JRE-21/ via run-as.
+if [[ -n "$POJAV_PKG" ]]; then
+  if [[ ! -f "$JRE_TAR_LOCAL" ]]; then
+    log "Pulling PojavLauncher APK to extract JRE-21 (~150MB, first run only)"
+    APK_DEVICE_PATH="$("${ADB[@]}" shell "pm path $POJAV_PKG" \
+                      | tr -d '\r' | sed -n 's/^package://p' | head -1)"
+    [[ -n "$APK_DEVICE_PATH" ]] || die "Cannot resolve APK path for $POJAV_PKG"
+    APK_LOCAL="$JRE_CACHE_DIR/pojav.apk"
+    "${ADB[@]}" pull "$APK_DEVICE_PATH" "$APK_LOCAL" >/dev/null
+
+    log "Extracting JRE-21 from APK"
+    EXTRACT_TMP="$JRE_CACHE_DIR/jre21-extract"
+    rm -rf "$EXTRACT_TMP"
+    mkdir -p "$EXTRACT_TMP/staged"
+    unzip -j -q "$APK_LOCAL" \
+      "assets/components/jre-21/bin-arm64.tar.xz" \
+      "assets/components/jre-21/universal.tar.xz" \
+      -d "$EXTRACT_TMP/" \
+      || die "APK has no assets/components/jre-21/ — unsupported PojavLauncher build?"
+    tar -xJf "$EXTRACT_TMP/universal.tar.xz" -C "$EXTRACT_TMP/staged/"
+    tar -xJf "$EXTRACT_TMP/bin-arm64.tar.xz" -C "$EXTRACT_TMP/staged/"
+    # COPYFILE_DISABLE=1 keeps macOS BSD tar from inserting AppleDouble
+    # ./._* metadata entries, which the device toybox tar would otherwise
+    # extract as unreadable junk.
+    COPYFILE_DISABLE=1 tar --no-xattrs -cf "$JRE_TAR_LOCAL.part" \
+      -C "$EXTRACT_TMP/staged" .
+    mv "$JRE_TAR_LOCAL.part" "$JRE_TAR_LOCAL"
+    rm -rf "$EXTRACT_TMP" "$APK_LOCAL"
+    ok "JRE-21 cached: $JRE_TAR_LOCAL"
+  else
+    log "JRE-21 cached: $JRE_TAR_LOCAL"
+  fi
+
+  if adb_runas_dir_exists "runtimes/$JRE_NAME" \
+     && "${ADB[@]}" shell "run-as $POJAV_PKG sh -c '[ -f runtimes/$JRE_NAME/bin/java ] && echo ok'" 2>/dev/null \
+        | tr -d '\r' | grep -q ok; then
+    log "$JRE_NAME already installed on device"
+  else
+    log "Installing $JRE_NAME on device (~26MB)"
+    # Stage under /data/local/tmp because /sdcard/Android/data/<pkg>/ files
+    # land with SELinux context media_rw_data_file, which the runas_app
+    # domain cannot read. /data/local/tmp is shell-writable and run-as can
+    # read it.
+    JRE_STAGE_REMOTE="/data/local/tmp/super-tnt-jre21.tar"
+    "${ADB[@]}" push "$JRE_TAR_LOCAL" "$JRE_STAGE_REMOTE" >/dev/null
+    "${ADB[@]}" shell "chmod 0644 $JRE_STAGE_REMOTE" || true
+    "${ADB[@]}" shell "run-as $POJAV_PKG sh -c '
+      mkdir -p runtimes/$JRE_NAME &&
+      cd runtimes/$JRE_NAME &&
+      tar -xf $JRE_STAGE_REMOTE &&
+      chmod 755 bin/* 2>/dev/null
+    '" || die "Failed to extract JRE-21 inside app sandbox"
+    "${ADB[@]}" shell "rm -f $JRE_STAGE_REMOTE" || true
+    ok "$JRE_NAME installed at /data/data/$POJAV_PKG/runtimes/$JRE_NAME"
+  fi
+fi
+
+# ---- 4d. Update PojavLauncher prefs (defaultRuntime + currentProfile) -----
+if [[ -n "$POJAV_PKG" && -n "$NEW_PROFILE_UUID" ]]; then
+  log "Force-stopping PojavLauncher to safely edit shared_prefs"
+  "${ADB[@]}" shell "am force-stop $POJAV_PKG" >/dev/null || true
+
+  PREF_FILE="${POJAV_PKG}_preferences.xml"
+  PREF_LOCAL="$CACHE_DIR/$PREF_FILE"
+
+  # Snapshot via exec-out (raw byte stream — no CRLF translation, unlike
+  # `adb shell` which can mangle XML on some hosts). The file lives inside
+  # the app sandbox; only run-as can read it. Staging via /data/local/tmp
+  # also fails because the runas_app SELinux domain cannot write there.
+  "${ADB[@]}" exec-out "run-as $POJAV_PKG cat shared_prefs/$PREF_FILE" > "$PREF_LOCAL" \
+    || die "Cannot snapshot shared_prefs/$PREF_FILE"
+  [[ -s "$PREF_LOCAL" ]] || die "Empty snapshot of shared_prefs/$PREF_FILE"
+
+  python3 - "$PREF_LOCAL" "$JRE_NAME" "$NEW_PROFILE_UUID" <<'PY'
+import sys, xml.etree.ElementTree as ET
+path, runtime, profile = sys.argv[1:4]
+tree = ET.parse(path)
+root = tree.getroot()
+def upsert_string(name, value):
+    for child in root:
+        if child.attrib.get("name") == name and child.tag == "string":
+            child.text = value
+            return
+    el = ET.SubElement(root, "string")
+    el.set("name", name)
+    el.text = value
+upsert_string("defaultRuntime", runtime)
+upsert_string("currentProfile", profile)
+tree.write(path, xml_declaration=True, encoding="utf-8")
+PY
+
+  "${ADB[@]}" shell "run-as $POJAV_PKG sh -c 'cat > shared_prefs/$PREF_FILE'" < "$PREF_LOCAL" \
+    || die "Cannot write shared_prefs/$PREF_FILE"
+  ok "PojavLauncher prefs: defaultRuntime=$JRE_NAME, currentProfile=$NEW_PROFILE_UUID"
 fi
 
 # ---- 5. Push --------------------------------------------------------------
@@ -298,9 +429,11 @@ if [[ -z "$MODS_DIR_OVERRIDE" ]]; then
     [[ -z "$path" ]] && continue
     [[ "$path/mods" == "$MODS_DIR" ]] && continue
     if adb_dir_exists "$path/mods"; then
+      # `ls` on a non-matching glob returns non-zero, which trips
+      # set -o pipefail in command substitution; swallow that.
       stray="$("${ADB[@]}" shell \
         "ls '$path/mods/${ARCHIVE_BASE}-'*.jar '$path/mods/fabric-api-'*.jar 2>/dev/null" \
-        | tr -d '\r')"
+        | tr -d '\r' || true)"
       if [[ -n "$stray" ]]; then
         warn "Removing stray jars from $path/mods (not the live install)"
         "${ADB[@]}" shell \
