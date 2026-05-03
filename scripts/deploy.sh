@@ -274,13 +274,21 @@ if [[ -z "$MODS_DIR_OVERRIDE" && -n "$MINECRAFT_DIR" ]]; then
   "${ADB[@]}" shell "mkdir -p '$MINECRAFT_DIR/versions/${MC_VERSION}'"
   "${ADB[@]}" push "$VANILLA_JSON" \
     "$MINECRAFT_DIR/versions/${MC_VERSION}/${MC_VERSION}.json" >/dev/null
-  "${ADB[@]}" push "$VANILLA_JAR" \
-    "$MINECRAFT_DIR/versions/${MC_VERSION}/${MC_VERSION}.jar" >/dev/null
+  # Don't push the vanilla client jar — Pojav fetches it itself on first
+  # launch using the URL in the JSON. A pushed jar in the parent dir
+  # combined with our jar-less Fabric child profile makes Pojav's UI
+  # silently drop the Fabric entry from the version dropdown (observed
+  # against the gladiolus debug build).
 
   log "Installing Fabric profile ${FABRIC_PROFILE_ID}"
   "${ADB[@]}" shell "mkdir -p '$MINECRAFT_DIR/versions/${FABRIC_PROFILE_ID}'"
   "${ADB[@]}" push "$FABRIC_JSON" \
     "$MINECRAFT_DIR/versions/${FABRIC_PROFILE_ID}/${FABRIC_PROFILE_ID}.json" >/dev/null
+  # Same defensive cleanup: remove any stray jar in either version folder
+  # left behind by an earlier run that pushed it.
+  "${ADB[@]}" shell "rm -f \
+    '$MINECRAFT_DIR/versions/${MC_VERSION}/${MC_VERSION}.jar' \
+    '$MINECRAFT_DIR/versions/${FABRIC_PROFILE_ID}/${FABRIC_PROFILE_ID}.jar'" || true
 
   log "Merging launcher_profiles.json (adding Fabric profile)"
   PROFILES_LOCAL="$CACHE_DIR/launcher_profiles.${MC_VERSION}.json"
@@ -292,15 +300,13 @@ if [[ -z "$MODS_DIR_OVERRIDE" && -n "$MINECRAFT_DIR" ]]; then
   # ({type, created, lastUsed, ...}) that PojavLauncher's UI did not surface in
   # the version dropdown — we now coerce any matching entry back to the
   # minimal form.
-  # javaDir pins this profile to JRE-21 (Pojav v3 honors per-profile
-  # javaDir from the Mojang launcher schema), so the launcher leaves the
-  # global defaultRuntime alone — older 1.7.10 / Java 8 profiles keep
-  # working. selectedProfile at the root makes the dropdown default to
-  # our Fabric profile so the user does not have to pick it manually.
-  JRE_DEVICE_PATH="/data/user/0/${POJAV_PKG}/runtimes/${JRE_NAME}"
-  PYOUT="$(python3 - "$PROFILES_LOCAL" "$FABRIC_PROFILE_ID" "$JRE_DEVICE_PATH" <<'PY'
+  # Match the exact field set Pojav writes for its built-in Fabric profile
+  # (icon / lastVersionId / logConfigIsXML / name) — extra fields trigger
+  # silent rejection and the profile never appears in the dropdown.
+  # selectedProfile at the root makes the launcher pre-select our profile.
+  PYOUT="$(python3 - "$PROFILES_LOCAL" "$FABRIC_PROFILE_ID" <<'PY'
 import json, sys, uuid
-path, version_id, java_dir = sys.argv[1:4]
+path, version_id = sys.argv[1], sys.argv[2]
 with open(path) as f:
     data = json.load(f)
 profiles = data.setdefault("profiles", {})
@@ -310,7 +316,6 @@ if pid is None:
     pid = str(uuid.uuid4())
 profiles[pid] = {
     "icon": "fabric",
-    "javaDir": java_dir,
     "lastVersionId": version_id,
     "logConfigIsXML": False,
     "name": "Fabric " + version_id.replace("fabric-loader-", ""),
@@ -390,46 +395,34 @@ if [[ -n "$POJAV_PKG" ]]; then
   fi
 fi
 
-# ---- 4d. Set shared_prefs.defaultRuntime = JRE-21 -------------------------
-# APK string analysis: Pojav v3 (gladiolus) reads selectedProfile from
-# launcher_profiles.json (good — set in 4b) but does NOT honor a per-profile
-# javaDir field. Runtime selection is therefore global, controlled by the
-# shared_prefs entry <string name="defaultRuntime">. We set it to JRE-21 so
-# the Fabric 1.21.x profile launches with Java 21.
-#
-# Trade-off: any pre-existing Java 8 profile (e.g. 1.7.10) will now fail
-# with bytecode-version errors. To run those, the user must temporarily
-# flip Settings → Java to "Internal" inside PojavLauncher.
+# ---- 4d. Repair shared_prefs.defaultRuntime if a previous run set it ------
+# An earlier version of this script wrote defaultRuntime=JRE-21 globally,
+# which crashed every Java 8 profile (e.g. 1.7.10) with "Error occurred
+# during initialization of VM". We now leave the launcher's own runtime
+# choice alone — the user picks the runtime per session via Settings → Java
+# inside PojavLauncher. If the prior bad value is still on disk, undo it.
 if [[ -n "$POJAV_PKG" ]]; then
-  log "Setting shared_prefs.defaultRuntime to $JRE_NAME"
-  "${ADB[@]}" shell "am force-stop $POJAV_PKG" >/dev/null || true
-
   PREF_FILE="${POJAV_PKG}_preferences.xml"
   PREF_LOCAL="$CACHE_DIR/$PREF_FILE"
-
-  "${ADB[@]}" exec-out "run-as $POJAV_PKG cat shared_prefs/$PREF_FILE" > "$PREF_LOCAL" \
-    || die "Cannot snapshot shared_prefs/$PREF_FILE"
-  [[ -s "$PREF_LOCAL" ]] || die "Empty snapshot of shared_prefs/$PREF_FILE"
-
-  python3 - "$PREF_LOCAL" "$JRE_NAME" <<'PY'
+  if "${ADB[@]}" exec-out "run-as $POJAV_PKG cat shared_prefs/$PREF_FILE" \
+       > "$PREF_LOCAL" 2>/dev/null && [[ -s "$PREF_LOCAL" ]]; then
+    if grep -q "<string name=\"defaultRuntime\">$JRE_NAME</string>" "$PREF_LOCAL"; then
+      log "Reverting shared_prefs.defaultRuntime to Internal (previous run set it to $JRE_NAME)"
+      "${ADB[@]}" shell "am force-stop $POJAV_PKG" >/dev/null || true
+      python3 - "$PREF_LOCAL" <<'PY'
 import sys, xml.etree.ElementTree as ET
-path, runtime = sys.argv[1:3]
+path = sys.argv[1]
 tree = ET.parse(path)
-root = tree.getroot()
-for child in root:
+for child in tree.getroot():
     if child.attrib.get("name") == "defaultRuntime" and child.tag == "string":
-        child.text = runtime
-        break
-else:
-    el = ET.SubElement(root, "string")
-    el.set("name", "defaultRuntime")
-    el.text = runtime
+        child.text = "Internal"
 tree.write(path, xml_declaration=True, encoding="utf-8")
 PY
-
-  "${ADB[@]}" shell "run-as $POJAV_PKG sh -c 'cat > shared_prefs/$PREF_FILE'" \
-    < "$PREF_LOCAL" || die "Cannot write shared_prefs/$PREF_FILE"
-  ok "defaultRuntime=$JRE_NAME"
+      "${ADB[@]}" shell "run-as $POJAV_PKG sh -c 'cat > shared_prefs/$PREF_FILE'" \
+        < "$PREF_LOCAL" || die "Cannot restore shared_prefs/$PREF_FILE"
+      ok "Reverted defaultRuntime=Internal — Java 8 profiles work again"
+    fi
+  fi
 fi
 
 # ---- 5. Push --------------------------------------------------------------
