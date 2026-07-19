@@ -1,0 +1,1714 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Çocuk Tablet Kurulumu — Komple Kılavuz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #fafaf9;
+  --surface: #ffffff;
+  --surface-2: #f8fafc;
+  --text: #0f172a;
+  --text-soft: #475569;
+  --text-faint: #94a3b8;
+  --border: #e2e8f0;
+  --border-soft: #f1f5f9;
+  --primary: #0f172a;
+  --accent: #6366f1;
+  --accent-soft: #e0e7ff;
+  --accent-strong: #4338ca;
+  --warning: #b45309;
+  --warning-soft: #fef3c7;
+  --danger: #b91c1c;
+  --danger-soft: #fee2e2;
+  --success: #15803d;
+  --success-soft: #dcfce7;
+  --on-accent: #ffffff;
+  --max-width: 880px;
+  --shadow-strong: rgba(15, 23, 42, 0.18);
+  --shadow-soft:   rgba(15, 23, 42, 0.06);
+  --ctrl-bg:        rgba(255, 255, 255, 0.85);
+  --ctrl-bg-hover:  rgba(255, 255, 255, 0.95);
+  --line-strong:    #cbd5e1;
+  --scrim:          rgba(15, 23, 42, 0.45);
+  /* Layer stack tokens (5-layer permission stack) */
+  --layer-fl:    #ec4899;  /* Family Link — pink */
+  --layer-dev:   #f59e0b;  /* Dev options — amber */
+  --layer-knox:  #ef4444;  /* Knox/Auto Blocker — red */
+  --layer-usb:   #10b981;  /* USB debug — green */
+  --layer-trust: #6366f1;  /* per-host trust — indigo */
+  /* Status tokens */
+  --node-ok:   #16a34a;
+  --node-bad:  #dc2626;
+  --node-warn: #d97706;
+  color-scheme: light;
+}
+[data-theme="dark"] {
+  --bg: #0b1220;
+  --surface: #111827;
+  --surface-2: #0f172a;
+  --text: #e2e8f0;
+  --text-soft: #cbd5e1;
+  --text-faint: #64748b;
+  --border: #334155;
+  --border-soft: #1e293b;
+  --primary: #e2e8f0;
+  --accent: #818cf8;
+  --accent-soft: #312e81;
+  --accent-strong: #a5b4fc;
+  --warning: #fbbf24;
+  --warning-soft: #422006;
+  --danger: #fca5a5;
+  --danger-soft: #450a0a;
+  --success: #86efac;
+  --success-soft: #052e16;
+  --on-accent: #0b1220;
+  --shadow-strong: rgba(0, 0, 0, 0.5);
+  --shadow-soft:   rgba(0, 0, 0, 0.25);
+  --ctrl-bg:        rgba(17, 24, 39, 0.78);
+  --ctrl-bg-hover:  rgba(30, 41, 59, 0.92);
+  --line-strong:    #475569;
+  --scrim:          rgba(0, 0, 0, 0.55);
+  --layer-fl:    #f472b6;
+  --layer-dev:   #fbbf24;
+  --layer-knox:  #f87171;
+  --layer-usb:   #34d399;
+  --layer-trust: #a5b4fc;
+  --node-ok:   #4ade80;
+  --node-bad:  #f87171;
+  --node-warn: #fbbf24;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0; padding: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 16px; line-height: 1.65;
+  letter-spacing: 0.005em;
+  color: var(--text); background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  transition: background-color .18s ease, color .18s ease;
+}
+code, pre, .mono {
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+}
+code:not(pre code) {
+  background: var(--surface-2); border: 1px solid var(--border-soft);
+  padding: 1px 6px; border-radius: 4px; font-size: 0.88em;
+  color: var(--accent-strong);
+}
+pre {
+  background: var(--surface-2); border: 1px solid var(--border);
+  padding: 14px 18px; border-radius: 8px; overflow-x: auto;
+  font-size: 12.5px; line-height: 1.55;
+  margin: 14px 0; position: relative;
+}
+pre code { background: none; border: none; padding: 0; color: var(--text); font-size: inherit; }
+
+.layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  max-width: 1320px;
+  margin: 0 auto;
+  transition: grid-template-columns 0.25s ease;
+}
+body.toc-collapsed .layout { grid-template-columns: 0 1fr; }
+main { padding: 56px 64px 120px 64px; max-width: var(--max-width); margin: 0 auto; }
+
+nav.toc {
+  position: sticky; top: 0; align-self: start;
+  max-height: 100vh; overflow-y: auto;
+  padding: 36px 24px;
+  border-right: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 13.5px; line-height: 1.5;
+  transition: padding 0.25s ease, border-color 0.25s ease;
+}
+body.toc-collapsed nav.toc { padding: 0; border-right: none; overflow: hidden; }
+.toc-header { margin: 0 0 14px 0; }
+.toc-header h2 {
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--text-faint); font-weight: 700; margin: 0;
+}
+nav.toc ol { list-style: none; margin: 0; padding: 0; }
+nav.toc > ol > li.toc-h2 { margin: 2px 0; }
+nav.toc .toc-head {
+  display: flex; align-items: baseline; gap: 6px;
+  padding: 5px 4px; cursor: pointer; user-select: none; border-radius: 4px;
+}
+nav.toc .toc-head:hover { background: var(--surface-2); }
+nav.toc .toc-head .chevron {
+  font-size: 9px; color: var(--text-faint);
+  transition: transform 0.2s; width: 10px; flex-shrink: 0; text-align: center;
+}
+nav.toc .toc-head .chevron.hidden { visibility: hidden; }
+nav.toc li.expanded > .toc-head .chevron { transform: rotate(90deg); }
+nav.toc .toc-head .num {
+  color: var(--text-faint); font-variant-numeric: tabular-nums;
+  font-weight: 600; flex-shrink: 0; min-width: 18px;
+}
+nav.toc a { color: var(--text); text-decoration: none; border-bottom: 1px solid transparent; flex: 1; }
+nav.toc .toc-head a:hover { color: var(--accent); }
+nav.toc .toc-h2.active > .toc-head > a,
+nav.toc .toc-h2.active > .toc-head > .num { color: var(--accent); font-weight: 700; }
+nav.toc ol.sub {
+  display: none; padding-left: 26px; margin: 2px 0 6px 12px;
+  border-left: 1px solid var(--border-soft);
+}
+nav.toc li.expanded > ol.sub { display: block; }
+nav.toc ol.sub li { margin: 0; }
+nav.toc ol.sub a {
+  color: var(--text-soft); font-size: 12.5px;
+  display: block; padding: 4px 8px;
+  border-left: 2px solid transparent; margin-left: -10px;
+  line-height: 1.4;
+}
+nav.toc ol.sub a:hover { color: var(--accent); }
+nav.toc ol.sub a.active {
+  color: var(--accent); border-left-color: var(--accent); font-weight: 600;
+}
+
+.ctrl-btn {
+  position: fixed; z-index: 200;
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  background: var(--ctrl-bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  display: inline-flex; align-items: center; justify-content: center;
+  cursor: pointer; padding: 0; font: inherit;
+  box-shadow: 0 6px 18px var(--shadow-strong), 0 0 0 1px var(--shadow-soft);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  backdrop-filter: blur(12px) saturate(140%);
+  isolation: isolate;
+  transition: background .18s ease, border-color .18s ease, box-shadow .18s ease, transform .12s ease, opacity .2s ease;
+}
+.ctrl-btn:hover { background: var(--ctrl-bg-hover); border-color: var(--line-strong); }
+.ctrl-btn:active { transform: scale(0.96); }
+.ctrl-btn svg { width: 20px; height: 20px; display: block; }
+.toc-toggle { top: 16px; left: 16px; }
+.theme-toggle { top: 16px; right: 16px; }
+.back-to-top { bottom: 18px; right: 18px; opacity: 0; pointer-events: none; }
+.back-to-top.visible { opacity: 1; pointer-events: auto; }
+.theme-toggle .icon-sun, .theme-toggle .icon-moon { display: none; }
+[data-theme="dark"] .theme-toggle .icon-sun { display: block; }
+:root:not([data-theme="dark"]) .theme-toggle .icon-moon { display: block; }
+
+.progress-bar {
+  position: fixed; top: 0; left: 0; height: 3px; width: 0;
+  background: var(--accent); z-index: 200;
+  transition: width 0.1s linear;
+}
+.skip-link {
+  position: absolute; left: -9999px; top: auto;
+  background: var(--primary); color: var(--bg);
+  padding: 10px 16px; border-radius: 4px;
+  font-size: 14px; font-weight: 600;
+  text-decoration: none; z-index: 1000;
+}
+.skip-link:focus { left: 16px; top: 16px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+button:focus-visible, a:focus-visible { outline-offset: 3px; }
+
+@keyframes flash-highlight {
+  0%   { background-color: var(--accent-soft); }
+  100% { background-color: transparent; }
+}
+:target { animation: flash-highlight 1.5s ease-out; }
+.permalink {
+  opacity: 0; margin-left: 10px;
+  color: var(--text-faint); text-decoration: none;
+  font-size: 0.7em; font-weight: 400;
+  transition: opacity 0.15s, color 0.15s;
+}
+h2:hover .permalink, h3:hover .permalink, .permalink:focus-visible { opacity: 1; }
+.permalink:hover { color: var(--accent); }
+
+.copy-btn {
+  position: absolute; top: 8px; right: 8px;
+  background: var(--surface); color: var(--text-soft);
+  border: 1px solid var(--border); border-radius: 4px;
+  padding: 4px 10px; font-size: 11px; font-weight: 600;
+  cursor: pointer; opacity: 0;
+  transition: opacity 0.15s, color 0.15s, border-color 0.15s;
+  font-family: inherit;
+}
+pre:hover .copy-btn, .copy-btn:focus-visible { opacity: 1; }
+.copy-btn:hover { color: var(--accent); border-color: var(--accent); }
+.copy-btn.copied { color: var(--success); border-color: var(--success); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+header.cover {
+  border-bottom: 3px solid var(--primary);
+  padding-bottom: 36px; margin-bottom: 36px;
+  position: relative; overflow: hidden;
+}
+header.cover::before {
+  content: ''; position: absolute;
+  width: 600px; height: 600px;
+  top: -300px; right: -200px;
+  background: radial-gradient(circle, var(--accent-soft) 0%, transparent 70%);
+  pointer-events: none; z-index: 0;
+}
+header.cover > * { position: relative; z-index: 1; }
+header.cover .eyebrow {
+  font-size: 12px; text-transform: uppercase; letter-spacing: 0.2em;
+  color: var(--accent); font-weight: 700; margin-bottom: 12px;
+}
+header.cover h1 {
+  font-size: 44px; line-height: 1.08; margin: 0 0 16px 0;
+  color: var(--primary); font-weight: 800; letter-spacing: -0.025em;
+}
+header.cover .subtitle {
+  font-size: 18px; color: var(--text-soft); margin: 0;
+  font-weight: 400; line-height: 1.6;
+}
+header.cover .meta { margin-top: 22px; font-size: 13px; color: var(--text-faint); }
+
+h2 {
+  font-size: 28px; color: var(--primary);
+  margin: 64px 0 8px 0; padding-top: 16px;
+  font-weight: 800; letter-spacing: -0.015em;
+}
+h2 .num {
+  display: inline-block; font-size: 14px;
+  background: var(--accent); color: var(--on-accent);
+  padding: 2px 10px; border-radius: 12px; vertical-align: middle;
+  margin-right: 10px; letter-spacing: 0.05em; font-weight: 700;
+  position: relative; top: -4px;
+}
+.section-lead { font-size: 17px; color: var(--text-soft); margin: 0 0 28px 0; line-height: 1.6; }
+h3 { font-size: 21px; color: var(--text); margin: 36px 0 12px 0; font-weight: 700; letter-spacing: -0.01em; }
+h4 {
+  font-size: 14px; color: var(--text-soft);
+  margin: 22px 0 10px 0; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+p { margin: 0 0 18px 0; }
+p.lead { font-size: 18px; line-height: 1.65; color: var(--text); }
+ul, ol { padding-left: 22px; margin: 0 0 18px 0; }
+li { margin: 8px 0; }
+strong { color: var(--text); font-weight: 700; }
+em { color: var(--text-soft); font-style: italic; }
+
+.tldr {
+  margin: 0 0 40px 0; padding: 28px 32px;
+  background: linear-gradient(135deg, var(--accent-soft) 0%, var(--surface-2) 100%);
+  border: 1px solid var(--border); border-radius: 12px;
+}
+.tldr .tldr-label {
+  font-size: 11px; font-weight: 800; letter-spacing: 0.15em;
+  text-transform: uppercase; color: var(--accent-strong);
+  margin-bottom: 12px; display: inline-block;
+  padding: 4px 10px; background: var(--surface); border-radius: 12px;
+}
+.tldr h2 { margin: 0 0 16px 0; border: none; padding-top: 0; font-size: 22px; }
+.tldr .one-line { font-size: 17px; line-height: 1.55; font-weight: 600; color: var(--primary); margin: 0 0 16px 0; }
+.tldr ul { margin-bottom: 0; }
+.tldr li { font-size: 15.5px; }
+
+.callout {
+  margin: 22px 0; padding: 18px 22px; border-radius: 10px;
+  border-left: 5px solid var(--accent); background: var(--accent-soft);
+}
+.callout.warning { border-left-color: var(--warning); background: var(--warning-soft); }
+.callout.danger  { border-left-color: var(--danger);  background: var(--danger-soft); }
+.callout.success { border-left-color: var(--success); background: var(--success-soft); }
+.callout.neutral { border-left-color: var(--text-soft); background: var(--surface-2); }
+.callout h4 { margin: 0 0 8px 0; text-transform: none; letter-spacing: 0; font-size: 16px; color: var(--accent-strong); }
+.callout.warning h4 { color: var(--warning); }
+.callout.danger h4 { color: var(--danger); }
+.callout.success h4 { color: var(--success); }
+.callout.neutral h4 { color: var(--text); }
+.callout p:last-child, .callout ul:last-child { margin-bottom: 0; }
+
+table { width: 100%; border-collapse: collapse; margin: 18px 0; font-size: 14.5px; line-height: 1.5; }
+table th {
+  text-align: left; background: var(--surface-2);
+  padding: 12px 14px; border-bottom: 2px solid var(--border);
+  font-weight: 700; color: var(--text); font-size: 13px;
+}
+table td { padding: 12px 14px; border-bottom: 1px solid var(--border-soft); vertical-align: top; }
+table tr:hover td { background: var(--surface-2); }
+table.compact td, table.compact th { padding: 8px 10px; font-size: 13.5px; }
+
+.pill {
+  display: inline-block; padding: 3px 10px; border-radius: 14px;
+  font-size: 12px; font-weight: 700; margin-right: 4px; white-space: nowrap;
+}
+.pill.ok    { background: var(--success-soft); color: var(--success); }
+.pill.warn  { background: var(--warning-soft); color: var(--warning); }
+.pill.fail  { background: var(--danger-soft);  color: var(--danger); }
+.pill.info  { background: var(--accent-soft);  color: var(--accent-strong); }
+.pill.muted { background: var(--border-soft);  color: var(--text-soft); }
+
+.kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 24px 0; }
+.kpi {
+  text-align: center; padding: 22px 14px;
+  background: var(--surface); border-radius: 10px; border: 1px solid var(--border);
+}
+.kpi .num { font-size: 30px; font-weight: 800; color: var(--accent); line-height: 1.1; letter-spacing: -0.02em; }
+.kpi .label { font-size: 12.5px; color: var(--text-soft); margin-top: 6px; line-height: 1.4; }
+
+.compare-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; margin: 24px 0; }
+.compare-card {
+  padding: 22px; border-radius: 10px;
+  border: 1px solid var(--border); background: var(--surface);
+}
+.compare-card.bad  { border-top: 4px solid var(--danger); }
+.compare-card.good { border-top: 4px solid var(--success); }
+.compare-card.neutral { border-top: 4px solid var(--accent); }
+.compare-card h4 { margin: 0 0 12px 0; text-transform: none; letter-spacing: 0; font-size: 16px; color: var(--text); }
+.compare-card .price { font-size: 22px; font-weight: 800; color: var(--accent); margin: 4px 0 12px 0; }
+
+details.card {
+  margin: 14px 0; padding: 16px 20px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; border-left: 4px solid var(--accent);
+}
+details.card[open] { box-shadow: 0 4px 16px rgba(0,0,0,0.04); }
+details.card summary { cursor: pointer; font-weight: 600; list-style: none; position: relative; padding-right: 28px; color: var(--text); }
+details.card summary::after { content: "▾"; position: absolute; right: 4px; top: 2px; color: var(--text-faint); transition: transform 0.2s; }
+details.card[open] summary::after { transform: rotate(180deg); }
+details.card summary::-webkit-details-marker { display: none; }
+details.card .body { margin-top: 12px; font-size: 14.5px; line-height: 1.6; }
+
+/* Numbered cards */
+.num-cards { display: grid; gap: 14px; margin: 22px 0; grid-template-columns: 1fr; }
+.num-card {
+  padding: 18px 22px 18px 18px; border-radius: 10px;
+  background: var(--surface); border: 1px solid var(--border);
+  display: grid; grid-template-columns: 36px 1fr; gap: 16px;
+}
+.num-card .badge {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--accent); color: var(--on-accent);
+  font-weight: 800; font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  line-height: 1; flex-shrink: 0;
+}
+.num-card.warn .badge { background: var(--warning); }
+.num-card.danger .badge { background: var(--danger); }
+.num-card .title-row {
+  display: flex; align-items: baseline; flex-wrap: wrap;
+  gap: 12px; margin-bottom: 4px;
+}
+.num-card .title-row h4 { margin: 0; font-size: 15px; text-transform: none; letter-spacing: 0; color: var(--text); }
+.num-card .meta { color: var(--text-faint); font-size: 12px; }
+.num-card .body { font-size: 14.5px; color: var(--text-soft); line-height: 1.55; }
+.num-card .body p { margin: 0 0 8px 0; }
+.num-card .body p:last-child { margin-bottom: 0; }
+
+/* Layer stack diagram */
+.layer-stack { margin: 24px 0; }
+.layer {
+  display: grid; grid-template-columns: 36px 180px 1fr;
+  gap: 16px; align-items: center;
+  padding: 14px 18px; margin-bottom: 6px;
+  border-radius: 8px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-left: 6px solid var(--layer-color, var(--accent));
+}
+.layer .ord {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--layer-color, var(--accent)); color: white;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 14px;
+}
+.layer .name { font-weight: 700; font-size: 15px; color: var(--text); }
+.layer .desc { font-size: 13.5px; color: var(--text-soft); line-height: 1.5; }
+.layer.l-fl    { --layer-color: var(--layer-fl); }
+.layer.l-dev   { --layer-color: var(--layer-dev); }
+.layer.l-knox  { --layer-color: var(--layer-knox); }
+.layer.l-usb   { --layer-color: var(--layer-usb); }
+.layer.l-trust { --layer-color: var(--layer-trust); }
+
+/* Step-flow chevrons */
+.step-flow {
+  display: flex; gap: 8px; margin: 24px 0;
+  overflow-x: auto; padding-bottom: 4px;
+  flex-wrap: wrap;
+}
+.step {
+  flex: 1; min-width: 140px;
+  padding: 14px 18px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px;
+  position: relative;
+}
+.step .step-num {
+  font-size: 11px; font-weight: 800; color: var(--text-faint);
+  text-transform: uppercase; letter-spacing: 0.1em;
+  margin-bottom: 4px;
+}
+.step .step-title { font-weight: 700; font-size: 14px; color: var(--text); margin-bottom: 4px; }
+.step .step-detail { font-size: 12.5px; color: var(--text-soft); line-height: 1.4; }
+.step.active { border-color: var(--accent); border-width: 2px; padding: 13px 17px; }
+.step.active .step-num { color: var(--accent); }
+
+/* Result strip */
+.result-strip {
+  margin: 24px 0; padding: 18px 22px;
+  background: var(--surface);
+  border: 1px solid var(--border); border-radius: 10px;
+  display: grid; grid-template-columns: auto 1fr; gap: 18px; align-items: center;
+}
+.result-strip .icon-circle {
+  width: 56px; height: 56px; border-radius: 50%;
+  background: var(--accent-soft); color: var(--accent-strong);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; font-weight: 800;
+}
+.result-strip.success .icon-circle { background: var(--success-soft); color: var(--success); }
+.result-strip.warning .icon-circle { background: var(--warning-soft); color: var(--warning); }
+.result-strip.danger  .icon-circle { background: var(--danger-soft); color: var(--danger); }
+.result-strip h4 { margin: 0 0 4px 0; text-transform: none; letter-spacing: 0; color: var(--text); font-size: 16px; }
+.result-strip p { margin: 0; color: var(--text-soft); font-size: 14px; line-height: 1.5; }
+
+/* Path table */
+.path-table td.path { font-family: 'JetBrains Mono', monospace; font-size: 12px; word-break: break-all; }
+.path-table td .label-pill { display: inline-block; padding: 2px 8px; background: var(--surface-2); color: var(--text-soft); border: 1px solid var(--border); border-radius: 10px; font-size: 11px; font-weight: 600; }
+
+footer {
+  margin-top: 80px; padding-top: 24px;
+  border-top: 1px solid var(--border);
+  font-size: 13px; color: var(--text-faint);
+}
+
+@media (max-width: 920px) {
+  .layout { display: block; }
+  body.toc-collapsed .layout { grid-template-columns: none; }
+  nav.toc {
+    position: fixed; top: 0; left: -300px;
+    width: 300px; height: 100vh; z-index: 99;
+    transition: left 0.25s ease;
+    box-shadow: 4px 0 24px rgba(0,0,0,0.1);
+    padding: 36px 24px;
+  }
+  body.toc-collapsed nav.toc { padding: 36px 24px; border-right: none; overflow-y: auto; }
+  nav.toc.open { left: 0; }
+  main { padding: 28px 22px 96px 22px; }
+  header.cover h1 { font-size: 30px; }
+  header.cover .subtitle { font-size: 16px; }
+  h2 { font-size: 24px; }
+  .kpi-grid { grid-template-columns: 1fr 1fr; }
+  .compare-grid { grid-template-columns: 1fr; }
+  .copy-btn { opacity: 1; }
+  .permalink { display: none; }
+  .layer { grid-template-columns: 32px 1fr; }
+  .layer .desc { grid-column: 1 / -1; }
+  .step-flow { flex-direction: column; }
+  .step { min-width: 0; }
+}
+
+@media print {
+  .toc-toggle, .theme-toggle, .back-to-top, .progress-bar, .skip-link, .copy-btn { display: none !important; }
+  nav.toc { display: none !important; }
+  .layout { display: block; }
+  body { background: white; color: black; font-size: 11pt; }
+  main { padding: 0; max-width: none; }
+  header.cover { page-break-after: avoid; }
+  h1, h2, h3, h4 { page-break-after: avoid; color: black; }
+  pre, table, .callout, .compare-grid, .kpi-grid, .compare-card, details.card, .tldr, .num-card, .layer { page-break-inside: avoid; }
+  a { color: black; text-decoration: underline; }
+  details { display: block; }
+  details > *:not(summary) { display: block !important; }
+}
+
+/* SVG diagram styles */
+svg.diagram { width: 100%; height: auto; max-width: 100%; margin: 18px 0; }
+svg.diagram .node-bg { fill: var(--surface); stroke: var(--border); stroke-width: 1.5; }
+svg.diagram .node-bg.ok { stroke: var(--node-ok); stroke-width: 2; }
+svg.diagram .node-bg.bad { stroke: var(--node-bad); stroke-width: 2; }
+svg.diagram .node-bg.warn { stroke: var(--node-warn); stroke-width: 2; }
+svg.diagram .node-bg.accent { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 2; }
+svg.diagram text { fill: var(--text); font-family: 'Inter', sans-serif; }
+svg.diagram .label { font-size: 12px; font-weight: 600; }
+svg.diagram .sub { fill: var(--text-soft); font-size: 10.5px; }
+svg.diagram .arrow { stroke: var(--text-soft); stroke-width: 1.5; fill: none; marker-end: url(#arrowhead); }
+svg.diagram .arrow.ok { stroke: var(--node-ok); }
+svg.diagram .arrow.bad { stroke: var(--node-bad); stroke-dasharray: 5 4; }
+svg.diagram .lane-label {
+  fill: var(--text-faint); font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.1em;
+}
+</style>
+<script>
+(function() {
+  try {
+    var saved = localStorage.getItem('theme');
+    var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    document.documentElement.setAttribute('data-theme', saved || (prefersDark ? 'dark' : 'light'));
+  } catch (e) {}
+})();
+document.addEventListener('DOMContentLoaded', function() {
+  try {
+    if (localStorage.getItem('tocCollapsed') === '1' && window.innerWidth > 920) {
+      document.body.classList.add('toc-collapsed');
+    }
+  } catch (e) {}
+});
+</script>
+</head>
+<body>
+
+<a class="skip-link" href="#main-content">İçeriğe atla</a>
+<div class="progress-bar" id="progress-bar"></div>
+
+<button class="ctrl-btn toc-toggle" onclick="toggleTOC()" aria-label="İçindekiler" title="İçindekiler">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/>
+  </svg>
+</button>
+<button class="ctrl-btn theme-toggle" onclick="toggleTheme()" aria-label="Tema değiştir" title="Tema">
+  <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+  </svg>
+  <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <circle cx="12" cy="12" r="4"/>
+    <line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/>
+    <line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/>
+    <line x1="4.5" y1="4.5" x2="6.6" y2="6.6"/><line x1="17.4" y1="17.4" x2="19.5" y2="19.5"/>
+    <line x1="4.5" y1="19.5" x2="6.6" y2="17.4"/><line x1="17.4" y1="6.6" x2="19.5" y2="4.5"/>
+  </svg>
+</button>
+<button class="ctrl-btn back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Başa dön" title="Başa dön">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
+  </svg>
+</button>
+
+<div class="layout">
+
+<nav class="toc">
+  <div class="toc-header"><h2>İçindekiler</h2></div>
+  <ol id="toc-list"></ol>
+</nav>
+
+<main id="main-content">
+
+<header class="cover">
+  <div class="eyebrow">Kişisel Referans · Çocuk Tabletleri</div>
+  <h1>Çocuk Tablet Kurulumu — Komple Kılavuz</h1>
+  <p class="subtitle">Samsung Galaxy Tab S10 FE × 2, Google Family Link gözetiminde Minecraft Bedrock kurulumu, dünya kurtarma ve çoklu oyuncu senaryosu. Çıkan engeller, çözümler, çözülemeyen Mojang bug'ı ve workaround'lar.</p>
+  <div class="meta">2026-05-15 · Kişisel referans · ~25 dk okuma</div>
+</header>
+
+<section id="tldr">
+  <div class="tldr">
+    <span class="tldr-label">Özet</span>
+    <h2>Bir bakışta durum</h2>
+    <p class="one-line">Minecraft her iki tablette <strong>çalışıyor ve oynanabilir</strong>; ancak eski tabletten kurtarılan dünya, Mojang'ın 1.26.21.1'deki tasarım bug'ı yüzünden import edilemiyor.</p>
+    <ul>
+      <li><strong>Çalışan</strong>: Family Link altında USB hata ayıklama, Minecraft kurulumu (Family Library), 5 dünyanın eski tabletten kurtarılması, crash sorunun çözümü (reinstall ile).</li>
+      <li><strong>Engelli</strong>: <code>.mcworld</code> dosyasının import'u — Mojang'ın MainActivity'si Trial paketinin ImportService'ine bind ediyor, Trial Full ile aynı anda kurulamıyor (provider conflict). Bekleme veya Realms.</li>
+      <li><strong>İleri adım</strong>: Çocuklar yeni dünya kurarak oynamaya başlayabilir. Beraber oynama için LAN multiplayer (ücretsiz) hemen kurulabilir; süreklilik istenirse Microsoft hesabı + Realms.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="overview">
+  <h2><span class="num">§1</span>Genel Bakış</h2>
+  <p class="section-lead">Donanım, hesaplar ve cihazlar arasındaki bağlantı — neyin neyi yönettiğine ilişkin topoloji.</p>
+
+  <svg class="diagram" viewBox="0 0 720 320" role="img" aria-label="Hesap ve cihaz topolojisi">
+    <defs>
+      <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+        <path d="M0,0 L0,6 L9,3 z" fill="currentColor"/>
+      </marker>
+    </defs>
+
+    <text class="lane-label" x="20" y="30">EBEVEYN</text>
+    <text class="lane-label" x="280" y="30">ÇOCUK CİHAZLARI</text>
+    <text class="lane-label" x="580" y="30">DEV / DEBUG</text>
+
+    <rect class="node-bg accent" x="20" y="50" width="160" height="80" rx="10"/>
+    <text class="label" x="100" y="78" text-anchor="middle">iPhone</text>
+    <text class="sub" x="100" y="95" text-anchor="middle">Family Link uygulaması</text>
+    <text class="sub" x="100" y="110" text-anchor="middle">Microsoft Family Safety</text>
+    <text class="sub" x="100" y="124" text-anchor="middle">(Apple App Store)</text>
+
+    <rect class="node-bg ok" x="260" y="50" width="200" height="80" rx="10"/>
+    <text class="label" x="360" y="78" text-anchor="middle">Galaxy Tab S10 FE #1</text>
+    <text class="sub" x="360" y="95" text-anchor="middle">Çocuk Google hesabı (gözetimli)</text>
+    <text class="sub" x="360" y="110" text-anchor="middle">Android 16, One UI 7</text>
+    <text class="sub" x="360" y="124" text-anchor="middle">Minecraft Bedrock 1.26.21.1</text>
+
+    <rect class="node-bg ok" x="260" y="160" width="200" height="80" rx="10"/>
+    <text class="label" x="360" y="188" text-anchor="middle">Galaxy Tab S10 FE #2</text>
+    <text class="sub" x="360" y="205" text-anchor="middle">Çocuk Google hesabı (gözetimli)</text>
+    <text class="sub" x="360" y="220" text-anchor="middle">Aynı yapılandırma</text>
+    <text class="sub" x="360" y="234" text-anchor="middle">+ Education Edition (yan)</text>
+
+    <rect class="node-bg" x="540" y="50" width="160" height="80" rx="10"/>
+    <text class="label" x="620" y="78" text-anchor="middle">Mac (macOS)</text>
+    <text class="sub" x="620" y="95" text-anchor="middle">adb (USB)</text>
+    <text class="sub" x="620" y="110" text-anchor="middle">apkeep, aapt2, apksigner</text>
+    <text class="sub" x="620" y="124" text-anchor="middle">android-platform-tools</text>
+
+    <rect class="node-bg warn" x="20" y="200" width="160" height="80" rx="10"/>
+    <text class="label" x="100" y="228" text-anchor="middle">Eski Huawei tablet</text>
+    <text class="sub" x="100" y="245" text-anchor="middle">DBR-W09, Android 12</text>
+    <text class="sub" x="100" y="260" text-anchor="middle">Minecraft bozuk</text>
+    <text class="sub" x="100" y="274" text-anchor="middle">(dünya kurtarma kaynağı)</text>
+
+    <path class="arrow" d="M 180 90 L 260 90"/>
+    <path class="arrow" d="M 180 100 L 260 195"/>
+    <path class="arrow" d="M 540 90 L 460 90"/>
+    <path class="arrow" d="M 540 100 L 460 195"/>
+    <path class="arrow" d="M 100 200 L 540 130"/>
+
+    <text class="sub" x="220" y="80" text-anchor="middle">Family Link gözetimi</text>
+    <text class="sub" x="500" y="80" text-anchor="middle">USB · adb</text>
+  </svg>
+
+  <div class="kpi-grid">
+    <div class="kpi"><div class="num">2</div><div class="label">Yeni tablet (Galaxy Tab S10 FE WiFi)</div></div>
+    <div class="kpi"><div class="num">2</div><div class="label">Çocuk Google hesabı (Family Link)</div></div>
+    <div class="kpi"><div class="num">5</div><div class="label">Engel katmanı (USB debug için)</div></div>
+  </div>
+
+  <div class="callout neutral">
+    <h4>Bu belgenin amacı</h4>
+    <p>Sıfırdan tablet kurulumunu ve karşılaşılan tüm engelleri tek yerde toplamak. İlerideki yeni cihaz kurulumlarında veya bir şey bozulduğunda referans olarak kullanılır. Hem rehber, hem hata ayıklama kayıt defteri.</p>
+  </div>
+</section>
+
+<section id="usb-debug">
+  <h2><span class="num">§2</span>Family Link + USB Hata Ayıklama</h2>
+  <p class="section-lead">Tablete adb ile bağlanmak için ardı ardına 5 katmanı geçmek gerekir. Sıralama önemli — biri eksik kalırsa sonraki katman devreye giremez.</p>
+
+  <h3>5 katmanlı engel yığını</h3>
+
+  <div class="layer-stack">
+    <div class="layer l-fl">
+      <div class="ord">1</div>
+      <div class="name">Family Link</div>
+      <div class="desc">Gözetim altında "Geliştirici seçenekleri" menüsü gizli. Ebeveyn iPhone'dan ön izin verir.</div>
+    </div>
+    <div class="layer l-dev">
+      <div class="ord">2</div>
+      <div class="name">Geliştirici Seçenekleri</div>
+      <div class="desc">Build numarasına 7 kez dokunarak menü açılır. Family Link izni olmadan adım yarıda kalır ("Ebeveyn izni gerekiyor").</div>
+    </div>
+    <div class="layer l-knox">
+      <div class="ord">3</div>
+      <div class="name">Samsung Auto Blocker</div>
+      <div class="desc">One UI 6+ güvenlik. USB komutlarını ayrıca blokluyor. USB debug toggle "Otomatik engelleyici tarafından engellendi" durumda kalır.</div>
+    </div>
+    <div class="layer l-usb">
+      <div class="ord">4</div>
+      <div class="name">USB Hata Ayıklama Toggle</div>
+      <div class="desc">Üst katmanlar açılınca toggle aktifleşir. Geliştirici Seçenekleri içindeki anahtarı aç.</div>
+    </div>
+    <div class="layer l-trust">
+      <div class="ord">5</div>
+      <div class="name">Per-Host Trust</div>
+      <div class="desc">Her bilgisayar için tabletten tek seferlik onay diyaloğu. "Bu bilgisayardan her zaman izin ver" işaretle.</div>
+    </div>
+  </div>
+
+  <h3>Sıralı kurulum adımları</h3>
+
+  <div class="step-flow">
+    <div class="step">
+      <div class="step-num">Adım 1</div>
+      <div class="step-title">iPhone Family Link</div>
+      <div class="step-detail">Çocuk → Kontroller → Cihazlar → Tab S10 FE → "Geliştirici seçenekleri" toggle AÇ</div>
+    </div>
+    <div class="step">
+      <div class="step-num">Adım 2</div>
+      <div class="step-title">Build numarası 7×</div>
+      <div class="step-detail">Tablet: Ayarlar → Tablet hakkında → Yazılım bilgileri → Build numarası, 7 kez dokun</div>
+    </div>
+    <div class="step">
+      <div class="step-num">Adım 3</div>
+      <div class="step-title">Auto Blocker</div>
+      <div class="step-detail">Ayarlar → Güvenlik ve gizlilik → Auto Blocker → "USB kablosu komutlarını engelle" KAPAT</div>
+    </div>
+    <div class="step">
+      <div class="step-num">Adım 4</div>
+      <div class="step-title">USB debug AÇ</div>
+      <div class="step-detail">Ayarlar → Geliştirici Seçenekleri → USB hata ayıklama AÇ</div>
+    </div>
+    <div class="step active">
+      <div class="step-num">Adım 5</div>
+      <div class="step-title">Mac'te trust</div>
+      <div class="step-detail">USB-C data kablo · ekran açık ve kilitsiz · diyalogda "her zaman izin ver"</div>
+    </div>
+  </div>
+
+  <h4>Doğrulama komutları</h4>
+  <pre><code># Bağlı cihazları listele (ayrıntılı)
+adb devices -l
+
+# Birden fazla tablet bağlıysa belirli birine komut
+adb -s &lt;SERIAL&gt; shell ls /sdcard/
+
+# Yeniden algıla (gerekirse)
+adb kill-server &amp;&amp; adb start-server &amp;&amp; adb devices</code></pre>
+
+  <div class="callout warning">
+    <h4>Per-host trust kayıp olursa</h4>
+    <p><code>adb devices</code> cihazı <code>unauthorized</code> gösterirse: tablette <strong>Geliştirici Seçenekleri → USB hata ayıklama yetkilerini iptal et</strong>, sonra kabloyu çıkar tak; diyalog yeniden çıkar. "Her zaman izin ver" işaretle.</p>
+  </div>
+
+  <h3>Sorun giderme</h3>
+
+  <table>
+    <thead>
+      <tr><th>Belirti</th><th>Sebep</th><th>Çözüm</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>adb devices</code> hiç listelemiyor</td>
+        <td>Charge-only kablo</td>
+        <td>Veri kablosu (telefon kutusundan veya Apple USB-C); kabloyu değiştir</td>
+      </tr>
+      <tr>
+        <td>USB toggle gri</td>
+        <td>Auto Blocker açık</td>
+        <td>Adım 3'ü uygula</td>
+      </tr>
+      <tr>
+        <td><code>unauthorized</code></td>
+        <td>Trust diyalogu kabul edilmedi</td>
+        <td>USB debug yetkilerini iptal et + kabloyu yeniden tak</td>
+      </tr>
+      <tr>
+        <td>Build number 7-tap "Ebeveyn izni gerekiyor"</td>
+        <td>Family Link toggle kapalı</td>
+        <td>Adım 1'i tekrarla, tableti yeniden başlat</td>
+      </tr>
+      <tr>
+        <td>Family Link'te "Geliştirici seçenekleri" yok</td>
+        <td>Uygulama eski</td>
+        <td>App Store'dan güncelle, veya families.google.com web</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <details class="card">
+    <summary>Ayrıntılı doküman: <code>docs/family-link-usb-debug-setup.md</code></summary>
+    <div class="body">
+      <p>Bu konunun tam ayrıntılı versiyonu projedeki ayrı bir markdown dosyasında. Adımların alternatif metinleri, daha derin sorun giderme ve kullanım sonrası bakım notları orada.</p>
+    </div>
+  </details>
+</section>
+
+<section id="minecraft-install">
+  <h2><span class="num">§3</span>Minecraft Kurulumu (Family Library)</h2>
+  <p class="section-lead">Çocuk hesapları doğrudan ücretli uygulama satın alamaz. Çözüm: ebeveyn satın alır, Family Library üzerinden çocuk hesabı bedava yükler.</p>
+
+  <svg class="diagram" viewBox="0 0 720 220" role="img" aria-label="Family Library akışı">
+    <defs>
+      <marker id="arrowhead2" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+        <path d="M0,0 L0,6 L9,3 z" fill="currentColor"/>
+      </marker>
+    </defs>
+
+    <rect class="node-bg accent" x="20" y="50" width="180" height="100" rx="10"/>
+    <text class="label" x="110" y="80" text-anchor="middle">Ebeveyn Google hesabı</text>
+    <text class="sub" x="110" y="100" text-anchor="middle">play.google.com'dan</text>
+    <text class="sub" x="110" y="115" text-anchor="middle">Minecraft satın al</text>
+    <text class="sub" x="110" y="132" text-anchor="middle">(~7-8 USD, tek seferlik)</text>
+
+    <rect class="node-bg ok" x="270" y="50" width="180" height="100" rx="10"/>
+    <text class="label" x="360" y="80" text-anchor="middle">Family Library</text>
+    <text class="sub" x="360" y="100" text-anchor="middle">play.google.com/store/</text>
+    <text class="sub" x="360" y="115" text-anchor="middle">account/family</text>
+    <text class="sub" x="360" y="132" text-anchor="middle">Minecraft → "Aile kütüphanesine ekle"</text>
+
+    <rect class="node-bg ok" x="520" y="50" width="180" height="100" rx="10"/>
+    <text class="label" x="610" y="80" text-anchor="middle">Çocuk hesabı (her tablet)</text>
+    <text class="sub" x="610" y="100" text-anchor="middle">Play Store → Aile</text>
+    <text class="sub" x="610" y="115" text-anchor="middle">→ Aile kütüphanesi</text>
+    <text class="sub" x="610" y="132" text-anchor="middle">→ Minecraft → Yükle (ücretsiz)</text>
+
+    <path class="arrow" d="M 200 100 L 270 100" marker-end="url(#arrowhead2)"/>
+    <path class="arrow" d="M 450 100 L 520 100" marker-end="url(#arrowhead2)"/>
+
+    <text class="sub" x="235" y="92" text-anchor="middle">paylaş</text>
+    <text class="sub" x="485" y="92" text-anchor="middle">indir</text>
+
+    <text class="sub" x="360" y="195" text-anchor="middle" style="font-style:italic;">Tek satın alma, iki tablet, ileride başka çocuk için de bedava</text>
+  </svg>
+
+  <h3>Family Library özellikleri</h3>
+
+  <table class="compact">
+    <thead><tr><th>Konu</th><th>Durum</th></tr></thead>
+    <tbody>
+      <tr><td>Uygunluk şartı</td><td>2 Temmuz 2016 sonrası satın alınan ücretli uygulamalar paylaşılabilir. Minecraft uygun.</td></tr>
+      <tr><td>Sahiplik</td><td>Ebeveyn hesabında kalır; çocuğa "yükleme erişimi" verilir.</td></tr>
+      <tr><td>Maksimum aile boyutu</td><td>6 kişi (1 ebeveyn + 5 üye).</td></tr>
+      <tr><td>İleride ek çocuk</td><td>Family group'a eklenirse otomatik aynı oyunlara erişir.</td></tr>
+      <tr><td>Geri çekme</td><td>Ebeveyn istediği zaman paylaşımı durdurabilir.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Onay akışı sorunları</h3>
+
+  <div class="callout warning">
+    <h4>Family Link bildirimleri iPhone'a gelmiyor olabilir</h4>
+    <p>Çocuk uygulama yüklemeye çalıştığında ebeveyn iPhone'a bildirim gönderilir, ama uygulama içi bildirim akışı bazen sessizce takılır. Geri kalan tüm onaylar iPhone'a değil <strong>tabletteki diyaloga ebeveyn parolasıyla onay</strong> ile çözülebilir.</p>
+  </div>
+
+  <ol>
+    <li><strong>Tabletten "Ebeveyne sor" diyaloğu çıkarsa</strong> → Devam → ebeveyn Google parolasını tablette doğrudan gir → onaylanır. iPhone bildirimi beklenmez.</li>
+    <li><strong>Diyalog hiç çıkmıyorsa</strong> → Family Link'te <strong>Kontroller → İçerik kısıtlamaları → Google Play → Yaş sınırı</strong>'nı kontrol et. Minecraft PEGI 7+. Yaş sınırı düşükse bloklanır.</li>
+    <li><strong>"Onay gerekiyor" ayarı</strong> → Family Link → Kontroller → Google Play → "Onay gerekiyor: Asla / Tüm içerik / Yalnızca ücretli". Family Library zaten ödenmiş olduğundan "Asla" çalışır.</li>
+  </ol>
+
+  <h3>Eğer Play Store install'da error 6004 görürsen</h3>
+
+  <p>Bu hata Trial yüklemesinde karşılaşıldı (bkz. <a href="#import-bug">§6</a>). Family Link policy'si bazı uygulamaları sessizce bloklar — özellikle Mojang'ın free Trial sürümünü. Sideload (adb install) bunu bypass eder.</p>
+</section>
+
+<section id="world-recovery">
+  <h2><span class="num">§4</span>Eski Tabletten Dünya Kurtarma</h2>
+  <p class="section-lead">Eski Huawei tablette Minecraft uygulaması bozuk ama dünya verileri sağlam. adb ile çekilip <code>.mcworld</code> paketine dönüştürüldü.</p>
+
+  <h3>Dünyaların yaşadığı yollar</h3>
+
+  <p>Android sürümü ve uygulama sürümüne göre Minecraft Bedrock dünyalarını farklı yerlere yazıyor. Hepsini taramak gerekti.</p>
+
+  <table class="path-table">
+    <thead>
+      <tr><th>Yol</th><th>Tip</th><th>Erişim</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="path">/sdcard/games/com.mojang/minecraftWorlds/</td>
+        <td><span class="label-pill">Legacy</span></td>
+        <td><span class="pill ok">adb pull</span></td>
+      </tr>
+      <tr>
+        <td class="path">/sdcard/Android/data/com.mojang.minecraftpe/files/games/com.mojang/minecraftWorlds/</td>
+        <td><span class="label-pill">Scoped (modern)</span></td>
+        <td><span class="pill warn">adb pull (perms)</span></td>
+      </tr>
+      <tr>
+        <td class="path">/sdcard/Android/data/net.kdt.pojavlaunch.debug/files/.minecraft/saves/</td>
+        <td><span class="label-pill">Pojav (Java)</span></td>
+        <td><span class="pill ok">adb pull</span></td>
+      </tr>
+      <tr>
+        <td class="path">/data/data/com.gbox.android/...</td>
+        <td><span class="label-pill">GBox sandbox</span></td>
+        <td><span class="pill fail">root-only</span></td>
+      </tr>
+      <tr>
+        <td class="path">/data/data/com.gspace.android/virtual/0/com.mojang.minecraftpe/</td>
+        <td><span class="label-pill">GSpace sandbox</span></td>
+        <td><span class="pill fail">root-only</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Tarama + çekme komutları</h3>
+
+  <pre><code># Eski tabletten Bedrock dünyasını çek (legacy yol)
+adb pull /sdcard/games/com.mojang/minecraftWorlds ~/Desktop/Dünyam-raw
+
+# Pojav (Java edition) dünyalarını çek
+adb pull /sdcard/Android/data/net.kdt.pojavlaunch.debug/files/.minecraft/saves \
+         ~/Desktop/pojav-java/
+
+# Tüm sistemde level.dat ara (kayıp dünya tarama)
+adb shell 'find /sdcard /storage/sdcard0 -name "level.dat" 2>/dev/null'</code></pre>
+
+  <h3>.mcworld paketleme (Bedrock için)</h3>
+
+  <p><code>.mcworld</code> dosyası aslında dünya klasörünün <strong>içeriğinin</strong> zip'idir. Klasörü değil, içeriğini zip'le.</p>
+
+  <pre><code>cd ~/Desktop/Dünyam-raw          # dünya klasörünün İÇİNE gir
+zip -r ../Dünyam.mcworld .       # içeriği zip'le, .mcworld uzantısı ver
+unzip -l ../Dünyam.mcworld | head # level.dat, db/, levelname.txt zip kökünde olmalı</code></pre>
+
+  <div class="callout neutral">
+    <h4>Java dünyaları için</h4>
+    <p>Java dünyası klasörünün kendisini zip'le (<code>zip -r World.zip "World Name/"</code>). Bedrock'a aktarmak için <a href="https://chunker.app">chunker.app</a> kullan — Mojang'ın resmi web aracı, .zip yükle, .mcworld indir.</p>
+  </div>
+
+  <h3>Sandbox uygulamalardaki dünyalar</h3>
+
+  <p>GBox ve GSpace gibi sanal Android ortamları, kendi private storage'ında uygulama verisi tutar. Bu yollar <code>/data/data/&lt;virtualizer&gt;/</code> altında ve <strong>root olmadan ulaşılamaz</strong>. Adb backup denemesi de Android 12+'de boş çıkıyor.</p>
+
+  <p>Tek root-suz yol: sandbox'ı tablette aç, içindeki Minecraft hâlâ açılıyorsa <strong>oyun içi "Dünyayı Dışa Aktar"</strong> kullan, çıkan <code>.mcworld</code>'ü Drive'a yükle.</p>
+
+  <div class="result-strip success">
+    <div class="icon-circle">✓</div>
+    <div>
+      <h4>Sonuç: 1 Bedrock + 4 Java dünyası kurtarıldı</h4>
+      <p>"Dünyam" Bedrock dünyası (1.5 MB) + "New World", "New World-", "New World--", "New World---" Java dünyaları (her biri 2.5–3.3 MB). GBox/GSpace içindekiler erişilemedi.</p>
+    </div>
+  </div>
+</section>
+
+<section id="crash-fix">
+  <h2><span class="num">§5</span>Minecraft Crash Sorunu (PAIRIP)</h2>
+  <p class="section-lead">Yeni tabletlerde Minecraft kuruldu ama kırmızı MOJANG ekranında çakılarak kapandı. Sebep: Google Play'in anti-tamper kütüphanesi <code>libpairipcore.so</code> integrity check'i fail ediyor.</p>
+
+  <h3>Crash imzası</h3>
+
+  <pre><code>F libc    : Fatal signal 11 (SIGSEGV), code 1 (SEGV_MAPERR),
+            fault addr 0xb30796835b00015b in tid 22459 (ang.minecraftpe)
+F DEBUG   : 1 total frames
+F DEBUG   :   #00 pc 0000000000039e5c
+            /data/app/.../com.mojang.minecraftpe-.../lib/arm64/libpairipcore.so</code></pre>
+
+  <h4>Disassembly noktası (ARM64, offset 0x39e5c)</h4>
+
+  <pre><code>39e58: cbz   x19, 0x43d98       ; if x19 == 0, jump
+39e5c: ldrsw x1, [x19]           ; ← CRASH: x19 = 0xb30796835b00015b (garbage)
+39e60: mov   w0, #0x39           ; syscall 57 (close)</code></pre>
+
+  <div class="callout neutral">
+    <h4>Bu kasıtlı bir abort</h4>
+    <p>PAIRIP integrity check fail edince x19 register'ını canonical olmayan garbage adrese set ediyor, sonra dereferans ediyor → SEGV. Klasik anti-tamper deseni: "tampering algıladım, intentional crash."</p>
+  </div>
+
+  <h3>Çözüm: uninstall + Play Store reinstall</h3>
+
+  <div class="compare-grid">
+    <div class="compare-card bad">
+      <h4>İşe YARAMAYAN</h4>
+      <ul>
+        <li><code>pm clear</code> (data temizleme)</li>
+        <li>Tableti yeniden başlatma</li>
+        <li>Play Store cache temizleme</li>
+      </ul>
+      <p style="font-size:13px; color:var(--text-soft); margin-top:10px;">Bunlar APK dosyalarını değiştirmiyor; bozuk hash devam ediyor.</p>
+    </div>
+    <div class="compare-card good">
+      <h4>İşe YARAYAN</h4>
+      <ul>
+        <li><code>adb uninstall com.mojang.minecraftpe</code></li>
+        <li>Play Store → Library → Minecraft → Yükle</li>
+        <li>Yeniden launch test</li>
+      </ul>
+      <p style="font-size:13px; color:var(--text-soft); margin-top:10px;">Tüm split APK'lar fresh hash'lerle yeniden iniyor; PAIRIP geçiyor.</p>
+    </div>
+  </div>
+
+  <h3>Sebep teorisi</h3>
+
+  <p>Family Library üzerinden child account'a paket dağıtımında <code>split_install_pack.apk</code> (815 MB Play Asset Delivery paketi) yanlış hash ile inmiş olmalı. PAIRIP paket içeriklerinin hash'lerini kontrol ediyor; uyumsuzluk → intentional crash. Reinstall taze paket çekmeyi tetikleyince düzeldi.</p>
+
+  <pre><code># Komut özeti
+adb -s &lt;TABLET&gt; uninstall com.mojang.minecraftpe
+# (kullanıcı tabletten Play Store → Minecraft → Yükle yapar)
+adb -s &lt;TABLET&gt; shell 'monkey -p com.mojang.minecraftpe -c android.intent.category.LAUNCHER 1'
+# Logcat takip:
+adb -s &lt;TABLET&gt; logcat -b crash -d | grep -E 'libpairipcore|SIGSEGV'
+# Boş çıkmalı = düzeldi</code></pre>
+</section>
+
+<section id="import-bug">
+  <h2><span class="num">§6</span>Dünya Import Bug (Mojang 1.26.21.1)</h2>
+  <p class="section-lead">Bu bölüm en uzun bölüm — saatlerce debug edilen, çözümü <strong>Mojang'ın yeni sürüm vermesini beklemekten</strong> başka olmayan kritik bug'ın tam analizi.</p>
+
+  <div class="callout danger">
+    <h4>Belirti</h4>
+    <p><code>.mcworld</code> dosyasını import etme yolu çalışmıyor: file picker'da Minecraft görünmez (veya seçilse hiçbir şey olmaz), oyun içi import butonu yok, adb intent fırlatma da sessizce başarısız oluyor.</p>
+  </div>
+
+  <h3>Mimari diyagram</h3>
+
+  <svg class="diagram" viewBox="0 0 720 360" role="img" aria-label="Minecraft import architecture bug">
+    <defs>
+      <marker id="ah-ok" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+        <path d="M0,0 L0,6 L9,3 z" fill="var(--node-ok)"/>
+      </marker>
+      <marker id="ah-bad" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+        <path d="M0,0 L0,6 L9,3 z" fill="var(--node-bad)"/>
+      </marker>
+    </defs>
+
+    <rect class="node-bg accent" x="20" y="40" width="180" height="80" rx="10"/>
+    <text class="label" x="110" y="68" text-anchor="middle">Files app / intent</text>
+    <text class="sub" x="110" y="86" text-anchor="middle">VIEW + content://...</text>
+    <text class="sub" x="110" y="100" text-anchor="middle">veya file:///dunyam.mcworld</text>
+
+    <rect class="node-bg ok" x="270" y="40" width="180" height="80" rx="10"/>
+    <text class="label" x="360" y="68" text-anchor="middle">Full Minecraft</text>
+    <text class="sub" x="360" y="86" text-anchor="middle">com.mojang.minecraftpe</text>
+    <text class="sub" x="360" y="100" text-anchor="middle">MainActivity</text>
+
+    <rect class="node-bg bad" x="520" y="40" width="180" height="80" rx="10"/>
+    <text class="label" x="610" y="68" text-anchor="middle">Trial paketi</text>
+    <text class="sub" x="610" y="86" text-anchor="middle">com.mojang.minecrafttrialpe</text>
+    <text class="sub" x="610" y="100" text-anchor="middle" style="font-weight:700; fill:var(--node-bad);">YÜKLENEMİYOR</text>
+
+    <path class="arrow" d="M 200 80 L 270 80" stroke="var(--node-ok)" marker-end="url(#ah-ok)"/>
+    <path class="arrow" d="M 450 80 L 520 80" stroke="var(--node-bad)" stroke-dasharray="6 4" marker-end="url(#ah-bad)"/>
+
+    <text class="sub" x="235" y="68" text-anchor="middle" style="fill:var(--node-ok);">VIEW intent</text>
+    <text class="sub" x="485" y="68" text-anchor="middle" style="fill:var(--node-bad);">bind FAIL</text>
+
+    <rect class="node-bg" x="270" y="180" width="180" height="80" rx="10"/>
+    <text class="label" x="360" y="208" text-anchor="middle">ImportService (kendi)</text>
+    <text class="sub" x="360" y="226" text-anchor="middle">com.mojang.minecraftpe.</text>
+    <text class="sub" x="360" y="240" text-anchor="middle">ImportService</text>
+
+    <rect class="node-bg bad" x="520" y="180" width="180" height="80" rx="10"/>
+    <text class="label" x="610" y="208" text-anchor="middle">com.mojang.minecraftpe.</text>
+    <text class="label" x="610" y="226" text-anchor="middle">fileprovider authority</text>
+    <text class="sub" x="610" y="244" text-anchor="middle" style="fill:var(--node-bad);">ÇAKIŞIYOR (her ikisinde)</text>
+
+    <path d="M 360 120 L 360 180" stroke="var(--text-faint)" stroke-width="1" stroke-dasharray="3 3" fill="none"/>
+    <text class="sub" x="370" y="155">var ama kullanılmıyor</text>
+
+    <text class="lane-label" x="20" y="300">RUNTIME GERÇEĞİ</text>
+    <text class="sub" x="20" y="318">MainActivity classes2.dex'te hardcoded olarak Trial'a bind etmeye çalışıyor.</text>
+    <text class="sub" x="20" y="332">Trial yüklü olamaz (provider conflict). Bind hep fail → import hep fail.</text>
+    <text class="sub" x="20" y="346">Mojang'ın 1.26.21.1'deki tasarım bug'ı. Workaround yok.</text>
+  </svg>
+
+  <h3>Kanıt zinciri</h3>
+
+  <div class="num-cards">
+    <div class="num-card">
+      <div class="badge">1</div>
+      <div>
+        <div class="title-row"><h4>Hardcoded Trial referansı</h4><span class="meta">classes2.dex strings</span></div>
+        <div class="body">
+          <p>Full Minecraft APK'sının dex bytecode'unda <code>com.mojang.minecrafttrialpe</code> string literal olarak bulunuyor — random değil, intentional code path.</p>
+          <pre style="margin:8px 0 0 0;"><code>$ strings classes2.dex | grep -i trial
+ImportService.java
+Lcom/mojang/minecraftpe/ImportService;
+com.mojang.minecrafttrialpe</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="num-card">
+      <div class="badge">2</div>
+      <div>
+        <div class="title-row"><h4>Trial install fail: provider conflict</h4><span class="meta">adb install-multiple</span></div>
+        <div class="body">
+          <p>Trial APK sideload denendiğinde:</p>
+          <pre style="margin:8px 0 0 0;"><code>Failure [INSTALL_FAILED_CONFLICTING_PROVIDER:
+  Can't install because provider name
+  com.mojang.minecraftpe.fileprovider
+  (in package com.mojang.minecrafttrialpe)
+  is already used by com.mojang.minecraftpe]</code></pre>
+          <p style="margin-top:8px;">Hem Full hem Trial aynı <code>com.mojang.minecraftpe.fileprovider</code> authority'sini declare ediyor. Android'de provider authority globally unique — ikisi aynı anda yüklü olamaz.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="num-card">
+      <div class="badge">3</div>
+      <div>
+        <div class="title-row"><h4>Runtime log: bind hep fail</h4><span class="meta">logcat</span></div>
+        <div class="body">
+          <p>Her import denemesinde aynı uyarı:</p>
+          <pre style="margin:8px 0 0 0;"><code>W ActivityManager: Unable to start service Intent {
+    cmp=com.mojang.minecrafttrialpe/com.mojang.minecraftpe.ImportService
+  } not found</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Denenen ve başarısız çözümler</h3>
+
+  <table>
+    <thead>
+      <tr><th>Yöntem</th><th>Sonuç</th><th>Sebep</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Trial sideload (adb install)</td>
+        <td><span class="pill fail">FAIL</span></td>
+        <td>INSTALL_FAILED_CONFLICTING_PROVIDER</td>
+      </tr>
+      <tr>
+        <td>Trial Play Store install</td>
+        <td><span class="pill fail">FAIL</span></td>
+        <td>error 6004 (Family Link policy)</td>
+      </tr>
+      <tr>
+        <td><code>am start</code> + <code>file://</code> URI</td>
+        <td><span class="pill fail">FAIL</span></td>
+        <td>MainActivity yine Trial'a bind eder</td>
+      </tr>
+      <tr>
+        <td><code>am start</code> + MediaStore content URI</td>
+        <td><span class="pill fail">FAIL</span></td>
+        <td>Aynı sebep + URI permission grant tutarsızlığı</td>
+      </tr>
+      <tr>
+        <td>SAF DocumentsProvider URI</td>
+        <td><span class="pill fail">FAIL</span></td>
+        <td>SecurityException — adb shell URI grant authority'sine sahip değil</td>
+      </tr>
+      <tr>
+        <td><code>appops set LEGACY_STORAGE allow</code></td>
+        <td><span class="pill fail">FAIL</span></td>
+        <td>Per-app, dosya erişimi açıldı ama Trial bind sorunu hâlâ orada</td>
+      </tr>
+      <tr>
+        <td><code>am startservice</code> doğrudan ImportService'e</td>
+        <td><span class="pill fail">FAIL</span></td>
+        <td>Background start not allowed; service Messenger pattern, bind gerek</td>
+      </tr>
+      <tr>
+        <td>MC data dir'ine direkt push (mkdir + adb push)</td>
+        <td><span class="pill fail">FAIL</span></td>
+        <td>Samsung scoped storage SELinux, shell user yazamaz</td>
+      </tr>
+      <tr>
+        <td>Eski MC sürüm sideload (1.26.20.4)</td>
+        <td><span class="pill fail">FAIL</span></td>
+        <td>APKMirror/APKPure ücretli paket servis etmiyor</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Mevcut workaround seçenekleri</h3>
+
+  <div class="compare-grid">
+    <div class="compare-card neutral">
+      <h4>Mojang patch beklemek</h4>
+      <div class="price">Bedava</div>
+      <ul>
+        <li>1.26.21.2 veya 1.26.22 hotfix gelene kadar</li>
+        <li>Süre belirsiz (gün/hafta)</li>
+        <li>Geldiğinde dosya hâlâ <code>/sdcard/Download/</code>'da hazır</li>
+      </ul>
+    </div>
+    <div class="compare-card good">
+      <h4>Realms aboneliği</h4>
+      <div class="price">~$4/ay</div>
+      <ul>
+        <li>Bulut dünya, import sorunu yok</li>
+        <li>2-10 oyuncu davet</li>
+        <li>Tüm cihazlarda otomatik sync</li>
+        <li>Microsoft hesabı gerekiyor</li>
+      </ul>
+    </div>
+  </div>
+
+  <details class="card">
+    <summary>Detay: neden LEGACY_STORAGE allow yetmedi</summary>
+    <div class="body">
+      <p>Android 13+'da <code>READ_EXTERNAL_STORAGE</code> sadece media dosyalarına erişim verir (image/audio/video). Generic <code>.mcworld</code> dosyası media değil. <code>MANAGE_EXTERNAL_STORAGE</code> "all files access" verir ama Mojang manifest'te declare etmemiş — <code>pm grant</code> "is not a changeable permission type" diyor.</p>
+      <p><code>appops set com.mojang.minecraftpe LEGACY_STORAGE allow</code> Android 11 öncesi davranışı geri getirir → MC <code>file://</code> URI'leri okuyabilir hale gelir → <code>MediaProvider denied</code> hatası gider. Bu kısım <strong>çalıştı</strong>.</p>
+      <p>Ama MainActivity'nin import code path'i, dosya erişimi olsa bile, parse'ı Trial'a delege ediyor. Trial yok → ImportService not found → import gerçekleşmiyor. LEGACY_STORAGE çözümün yarısını çözdü ama diğer yarısı (Trial dependency) çözülemez.</p>
+    </div>
+  </details>
+
+  <details class="card">
+    <summary>Detay: neden SAF content URI fail etti</summary>
+    <div class="body">
+      <p>SAF (Storage Access Framework) URI'leri sadece kullanıcı file picker üzerinden açıkça verdiği zaman grant edilir. Adb shell <code>--grant-read-uri-permission</code> bayrağı gönderse bile, shell user (UID 2000) DocumentsProvider'ın grant authority'sine sahip değil:</p>
+      <pre><code>SecurityException: UID 2000 does not have permission to
+  content://com.android.externalstorage.documents/document/...</code></pre>
+      <p>MediaStore URI'leri (<code>content://media/external/downloads/&lt;id&gt;</code>) için shell grant verebiliyor (<code>READ_EXTERNAL_STORAGE</code> üzerinden). Ama bu URI'lerin path'i numeric ID, <code>.mcworld</code> uzantısı yok → MC'nin pathPattern intent filter'ı match etmez → MC dosyayı tanımaz.</p>
+    </div>
+  </details>
+
+  <div class="callout neutral">
+    <h4>Şu an dosya nerede</h4>
+    <p>Her iki tablette <code>/sdcard/Download/dunyam.mcworld</code> (1.5 MB). Mojang patch verince ya intent ile ya da Files app picker'ı ile import edilebilir hale gelecek.</p>
+  </div>
+</section>
+
+<section id="multiplayer">
+  <h2><span class="num">§7</span>Birlikte Oynama (Multiplayer)</h2>
+  <p class="section-lead">İki çocuğun aynı dünyada oynaması için iki yol — biri ücretsiz ve anlık, diğeri abonelik ama daha esnek.</p>
+
+  <div class="compare-grid">
+    <div class="compare-card good">
+      <h4>LAN (aynı Wi-Fi)</h4>
+      <div class="price">Bedava</div>
+      <ul>
+        <li><strong>Kurulum</strong>: 30 saniye</li>
+        <li>Microsoft hesabı gerekmez</li>
+        <li>Host dünyayı açar, diğeri Friends sekmesinden katılır</li>
+        <li>Host çıkarsa dünya kapanır</li>
+        <li>Aynı evdeki iki çocuk için ideal</li>
+      </ul>
+    </div>
+    <div class="compare-card neutral">
+      <h4>Realms (bulut)</h4>
+      <div class="price">~$4/ay (2 oyuncu)</div>
+      <ul>
+        <li>7/24 online dünya</li>
+        <li>Microsoft hesapları gerekiyor</li>
+        <li>Çocuklar farklı zamanlarda da oynayabilir</li>
+        <li>Otomatik yedek</li>
+        <li>Owner aboneliği öder, davetler MS hesabıyla</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>LAN kurulumu (her iki tablette tek seferlik)</h3>
+
+  <div class="step-flow">
+    <div class="step">
+      <div class="step-num">Adım 1</div>
+      <div class="step-title">Multiplayer aç</div>
+      <div class="step-detail">Minecraft → Ayarlar → Multiplayer Game ON</div>
+    </div>
+    <div class="step">
+      <div class="step-num">Adım 2</div>
+      <div class="step-title">LAN görünür</div>
+      <div class="step-detail">Visible to LAN Players ON</div>
+    </div>
+    <div class="step active">
+      <div class="step-num">Adım 3</div>
+      <div class="step-title">Birlikte oyna</div>
+      <div class="step-detail">A açar → B Friends sekmesi → LAN Games → A'nın dünyasına dokun</div>
+    </div>
+  </div>
+
+  <div class="callout success">
+    <h4>Önerim: önce LAN dene</h4>
+    <p>Realms aboneliğine geçmeden önce LAN'la birlikte oynamayı dene. Çocukların gerçekten "ayrı zamanlarda da aynı dünyada oynamak" istediklerini görmek aboneliği değer kılar.</p>
+  </div>
+</section>
+
+<section id="microsoft">
+  <h2><span class="num">§8</span>Microsoft Family Safety (çocuk MS hesabı)</h2>
+  <p class="section-lead">Google Family Link'in Microsoft tarafındaki karşılığı. Tek hesapla Xbox + Windows + Minecraft + Office için çocuk yönetimi.</p>
+
+  <h3>Çocuk hesabı oluşturma</h3>
+
+  <div class="num-cards">
+    <div class="num-card">
+      <div class="badge">1</div>
+      <div>
+        <div class="title-row"><h4>Aile grubuna gir</h4></div>
+        <div class="body">
+          <p><a href="https://family.microsoft.com">family.microsoft.com</a> → kendi MS hesabınla giriş</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="num-card">
+      <div class="badge">2</div>
+      <div>
+        <div class="title-row"><h4>Üye ekle</h4></div>
+        <div class="body">
+          <p>"Aile üyesi ekle" / "Add a family member" → "Üye / Member" → "Hesap oluştur"</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="num-card">
+      <div class="badge">3</div>
+      <div>
+        <div class="title-row"><h4>Outlook adresi</h4></div>
+        <div class="body">
+          <p>Yeni Outlook adresi seç (örn. <code>cocuk2018@outlook.com</code>), parola, doğum tarihi.</p>
+          <p>18 altıysa otomatik "child" olur, ebeveyn yönetimine girer.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="num-card warn">
+      <div class="badge">4</div>
+      <div>
+        <div class="title-row"><h4>Kart doğrulama</h4></div>
+        <div class="body">
+          <p>Microsoft <strong>0.50 USD</strong> çeker (yasal şart, anında iade ediliyor). Gerçek kart olmalı.</p>
+          <p>İki çocuk için iki kez ayrı ayrı çekilir, ikisi de iade.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Multiplayer izni — Minecraft için kritik</h3>
+
+  <div class="callout warning">
+    <h4>Bu olmadan Realms ve Xbox Live multiplayer çalışmaz</h4>
+    <p>Microsoft tarafı varsayılan olarak çocuk hesaplarında multiplayer'ı kapalı tutar.</p>
+  </div>
+
+  <p>family.microsoft.com → çocuğun adı → <strong>Xbox & PC oyunları gizliliği</strong> → şu üç ayar:</p>
+
+  <table class="compact">
+    <thead><tr><th>Ayar</th><th>Önerilen</th><th>Etkisi</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>Çoklu oyunculu oyunlara katılabilir</td>
+        <td><span class="pill ok">İzin Ver</span></td>
+        <td>Realms davet kabul, LAN multiplayer, Xbox Live arkadaşlarla oyna</td>
+      </tr>
+      <tr>
+        <td>Topluluklar oluşturabilir/katılabilir</td>
+        <td><span class="pill info">Tercih</span></td>
+        <td>Discord-benzeri Xbox Clubs</td>
+      </tr>
+      <tr>
+        <td>Profili herkes görebilir</td>
+        <td><span class="pill info">Tercih</span></td>
+        <td>Public Xbox profili</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Tablette Minecraft'a Microsoft hesabıyla giriş</h3>
+
+  <ol>
+    <li>MC aç → ana menüde <strong>"Microsoft hesabıyla oturum aç"</strong> (skip etmiş olabilirsin önceden)</li>
+    <li>Çocuğun yeni MS hesabıyla giriş</li>
+    <li>İlk girişte "Bu yaşta hesap için ebeveyn izni gerekiyor" çıkarsa → ebeveyn hesabıyla onayla (zaten aile üyesi olarak eklenmiş)</li>
+    <li>Bağlandığında MC içinde Microsoft profili görünür → Realms, multiplayer izinleri çalışır</li>
+  </ol>
+
+  <h3>iPhone Family Safety uygulaması</h3>
+
+  <p>App Store: <strong>"Microsoft Family Safety"</strong>. Family Link benzeri arayüz; ekran süresi, içerik filtresi, etkinlik raporu, Xbox izinleri — hepsi mobile'dan yönetilebilir. Web (family.microsoft.com) ile aynı şeyler.</p>
+</section>
+
+<section id="cheatsheet">
+  <h2><span class="num">§9</span>Komut + Yol Özeti (Cheatsheet)</h2>
+  <p class="section-lead">Sık kullanılan adb komutları ve önemli dosya yolları — ileride hızlı arama için.</p>
+
+  <h3>adb komutları</h3>
+
+  <pre><code># Bağlı cihazları listele (ayrıntılı)
+adb devices -l
+
+# Belirli tablete komut çalıştır (birden fazla bağlıysa)
+adb -s &lt;SERIAL&gt; shell &lt;COMMAND&gt;
+
+# Minecraft sürüm + installer
+adb -s &lt;SERIAL&gt; shell 'dumpsys package com.mojang.minecraftpe \
+  | grep -E "versionName|installerPackageName"'
+
+# Minecraft'ı uninstall
+adb -s &lt;SERIAL&gt; uninstall com.mojang.minecraftpe
+
+# Force-stop + launch test
+adb -s &lt;SERIAL&gt; shell 'am force-stop com.mojang.minecraftpe'
+adb -s &lt;SERIAL&gt; shell 'monkey -p com.mojang.minecraftpe \
+  -c android.intent.category.LAUNCHER 1'
+
+# Crash logu (boş = sorun yok)
+adb -s &lt;SERIAL&gt; logcat -b crash -d | grep -E 'libpairipcore|SIGSEGV'
+
+# Storage iznini açmak için (LEGACY_STORAGE)
+adb -s &lt;SERIAL&gt; shell 'appops set com.mojang.minecraftpe LEGACY_STORAGE allow'
+
+# Dünya kurtarma — eski cihazdan çekme
+adb pull /sdcard/games/com.mojang/minecraftWorlds ~/Desktop/world-raw
+
+# Birden fazla split APK kurma (sideload)
+adb -s &lt;SERIAL&gt; install-multiple -r --no-incremental \
+  base.apk config.arm64_v8a.apk config.en.apk install_pack.apk</code></pre>
+
+  <h3>Minecraft Bedrock dosya yolları</h3>
+
+  <table class="path-table">
+    <thead><tr><th>Yol</th><th>Açıklama</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="path">/sdcard/Android/data/com.mojang.minecraftpe/files/games/com.mojang/</td>
+        <td>Modern (scoped) MC veri dizini. Kök, sadece sahibine yazılabilir.</td>
+      </tr>
+      <tr>
+        <td class="path">.../com.mojang/minecraftWorlds/&lt;rastgele-id&gt;/</td>
+        <td>Her dünya için ayrı klasör (random base64-ish ID). İçinde <code>level.dat</code>, <code>db/</code>, <code>levelname.txt</code>.</td>
+      </tr>
+      <tr>
+        <td class="path">/sdcard/games/com.mojang/minecraftWorlds/</td>
+        <td>Eski (legacy) yol. Android 11 öncesi MC sürümleri kullanırdı. Hâlâ kalıntı varsa.</td>
+      </tr>
+      <tr>
+        <td class="path">/data/data/com.mojang.minecraftpe/</td>
+        <td>Private internal storage. Root olmadan ulaşılamaz.</td>
+      </tr>
+      <tr>
+        <td class="path">/data/app/.../com.mojang.minecraftpe-XXX/</td>
+        <td>APK kurulum dizini. <code>base.apk</code> + <code>split_config.*</code> + <code>split_install_pack.apk</code>.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Pojav (Java edition) yolları</h3>
+
+  <table class="path-table">
+    <thead><tr><th>Yol</th><th>Açıklama</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="path">/sdcard/Android/data/net.kdt.pojavlaunch.debug/files/.minecraft/saves/</td>
+        <td>Java dünya klasörleri (her biri kendi adıyla, örn. "New World/").</td>
+      </tr>
+      <tr>
+        <td class="path">.../saves/&lt;name&gt;/level.dat</td>
+        <td>Dünya seviye dosyası.</td>
+      </tr>
+      <tr>
+        <td class="path">.../saves/&lt;name&gt;/region/</td>
+        <td>Chunk verisi (anvil format).</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>İlgili belgeler</h3>
+
+  <ul>
+    <li><strong><code>docs/family-link-usb-debug-setup.md</code></strong> — USB hata ayıklama kurulumunun ayrıntılı versiyonu</li>
+    <li><strong><a href="https://chunker.app">chunker.app</a></strong> — Mojang'ın Java↔Bedrock dünya dönüştürücü web aracı</li>
+    <li><strong><a href="https://family.microsoft.com">family.microsoft.com</a></strong> — Microsoft Family Safety yönetim paneli</li>
+    <li><strong><a href="https://families.google.com">families.google.com</a></strong> — Google Family Link web arayüzü</li>
+  </ul>
+</section>
+
+<section id="lessons">
+  <h2><span class="num">§10</span>Çıkarılan Dersler</h2>
+  <p class="section-lead">Tekrar tekrar olmaması için kişisel notlar.</p>
+
+  <div class="callout neutral">
+    <h4>Yeni cihaz alırken kontrol</h4>
+    <ol style="margin-top:8px;">
+      <li>Aynı Knox/Auto Blocker kuralı geçerli — yeni Samsung tablette önce <strong>§2</strong>'yi uygula.</li>
+      <li>Family Library önceden satın alınanları otomatik dağıtır; yeni satın alma yapmaya gerek yok.</li>
+      <li>Minecraft 1.26.21.x sürümü hâlâ aynı import bug'ında ise dünyaları Realms üzerinden taşı, yerel <code>.mcworld</code> import etme.</li>
+    </ol>
+  </div>
+
+  <div class="callout warning">
+    <h4>Eski cihazlardan veri kurtarma kuralı</h4>
+    <p>Cihaz hâlâ açılırken ve uygulamalar hâlâ çalışırken yedek al — sonra olmaz. Sandbox uygulamaları (GBox/GSpace) içindeki veri root olmadan ulaşılamaz; o yüzden <strong>cihaz hâlâ aktifken</strong> sandbox'ı aç ve uygulama içi export kullan.</p>
+  </div>
+
+  <div class="callout success">
+    <h4>Family Link'te onay diyalogu kayboluyorsa</h4>
+    <p>iPhone bildirimini bekleme — <strong>tabletteki "Ebeveyne sor" diyaloğunda doğrudan ebeveyn parolasını gir</strong>. Bu çoğu durumda akışı atlatır.</p>
+  </div>
+
+  <div class="callout danger">
+    <h4>Kurtarma için bilinmeyen kaynaktan APK indirmeden önce</h4>
+    <p>İmza doğrula: legitimate Play Store install'dan <code>apksigner verify --print-certs</code> ile alınan SHA-256 ile karşılaştır. Eşleşirse byte-identical, güvenli. Eşleşmezse <strong>kullanma</strong>.</p>
+  </div>
+</section>
+
+<footer>
+  <p><strong>Çocuk Tablet Kurulumu — Komple Kılavuz</strong> · 2026-05-15</p>
+  <p>Bu belge kişisel referans amaçlı. Sıralı bir rehber olarak da, ileride bir şey bozulduğunda hata ayıklama kayıt defteri olarak da kullanılabilir.</p>
+</footer>
+
+</main>
+</div>
+
+<script>
+function toggleTheme() {
+  var current = document.documentElement.getAttribute('data-theme') || 'light';
+  var next = current === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  try { localStorage.setItem('theme', next); } catch (e) {}
+}
+
+function toggleTOC() {
+  if (window.innerWidth <= 920) {
+    document.querySelector('nav.toc').classList.toggle('open');
+  } else {
+    document.body.classList.toggle('toc-collapsed');
+    try {
+      localStorage.setItem('tocCollapsed',
+        document.body.classList.contains('toc-collapsed') ? '1' : '0');
+    } catch (e) {}
+  }
+}
+
+(function buildTOC() {
+  var tocList = document.getElementById('toc-list');
+  if (!tocList) return;
+  var sections = document.querySelectorAll('main > section');
+  if (sections.length === 0) return;
+  tocList.innerHTML = '';
+
+  function slugify(text) {
+    return text.toLowerCase()
+      .replace(/[ğüşıöçĞÜŞİÖÇ]/g, function(c){
+        return {'ğ':'g','ü':'u','ş':'s','ı':'i','ö':'o','ç':'c',
+                'Ğ':'g','Ü':'u','Ş':'s','İ':'i','Ö':'o','Ç':'c'}[c] || c;
+      })
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  }
+
+  function appendPermalink(heading, id) {
+    if (heading.querySelector('.permalink')) return;
+    var a = document.createElement('a');
+    a.className = 'permalink';
+    a.href = '#' + id;
+    a.textContent = '#';
+    a.setAttribute('aria-label', 'Bu bölüme bağlantı');
+    heading.appendChild(a);
+  }
+
+  sections.forEach(function(sec, i) {
+    var h2 = sec.querySelector('h2');
+    if (!h2) return;
+    if (!sec.id) sec.id = 'sec-' + i;
+    appendPermalink(h2, sec.id);
+
+    var numEl = h2.querySelector('.num');
+    var num = numEl ? numEl.textContent.trim() : (i + 1);
+    var titleClone = h2.cloneNode(true);
+    var n = titleClone.querySelector('.num'); if (n) n.remove();
+    var pl = titleClone.querySelector('.permalink'); if (pl) pl.remove();
+    var title = titleClone.textContent.trim();
+
+    var li = document.createElement('li');
+    li.className = 'toc-h2';
+    li.dataset.target = sec.id;
+
+    var head = document.createElement('div');
+    head.className = 'toc-head';
+    head.innerHTML = '<span class="chevron">▸</span>' +
+                     '<span class="num">' + num + '.</span>' +
+                     '<a href="#' + sec.id + '">' + title + '</a>';
+    li.appendChild(head);
+
+    var h3s = sec.querySelectorAll('h3');
+    var subOl = document.createElement('ol');
+    subOl.className = 'sub';
+    h3s.forEach(function(h3, j) {
+      if (!h3.id) h3.id = sec.id + '-' + slugify(h3.textContent).slice(0, 40);
+      appendPermalink(h3, h3.id);
+      var subLi = document.createElement('li');
+      var a = document.createElement('a');
+      a.href = '#' + h3.id;
+      a.textContent = h3.textContent.replace(/#$/, '').trim();
+      subLi.appendChild(a);
+      subOl.appendChild(subLi);
+    });
+
+    if (h3s.length > 0) {
+      li.appendChild(subOl);
+      head.addEventListener('click', function(e) {
+        if (e.target.tagName !== 'A') { e.preventDefault(); li.classList.toggle('expanded'); }
+      });
+    } else {
+      head.querySelector('.chevron').classList.add('hidden');
+    }
+
+    tocList.appendChild(li);
+  });
+
+  var tocItems = tocList.querySelectorAll('.toc-h2');
+  var idToItem = {};
+  tocItems.forEach(function(it) { idToItem[it.dataset.target] = it; });
+  var allSubLinks = tocList.querySelectorAll('ol.sub a');
+  var idToSubLink = {};
+  allSubLinks.forEach(function(a) { idToSubLink[a.getAttribute('href').slice(1)] = a; });
+
+  function setActive(sectionId, h3Id) {
+    tocItems.forEach(function(it) { it.classList.remove('active'); });
+    allSubLinks.forEach(function(a) { a.classList.remove('active'); });
+    var item = idToItem[sectionId];
+    if (item) {
+      item.classList.add('active', 'expanded');
+      tocItems.forEach(function(it) { if (it !== item) it.classList.remove('expanded'); });
+    }
+    if (h3Id && idToSubLink[h3Id]) idToSubLink[h3Id].classList.add('active');
+  }
+
+  var headings = [];
+  sections.forEach(function(sec) {
+    headings.push({ el: sec, sectionId: sec.id, h3Id: null });
+    sec.querySelectorAll('h3').forEach(function(h3) {
+      headings.push({ el: h3, sectionId: sec.id, h3Id: h3.id });
+    });
+  });
+
+  function updateActive() {
+    var scrollY = window.scrollY + 150;
+    var current = headings[0];
+    for (var k = 0; k < headings.length; k++) {
+      var rect = headings[k].el.getBoundingClientRect();
+      var top = rect.top + window.scrollY;
+      if (top <= scrollY) current = headings[k]; else break;
+    }
+    if (current) setActive(current.sectionId, current.h3Id);
+  }
+
+  var ticking = false;
+  window.addEventListener('scroll', function() {
+    if (!ticking) {
+      window.requestAnimationFrame(function() { updateActive(); ticking = false; });
+      ticking = true;
+    }
+  }, { passive: true });
+  updateActive();
+})();
+
+document.querySelectorAll('nav.toc a').forEach(function(a) {
+  a.addEventListener('click', function() {
+    document.querySelector('nav.toc').classList.remove('open');
+  });
+});
+
+(function() {
+  var bar = document.getElementById('progress-bar');
+  var btt = document.querySelector('.back-to-top');
+  var ticking = false;
+  function update() {
+    var h = document.documentElement;
+    var max = h.scrollHeight - h.clientHeight;
+    var pct = max > 0 ? (h.scrollTop / max) * 100 : 0;
+    if (bar) bar.style.width = pct + '%';
+    if (btt) btt.classList.toggle('visible', h.scrollTop > 600);
+    ticking = false;
+  }
+  window.addEventListener('scroll', function() {
+    if (!ticking) { window.requestAnimationFrame(update); ticking = true; }
+  }, { passive: true });
+  update();
+})();
+
+(function() {
+  if (!navigator.clipboard) return;
+  document.querySelectorAll('pre').forEach(function(pre) {
+    if (pre.querySelector('.copy-btn')) return;
+    var btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.type = 'button';
+    btn.textContent = 'Kopyala';
+    btn.setAttribute('aria-label', 'Kodu panoya kopyala');
+    pre.appendChild(btn);
+    btn.addEventListener('click', function() {
+      var code = pre.querySelector('code');
+      var text = code ? code.textContent : pre.textContent.replace(/Kopyala$/, '').trim();
+      navigator.clipboard.writeText(text).then(function() {
+        btn.textContent = 'Kopyalandı';
+        btn.classList.add('copied');
+        setTimeout(function() {
+          btn.textContent = 'Kopyala';
+          btn.classList.remove('copied');
+        }, 1500);
+      }).catch(function() {
+        btn.textContent = 'Hata';
+        setTimeout(function() { btn.textContent = 'Kopyala'; }, 1500);
+      });
+    });
+  });
+})();
+</script>
+
+</body>
+</html>
