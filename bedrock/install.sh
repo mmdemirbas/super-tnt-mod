@@ -57,9 +57,12 @@ for D in $DEVICES; do
     continue
   fi
 
-  # 3) import'u tetikle - MIME tipi SART, yoksa Minecraft eslesmiyor
+  # 3) import'u tetikle.
+  #    -t  MIME tipi SART: yoksa Minecraft'in filtresi eslesmiyor.
+  #    -n  acik bilesen: yoksa uygulama secici cikiyor ve yine dokunmak gerek.
   adb -s "$D" shell "am start -a android.intent.action.VIEW \
-      -t application/octet-stream -d 'file://$DEST'" >/dev/null 2>&1
+      -t application/octet-stream -d 'file://$DEST' \
+      -n com.mojang.minecraftpe/com.mojang.minecraftpe.MainActivity" >/dev/null 2>&1
   sleep 8
   FOCUS="$(adb -s "$D" shell "dumpsys window | grep -m1 mCurrentFocus" | tr -d '\r')"
   case "$FOCUS" in

@@ -167,9 +167,16 @@ filtre yerinde duruyor, sadece iki taraf anlaşamıyor.
 ./bedrock/install.sh bedrock/out/SuperTNT.mcaddon
 ```
 
-Script dosyayı gönderir, boyutu doğrular ve **doğru intent'i** yollar. Tablet
-ekranının açık ve kilidinin açık olması gerekir — kilitliyken hiçbir uygulama
-öne gelemez, script bunu fark edip uyarır.
+Script dosyayı gönderir, boyutu doğrular ve **doğru intent'i** yollar:
+MIME tipi (`-t`) olmadan Minecraft eşleşmiyor, açık bileşen (`-n`) olmadan
+uygulama seçici çıkıp yine dokunmak gerekiyor. İkisi birlikte **dokunma
+gerektirmiyor** — Minecraft doğrudan açılıp import ekranını gösteriyor.
+
+Tabletin ekranı açık ve kilidi açık olmalı; kilitliyken hiçbir uygulama öne
+gelemez, script bunu fark edip uyarır.
+
+Doğrulandı: 2026-07-19, Zeynep'in tableti, MorphX paketi 16 MB — dokunmadan
+Minecraft açıldı.
 
 ### Elle yol (script olmadan)
 
