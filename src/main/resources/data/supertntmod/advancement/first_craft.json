@@ -1,8 +1,14 @@
 {
   "display": {
-    "icon": { "id": "supertntmod:gold_tnt" },
-    "title": { "translate": "advancement.supertntmod.first_craft.title" },
-    "description": { "translate": "advancement.supertntmod.first_craft.description" },
+    "icon": {
+      "id": "supertntmod:gold_tnt"
+    },
+    "title": {
+      "translate": "advancement.supertntmod.first_craft.title"
+    },
+    "description": {
+      "translate": "advancement.supertntmod.first_craft.description"
+    },
     "frame": "task",
     "show_toast": true,
     "announce_to_chat": true
@@ -11,166 +17,504 @@
   "criteria": {
     "diamond": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": { "recipe_id": "supertntmod:diamond_tnt" }
+      "conditions": {
+        "recipe_id": "supertntmod:diamond_tnt"
+      }
     },
     "gold": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": { "recipe_id": "supertntmod:gold_tnt" }
+      "conditions": {
+        "recipe_id": "supertntmod:gold_tnt"
+      }
     },
     "bedrock": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": { "recipe_id": "supertntmod:bedrock_tnt" }
+      "conditions": {
+        "recipe_id": "supertntmod:bedrock_tnt"
+      }
     },
     "emerald": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": { "recipe_id": "supertntmod:emerald_tnt" }
+      "conditions": {
+        "recipe_id": "supertntmod:emerald_tnt"
+      }
     },
     "lightning": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": { "recipe_id": "supertntmod:lightning_tnt" }
+      "conditions": {
+        "recipe_id": "supertntmod:lightning_tnt"
+      }
     },
     "nuclear": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": { "recipe_id": "supertntmod:nuclear_tnt" }
+      "conditions": {
+        "recipe_id": "supertntmod:nuclear_tnt"
+      }
     },
     "freeze": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": { "recipe_id": "supertntmod:freeze_tnt" }
+      "conditions": {
+        "recipe_id": "supertntmod:freeze_tnt"
+      }
     },
     "wood": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": { "recipe_id": "supertntmod:wood_tnt" }
+      "conditions": {
+        "recipe_id": "supertntmod:wood_tnt"
+      }
     },
     "command": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": { "recipe_id": "supertntmod:command_tnt" }
+      "conditions": {
+        "recipe_id": "supertntmod:command_tnt"
+      }
     },
     "walking": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": { "recipe_id": "supertntmod:walking_tnt" }
+      "conditions": {
+        "recipe_id": "supertntmod:walking_tnt"
+      }
     },
     "mob_freeze": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": { "recipe_id": "supertntmod:mob_freeze_tnt" }
+      "conditions": {
+        "recipe_id": "supertntmod:mob_freeze_tnt"
+      }
     },
     "water": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": { "recipe_id": "supertntmod:water_tnt" }
+      "conditions": {
+        "recipe_id": "supertntmod:water_tnt"
+      }
     },
     "rainbow": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": { "recipe_id": "supertntmod:rainbow_tnt" }
+      "conditions": {
+        "recipe_id": "supertntmod:rainbow_tnt"
+      }
     },
     "lego": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": { "recipe_id": "supertntmod:lego_tnt" }
+      "conditions": {
+        "recipe_id": "supertntmod:lego_tnt"
+      }
     },
     "makarna": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": { "recipe_id": "supertntmod:makarna_tnt" }
+      "conditions": {
+        "recipe_id": "supertntmod:makarna_tnt"
+      }
     },
     "seker": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": { "recipe_id": "supertntmod:seker_tnt" }
+      "conditions": {
+        "recipe_id": "supertntmod:seker_tnt"
+      }
     },
     "shrink": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": { "recipe_id": "supertntmod:shrink_tnt" }
+      "conditions": {
+        "recipe_id": "supertntmod:shrink_tnt"
+      }
     },
     "growth": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": { "recipe_id": "supertntmod:growth_tnt" }
+      "conditions": {
+        "recipe_id": "supertntmod:growth_tnt"
+      }
     },
     "cleanse": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": { "recipe_id": "supertntmod:cleanse_tnt" }
+      "conditions": {
+        "recipe_id": "supertntmod:cleanse_tnt"
+      }
     },
     "fake": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": { "recipe_id": "supertntmod:fake_tnt" }
+      "conditions": {
+        "recipe_id": "supertntmod:fake_tnt"
+      }
     },
     "bounce": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": { "recipe_id": "supertntmod:bounce_tnt" }
+      "conditions": {
+        "recipe_id": "supertntmod:bounce_tnt"
+      }
     },
     "magnet": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": { "recipe_id": "supertntmod:magnet_tnt" }
+      "conditions": {
+        "recipe_id": "supertntmod:magnet_tnt"
+      }
     },
     "gravity": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": { "recipe_id": "supertntmod:gravity_tnt" }
+      "conditions": {
+        "recipe_id": "supertntmod:gravity_tnt"
+      }
     },
     "invisible": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": { "recipe_id": "supertntmod:invisible_tnt" }
+      "conditions": {
+        "recipe_id": "supertntmod:invisible_tnt"
+      }
     },
     "swap": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": { "recipe_id": "supertntmod:swap_tnt" }
+      "conditions": {
+        "recipe_id": "supertntmod:swap_tnt"
+      }
     },
     "nether": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": { "recipe_id": "supertntmod:nether_tnt" }
+      "conditions": {
+        "recipe_id": "supertntmod:nether_tnt"
+      }
     },
     "end": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": { "recipe_id": "supertntmod:end_tnt" }
+      "conditions": {
+        "recipe_id": "supertntmod:end_tnt"
+      }
     },
     "cam": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": { "recipe_id": "supertntmod:cam_tnt" }
+      "conditions": {
+        "recipe_id": "supertntmod:cam_tnt"
+      }
     },
     "gizli": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": { "recipe_id": "supertntmod:gizli_tnt" }
+      "conditions": {
+        "recipe_id": "supertntmod:gizli_tnt"
+      }
     },
     "ureyen": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": { "recipe_id": "supertntmod:ureyen_tnt" }
+      "conditions": {
+        "recipe_id": "supertntmod:ureyen_tnt"
+      }
     },
     "kup": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": { "recipe_id": "supertntmod:kup_tnt" }
+      "conditions": {
+        "recipe_id": "supertntmod:kup_tnt"
+      }
     },
     "elmas_zirh": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": { "recipe_id": "supertntmod:elmas_zirh_tnt" }
+      "conditions": {
+        "recipe_id": "supertntmod:elmas_zirh_tnt"
+      }
     },
     "kalp": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": { "recipe_id": "supertntmod:kalp_tnt" }
+      "conditions": {
+        "recipe_id": "supertntmod:kalp_tnt"
+      }
     },
     "harf": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": { "recipe_id": "supertntmod:harf_tnt" }
+      "conditions": {
+        "recipe_id": "supertntmod:harf_tnt"
+      }
     },
     "gunes": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": { "recipe_id": "supertntmod:gunes_tnt" }
+      "conditions": {
+        "recipe_id": "supertntmod:gunes_tnt"
+      }
     },
     "bulut": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": { "recipe_id": "supertntmod:bulut_tnt" }
+      "conditions": {
+        "recipe_id": "supertntmod:bulut_tnt"
+      }
     },
     "simsek_yagmur": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": { "recipe_id": "supertntmod:simsek_yagmur_tnt" }
+      "conditions": {
+        "recipe_id": "supertntmod:simsek_yagmur_tnt"
+      }
     },
     "zehir": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": { "recipe_id": "supertntmod:zehir_tnt" }
+      "conditions": {
+        "recipe_id": "supertntmod:zehir_tnt"
+      }
     },
     "olumcul_su": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": { "recipe_id": "supertntmod:olumcul_su_tnt" }
+      "conditions": {
+        "recipe_id": "supertntmod:olumcul_su_tnt"
+      }
     },
     "zeynep_komut": {
       "trigger": "minecraft:recipe_crafted",
-      "conditions": { "recipe_id": "supertntmod:zeynep_komut_tnt" }
+      "conditions": {
+        "recipe_id": "supertntmod:zeynep_komut_tnt"
+      }
+    },
+    "abi": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "supertntmod:abi_tnt"
+      }
+    },
+    "anne": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "supertntmod:anne_tnt"
+      }
+    },
+    "ay": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "supertntmod:ay_tnt"
+      }
+    },
+    "baba": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "supertntmod:baba_tnt"
+      }
+    },
+    "bebek": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "supertntmod:bebek_tnt"
+      }
+    },
+    "buz": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "supertntmod:buz_tnt"
+      }
+    },
+    "cizgi": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "supertntmod:cizgi_tnt"
+      }
+    },
+    "coklu_zeynep": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "supertntmod:coklu_zeynep_tnt"
+      }
+    },
+    "crafting_table": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "supertntmod:crafting_table_tnt"
+      }
+    },
+    "dag": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "supertntmod:dag_tnt"
+      }
+    },
+    "dunya": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "supertntmod:dunya_tnt"
+      }
+    },
+    "elmas_diyari": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "supertntmod:elmas_diyari_tnt"
+      }
+    },
+    "gokkusagi": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "supertntmod:gokkusagi_tnt"
+      }
+    },
+    "gulen_yuz": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "supertntmod:gulen_yuz_tnt"
+      }
+    },
+    "iki_yuz_tl": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "supertntmod:iki_yuz_tl_tnt"
+      }
+    },
+    "karisik_kurusuk": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "supertntmod:karisik_kurusuk_tnt"
+      }
+    },
+    "kiyamet": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "supertntmod:kiyamet_tnt"
+      }
+    },
+    "kurus": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "supertntmod:kurus_tnt"
+      }
+    },
+    "maden": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "supertntmod:maden_tnt"
+      }
+    },
+    "magara": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "supertntmod:magara_tnt"
+      }
+    },
+    "pasta": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "supertntmod:pasta_tnt"
+      }
+    },
+    "pirt": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "supertntmod:pirt_tnt"
+      }
+    },
+    "redstone": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "supertntmod:redstone_tnt"
+      }
+    },
+    "uyku": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "supertntmod:uyku_tnt"
+      }
+    },
+    "virus": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "supertntmod:virus_tnt"
+      }
+    },
+    "yagmur": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "supertntmod:yagmur_tnt"
+      }
+    },
+    "z_gunes": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "supertntmod:z_gunes_tnt"
+      }
+    },
+    "zebra": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "supertntmod:zebra_tnt"
+      }
+    },
+    "zeynep_redstone": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "supertntmod:zeynep_redstone_tnt"
+      }
+    },
+    "zeynep": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "supertntmod:zeynep_tnt"
+      }
+    },
+    "zumrut_yagmuru": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "supertntmod:zumrut_yagmuru_tnt"
+      }
     }
   },
   "requirements": [
-    ["diamond", "gold", "bedrock", "emerald", "lightning", "nuclear", "freeze", "wood", "command", "walking", "mob_freeze", "water", "rainbow", "lego", "makarna", "seker", "shrink", "growth", "cleanse", "fake", "bounce", "magnet", "gravity", "invisible", "swap", "nether", "end", "cam", "gizli", "ureyen", "kup", "elmas_zirh", "kalp", "harf", "gunes", "bulut", "simsek_yagmur", "zehir", "olumcul_su", "zeynep_komut"]
+    [
+      "diamond",
+      "gold",
+      "bedrock",
+      "emerald",
+      "lightning",
+      "nuclear",
+      "freeze",
+      "wood",
+      "command",
+      "walking",
+      "mob_freeze",
+      "water",
+      "rainbow",
+      "lego",
+      "makarna",
+      "seker",
+      "shrink",
+      "growth",
+      "cleanse",
+      "fake",
+      "bounce",
+      "magnet",
+      "gravity",
+      "invisible",
+      "swap",
+      "nether",
+      "end",
+      "cam",
+      "gizli",
+      "ureyen",
+      "kup",
+      "elmas_zirh",
+      "kalp",
+      "harf",
+      "gunes",
+      "bulut",
+      "simsek_yagmur",
+      "zehir",
+      "olumcul_su",
+      "zeynep_komut",
+      "abi",
+      "anne",
+      "ay",
+      "baba",
+      "bebek",
+      "buz",
+      "cizgi",
+      "coklu_zeynep",
+      "crafting_table",
+      "dag",
+      "dunya",
+      "elmas_diyari",
+      "gokkusagi",
+      "gulen_yuz",
+      "iki_yuz_tl",
+      "karisik_kurusuk",
+      "kiyamet",
+      "kurus",
+      "maden",
+      "magara",
+      "pasta",
+      "pirt",
+      "redstone",
+      "uyku",
+      "virus",
+      "yagmur",
+      "z_gunes",
+      "zebra",
+      "zeynep_redstone",
+      "zeynep",
+      "zumrut_yagmuru"
+    ]
   ]
 }

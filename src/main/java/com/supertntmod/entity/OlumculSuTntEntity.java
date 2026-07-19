@@ -15,6 +15,8 @@ import org.jetbrains.annotations.Nullable;
 
 public class OlumculSuTntEntity extends TntEntity {
     private static final int RADIUS = 15;
+    /** Yerleştirilen suyun ömrü (tick) — 30 saniye. */
+    private static final int WATER_LIFETIME = 600;
     private boolean done = false;
 
     public OlumculSuTntEntity(EntityType<? extends TntEntity> type, World world) {
@@ -41,10 +43,16 @@ public class OlumculSuTntEntity extends TntEntity {
             world.playSound(null, cx, cy, cz,
                     SoundEvents.BLOCK_WATER_AMBIENT, SoundCategory.BLOCKS, 3.0f, 0.8f);
 
+            // Yerleştirilen her su kaynağı 30 sn sonra temizlenmek üzere kaydedilir.
+            // Kaydedilmezse düz arazide yayılıp kalıcı dünya seli oluşturuyordu —
+            // WaterTnt'de aynı hata daha önce düzeltilmişti, burada gözden kaçmış.
             for (BlockPos pos : BlockPos.iterateOutwards(center, RADIUS, RADIUS, RADIUS)) {
                 if (!pos.isWithinDistance(center, RADIUS)) continue;
                 if (world.getBlockState(pos).isAir()) {
                     world.setBlockState(pos, Blocks.WATER.getDefaultState());
+                    if (world instanceof ServerWorld sw) {
+                        WaterTntEntity.scheduleRemoval(sw, pos, WATER_LIFETIME);
+                    }
                 }
             }
 

@@ -2,6 +2,8 @@ package com.supertntmod.entity;
 
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.EntityType;
+import net.minecraft.storage.ReadView;
+import net.minecraft.storage.WriteView;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.TntEntity;
 import net.minecraft.util.math.BlockPos;
@@ -61,5 +63,22 @@ public class UreyenTntEntity extends TntEntity {
             return;
         }
         if (!done) super.tick();
+    }
+
+    // Kaydet/yukle: cok-tick isleme durumu kalici olmali. Aksi halde
+    // dunya islem sirasinda kapatilirsa fitil 0'da donmus olarak geri
+    // yuklenir ve patlama bastan calisir (her acilista tekrar).
+    @Override
+    public void readData(ReadView reader) {
+        super.readData(reader);
+        generation = reader.getInt("generation", 0);
+        done = reader.getBoolean("done", false);
+    }
+
+    @Override
+    public void writeData(WriteView writer) {
+        super.writeData(writer);
+        writer.putInt("generation", generation);
+        writer.putBoolean("done", done);
     }
 }

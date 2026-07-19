@@ -33,8 +33,16 @@ import java.util.concurrent.ConcurrentHashMap;
 public class CommandTntBlock extends CustomTntBlock {
 
     // Blok pozisyonuna göre ayarlar
-    private static final Map<BlockPos, Block> TARGET_BLOCKS = new ConcurrentHashMap<>();
-    private static final Map<BlockPos, Integer> RADII = new ConcurrentHashMap<>();
+    /** Boyut + konum. Sadece BlockPos ile anahtarlanirsa Nether'daki bir
+     *  Komut TNT'si, Overworld'de ayni koordinatta yapilan ayari okur. */
+    private record DimPos(net.minecraft.registry.RegistryKey<World> dimension, BlockPos pos) {}
+
+    private static DimPos k(World world, BlockPos pos) {
+        return new DimPos(world.getRegistryKey(), pos.toImmutable());
+    }
+
+    private static final Map<DimPos, Block> TARGET_BLOCKS = new ConcurrentHashMap<>();
+    private static final Map<DimPos, Integer> RADII = new ConcurrentHashMap<>();
 
     // Yarıçap seçenekleri
     private static final int[] RADIUS_OPTIONS = {10, 20, 30, 50};
@@ -54,9 +62,9 @@ public class CommandTntBlock extends CustomTntBlock {
         if (stack.getItem() instanceof BlockItem blockItem) {
             if (!world.isClient()) {
                 Block targetBlock = blockItem.getBlock();
-                TARGET_BLOCKS.put(pos.toImmutable(), targetBlock);
+                TARGET_BLOCKS.put(k(world, pos), targetBlock);
                 Identifier blockId = Registries.BLOCK.getId(targetBlock);
-                int radius = RADII.getOrDefault(pos, 30);
+                int radius = RADII.getOrDefault(k(world, pos), 30);
                 player.sendMessage(Text.literal("§a✔ Hedef: §f" + blockId.getPath()
                         + " §7| Yarıçap: " + radius), true);
             }
@@ -73,7 +81,7 @@ public class CommandTntBlock extends CustomTntBlock {
 
         if (player.isSneaking()) {
             // Eğilerek sağ tıkla → yarıçap değiştir
-            int currentRadius = RADII.getOrDefault(pos, 30);
+            int currentRadius = RADII.getOrDefault(k(world, pos), 30);
             int nextRadius = RADIUS_OPTIONS[0];
             for (int i = 0; i < RADIUS_OPTIONS.length; i++) {
                 if (RADIUS_OPTIONS[i] == currentRadius) {
@@ -81,17 +89,17 @@ public class CommandTntBlock extends CustomTntBlock {
                     break;
                 }
             }
-            RADII.put(pos.toImmutable(), nextRadius);
+            RADII.put(k(world, pos), nextRadius);
 
-            Block target = TARGET_BLOCKS.getOrDefault(pos, Blocks.STONE);
+            Block target = TARGET_BLOCKS.getOrDefault(k(world, pos), Blocks.STONE);
             Identifier blockId = Registries.BLOCK.getId(target);
             player.sendMessage(Text.literal("§e⟳ Yarıçap: §f" + nextRadius
                     + " §7| Hedef: " + blockId.getPath()), true);
         } else {
             // Boş elle sağ tıkla → ayarları göster
-            Block target = TARGET_BLOCKS.getOrDefault(pos, Blocks.STONE);
+            Block target = TARGET_BLOCKS.getOrDefault(k(world, pos), Blocks.STONE);
             Identifier blockId = Registries.BLOCK.getId(target);
-            int radius = RADII.getOrDefault(pos, 30);
+            int radius = RADII.getOrDefault(k(world, pos), 30);
             player.sendMessage(Text.literal("§6Hedef: §f" + blockId.getPath()
                     + " §6| Yarıçap: §f" + radius
                     + " §7(Blok tut→hedef ayarla, Eğil+tıkla→yarıçap)"), true);
@@ -104,8 +112,8 @@ public class CommandTntBlock extends CustomTntBlock {
     protected void spawnEntity(World world, double x, double y, double z,
                                @Nullable LivingEntity igniter) {
         BlockPos pos = new BlockPos((int) Math.floor(x), (int) Math.floor(y), (int) Math.floor(z));
-        Block targetBlock = TARGET_BLOCKS.getOrDefault(pos, Blocks.STONE);
-        int radius = RADII.getOrDefault(pos, 30);
+        Block targetBlock = TARGET_BLOCKS.getOrDefault(k(world, pos), Blocks.STONE);
+        int radius = RADII.getOrDefault(k(world, pos), 30);
 
         CommandTntEntity entity = new CommandTntEntity(world, x, y, z, igniter);
         entity.setTargetBlock(targetBlock);
@@ -113,8 +121,8 @@ public class CommandTntBlock extends CustomTntBlock {
         world.spawnEntity(entity);
 
         // Ayarları temizle (kullanıldı)
-        TARGET_BLOCKS.remove(pos);
-        RADII.remove(pos);
+        TARGET_BLOCKS.remove(k(world, pos));
+        RADII.remove(k(world, pos));
     }
 
     public static void clearAll() {
@@ -124,8 +132,8 @@ public class CommandTntBlock extends CustomTntBlock {
 
     @Override
     public BlockState onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
-        TARGET_BLOCKS.remove(pos);
-        RADII.remove(pos);
+        TARGET_BLOCKS.remove(k(world, pos));
+        RADII.remove(k(world, pos));
         return super.onBreak(world, pos, state, player);
     }
 }

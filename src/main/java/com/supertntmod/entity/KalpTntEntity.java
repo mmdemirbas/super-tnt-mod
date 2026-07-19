@@ -45,7 +45,10 @@ public class KalpTntEntity extends TntEntity {
             world.playSound(null, center.getX(), center.getY(), center.getZ(),
                     SoundEvents.ITEM_TOTEM_USE, SoundCategory.BLOCKS, 2.0f, 1.0f);
 
-            world.getEntitiesByClass(LivingEntity.class,
+            // Yalnızca oyuncular. Tüm LivingEntity'ye verilince zombileri ve
+            // iskeletleri de güçlendiriyordu — HarfTnt'de aynı hata 88b9de1
+            // ile düzeltilmişti, burada gözden kaçmış.
+            world.getEntitiesByClass(net.minecraft.entity.player.PlayerEntity.class,
                     new net.minecraft.util.math.Box(center).expand(RADIUS),
                     e -> true
             ).forEach(entity -> {

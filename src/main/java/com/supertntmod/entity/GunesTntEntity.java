@@ -74,13 +74,18 @@ public class GunesTntEntity extends TntEntity {
             if (ticksAfterExplode >= 100) {
                 ticksAfterExplode = -1;
                 World world = getEntityWorld();
+                // İlk kristal "güneş" olarak bilerek bırakılıyor. Ama
+                // invulnerable kaldığı sürece hiçbir şekilde yok edilemiyor ve
+                // dünyada kalıcı çöp oluyordu — bırakılanın dokunulmazlığı
+                // kaldırılır, oyuncu isterse kırabilsin.
                 boolean first = true;
                 for (UUID uuid : crystalUuids) {
+                    net.minecraft.entity.Entity e = ((ServerWorld) world).getEntity(uuid);
                     if (first) {
                         first = false;
+                        if (e != null) e.setInvulnerable(false);
                         continue;
                     }
-                    net.minecraft.entity.Entity e = ((ServerWorld) world).getEntity(uuid);
                     if (e != null) e.discard();
                 }
                 crystalUuids.clear();

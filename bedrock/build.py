@@ -36,8 +36,11 @@ K6. Java'da tooltip her TNT'de var, Bedrock'ta blok tooltip'i yok.
 
 K7. Kalp TNT buff'i YALNIZCA oyunculara. Java'da 88b9de1 ayni hatayi
     Harf TNT'de duzeltti (tum LivingEntity'ye verilince zombi/iskelet
-    guclenip cocuk icin tehlikeli oluyordu). KalpTntEntity.java'da bu
-    duzeltme hala yok; Bedrock tarafinda dogrusu yapildi.
+    guclenip cocuk icin tehlikeli oluyordu); KalpTntEntity.java'da gozden
+    kacmisti, her iki tarafta da duzeltildi.
+
+K8. Zincirleme taramasi tick'lere yayilir. Tek tick'te (2R+1)^3 blok
+    sorgusu tablette gorunur donmaya yol aciyordu.
 """
 import json, os, re, shutil, struct, zlib, zipfile
 
@@ -57,7 +60,7 @@ RP_MOD_UUID = "7dce50a6-b198-4fd4-c265-ce8da04b5c17"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 2, 0]
+VERSION = [1, 3, 0]
 MIN_ENGINE = [1, 21, 0]
 
 # ---------------------------------------------------------------- TNT tanimlari
@@ -118,8 +121,8 @@ TNTS = [
     # DIKKAT: buff yalnizca OYUNCULARA. Java tarafinda 88b9de1 "Harf TNT'sinin
     # can/kalkan buff'u sadece oyunculara verilsin" ayni hatayi duzeltti:
     # tum LivingEntity'ye verilince zombi/iskelet guclenip cocuk icin
-    # tehlikeli hale geliyordu. KalpTntEntity.java'da bu duzeltme HENUZ YOK
-    # (hala LivingEntity.class kullaniyor) - burada dogrusu yapiliyor.
+    # tehlikeli hale geliyordu. KalpTntEntity.java'da gozden kacmisti;
+    # denetimde bulundu ve her iki tarafta da duzeltildi.
     dict(id="kalp_tnt", tr="Kalp TNT", en="Heart TNT",
          trtip="Yakındaki herkese can yenileme + kalkan verir, efektleri ve boyutu sıfırlar.",
          entip="Heals and shields nearby players, clears effects and size changes.",
@@ -482,8 +485,6 @@ system.runInterval(() => {
   }
 }, 5);
 
-const key = (d, l) => `${d}|${Math.floor(l.x)},${Math.floor(l.y)},${Math.floor(l.z)}`;
-
 // ---------------------------------------------------------------- yerlestirilen
 // bloklarin kaydi. Redstone yoklamasi sadece bu listedeki bloklara bakar,
 // boylece maliyet oyuncunun koydugu TNT sayisiyla sinirli kalir.
@@ -616,25 +617,38 @@ system.runInterval(() => {
   }
 }, 2);
 
-// F3 - patlama aninda cevredeki TNT'leri kademeli atesle
-function chain(dim, c, short) {
-  const R = 6;
-  let n = 0;
-  for (let dx = -R; dx <= R; dx++)
-    for (let dy = -R; dy <= R; dy++)
-      for (let dz = -R; dz <= R; dz++) {
-        if (n > 40) return;
-        try {
-          const p = { x: Math.floor(c.x) + dx, y: Math.floor(c.y) + dy, z: Math.floor(c.z) + dz };
-          const b = dim.getBlock(p);
-          if (!b || !b.typeId.startsWith("stnt:")) continue;
-          const s = b.typeId.slice(5);
-          if (!SPEC[s]) continue;
-          n++;
-          const d = 2 + Math.floor(Math.random() * 8);
-          system.runTimeout(() => { try { ignite(dim, p, s); } catch (e) {} }, d);
-        } catch (e) {}
+// F3 - patlama aninda cevredeki TNT'leri kademeli atesle.
+//
+// PERFORMANS: kup taramasi tek tick'te yapilirsa (2R+1)^3 blok sorgusu eder.
+// R=6'da 2197; 10'lu bir zincirde 22 bin sorgu ve tablette gorunur donma.
+// Bu yuzden yaricap 5'e cekildi ve tarama dx dilimlerine bolunup tick'lere
+// yayildi: tick basina 2 dilim = ~242 sorgu.
+function chain(dim, c) {
+  const R = 5;
+  const cx = Math.floor(c.x), cy = Math.floor(c.y), cz = Math.floor(c.z);
+  let dx = -R, found = 0;
+  const job = system.runInterval(() => {
+    for (let slice = 0; slice < 2 && dx <= R; slice++, dx++) {
+      for (let dy = -R; dy <= R; dy++) {
+        for (let dz = -R; dz <= R; dz++) {
+          if (found >= 30) { system.clearRun(job); return; }
+          try {
+            const p = { x: cx + dx, y: cy + dy, z: cz + dz };
+            const b = dim.getBlock(p);
+            if (!b) continue;
+            const t = b.typeId;
+            if (!t.startsWith("stnt:")) continue;
+            const s = t.slice(5);
+            if (!SPEC[s]) continue;
+            found++;
+            system.runTimeout(() => { try { ignite(dim, p, s); } catch (e) {} },
+                              2 + Math.floor(Math.random() * 8));
+          } catch (e) {}
+        }
       }
+    }
+    if (dx > R) system.clearRun(job);
+  }, 1);
 }
 
 function rnd(n) { return (Math.random() - 0.5) * n; }
@@ -642,7 +656,7 @@ function rnd(n) { return (Math.random() - 0.5) * n; }
 function detonate(dim, c, short, igniterId) {
   const s = SPEC[short];
   if (!s) return;
-  chain(dim, c, short);   // F3 - once zinciri kur, sonra patlat (bloklar hala duruyor)
+  chain(dim, c);   // F3 - zinciri kur (patlamadan once, bloklar hala duruyor)
   try {
     switch (s.kind) {
       case "explode":
@@ -692,7 +706,14 @@ function detonate(dim, c, short, igniterId) {
         break;
 
       case "time":
-        try { world.setTimeOfDay(s.time); } catch (e) {}
+        // AyTntEntity.java: yalnizca GUNDUZSE geceye cevirir (tod < 12300).
+        // Kosulsuz set etmek geceyi de basa sariyordu.
+        try {
+          const tod = world.getTimeOfDay();
+          if (tod < 12300) world.setTimeOfDay(s.time);
+        } catch (e) {
+          try { world.setTimeOfDay(s.time); } catch (e2) {}
+        }
         spray(dim, c, "minecraft:end_rod", 60, 4);
         break;
 
@@ -717,25 +738,29 @@ function detonate(dim, c, short, igniterId) {
       }
 
       case "freeze": {
-        // Java: "Patlatan haric herkesi 30 sn dondurur. 30 sn kar yagar."
-        // Bedrock'ta dogrudan "dondurma" API'si yok; yavaslik + korluk yerine
-        // gercek donma etkisi icin powder_snow hasari kullanilmaz (blok
-        // gerekir). En yakin karsilik: yavaslik + zayiflik + mavi ekran hissi.
-        const secs = s.freeze_seconds ?? 30;
-        for (const e of dim.getEntities({ location: c, maxDistance: s.radius })) {
+        // BuzTntEntity.java ile birebir:
+        //  - setWeather(0, WEATHER_TICKS, true, false) -> YAGMUR (thunder yok).
+        //    Bedrock'ta "Snow" diye bir hava tipi YOK; kar, soguk biyomda
+        //    yagmurun gorunumudur. "Snow" gecmek sessizce basarisiz oluyordu.
+        //  - Tum OYUNCULAR (yaricap sinirli degil), patlatan haric
+        //  - SLOWNESS amp 6 + MINING_FATIGUE amp 4, 600 tick
+        //  - Gorsel patlama: guc 1.0, blok hasari yok
+        // Bedrock'ta setFrozenTicks karsiligi yok - gercek donma gorseli eksik.
+        const ticks = (s.freeze_seconds ?? 30) * 20;
+        for (const p of dim.getPlayers()) {
           try {
-            if (igniterId && e.id === igniterId) continue;   // patlatan haric
-            e.addEffect("slowness", secs * 20, { amplifier: 4, showParticles: true });
-            e.addEffect("weakness", secs * 20, { amplifier: 1, showParticles: false });
-            e.addEffect("mining_fatigue", secs * 20, { amplifier: 2, showParticles: false });
+            if (igniterId && p.id === igniterId) continue;   // patlatan haric
+            p.addEffect("slowness", ticks, { amplifier: 6, showParticles: true });
+            p.addEffect("mining_fatigue", ticks, { amplifier: 4, showParticles: false });
           } catch (err) {}
         }
-        try { dim.setWeather("Snow", secs * 20); } catch (err) {}
+        try { dim.setWeather("Rain", ticks); } catch (err) {}
+        try { dim.createExplosion(c, 1.0, { breaksBlocks: false, causesFire: false }); } catch (err) {}
         const r = s.radius;
         // agir is: tek tick'te degil, dilim dilim
         let dx = -r;
         const job = system.runInterval(() => {
-          for (let n = 0; n < 3 && dx <= r; n++, dx++) {
+          for (let n = 0; n < 1 && dx <= r; n++, dx++) {
             for (let dz = -r; dz <= r; dz++) {
               for (let dy = -4; dy <= 4; dy++) {
                 if (dx * dx + dz * dz > r * r) continue;

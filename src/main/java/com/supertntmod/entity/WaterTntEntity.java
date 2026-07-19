@@ -131,6 +131,15 @@ public class WaterTntEntity extends TntEntity {
         }
     }
 
+    /**
+     * Başka bir TNT'nin yerleştirdiği suyu da bu kuyruğa kaydeder.
+     * Ölümcül Su TNT bunu kullanır — kendi temizleme makinesini kurmak
+     * yerine buradaki tick/kapanış kablolamasını paylaşır.
+     */
+    public static void scheduleRemoval(ServerWorld world, BlockPos pos, int lifetimeTicks) {
+        pendingRemovals.add(new PendingWaterRemoval(world, pos.toImmutable(), lifetimeTicks));
+    }
+
     public static void clearAll() {
         pendingRemovals.clear();
     }

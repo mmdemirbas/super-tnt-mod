@@ -3,6 +3,8 @@ package com.supertntmod.entity;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.EntityType;
+import net.minecraft.storage.ReadView;
+import net.minecraft.storage.WriteView;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.TntEntity;
 import net.minecraft.particle.ParticleTypes;
@@ -118,5 +120,33 @@ public class MakarnaTntEntity extends TntEntity {
             return;
         }
         if (!done) super.tick();
+    }
+
+    // Kaydet/yukle: cok-tick isleme durumu kalici olmali. Aksi halde
+    // dunya islem sirasinda kapatilirsa fitil 0'da donmus olarak geri
+    // yuklenir ve patlama bastan calisir (her acilista tekrar).
+    @Override
+    public void readData(ReadView reader) {
+        super.readData(reader);
+        done = reader.getBoolean("done", false);
+        processing = reader.getBoolean("processing", false);
+        int centerX = reader.getInt("centerX", Integer.MIN_VALUE);
+        if (centerX != Integer.MIN_VALUE) {
+            center = new BlockPos(centerX, reader.getInt("centerY", 0), reader.getInt("centerZ", 0));
+        }
+        idx = reader.getInt("idx", 0);
+    }
+
+    @Override
+    public void writeData(WriteView writer) {
+        super.writeData(writer);
+        writer.putBoolean("done", done);
+        writer.putBoolean("processing", processing);
+        if (center != null) {
+            writer.putInt("centerX", center.getX());
+            writer.putInt("centerY", center.getY());
+            writer.putInt("centerZ", center.getZ());
+        }
+        writer.putInt("idx", idx);
     }
 }

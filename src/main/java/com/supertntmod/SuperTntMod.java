@@ -285,6 +285,8 @@ public class SuperTntMod implements ModInitializer {
             com.supertntmod.item.AmethystArmorState.clearAll();
             com.supertntmod.block.BlockerChestBlock.clearBans();
             com.supertntmod.block.CommandTntBlock.clearAll();
+            com.supertntmod.block.EncryptedTntChestBlock.clearAll();
+            com.supertntmod.item.RainbowBootsItem.clearAll();
             com.supertntmod.item.DiaryItem.clearAll();
             com.supertntmod.item.PortalGunItem.clearAll();
             com.supertntmod.block.TntDoorBlock.clearAll();
@@ -320,6 +322,7 @@ public class SuperTntMod implements ModInitializer {
             java.util.UUID id = handler.player.getUuid();
             EncryptedTntChestBlock.onPlayerDisconnect(id);
             TntDoorBlock.onPlayerDisconnect(id);
+        com.supertntmod.item.RainbowBootsItem.onPlayerDisconnect(id);
             PortalGunItem.onPlayerDisconnect(id);
             com.supertntmod.item.AmethystArmorState.onPlayerDisconnect(id);
             com.supertntmod.block.BlockerChestBlock.onPlayerDisconnect(id);

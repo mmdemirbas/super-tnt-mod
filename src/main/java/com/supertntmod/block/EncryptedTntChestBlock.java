@@ -224,4 +224,11 @@ public class EncryptedTntChestBlock extends Block {
         chestState.passwords.remove(pos);
         chestState.markDirty();
     }
+
+    /** Sunucu kapanisinda statik haritalari bosalt (JVM icinde
+     *  yeniden baslatmada sizinti olmasin). */
+    public static void clearAll() {
+        AWAITING_PASSWORD.clear();
+        AWAITING_SET_PASSWORD.clear();
+    }
 }

@@ -111,8 +111,6 @@
   "screen.supertntmod.drawing.clear": "Clear",
   "screen.supertntmod.drawing.eraser": "Eraser",
   "screen.supertntmod.drawing.undo": "Undo",
-  "screen.supertntmod.drawing.prev_layer": "< Prev",
-  "screen.supertntmod.drawing.next_layer": "Next >",
   "screen.supertntmod.drawing.layer": "Layer %d/%d  [ scroll / PgUp/Dn ]",
   "message.supertntmod.drawing.built": "Your drawing has been built!",
   "block.supertntmod.blocker_chest": "Blocker Chest",
@@ -354,5 +352,6 @@
   "item.supertntmod.esya_calmaca.tooltip": "Right-click to peek into the inventory of the nearest player within 10 blocks.",
   "item.supertntmod.esya_calmaca.no_target": "No player within 10 blocks.",
   "item.supertntmod.esya_calmaca.title": "Stealing from %s",
-  "item.supertntmod.esya_calmaca.target_warned": "%s is rummaging through your inventory!"
+  "item.supertntmod.esya_calmaca.target_warned": "%s is rummaging through your inventory!",
+  "entity.supertntmod.walking_tnt": "Walking TNT"
 }

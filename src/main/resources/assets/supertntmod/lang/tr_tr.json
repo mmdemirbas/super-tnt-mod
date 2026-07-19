@@ -111,8 +111,6 @@
   "screen.supertntmod.drawing.clear": "Temizle",
   "screen.supertntmod.drawing.eraser": "Silgi",
   "screen.supertntmod.drawing.undo": "Geri Al",
-  "screen.supertntmod.drawing.prev_layer": "< Önceki",
-  "screen.supertntmod.drawing.next_layer": "Sonraki >",
   "screen.supertntmod.drawing.layer": "Katman %d/%d  [ scroll / PgUp/Dn ]",
   "message.supertntmod.drawing.built": "Çizimin inşa edildi!",
   "block.supertntmod.blocker_chest": "Blocker Sandık",
@@ -354,5 +352,6 @@
   "item.supertntmod.esya_calmaca.tooltip": "Sağ tıkla — 10 blok yarıçaptaki en yakın oyuncunun envanterini açar.",
   "item.supertntmod.esya_calmaca.no_target": "10 blok yarıçapında oyuncu yok.",
   "item.supertntmod.esya_calmaca.title": "%s'in Envanteri",
-  "item.supertntmod.esya_calmaca.target_warned": "%s envanterini karıştırıyor!"
+  "item.supertntmod.esya_calmaca.target_warned": "%s envanterini karıştırıyor!",
+  "entity.supertntmod.walking_tnt": "Yürüyen TNT"
 }

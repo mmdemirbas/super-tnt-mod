@@ -25,7 +25,11 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class TntDoorBlock extends DoorBlock {
     // Uyarı alan oyuncular (ikinci denemede patlar) — ephemeral, no persistence needed
-    private static final Map<UUID, BlockPos> WARNED_PLAYERS = new ConcurrentHashMap<>();
+    /** Boyut + konum. Sadece BlockPos ile anahtarlanirsa Nether'da ayni
+     *  koordinattaki kapi, Overworld'de alinan uyariyi 'gormus' sayilir. */
+    private record DimPos(net.minecraft.registry.RegistryKey<World> dimension, BlockPos pos) {}
+
+    private static final Map<UUID, DimPos> WARNED_PLAYERS = new ConcurrentHashMap<>();
 
     public TntDoorBlock(Settings settings) {
         super(BlockSetType.IRON, settings);
@@ -65,10 +69,11 @@ public class TntDoorBlock extends DoorBlock {
             return ActionResult.SUCCESS;
         } else {
             // Başkası: ilk seferde uyar, ikinci seferde patla!
-            BlockPos warnedPos = WARNED_PLAYERS.get(player.getUuid());
-            if (warnedPos == null || !warnedPos.equals(basePos)) {
+            DimPos here = new DimPos(world.getRegistryKey(), basePos);
+            DimPos warned = WARNED_PLAYERS.get(player.getUuid());
+            if (warned == null || !warned.equals(here)) {
                 // İlk deneme: uyarı ver
-                WARNED_PLAYERS.put(player.getUuid(), basePos);
+                WARNED_PLAYERS.put(player.getUuid(), here);
                 world.playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
                         SoundEvents.BLOCK_NOTE_BLOCK_BASS.value(), SoundCategory.BLOCKS, 1.0f, 0.5f);
                 player.sendMessage(Text.translatable("message.supertntmod.tnt_door.warning"), false);
