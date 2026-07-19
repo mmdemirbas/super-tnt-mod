@@ -43,11 +43,21 @@ for D in $DEVICES; do
     echo "  HATA: boyut uyusmuyor (mac=$LOCAL tablet=$REMOTE)"; continue
   fi
   echo "  gonderildi ve dogrulandi: $LOCAL bayt"
+
+  # MediaStore temizligi — KRITIK.
+  # adb push edilen dosya bazen MediaStore'a "application/octet-stream"
+  # (bilinmeyen tip) olarak giriyor. Samsung "Dosyalarim" boyle kayitli
+  # .mcaddon'lari Minecraft'a degil Google Play'e yonlendiriyor. MediaStore'da
+  # HIC kaydi olmayan .mcaddon'lari ise uzantidan tanip Minecraft'a veriyor.
+  # Bu yuzden push sonrasi kaydi siliyoruz; Samsung dosyayi uzantidan bulur.
+  adb -s "$D" shell "content delete --uri content://media/external/downloads \
+      --where \"_display_name='$NAME'\"" >/dev/null 2>&1 || true
+
   cat <<EOF
   Simdi tablette:
-    Dosyalarim > Download > $NAME
-    uzun bas > "Sununla ac" > Minecraft (duz cim-blogu ikonu) > Yalnizca bir defa
+    Dosyalarim > Indirilenler > $NAME  (uzun bas > "Sununla ac")
+    > Minecraft (duz cim-blogu ikonu, "Education" degil) > Yalnizca bir defa
   Minecraft acilir ve "Iceri aktariliyor" der. Sonra Dunya Ayarlari'nda
-  Davranis + Kaynak paketlerinden etkinlestir.
+  Davranis + Kaynak paketlerinden IKISINI de etkinlestir.
 EOF
 done
