@@ -7,28 +7,37 @@ cevirir ve tek .mcaddon olarak paketler.
 
 TASARIM KARARLARI
 -----------------
-K1. Fitil yerinde yanar. Bedrock'ta "vanilla TNT gibi ateslenip ziplayan
-    ozel blok" hazir gelmiyor; ates alan blogun yerine ucan bir varlik
-    koymak ayri geometri + render controller yazarligi demek. Bunun yerine
-    blok yerinde durur, 4 saniye duman + fitil sesi cikarir, sonra etki
-    calisir. Islevsel fark: TNT firlatilamaz/ziplamaz.
+K1. Ateslenen blok fiziksel bir varliga donusur (firlar, duser, yanip
+    soner) - vanilla TNT gibi. Her TNT'nin `stnt:<ad>_primed` varligi var.
 
-K2. Ateslendirme cakmakla. Script `playerInteractWithBlock` olayini dinler,
-    elde cakmak varsa fitili baslatir. Redstone ile atesleme YOK (Bedrock'ta
-    ozel bloga redstone dinletmek ayri is).
+K2. Atesleme uc yoldan: cakmak, redstone (yerlestirilen bloklar dunya
+    dinamik ozelliginde tutulup yoklanir) ve zincirleme patlama.
 
-K3. Dokular uretiliyor, vanilla'ya referans verilmiyor. Java tarafinda aile
-    TNT'leri `minecraft:block/*_concrete` kullaniyor ama Bedrock'ta vanilla
-    doku yollari farkli adlandirilmis (light_gray -> concrete_silver gibi).
-    Kirik doku riskini almamak icin 16x16 PNG'ler burada uretiliyor.
-    Kendi dokusu olan TNT'ler (diamond, bounce) Java projesinden kopyalanir.
+K3. Dokular TNT SABLONU yeniden renklendirilerek uretilir, duz renk kare
+    degil. Java'da aile TNT'leri `minecraft:block/*_concrete` kullaniyor
+    ama Bedrock'ta vanilla doku yollari farkli adlandirilmis
+    (light_gray -> concrete_silver gibi) ve kirik doku riski var.
+    Bunun yerine gercek TNT dokusunun parlakligi korunup rengi
+    degistiriliyor -> "TNT" yazisi ve fitil duruyor.
+    NOT: duz renk kare uretmek ilk denemede envanterde birbirinden
+    ayirt edilemeyen 10 pastel kareye yol acmisti.
 
 K4. Aile TNT'lerinin tonlari ayristirildi. Java'da abi/anne/baba/bebek
     dordu de ayni pembe; envanterde ayirt edilemiyor. Ayni sicak paletten
     farkli tonlar verildi. Bilincli sapma.
 
-K5. Davranislar Java kaynagindan okundu, uydurulmadi. Sayilar (yaricap,
-    adet, sure) ilgili *TntEntity.java dosyalarindan alindi.
+K5. Davranislar ve METINLER Java kaynagindan BIREBIR alindi. Sayilar
+    ilgili *TntEntity.java'dan, ad/aciklama lang/tr_tr.json'dan.
+    Turkce karakterler korunur - ilk denemede ASCII'ye kirpilmisti.
+
+K6. Java'da tooltip her TNT'de var, Bedrock'ta blok tooltip'i yok.
+    Karsilik: TNT elde secilince aciklama eylem cubugunda gosterilir,
+    ceviri anahtariyla (oyuncunun dilinde).
+
+K7. Kalp TNT buff'i YALNIZCA oyunculara. Java'da 88b9de1 ayni hatayi
+    Harf TNT'de duzeltti (tum LivingEntity'ye verilince zombi/iskelet
+    guclenip cocuk icin tehlikeli oluyordu). KalpTntEntity.java'da bu
+    duzeltme hala yok; Bedrock tarafinda dogrusu yapildi.
 """
 import json, os, re, shutil, struct, zlib, zipfile
 
@@ -48,69 +57,79 @@ RP_MOD_UUID = "7dce50a6-b198-4fd4-c265-ce8da04b5c17"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 1, 0]
+VERSION = [1, 2, 0]
 MIN_ENGINE = [1, 21, 0]
 
 # ---------------------------------------------------------------- TNT tanimlari
 # renk: (top, side, bottom) RGB. tex: Java projesinden kopyalanacak taban ad.
+# tr/trtip metinleri Java projesinin lang/tr_tr.json dosyasindan BIREBIR alindi.
+# Turkce karakterler korunur (.lang dosyalari UTF-8).
 TNTS = [
     dict(id="diamond_tnt", tr="Elmas TNT", en="Diamond TNT",
-         trtip="Devasa patlama - 10 guc.", entip="Huge explosion - power 10.",
+         trtip="2.5x patlama gücü - dev kraterler açar",
+         entip="2.5x explosion power - opens huge craters",
          tex="diamond_tnt", mat="minecraft:diamond",
          effect=dict(kind="explode", power=10)),
-    dict(id="bounce_tnt", tr="Ziplatan TNT", en="Bounce TNT",
-         trtip="Yakindaki her seyi gokyuzune firlatir. Blok hasari yok.",
-         entip="Launches everything nearby into the sky. No block damage.",
+    dict(id="bounce_tnt", tr="Zıplatan TNT", en="Bounce TNT",
+         trtip="Yakındaki HER ŞEYİ gökyüzüne fırlatır! Blok hasarı yoktur.",
+         entip="Launches EVERYTHING nearby into the sky! No block damage.",
          tex="bounce_tnt", mat="minecraft:slime_ball",
          effect=dict(kind="launch", radius=12, force=1.5)),
     dict(id="zeynep_tnt", tr="Zeynep TNT", en="Zeynep TNT",
-         trtip="Etrafa 50 bos kagit sacar.", entip="Scatters 50 sheets of paper.",
+         trtip="Lacivert TNT — patlayınca etrafa boş kağıtlar saçar!",
+         entip="Navy blue TNT - scatters blank paper everywhere!",
          color=((44, 62, 158), (44, 62, 158), (44, 62, 158)), mat="minecraft:paper",
          effect=dict(kind="items", item="minecraft:paper", count=50, spread=8.0)),
-    dict(id="coklu_zeynep_tnt", tr="Coklu Zeynep TNT", en="Multi Zeynep TNT",
-         trtip="Etrafa 'Zeynep' isimli 15 koylu sacar.",
-         entip="Scatters 15 villagers named 'Zeynep'.",
+    dict(id="coklu_zeynep_tnt", tr="Çoklu Zeynep TNT", en="Multi Zeynep TNT",
+         trtip="Patladığında etrafa 'Zeynep' isimli köylüler saçar.",
+         entip="Scatters villagers named 'Zeynep' when it explodes.",
          color=((160, 40, 150), (214, 96, 168), (160, 40, 150)), mat="minecraft:emerald",
          effect=dict(kind="villagers", name="Zeynep", count=15, spread=7.0)),
     dict(id="abi_tnt", tr="Abi TNT", en="Abi TNT",
-         trtip="Etrafa 'Abi' isimli 12 koylu sacar.",
-         entip="Scatters 12 villagers named 'Abi'.",
+         trtip="Patladığında etrafa 'Abi' isimli köylüler saçar.",
+         entip="Scatters villagers named 'Abi' when it explodes.",
          color=((196, 76, 132), (196, 76, 132), (196, 76, 132)), mat="minecraft:emerald",
          effect=dict(kind="villagers", name="Abi", count=12, spread=6.0)),
     dict(id="anne_tnt", tr="Anne TNT", en="Anne TNT",
-         trtip="Etrafa 'Anne' isimli 12 koylu sacar.",
-         entip="Scatters 12 villagers named 'Anne'.",
+         trtip="Patladığında etrafa 'Anne' isimli köylüler saçar.",
+         entip="Scatters villagers named 'Anne' when it explodes.",
          color=((224, 122, 168), (224, 122, 168), (224, 122, 168)), mat="minecraft:emerald",
          effect=dict(kind="villagers", name="Anne", count=12, spread=6.0)),
     dict(id="baba_tnt", tr="Baba TNT", en="Baba TNT",
-         trtip="Etrafa 'Baba' isimli 12 koylu sacar.",
-         entip="Scatters 12 villagers named 'Baba'.",
+         trtip="Patladığında etrafa 'Baba' isimli köylüler saçar.",
+         entip="Scatters villagers named 'Baba' when it explodes.",
          color=((150, 60, 110), (150, 60, 110), (150, 60, 110)), mat="minecraft:emerald",
          effect=dict(kind="villagers", name="Baba", count=12, spread=6.0)),
     dict(id="bebek_tnt", tr="Bebek TNT", en="Bebek TNT",
-         trtip="Etrafa 'Bebek' isimli 15 yavru koylu sacar.",
-         entip="Scatters 15 baby villagers named 'Bebek'.",
+         trtip="Patladığında etrafa 'Bebek' isimli yavru köylüler saçar.",
+         entip="Scatters baby villagers named 'Bebek' when it explodes.",
          color=((245, 178, 208), (245, 178, 208), (245, 178, 208)), mat="minecraft:emerald",
          effect=dict(kind="villagers", name="Bebek", count=15, spread=6.0, baby=True)),
     dict(id="bulut_tnt", tr="Bulut TNT", en="Cloud TNT",
-         trtip="Yagmur baslatir ve gokyuzunu bulutlandirir.",
+         trtip="Yağmur başlatır ve gökyüzünü bulutlandırır.",
          entip="Starts rain and clouds over the sky.",
          color=((236, 240, 244), (150, 200, 232), (236, 240, 244)), mat="minecraft:white_wool",
          effect=dict(kind="weather", weather="Rain")),
     dict(id="ay_tnt", tr="Ay TNT", en="Moon TNT",
-         trtip="Gunduzse gece yapar.", entip="Turns day into night.",
+         trtip="Gündüzse güneşi aya dönüştürür — gece olur.",
+         entip="Turns the sun into the moon - night falls.",
          color=((186, 190, 194), (186, 190, 194), (186, 190, 194)), mat="minecraft:glowstone_dust",
          effect=dict(kind="time", time=18000)),
+    # DIKKAT: buff yalnizca OYUNCULARA. Java tarafinda 88b9de1 "Harf TNT'sinin
+    # can/kalkan buff'u sadece oyunculara verilsin" ayni hatayi duzeltti:
+    # tum LivingEntity'ye verilince zombi/iskelet guclenip cocuk icin
+    # tehlikeli hale geliyordu. KalpTntEntity.java'da bu duzeltme HENUZ YOK
+    # (hala LivingEntity.class kullaniyor) - burada dogrusu yapiliyor.
     dict(id="kalp_tnt", tr="Kalp TNT", en="Heart TNT",
-         trtip="20 blok yaricapindaki herkese emme ve yenilenme verir.",
-         entip="Gives absorption and regeneration to everyone within 20 blocks.",
+         trtip="Yakındaki herkese can yenileme + kalkan verir, efektleri ve boyutu sıfırlar.",
+         entip="Heals and shields nearby players, clears effects and size changes.",
          color=((140, 40, 46), (196, 48, 54), (92, 48, 52)), mat="minecraft:gold_ingot",
          effect=dict(kind="heal", radius=20)),
     dict(id="buz_tnt", tr="Buz TNT", en="Ice TNT",
-         trtip="14 blok yaricapini buz ve karla kaplar.",
-         entip="Covers a 14 block radius with ice and snow.",
+         trtip="14 blok yarıçapı buzla kaplar. Patlatan hariç herkesi 30 sn dondurur. 30 sn kar yağar.",
+         entip="Covers a 14 block radius with ice. Freezes everyone except the igniter for 30s. Snows for 30s.",
          color=((150, 200, 232), (176, 216, 240), (150, 200, 232)), mat="minecraft:packed_ice",
-         effect=dict(kind="freeze", radius=14)),
+         effect=dict(kind="freeze", radius=14, freeze_seconds=30)),
 ]
 
 FUSE_TICKS = 80  # Java tarafinda setFuse(80)
@@ -134,19 +153,47 @@ def shade(c, f):
     return tuple(max(0, min(255, int(v * f))) for v in c)
 
 
-def tnt_face(path, base, band=True):
-    """TNT'ye benzeyen 16x16: govde rengi + ortada acik bant (yandan)."""
+# Yeniden renklendirme sablonu: gercek TNT dokusu. Duz renk kare uretmek
+# yerine bunun parlakligini koruyup rengini degistiriyoruz; boylece "TNT"
+# yazisi, fitil ve bant duruyor, sadece govde rengi degisiyor.
+TEMPLATE = "diamond_tnt"
+
+
+def tnt_face(path, base, band=True, face="side"):
+    """TNT sablonunu hedef renge boyar. PIL yoksa duz renge duser."""
+    src = os.path.join(JAVA_TEX, f"{TEMPLATE}_{face}.png")
+    try:
+        from PIL import Image
+        import colorsys
+        if not os.path.exists(src):
+            raise FileNotFoundError(src)
+        im = Image.open(src).convert("RGB")
+        th, ts, _ = colorsys.rgb_to_hsv(*[c / 255 for c in base])
+        out = Image.new("RGB", im.size)
+        px_in, px_out = im.load(), out.load()
+        for y in range(im.size[1]):
+            for x in range(im.size[0]):
+                r, g, b = px_in[x, y]
+                _, s, v = colorsys.rgb_to_hsv(r / 255, g / 255, b / 255)
+                # ton hedeften, doygunluk hedefe olceklenir, parlaklik korunur
+                # -> yazi/fitil/golge yapisi aynen kalir
+                ns = min(1.0, s * (0.35 + ts))
+                nr, ng, nb = colorsys.hsv_to_rgb(th, ns, v)
+                px_out[x, y] = (int(nr * 255), int(ng * 255), int(nb * 255))
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        out.save(path)
+        return
+    except Exception:
+        pass
+    # yedek: duz renk
     rows = []
     for y in range(16):
         row = []
         for x in range(16):
-            c = base
-            # hafif doku gurultusu (deterministik)
-            n = ((x * 7 + y * 13) % 5 - 2) * 0.02
-            c = shade(c, 1.0 + n)
+            c = shade(base, 1.0 + ((x * 7 + y * 13) % 5 - 2) * 0.02)
             if band and 6 <= y <= 9:
-                c = shade(base, 1.35) if (x + y) % 2 == 0 else shade(base, 1.25)
-            if x == 0 or y == 0 or x == 15 or y == 15:
+                c = shade(base, 1.30)
+            if x in (0, 15) or y in (0, 15):
                 c = shade(c, 0.78)
             row.append(c)
         rows.append(row)
@@ -247,7 +294,7 @@ def build():
                 copied += 1
             else:
                 idx = {"top": 0, "side": 1, "bottom": 2}[face]
-                tnt_face(dst, t['color'][idx], band=(face == "side"))
+                tnt_face(dst, t['color'][idx], band=(face == "side"), face=face)
                 generated += 1
             terrain[key] = {"textures": rel}
     w(os.path.join(RP, "textures/terrain_texture.json"),
@@ -365,8 +412,10 @@ def build():
     # ---------- script
     spec = {t['id']: t['effect'] for t in TNTS}
     tips = {t['id']: t['tr'] for t in TNTS}
+    tiptext = {t['id']: t['trtip'] for t in TNTS}
     script = SCRIPT_TEMPLATE.replace("__SPEC__", json.dumps(spec, indent=2)) \
                             .replace("__NAMES__", json.dumps(tips, ensure_ascii=False)) \
+                            .replace("__TIPS__", json.dumps(tiptext, ensure_ascii=False)) \
                             .replace("__FUSE__", str(FUSE_TICKS))
     os.makedirs(os.path.join(BP, "scripts"), exist_ok=True)
     open(os.path.join(BP, "scripts/main.js"), 'w', encoding='utf-8').write(script)
@@ -395,7 +444,43 @@ import { world, system, ItemStack } from "@minecraft/server";
 
 const SPEC = __SPEC__;
 const NAMES = __NAMES__;
+const TIPS = __TIPS__;
 const FUSE = __FUSE__;
+
+// ---------------------------------------------------------------- tooltip
+// Bedrock'ta Java'daki gibi blok tooltip'i yok. Java surumunde her TNT'nin
+// ne yaptigini anlatan bir aciklama var ve cocuklarin hangi TNT'nin ne
+// yaptigini bilmesi buna bagli. Yerine: TNT elde secilince aciklama
+// eylem cubugunda (action bar) gosteriliyor.
+const lastSel = new Map();   // playerId -> gosterilen id
+system.runInterval(() => {
+  for (const p of world.getPlayers()) {
+    let held = null;
+    try {
+      const inv = p.getComponent("minecraft:inventory");
+      const it = inv?.container?.getItem(p.selectedSlotIndex);
+      held = it ? it.typeId : null;
+    } catch (e) { continue; }
+    if (lastSel.get(p.id) === held) continue;
+    lastSel.set(p.id, held);
+    if (held && held.startsWith("stnt:")) {
+      const s = held.slice(5);
+      if (!TIPS[s]) continue;
+      // Ham metin yerine ceviri anahtari: oyuncunun dilinde gorunur ve
+      // texts/*.lang'daki anahtarlar olu kalmaz.
+      try {
+        p.onScreenDisplay.setActionBar({
+          rawtext: [
+            { text: "§e" }, { translate: `tile.stnt:${s}.name` },
+            { text: "§r §7- " }, { translate: `stnt.tip.${s}` },
+          ],
+        });
+      } catch (e) {
+        try { p.onScreenDisplay.setActionBar(`§e${NAMES[s]}§r §7- ${TIPS[s]}`); } catch (e2) {}
+      }
+    }
+  }
+}, 5);
 
 const key = (d, l) => `${d}|${Math.floor(l.x)},${Math.floor(l.y)},${Math.floor(l.z)}`;
 
@@ -444,7 +529,7 @@ world.afterEvents.playerInteractWithBlock.subscribe((ev) => {
   if (!id.startsWith("stnt:")) return;
   const short = id.slice(5);
   if (!SPEC[short]) return;
-  ignite(block.dimension, block.location, short);
+  ignite(block.dimension, block.location, short, player.id);
   try { player.sendMessage(`§e${NAMES[short] ?? short} §7ateslendi!`); } catch (e) {}
 });
 
@@ -493,7 +578,7 @@ try {
 // duser, ziplar - vanilla TNT gibi.
 const primed = new Map();  // entityId -> { short, left, dim }
 
-function ignite(dim, loc, short) {
+function ignite(dim, loc, short, igniterId) {
   const k = key(dim.id, loc);
   try {
     const b = dim.getBlock(loc);
@@ -507,10 +592,10 @@ function ignite(dim, loc, short) {
   try {
     const e = dim.spawnEntity(`stnt:${short}_primed`, c);
     try { e.applyImpulse({ x: rnd(0.04), y: 0.22, z: rnd(0.04) }); } catch (err) {}
-    primed.set(e.id, { short, left: FUSE, e });
+    primed.set(e.id, { short, left: FUSE, e, ig: igniterId });
   } catch (err) {
     // varlik dogmadiysa yerinde patlat - islev kaybolmasin
-    system.runTimeout(() => detonate(dim, c, short), FUSE);
+    system.runTimeout(() => detonate(dim, c, short, igniterId), FUSE);
   }
 }
 
@@ -526,7 +611,7 @@ system.runInterval(() => {
     if (p.left <= 0) {
       primed.delete(id);
       try { p.e.remove(); } catch (e) {}
-      detonate(dim, loc, p.short);
+      detonate(dim, loc, p.short, p.ig);
     }
   }
 }, 2);
@@ -554,7 +639,7 @@ function chain(dim, c, short) {
 
 function rnd(n) { return (Math.random() - 0.5) * n; }
 
-function detonate(dim, c, short) {
+function detonate(dim, c, short, igniterId) {
   const s = SPEC[short];
   if (!s) return;
   chain(dim, c, short);   // F3 - once zinciri kur, sonra patlat (bloklar hala duruyor)
@@ -612,10 +697,19 @@ function detonate(dim, c, short) {
         break;
 
       case "heal": {
-        for (const e of dim.getEntities({ location: c, maxDistance: s.radius })) {
+        // SADECE OYUNCULAR. Butun varliklara verilirse zombi/iskelet de
+        // guclenir - Java tarafinda 88b9de1 ile duzeltilen hata buydu.
+        for (const p of dim.getPlayers({ location: c, maxDistance: s.radius })) {
           try {
-            e.addEffect("absorption", 600, { amplifier: 4, showParticles: true });
-            e.addEffect("regeneration", 600, { amplifier: 2, showParticles: true });
+            // Java KalpTntEntity once tum efektleri temizliyor, sonra veriyor
+            for (const eff of p.getEffects()) {
+              try { p.removeEffect(eff.typeId); } catch (err) {}
+            }
+            // Java ayrica olcek degisikligini sifirliyor; Bedrock'ta oyuncu
+            // olcegi script'ten hic degistirilemedigi icin bozulmasi da
+            // mumkun degil - o adimin Bedrock'ta karsiligi yok.
+            p.addEffect("regeneration", 600, { amplifier: 2, showParticles: true });
+            p.addEffect("absorption", 600, { amplifier: 4, showParticles: true });
           } catch (err) {}
         }
         spray(dim, c, "minecraft:heart_particle", 80, 5);
@@ -623,6 +717,20 @@ function detonate(dim, c, short) {
       }
 
       case "freeze": {
+        // Java: "Patlatan haric herkesi 30 sn dondurur. 30 sn kar yagar."
+        // Bedrock'ta dogrudan "dondurma" API'si yok; yavaslik + korluk yerine
+        // gercek donma etkisi icin powder_snow hasari kullanilmaz (blok
+        // gerekir). En yakin karsilik: yavaslik + zayiflik + mavi ekran hissi.
+        const secs = s.freeze_seconds ?? 30;
+        for (const e of dim.getEntities({ location: c, maxDistance: s.radius })) {
+          try {
+            if (igniterId && e.id === igniterId) continue;   // patlatan haric
+            e.addEffect("slowness", secs * 20, { amplifier: 4, showParticles: true });
+            e.addEffect("weakness", secs * 20, { amplifier: 1, showParticles: false });
+            e.addEffect("mining_fatigue", secs * 20, { amplifier: 2, showParticles: false });
+          } catch (err) {}
+        }
+        try { dim.setWeather("Snow", secs * 20); } catch (err) {}
         const r = s.radius;
         // agir is: tek tick'te degil, dilim dilim
         let dx = -r;

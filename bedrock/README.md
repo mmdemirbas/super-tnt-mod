@@ -70,19 +70,50 @@ zinciri başlatabiliyor.
 **F1, F2, F3 — çözüldü (v1.1.0).** Fırlayan TNT varlığı, redstone ateşleme
 ve zincirleme patlama artık var. Ayrıntı aşağıda "Nasıl çalışır".
 
-**F4 — Dokular yeniden üretildi.** Elmas ve Zıplatan TNT kendi PNG'lerini Java
-projesinden alıyor. Diğer 10'u Java'da vanilla beton dokusu kullanıyordu;
+**F4 — Dokular yeniden renklendirildi.** Elmas ve Zıplatan TNT kendi PNG'lerini
+Java projesinden alıyor. Diğer 10'u Java'da vanilla beton dokusu kullanıyordu;
 Bedrock'ta vanilla doku yol adları farklı (`light_gray` → `concrete_silver`
-gibi) ve kırık doku riski var, o yüzden 16x16 PNG'ler `build.py` içinde
-üretiliyor.
+gibi) ve kırık doku riski var. Bunun yerine gerçek TNT dokusunun parlaklığı
+korunup rengi değiştiriliyor — "TNT" yazısı ve fitil duruyor.
+
+*İlk denemede düz renkli kareler üretilmişti; envanterde 10 pastel kare
+birbirinden ayırt edilemiyordu. Görsel denetimde yakalandı.*
 
 **F5 — Aile TNT'lerinin tonları ayrıştırıldı.** Java'da abi/anne/baba/bebek
 dördü de aynı pembe; envanterde ayırt edilemiyor. Aynı sıcak paletten farklı
 tonlar verildi. Bilinçli sapma.
 
-**F6 — Buz TNT yaklaşık.** Java sürümü blok listesine göre daha ayrıntılı
-dönüşüm yapıyor. Burada: su→packed ice, lav→taş, katı blokların üstüne kar
-katmanı.
+**F6 — Buz TNT'nin dondurması yaklaşık.** Blok dönüşümü (su→buz, lav→taş,
+üste kar katmanı), 30 sn kar yağışı ve "patlatan hariç herkesi dondur"
+mekaniği var. Ama Bedrock'ta gerçek donma efektini script'ten vermenin yolu
+yok; en yakın karşılık olarak yavaşlık + zayıflık + kazma yorgunluğu
+veriliyor.
+
+## Tooltip'ler
+
+Java'da her TNT'nin bir açıklaması var. Bedrock'ta blok tooltip'i yok;
+karşılığı olarak TNT eline alındığında açıklama **eylem çubuğunda** görünür.
+Metin çeviri anahtarıyla basılır (`stnt.tip.<ad>`), yani oyuncunun dilinde
+çıkar — İngilizce oynayan İngilizce görür.
+
+## Denetim notu
+
+v1.2.0 bir gözden geçirmenin sonucu. Java projesinin 57 düzeltme commit'i
+tarandı ve aynı hatalara düşülüp düşülmediği kontrol edildi. Bulunanlar:
+
+- **Kalp TNT tüm canlılara buff veriyordu** — zombi ve iskeletleri de
+  güçlendiriyordu. Java'da `88b9de1` bu hatayı Harf TNT'de düzeltmiş
+  (*"kid için tehlikeli hale getiriyordu"*). Artık yalnızca oyunculara.
+  Not: `KalpTntEntity.java` hâlâ `LivingEntity` kullanıyor — Java tarafında
+  bu düzeltme yapılmamış görünüyor.
+- **Kalp TNT efekt temizlemeyi atlıyordu** — Java sürümü önce tüm efektleri
+  siliyor, sonra buff veriyor. Eklendi.
+- **Buz TNT dondurma ve kar yağışını hiç yapmıyordu** — tooltip'te yazıyordu
+  ama kod yapmıyordu. Java'da `Su TNT` düzeltmesi tam olarak bu sınıftan bir
+  hataydı (*"tooltip böyle diyordu ama implementasyon başka şey yapıyordu"*).
+- **Türkçe karakterler kırpılmıştı** — "Zıplatan"→"Ziplatan", "güç"→"guc".
+- **Tooltip metinleri uydurulmuştu** — Java'daki gerçek metinlerle değiştirildi.
+- **Tooltip anahtarları ölüydü** — üretiliyor ama hiçbir yerde kullanılmıyordu.
 
 ## Sonraki adımlar
 
