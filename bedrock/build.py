@@ -65,7 +65,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 5, 0]
+VERSION = [1, 6, 0]
 MIN_ENGINE = [1, 21, 0]
 
 # ---------------------------------------------------------------- TNT tanimlari
@@ -354,6 +354,7 @@ def build():
                 # menu_category'de "group" verilmiyor: gecerliligi dogrulanmamis
                 # bir grup adi blogun yaratici menude hic gorunmemesine yol acar.
                 "description": {"identifier": f"stnt:{t['id']}",
+                                "is_experimental": False,
                                 "menu_category": {"category": "construction"}},
                 "components": {
                     "minecraft:material_instances": {
@@ -865,6 +866,19 @@ system.run(() => {
   loadTracked();
   console.warn(`[SuperTNT] yuklendi - ${Object.keys(SPEC).length} TNT, ${tracked.size} kayitli blok`);
 });
+
+// TANI: oyuncu dunyaya girince chat'e yazar. Bu mesaj gorunuyorsa davranis
+// paketi aktif VE script calisiyor demektir. Gorunmuyorsa paket aktif degil.
+try {
+  world.afterEvents.playerSpawn.subscribe((ev) => {
+    if (!ev.initialSpawn) return;
+    try {
+      ev.player.sendMessage(
+        `\u00A7a[Super TNT] Yuklendi! ${Object.keys(SPEC).length} TNT hazir. ` +
+        `\u00A7fYaratici envanterde ara ya da: \u00A7e/give @s stnt:zeynep_tnt`);
+    } catch (e) {}
+  });
+} catch (e) {}
 '''
 
 if __name__ == "__main__":
