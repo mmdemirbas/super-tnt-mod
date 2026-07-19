@@ -31,10 +31,20 @@ tanımı arayarak doğruladım.
 | **The Last Dragon v1.3** | Binilebilir, evcilleştirilebilir ejderha | 1.21.0 |
 | **Fire & Steel: Dragons** | Yumurtadan ejderha yetiştirme döngüsü | 1.20.50 |
 | **Nico's Magic Spells v1.3.3** | Büyü asaları (kuvars/ametist/altın/elmas) | 1.26.20 |
-| **Mutant Creatures Gods** | Mevcut mutant paketinin tanrı-seviye boss'ları | 1.17.0 |
+| **Mutant Creatures - Güçlü Bosslar** | Mevcut mutant paketinin daha güçlü boss sürümleri | 1.17.0 |
 | **Basic Jetpack 3.0** | Bakış yönüne göre uçuş, başarım dostu | 1.21.80 |
 
-**Öneri:** Mutant Creatures Gods'ı önce dene — zaten kurulu mutant paketinin
+**Paket adı değiştirildi.** Bu paketin özgün adı "Mutant Creatures **Gods**"
+idi ve oyun içi paket listesinde öyle görünüyordu. İçeriği açıp inceledim:
+23 entity var, hepsi güçlendirilmiş mutant mob ve patlama/lazer/diken gibi
+efekt varlıkları. Tapınma, sunak, put, ilah figürü **yok**; tek "god"
+eşleşmesi geliştiricinin unuttuğu bir şaka satırı (`ohmygod` = "We're up for
+round 2, Matt!"). Kelime oyun jargonunda "boss seviyesi" anlamında
+kullanılmış. Yine de görünen ad "Mutant Creatures - Güçlü Bosslar" olarak
+değiştirildi; içerik aynı, sadece etiket. Paketi tamamen çıkarmak istersen
+tek satırlık iş.
+
+**Öneri:** Güçlü Bosslar'ı önce dene — zaten kurulu mutant paketinin
 doğrudan devamı, tematik olarak en oturaklı olan o. Ejderha paketlerini
 (The Last Dragon / Fire & Steel) aynı dünyada birlikte açma; ikisi de ejderha
 ekliyor, içerik olarak birbirini gölgeler.
@@ -54,9 +64,25 @@ olanlar bilerek elendi.
 | Add-On | Ne yapar | min_engine |
 |---|---|---|
 | **Cute Plushies v4.2** | 90 toplanabilir peluş oyuncak, dekorasyon | 1.26.0 |
-| **FURNICRAFT v27.1** | 500+ döndürülebilir 3B mobilya (mutfak, banyo, koltuk, TV) | 1.21.0 |
+| **Craftopia Furniture WE 2.2** | 2000+ dekorasyon ve mobilya bloğu | 1.20.30 |
 | **Better Cats v4.1.1** | Vanilla kedilere gerçek cins modelleri | 1.26.10 |
 | **Cute Mob Models v1.0.21** | Tüm vanilla mobları chibi/sevimli modellere çevirir | 1.20.0 |
+
+### FURNICRAFT neden çıkarıldı
+
+İlk seçimde FURNICRAFT vardı ("500+ mobilya"). Dosyayı açıp içine bakınca
+mobilyanın yanında **51 kostüm** olduğu görüldü: FNAF karakterleri (Freddy,
+Bonnie, Chica, Foxy, Fredbear), Herobrine, `demon_wings` (şeytan kanatları),
+Hatsune Miku, Megumin, Chainsaw Man. Korku ve anime içeriği, "sevimli mobilya"
+beklentisiyle uyuşmuyor.
+
+Yerine Craftopia Furniture kondu: aynı işi daha geniş yapıyor (2000+ blok),
+26.30 etiketli ve tarandığında kostüm/korku/anime içeriği çıkmadı. (Taramada
+25 "şüpheli" eşleşme çıktı ama hepsi yanlış alarmdı — "s**witch**" kelimesi
+Nintendo Switch mobilyasından geliyordu.)
+
+Ders: paket açıklaması ve kategori adı içeriği anlatmıyor. Dosyanın içine
+bakmak gerekiyor.
 
 **En değerli seçim muhtemelen Cute Mob Models:** creeper, zombi, iskelet dahil
 bütün korkutucu mobları sevimli hale getiriyor. Küçük bir çocuk için
