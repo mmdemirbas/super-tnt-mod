@@ -139,3 +139,39 @@ Hepsini birden açıp bir sorun çıkarsa hangisinin sebep olduğunu bulmak zor.
 Özellikle script kullanan paketlerde (FURNICRAFT, Nico's, Fire & Steel,
 Jetpack) Android'de asıl risk çakışma değil **performans** — çok sayıda script
 paketi aynı anda açıksa tablet yavaşlayabilir.
+
+
+---
+
+## Dosyaya dokununca "Play Store'da ara" çıkıyorsa
+
+**Sebep bulundu ve ölçüldü** (2026-07-19, SM-X520, MC 1.26.33.1).
+
+Minecraft'ın `.mcaddon` intent filtresi **MIME tipi bekliyor**. Aynı dosya için
+üç deneme:
+
+| Gönderilen intent | Minecraft çıkıyor mu? |
+|---|---|
+| MIME'siz `file://` | ❌ Docs + Arama |
+| **MIME'li `file://`** (`application/octet-stream`) | ✅ **Minecraft** |
+| `content://media/...` | ❌ Mesajlar |
+
+Samsung "Dosyalarım" MIME'siz ya da `content://` gönderdiği için eşleşme
+olmuyor; Android da "bu dosyayı açacak uygulama yok" deyip Play Store'a
+yönlendiriyor. Minecraft'ta bir sorun yok — dosyalar MediaStore'da kayıtlı ve
+filtre yerinde duruyor, sadece iki taraf anlaşamıyor.
+
+### Çözüm
+
+```bash
+./bedrock/install.sh bedrock/out/SuperTNT.mcaddon
+```
+
+Script dosyayı gönderir, boyutu doğrular ve **doğru intent'i** yollar. Tablet
+ekranının açık ve kilidinin açık olması gerekir — kilitliyken hiçbir uygulama
+öne gelemez, script bunu fark edip uyarır.
+
+### Elle yol (script olmadan)
+
+Dosyalarım → Download → dosyaya **uzun bas** → **Şununla aç** → Minecraft.
+"Şununla aç" listesi MIME'den bağımsız çalıştığı için Minecraft görünür.

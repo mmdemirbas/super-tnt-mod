@@ -4,17 +4,57 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-A Minecraft Fabric mod ("Super TNT Mod") that adds 22 custom TNT blocks, 1 decorative block, and 1 throwable item — each with unique explosion or interaction mechanics. Built for Minecraft 1.21.11 with Fabric Loader 0.18.2, Fabric API 0.139.4, and Java 21.
+A Minecraft **Fabric** mod ("Super TNT Mod") built for Minecraft 1.21.11 with
+Fabric Loader 0.18.2, Fabric API 0.139.4, and Java 21.
+
+There is also a **Bedrock Add-On** port under `bedrock/` for the kids' tablets —
+see "Bedrock port" below.
+
+Current size (verify with a script before quoting these — they grow):
+
+| | Count |
+|---|---:|
+| Registered blocks | 88 (71 TNT + 17 other) |
+| Registered items | 43 |
+| Entity classes | 84 |
+| Block classes | 95 |
+| Item classes | 37 |
+| Mixins | 5 |
+| Recipes | 124 |
+| Advancements | 25 |
+| Lang keys (per language) | 355 |
+| Textures | 165 |
+| Java source lines | ~18,000 |
 
 ## Build Commands
 
 ```bash
-./gradlew build              # Build the mod JAR (output: build/libs/)
-./gradlew runClient          # Launch Minecraft dev client for testing
+./gradlew build              # Build the mod JAR (output: build/libs/) — runs tests
+./gradlew test               # Tests only (6 classes, 48 methods, pure Java)
+./gradlew runClient          # Launch Minecraft dev client for manual testing
 ./gradlew genSources         # Generate Minecraft sources for IDE navigation
+python3 bedrock/build.py     # Build the Bedrock Add-On -> bedrock/out/SuperTNT.mcaddon
 ```
 
-No unit tests exist — testing is done manually via `./gradlew runClient`.
+## Tests
+
+Tests are **pure Java** — they do not boot Minecraft, so they run in seconds and
+are safe to run on every change.
+
+| Class | Covers |
+|---|---|
+| `ResourceFileTest` | Resource/registration consistency: lang, models, blockstates, recipes, advancements |
+| `RegressionTest` | Bug classes found in the 2026-07-19 audit — see `docs/denetim-2026-07-19.md` |
+| `TntBehaviorTest` | Pure-logic TNT behaviour |
+| `CraftAxeVolumeTest` | Craft Axe fill volume maths |
+| `ScaleConsistencyTest` | Shrink/Growth scale factors |
+| `DrawingPayloadTest` | Drawing packet size limits |
+
+`RegressionTest` locks in bugs that already happened once. Before deleting or
+weakening one, read the comment above it — several of these bugs came back after
+being fixed, which is why the test exists.
+
+Manual in-game testing still matters: tests cannot catch "does this feel right".
 
 ## Architecture
 
@@ -22,86 +62,106 @@ No unit tests exist — testing is done manually via `./gradlew runClient`.
 - **Package:** `com.supertntmod`
 - **Entry points:** `SuperTntMod` (server) and `SuperTntModClient` (client), declared in `fabric.mod.json`
 
-### Package Structure
-
 ```
 com.supertntmod/
-├── SuperTntMod.java              # Server entry: registries, tick events, chat listener
-├── SuperTntModClient.java        # Client entry: entity renderers
-├── block/
-│   ├── CustomTntBlock.java       # Abstract base for all TNT blocks (ignition logic)
-│   ├── ModBlocks.java            # Block + block item registry
-│   ├── LegoBrickBlock.java       # Non-TNT decorative block (16 color variants)
-│   └── *TntBlock.java, TntDoorBlock.java, EncryptedTntChestBlock.java, FakeTntBlock.java
-├── entity/
-│   ├── ModEntities.java          # Entity type registry
-│   ├── WalkingTntEntity.java     # Special: PathAwareEntity with AI goals
-│   ├── TntFrisbeeEntity.java     # Special: ThrownEntity
-│   └── *TntEntity.java           # Standard TNT entities extending TntEntity
-├── item/
-│   ├── ModItems.java             # Item registry (TNT Frisbee)
-│   ├── TntFrisbeeItem.java       # Throwable item with tooltip
-│   └── TooltipBlockItem.java     # Block item wrapper that adds tooltips
-└── client/
-    ├── WalkingTntEntityRenderer.java
-    └── TntFrisbeeEntityRenderer.java
+├── SuperTntMod.java              # Server entry: registries, tick events, chat listener,
+│                                 #   SERVER_STOPPING cleanup, player-disconnect cleanup
+├── SuperTntModClient.java        # Client entry: entity renderers, screens
+├── block/                        # 95 classes — CustomTntBlock base + all TNT blocks,
+│                                 #   chests, doors, decorative blocks
+├── entity/                       # 84 classes — ModEntities registry + one entity per TNT
+├── item/                         # 37 classes — ModItems registry, tools, armor, spells
+├── mixin/                        # 5 mixins — armor slot locking, TNT armor retaliation
+└── client/                       # 16 classes — renderers, screens, drawing UI
 ```
 
-### Block/Entity Categories
+### Key architectural patterns
 
-**Standard TNT blocks** (block + entity pair, ignited like vanilla TNT):
-Diamond, Gold, Bedrock, Emerald, Lightning, Nuclear, Freeze, Wood, Mob Freeze, Water, Rainbow, Lego, Makarna, Seker, Shrink, Growth, Cleanse
+- **Multi-tick processing** — TNTs that modify thousands of blocks spread the work
+  across ticks (`processing` / `idx` / `center` fields + a per-tick budget).
+  **Any entity with a `processing` field MUST implement `readData`/`writeData`.**
+  Without it, a save-and-quit mid-processing reloads with the fuse frozen at 0 and
+  re-runs the whole destruction on every world load. `RegressionTest` enforces this.
+- **Igniter exclusion** — `getOwner()` is **never set** on TNT entities (`setOwner`
+  is only called on projectiles). To exclude whoever lit the TNT, store your own
+  `igniterUuid` field and persist it — see `GizliTntEntity`. `RegressionTest`
+  enforces that no TNT relies on `getOwner()`.
+- **Temporary block placement** — anything that places blocks into the world
+  (water, ice, wool) must schedule removal via
+  `WaterTntEntity.scheduleRemoval(world, pos, lifetimeTicks, expectedBlock)`.
+  That queue is swept on an interval, budgeted per sweep, and flushed on
+  `SERVER_STOPPING` so nothing is left behind.
+- **Position-keyed static maps** — must include the dimension
+  (`record DimPos(RegistryKey<World>, BlockPos)`). A bare `BlockPos` key makes the
+  same coordinates in the Nether and the Overworld collide. `RegressionTest`
+  enforces this.
+- **Static state lifecycle** — every static collection is concurrent, cleared on
+  `SERVER_STOPPING`, and per-player entries cleared on disconnect. Both hooks live
+  in `SuperTntMod`.
+- **Explosion flags** — `createFire` must be `false` unless the tooltip says the
+  TNT starts fires. `ExplosionSourceType.NONE` for TNTs whose tooltip promises
+  decoration or loot rather than craters. `RegressionTest` enforces the fire rule.
 
-**Interactive TNT blocks** (non-standard ignition or behavior):
-- **Command TNT** — configurable target block and radius via item interaction / sneak
-- **TNT Door** — owner-based door, explodes on unauthorized second attempt
-- **Encrypted TNT Chest** — chat-based password system, damages unauthorized users
-- **Walking TNT** — PathAwareEntity with AI, tracks players making eye contact
-- **Fake TNT** — cake appearance, explodes when broken (not ignited)
+### Block/Entity categories
 
-**Non-TNT:**
-- **Lego Brick Block** — decorative, 16 color variants via block state, spawned only by Lego TNT
-- **TNT Frisbee** — throwable item, cross-shaped ground destruction, returns to owner
+**Standard TNT** (block + entity pair, ignited like vanilla TNT) — the large
+majority of the 71.
 
-### Key Architectural Patterns
+**Interactive** — Command TNT (configurable target/radius), TNT Door (owner-based),
+Encrypted TNT Chest (chat password), Blocker Chest (owner set on **placement**),
+Walking TNT (`PathAwareEntity` with AI), Fake TNT (cake disguise), Proximity Mine
+(detects, then gives a real escape window before detonating).
 
-- **Multi-tick processing** — Bedrock, Rainbow, Command TNT process block modifications over multiple ticks to avoid lag spikes
-- **Owner/UUID tracking** — Walking TNT, TNT Door, Encrypted Chest track `ownerUuid` for access control
-- **Server tick events** — Wood TNT uses `ServerTickEvents.END_SERVER_TICK` for delayed tree regrowth
-- **Chat message listener** — Encrypted Chest uses `ServerMessageEvents.ALLOW_CHAT_MESSAGE` for password input
-- **Attribute modifiers** — Shrink/Growth TNT use `EntityAttributeModifier` on `SCALE` attribute
+**Non-TNT** — Lego Brick Block (16 colours), plus tools, armour and spells in `item/`.
 
-### Adding a New TNT Type
-
-Standard TNT requires changes in all these places:
+## Adding a new TNT type
 
 1. **Block class** in `block/` — extend `CustomTntBlock`
-2. **Entity class** in `entity/` — extend `TntEntity`, override `explode()`
-3. **Block registry** — register block + item in `ModBlocks.java`
-4. **Entity registry** — register entity type in `ModEntities.java`
-5. **Client renderer** — register entity renderer in `SuperTntModClient.java`
-6. **Resources** — blockstate JSON, block model JSON, item model JSON in `assets/supertntmod/`
-7. **Texture** — block/item textures in `assets/supertntmod/textures/`
-8. **Recipe** — shaped crafting JSON in `data/supertntmod/recipe/`
-9. **Localization** — entries in both `lang/en_us.json` and `lang/tr_tr.json` (block name + tooltip)
-10. **Advancement** (optional) — JSON in `data/supertntmod/advancement/`
+2. **Entity class** in `entity/` — extend `TntEntity`, override `tick()`
+3. **Registries** — `ModBlocks.java` and `ModEntities.java`
+4. **Client renderer** — `SuperTntModClient.java`
+5. **Resources** — blockstate, block model, item model, `items/*.json`
+   (**required in 1.21.11 or the item is invisible in-game**)
+6. **Texture** — `assets/supertntmod/textures/`
+7. **Recipe** — `data/supertntmod/recipe/` — `key` values are **plain strings**,
+   not `{"item": "..."}` objects; `result` uses `id`, not `item`
+8. **Localization** — both `lang/en_us.json` and `lang/tr_tr.json` (name + tooltip)
+9. **Advancements** — add to **both** `collect_all.json` and `first_craft.json`
+10. **Run `./gradlew test`** — steps 5, 7, 8 and 9 are all enforced by tests
 
-### Crafting Pattern
+### Crafting pattern
 
-Most TNT variants follow the 8-material + 1-TNT center pattern:
+Most TNT variants use 8 material + 1 TNT centre:
+
 ```
 M M M
 M T M  → 1 Special TNT
 M M M
 ```
 
-Exceptions: TNT Frisbee (feathers + TNT + iron ingot), TNT Door, Encrypted Chest have unique recipes.
+## Tooltips are a contract
 
-### Resources
+Every TNT's tooltip is what the kids read to learn what it does. A tooltip that
+promises something the code does not do — or omits something the code does, such
+as starting fires, dealing damage or permanently altering terrain — is treated as
+a bug, not a wording nit. The 2026-07-19 audit found 54 such mismatches.
 
-- **Advancements:** 6 advancements in `data/supertntmod/advancement/`
-- **Recipes:** 24 shaped crafting recipes in `data/supertntmod/recipe/`
-- **Languages:** `en_us.json` and `tr_tr.json` (~68 entries each: block names, tooltips, advancements)
+When changing behaviour, update the tooltip in **both** languages in the same commit.
+
+## Bedrock port
+
+`bedrock/build.py` generates a Minecraft Bedrock Add-On from a subset of the Java
+TNTs (12 of 71 so far). Everything under `bedrock/super_tnt_BP/` and
+`bedrock/super_tnt_RP/` is **generated output** — edit `build.py`, not those folders.
+
+Behaviour numbers and tooltip text are copied from the Java source so the two
+versions stay consistent. See `bedrock/README.md` for known differences and
+`docs/bedrock-port-fizibilite.md` for what can and cannot be ported.
+
+**Deploying to a tablet:** the Minecraft data folder on Android is read-only, so
+each iteration is `build.py` → `adb push` to `/sdcard/Download/` → open the file.
+Bump `VERSION` in `build.py` every time, otherwise Minecraft treats the import as
+a duplicate instead of an update. See `docs/cocuk-paketleri.md`.
 
 ## Commit Kuralları
 
@@ -110,4 +170,4 @@ Exceptions: TNT Frisbee (feathers + TNT + iron ingot), TNT Door, Encrypted Chest
 
 ## Language
 
-Source code comments and documentation (README.md, TODO.md) are in Turkish.
+Source code comments and documentation (README.md, TODO.md, docs/) are in Turkish.

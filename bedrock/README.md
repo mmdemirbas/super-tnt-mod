@@ -131,9 +131,13 @@ yani her deneme:
 
 ```bash
 python3 bedrock/build.py
-adb -s <SERI> push bedrock/out/SuperTNT.mcaddon /sdcard/Download/
-# tablette dosyaya bir kez dokun -> Minecraft
+./bedrock/install.sh bedrock/out/SuperTNT.mcaddon
 ```
+
+`install.sh` dosyayı gönderir, boyutunu doğrular ve import intent'ini
+**MIME tipiyle** yollar. MIME olmadan Minecraft eşleşmiyor ve Android
+"Play Store'da ara" diyor — ayrıntı `docs/cocuk-paketleri.md`'de.
+Tabletin ekranı açık ve kilidi açık olmalı.
 
 Tur başına bir dokunuş gerektiği için değişiklikleri topla, tek seferde gönder.
 Göndermeden önce `build.py` çıktısındaki doğrulamalara güven: JSON parse, JS
