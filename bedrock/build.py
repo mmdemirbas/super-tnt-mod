@@ -51,16 +51,21 @@ BP = os.path.join(HERE, "super_tnt_BP")
 RP = os.path.join(HERE, "super_tnt_RP")
 OUT = os.path.join(HERE, "out")
 
+# UUID'ler ELLE YAZILMAZ. Ilk surumde elle uydurulmuslardi ve RP module
+# UUID'sinin varyant nibble'i 'c' cikti (RFC 4122 8/9/a/b bekler).
+# Minecraft paketi sessizce reddetti: ne davranis ne kaynak paketi
+# listede gorundu, hicbir hata mesaji da yoktu.
+# Degistirirken `python3 -c "import uuid;print(uuid.uuid4())"` kullan.
 BP_UUID = "3f8a1c62-7d54-4b90-9e21-8a4f6c0d1e73"
 BP_MOD_UUID = "4a9b2d73-8e65-4ca1-af32-9b5a7d1e2f84"
 BP_SCRIPT_UUID = "5bac3e84-9f76-4db2-b043-ac6b8e2f3a95"
 RP_UUID = "6cbd4f95-a087-4ec3-b154-bd7c9f3a4b06"
-RP_MOD_UUID = "7dce50a6-b198-4fd4-c265-ce8da04b5c17"
+RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # Surum: ayni UUID + ayni surum tekrar import edilirse Minecraft bunu
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 3, 0]
+VERSION = [1, 4, 0]
 MIN_ENGINE = [1, 21, 0]
 
 # ---------------------------------------------------------------- TNT tanimlari
@@ -251,7 +256,32 @@ def w(path, obj):
     json.dump(obj, open(path, 'w', encoding='utf-8'), indent=2, ensure_ascii=False)
 
 
+def check_uuids():
+    """Her UUID gecerli RFC 4122 v4 mu ve hepsi benzersiz mi?
+
+    Bir kez elle yazilan UUID'nin varyant nibble'i gecersizdi ve Minecraft
+    paketi HICBIR hata mesaji vermeden reddetti - ne davranis ne kaynak
+    paketi listede gorundu. Sessiz basarisizlik oldugu icin derlemede
+    yakalanmali.
+    """
+    import uuid as _uuid
+    all_ids = {
+        "BP header": BP_UUID, "BP data": BP_MOD_UUID, "BP script": BP_SCRIPT_UUID,
+        "RP header": RP_UUID, "RP module": RP_MOD_UUID,
+    }
+    for name, value in all_ids.items():
+        u = _uuid.UUID(value)                      # bicim bozuksa burada patlar
+        if u.version != 4 or u.variant != _uuid.RFC_4122:
+            raise SystemExit(
+                f"GECERSIZ UUID [{name}]: {value}\n"
+                f"  version={u.version} (4 olmali), variant={u.variant}\n"
+                f"  Yenisini uret: python3 -c \"import uuid;print(uuid.uuid4())\"")
+    if len(set(all_ids.values())) != len(all_ids):
+        raise SystemExit("UUID'ler benzersiz olmali: " + str(all_ids))
+
+
 def build():
+    check_uuids()
     for d in (BP, RP, OUT):
         if os.path.exists(d):
             shutil.rmtree(d)
@@ -304,10 +334,15 @@ def build():
       {"resource_pack_name": "super_tnt", "texture_name": "atlas.terrain",
        "padding": 8, "num_mip_levels": 4, "texture_data": terrain})
 
+    # ---------- pack_icon (calisan paketlerin hepsinde var; eksikligi
+    #            paketi bozuk gosteriyor)
+    for pack, base in ((BP, (196, 48, 54)), (RP, (60, 90, 190))):
+        tnt_face(os.path.join(pack, "pack_icon.png"), base, band=True, face="side")
+
     # ---------- bloklar
     for t in TNTS:
         w(os.path.join(BP, f"blocks/{t['id']}.json"), {
-            "format_version": "1.21.0",
+            "format_version": "1.20.20",
             "minecraft:block": {
                 # menu_category'de "group" verilmiyor: gecerliligi dogrulanmamis
                 # bir grup adi blogun yaratici menude hic gorunmemesine yol acar.
