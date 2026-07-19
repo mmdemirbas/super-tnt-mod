@@ -32,6 +32,20 @@ public class ProximityMineBlock extends Block {
     /** Aktif tarama aralığı (tick) */
     private static final int SCAN_INTERVAL = 10;
 
+    /** Tooltip "kacmak icin 2 saniyeniz var" diyor; algilama ile patlama
+     *  arasinda gercekten bu kadar sure olmali. Eskiden ayni tick'te
+     *  patliyordu ve kacis penceresi diye bir sey yoktu. */
+    private static final int ESCAPE_DELAY = 40;
+
+    /** Geri sayima giren mayinlar. Blok state'e ozellik eklemek blockstate
+     *  JSON'unu da degistirmeyi gerektirirdi; bu daha ucuz. */
+    private static final java.util.Set<net.minecraft.util.math.GlobalPos> COUNTING =
+            java.util.concurrent.ConcurrentHashMap.newKeySet();
+
+    public static void clearAll() {
+        COUNTING.clear();
+    }
+
     public ProximityMineBlock(Settings settings) {
         super(settings);
     }
@@ -51,6 +65,17 @@ public class ProximityMineBlock extends Block {
         // Blok hâlâ yerinde mi?
         if (!world.getBlockState(pos).isOf(this)) return;
 
+        net.minecraft.util.math.GlobalPos key =
+                new net.minecraft.util.math.GlobalPos(world.getRegistryKey(), pos.toImmutable());
+
+        // Geri sayim bittiyse patlat
+        if (COUNTING.remove(key)) {
+            world.setBlockState(pos, Blocks.AIR.getDefaultState());
+            world.createExplosion(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
+                    3.0f, false, World.ExplosionSourceType.TNT);
+            return;
+        }
+
         // Yakında canlı var mı?
         boolean triggered = !world.getEntitiesByClass(
                 LivingEntity.class,
@@ -59,17 +84,15 @@ public class ProximityMineBlock extends Block {
         ).isEmpty();
 
         if (triggered) {
-            // Uyarı sesi + partiküller
+            // Uyarı: ses + partikül, sonra ESCAPE_DELAY kadar kaçış süresi
+            COUNTING.add(key);
+            world.scheduleBlockTick(pos, this, ESCAPE_DELAY);
             world.playSound(null, pos.getX(), pos.getY(), pos.getZ(),
                     SoundEvents.ENTITY_GENERIC_EXPLODE.value(), SoundCategory.BLOCKS, 2.0f, 1.4f);
             world.spawnParticles(ParticleTypes.EXPLOSION_EMITTER,
                     pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
                     2, 0.5, 0.5, 0.5, 0.0);
 
-            // Bloğu kaldır ve patlat
-            world.setBlockState(pos, Blocks.AIR.getDefaultState());
-            world.createExplosion(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
-                    3.0f, false, World.ExplosionSourceType.TNT);
         } else {
             // Henüz tetiklenmediyse bir sonraki taramayı zamanla
             world.scheduleBlockTick(pos, this, SCAN_INTERVAL);

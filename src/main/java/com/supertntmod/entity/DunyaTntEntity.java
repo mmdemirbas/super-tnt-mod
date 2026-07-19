@@ -52,7 +52,9 @@ public class DunyaTntEntity extends TntEntity {
                         x, y + 1, z, 200, 8.0, 4.0, 8.0, 0.1);
             }
 
-            world.createExplosion(null, x, y, z, 2.0f, false, World.ExplosionSourceType.TNT);
+            // Tooltip insaat/loot anlatiyor, krater degil: ExplosionSourceType.NONE
+            // ile sadece gorsel/itme patlamasi kalir, blok yikimi olmaz.
+            world.createExplosion(null, x, y, z, 2.0f, false, World.ExplosionSourceType.NONE);
 
             // Bir sürü "dünya" — ender pearl + dirt + glow blockları
             for (int i = 0; i < 30; i++) {

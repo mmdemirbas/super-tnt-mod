@@ -50,7 +50,9 @@ public class CraftingTableTntEntity extends TntEntity {
                         20, 3.0, 2.0, 3.0, 0.1);
             }
 
-            world.createExplosion(null, x, y, z, 3.0f, false, World.ExplosionSourceType.TNT);
+            // Tooltip insaat/loot anlatiyor, krater degil: ExplosionSourceType.NONE
+            // ile sadece gorsel/itme patlamasi kalir, blok yikimi olmaz.
+            world.createExplosion(null, x, y, z, 3.0f, false, World.ExplosionSourceType.NONE);
 
             // Bir sürü altın kask
             for (int i = 0; i < 8; i++) {

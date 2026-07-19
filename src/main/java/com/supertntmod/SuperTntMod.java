@@ -286,6 +286,7 @@ public class SuperTntMod implements ModInitializer {
             com.supertntmod.block.BlockerChestBlock.clearBans();
             com.supertntmod.block.CommandTntBlock.clearAll();
             com.supertntmod.block.EncryptedTntChestBlock.clearAll();
+            com.supertntmod.block.ProximityMineBlock.clearAll();
             com.supertntmod.item.RainbowBootsItem.clearAll();
             com.supertntmod.item.DiaryItem.clearAll();
             com.supertntmod.item.PortalGunItem.clearAll();

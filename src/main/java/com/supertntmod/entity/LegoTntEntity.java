@@ -51,8 +51,10 @@ public class LegoTntEntity extends TntEntity {
                     SoundEvents.ENTITY_FIREWORK_ROCKET_LARGE_BLAST, SoundCategory.BLOCKS, 2.0f, 0.8f);
 
             // Küçük patlama efekti — yapı bloğu olduğundan ateş yaratmaz
+            // Tooltip insaat/loot anlatiyor, krater degil: ExplosionSourceType.NONE
+            // ile sadece gorsel/itme patlamasi kalir, blok yikimi olmaz.
             world.createExplosion(null, center.getX() + 0.5, center.getY(),
-                    center.getZ() + 0.5, 3.0f, false, World.ExplosionSourceType.TNT);
+                    center.getZ() + 0.5, 3.0f, false, World.ExplosionSourceType.NONE);
 
             // Yüzeyi bul
             int surfaceY = center.getY();

@@ -58,7 +58,9 @@ public class CamTntEntity extends TntEntity {
             World world = getEntityWorld();
 
             world.playSound(null, x, y, z, SoundEvents.BLOCK_GLASS_BREAK, SoundCategory.BLOCKS, 3.0f, 0.5f);
-            world.createExplosion(null, x, y, z, 2.0f, false, World.ExplosionSourceType.TNT);
+            // Tooltip insaat/loot anlatiyor, krater degil: ExplosionSourceType.NONE
+            // ile sadece gorsel/itme patlamasi kalir, blok yikimi olmaz.
+            world.createExplosion(null, x, y, z, 2.0f, false, World.ExplosionSourceType.NONE);
 
             if (world instanceof ServerWorld serverWorld) {
                 serverWorld.spawnParticles(ParticleTypes.CRIT, x, y + 1, z, 200, 10.0, 5.0, 10.0, 0.5);

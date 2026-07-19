@@ -47,8 +47,14 @@ public class GrapplingHookEntity extends ThrownEntity {
         Vec3d ownerPos = new Vec3d(owner.getX(), owner.getEyeY(), owner.getZ());
         Vec3d pull = hookPos.subtract(ownerPos).normalize();
 
-        double speed = 2.2;
-        owner.setVelocity(pull.x * speed, pull.y * speed, pull.z * speed);
+        // Sabit 2.2 hiz mesafeden bagimsizdi: yakin atislar hedefi asiyor,
+        // uzak atislar yetismiyordu. Hiz mesafeyle olceklenir ve makul
+        // sinirlar icinde tutulur; ayrica hafif yukari itme ile duvara
+        // carpmak yerine yay cizerek varilir.
+        double dist = hookPos.distanceTo(ownerPos);
+        double speed = Math.max(0.9, Math.min(3.2, 0.55 + dist * 0.13));
+        double lift = Math.min(0.45, dist * 0.02);
+        owner.setVelocity(pull.x * speed, pull.y * speed + lift, pull.z * speed);
         owner.velocityDirty = true;
 
         this.getEntityWorld().playSound(null, owner.getX(), owner.getY(), owner.getZ(),
