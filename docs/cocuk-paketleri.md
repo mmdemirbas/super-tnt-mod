@@ -167,16 +167,13 @@ filtre yerinde duruyor, sadece iki taraf anlaşamıyor.
 ./bedrock/install.sh bedrock/out/SuperTNT.mcaddon
 ```
 
-Script dosyayı gönderir, boyutu doğrular ve **doğru intent'i** yollar:
-MIME tipi (`-t`) olmadan Minecraft eşleşmiyor, açık bileşen (`-n`) olmadan
-uygulama seçici çıkıp yine dokunmak gerekiyor. İkisi birlikte **dokunma
-gerektirmiyor** — Minecraft doğrudan açılıp import ekranını gösteriyor.
+Script dosyayı gönderir ve boyutunu doğrular. **Import'u sen yaparsın** —
+tam otomatik import denendi ama güvenilir değil (açık bileşenle Minecraft
+dosyayı işlemiyor, implicit intent'te uygulama seçici çıkıyor ve onu adb ile
+geçmek kırılgan). Elle import her zaman çalışıyor:
 
-Tabletin ekranı açık ve kilidi açık olmalı; kilitliyken hiçbir uygulama öne
-gelemez, script bunu fark edip uyarır.
-
-Doğrulandı: 2026-07-19, Zeynep'in tableti, MorphX paketi 16 MB — dokunmadan
-Minecraft açıldı.
+Dosyalarım → Download → dosyaya **uzun bas** → **Şununla aç** → **Minecraft**
+(düz çim-bloğu ikonu, "Education" olan değil) → **Yalnızca bir defa**.
 
 ### Elle yol (script olmadan)
 

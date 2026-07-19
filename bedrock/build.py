@@ -65,7 +65,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 4, 0]
+VERSION = [1, 5, 0]
 MIN_ENGINE = [1, 21, 0]
 
 # ---------------------------------------------------------------- TNT tanimlari
@@ -293,9 +293,16 @@ def build():
                    "description": "Super TNT Mod - Bedrock surumu",
                    "uuid": BP_UUID, "version": VERSION,
                    "min_engine_version": MIN_ENGINE},
+        # script modulunde "language": "javascript" ZORUNLU. Onsuz Minecraft
+        # modulu tanimyor ve TUM davranis paketini sessizce reddediyor — paket
+        # listede hic gorunmuyor. MorphX (calisan referans) ile karsilastirinca
+        # bulundu.
+        "capabilities": ["script_eval"],
+        "metadata": {"authors": ["Muhammed"]},
         "modules": [
             {"type": "data", "uuid": BP_MOD_UUID, "version": VERSION},
-            {"type": "script", "uuid": BP_SCRIPT_UUID, "version": VERSION,
+            {"type": "script", "language": "javascript",
+             "uuid": BP_SCRIPT_UUID, "version": VERSION,
              "entry": "scripts/main.js"}],
         "dependencies": [
             {"uuid": RP_UUID, "version": VERSION},
@@ -457,6 +464,21 @@ def build():
                             .replace("__FUSE__", str(FUSE_TICKS))
     os.makedirs(os.path.join(BP, "scripts"), exist_ok=True)
     open(os.path.join(BP, "scripts/main.js"), 'w', encoding='utf-8').write(script)
+
+    # ---------- manifest son kontrol
+    # Bir kez script modulunde "language" eksikti ve MC tum davranis paketini
+    # sessizce reddetti (listede hic gorunmedi, hata da vermedi). Cihaza
+    # atmadan once yakala.
+    for pack, label in ((BP, "BP"), (RP, "RP")):
+        mf = json.load(open(os.path.join(pack, "manifest.json"), encoding="utf-8"))
+        has_script = any(m.get("type") == "script" for m in mf.get("modules", []))
+        for m in mf.get("modules", []):
+            if m.get("type") == "script" and not m.get("language"):
+                raise SystemExit(f"{label}: script modulunde 'language' eksik "
+                                 f"-> paket sessizce reddedilir")
+        if has_script and "script_eval" not in (mf.get("capabilities") or []):
+            raise SystemExit(f"{label}: script var ama capabilities'te 'script_eval' yok")
+    print("manifest kontrol: gecti")
 
     # ---------- paketle
     os.makedirs(OUT, exist_ok=True)

@@ -1,24 +1,20 @@
 #!/usr/bin/env bash
-# Bir .mcaddon dosyasini tablete gonderir ve Minecraft'ta import'u tetikler.
+# Bir .mcaddon dosyasini tablete gonderir, butunlugunu dogrular ve
+# import icin net tek adim birakir.
 #
-# NEDEN BU SCRIPT VAR
-# Dosya yoneticisinden dosyaya dokununca Android artik "Play Store'da ara"
-# diyor. Sebep tespit edildi: Minecraft'in intent filtresi MIME tipi
-# bekliyor. Olcum (2026-07-19, SM-X520, MC 1.26.33.1):
-#
-#   MIME'siz file://              -> Docs + Arama  (Minecraft YOK)
-#   MIME'li  file://              -> Minecraft VAR
-#   content://media/...           -> Mesajlar      (Minecraft YOK)
-#
-# Samsung "Dosyalarim" MIME'siz ya da content:// gonderdigi icin eslesme
-# olmuyor. Bu script dogru intent'i gonderir.
+# NEDEN "am start" ILE OTOMATIK IMPORT YOK
+# Denendi, calismiyor:
+#   -n MainActivity (explicit)  -> Minecraft normal aciliyor, dosyayi
+#                                  ISLEMIYOR. Ana menuye dusuyor.
+#   MIME'li implicit intent      -> "Sununla ac" secicisi cikiyor.
+#                                  Seciciyi adb ile gecmek kirilgan:
+#                                  ikon sirasi, dil ve cozunurluk degisir.
+# Elle import ise her zaman calisiyor (MorphX bu tabletlere boyle yuklendi).
+# Bu yuzden script hazirligi yapar, import'u kullaniciya birakir.
 #
 # KULLANIM
 #   bedrock/install.sh out/SuperTNT.mcaddon            # tum bagli tabletler
 #   bedrock/install.sh out/SuperTNT.mcaddon R5GYC4BGJJZ  # tek cihaz
-#
-# NOT: Tabletin ekrani ACIK ve KILIDI ACIK olmali. Kilitliyken hicbir
-# uygulama one gelemez ve import sessizce basarisiz olur.
 
 set -euo pipefail
 
@@ -39,35 +35,19 @@ for D in $DEVICES; do
          | grep -oE '\{0:[^:]*' | cut -d: -f2 | tr -d '\r' || echo "$D")"
   echo "=== $WHO ($D)"
 
-  # 1) gonder + butunluk dogrula
+  # gonder + butunluk dogrula
   adb -s "$D" push "$FILE" "$DEST" >/dev/null
   LOCAL="$(wc -c <"$FILE" | tr -d ' ')"
   REMOTE="$(adb -s "$D" shell "stat -c %s '$DEST'" | tr -d '\r ')"
   if [ "$LOCAL" != "$REMOTE" ]; then
     echo "  HATA: boyut uyusmuyor (mac=$LOCAL tablet=$REMOTE)"; continue
   fi
-  echo "  gonderildi: $LOCAL bayt"
-
-  # 2) ekran acik ve kilidi acik mi?
-  SCREEN="$(adb -s "$D" shell "dumpsys display | grep -m1 mScreenState" | tr -d ' \r')"
-  LOCKED="$(adb -s "$D" shell "dumpsys window | grep -oE 'mDreamingLockscreen=[a-z]+'" | head -1 | tr -d '\r')"
-  if [ "$SCREEN" != "mScreenState=ON" ] || [ "$LOCKED" = "mDreamingLockscreen=true" ]; then
-    echo "  ATLANDI: tabletin ekrani kapali ya da kilitli."
-    echo "  Kilidi ac, sonra tekrar calistir. (ekran=$SCREEN $LOCKED)"
-    continue
-  fi
-
-  # 3) import'u tetikle.
-  #    -t  MIME tipi SART: yoksa Minecraft'in filtresi eslesmiyor.
-  #    -n  acik bilesen: yoksa uygulama secici cikiyor ve yine dokunmak gerek.
-  adb -s "$D" shell "am start -a android.intent.action.VIEW \
-      -t application/octet-stream -d 'file://$DEST' \
-      -n com.mojang.minecraftpe/com.mojang.minecraftpe.MainActivity" >/dev/null 2>&1
-  sleep 8
-  FOCUS="$(adb -s "$D" shell "dumpsys window | grep -m1 mCurrentFocus" | tr -d '\r')"
-  case "$FOCUS" in
-    *minecraftpe*) echo "  Minecraft acildi — import ekranini onayla" ;;
-    *)             echo "  Minecraft one gelmedi. Odak: $FOCUS"
-                   echo "  Elle: Dosyalarim > Download > $NAME > uzun bas > Sununla ac > Minecraft" ;;
-  esac
+  echo "  gonderildi ve dogrulandi: $LOCAL bayt"
+  cat <<EOF
+  Simdi tablette:
+    Dosyalarim > Download > $NAME
+    uzun bas > "Sununla ac" > Minecraft (duz cim-blogu ikonu) > Yalnizca bir defa
+  Minecraft acilir ve "Iceri aktariliyor" der. Sonra Dunya Ayarlari'nda
+  Davranis + Kaynak paketlerinden etkinlestir.
+EOF
 done
