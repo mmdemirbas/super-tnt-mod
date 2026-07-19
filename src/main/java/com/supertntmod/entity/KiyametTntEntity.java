@@ -77,8 +77,11 @@ public class KiyametTntEntity extends TntEntity {
                     sw.spawnParticles(ParticleTypes.CAMPFIRE_COSY_SMOKE,
                             cx, cy + 8, cz, 400, 18.0, 10.0, 18.0, 0.03);
                 }
+            // createFire=false: hicbir tooltip yangindan bahsetmiyor ve
+            // ates krater disina yayilip yapilari yakiyordu (DiamondTnt
+            // ayni sekilde duzeltilmisti, digerlerine yayilmamis).
 
-                world.createExplosion(null, cx, cy, cz, 15.0f, true, World.ExplosionSourceType.TNT);
+                world.createExplosion(null, cx, cy, cz, 15.0f, false, World.ExplosionSourceType.TNT);
                 this.discard();
             }
             return;

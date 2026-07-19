@@ -69,7 +69,7 @@ public class TntDoorBlock extends DoorBlock {
             return ActionResult.SUCCESS;
         } else {
             // Başkası: ilk seferde uyar, ikinci seferde patla!
-            DimPos here = new DimPos(world.getRegistryKey(), basePos);
+            DimPos here = new DimPos(world.getRegistryKey(), basePos.toImmutable());
             DimPos warned = WARNED_PLAYERS.get(player.getUuid());
             if (warned == null || !warned.equals(here)) {
                 // İlk deneme: uyarı ver

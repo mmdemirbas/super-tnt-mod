@@ -19,6 +19,11 @@ import java.util.UUID;
  * "dünyayı yok et" yorumu — gerçek istemci/sunucu kapatma yapmıyoruz.)
  */
 public class ZeynepRedstoneTntEntity extends TntEntity {
+    /** Atesleyen oyuncu. getOwner() hicbir zaman set edilmiyor —
+     *  "patlatan haric" korumasi bu yuzden hic calismiyordu.
+     *  GizliTntEntity\'deki calisan desen. */
+    private @Nullable java.util.UUID igniterUuid = null;
+
     private boolean done = false;
     private static final float EXPLOSION_POWER = 30.0f;
 
@@ -32,6 +37,9 @@ public class ZeynepRedstoneTntEntity extends TntEntity {
         super(ModEntities.ZEYNEP_REDSTONE_TNT, world);
         this.setPosition(x, y, z);
         this.setFuse(100);
+        if (igniter instanceof net.minecraft.entity.player.PlayerEntity pl) {
+            this.igniterUuid = pl.getUuid();
+        }
     }
 
     @Override
@@ -42,7 +50,7 @@ public class ZeynepRedstoneTntEntity extends TntEntity {
             double x = getX(), y = getY(), z = getZ();
 
             // Ateşleyeni belirle (patlatan kişiyi koru)
-            UUID owner = (this.getOwner() != null) ? this.getOwner().getUuid() : null;
+            UUID owner = this.igniterUuid;
             this.discard();
 
             world.playSound(null, x, y, z, SoundEvents.ENTITY_WITHER_SPAWN,
@@ -66,10 +74,26 @@ public class ZeynepRedstoneTntEntity extends TntEntity {
             }
 
             // Dev patlama
-            world.createExplosion(null, x, y, z, EXPLOSION_POWER, true,
+            // createFire=false: hicbir tooltip yangindan bahsetmiyor ve
+            // ates krater disina yayilip yapilari yakiyordu (DiamondTnt
+            // ayni sekilde duzeltilmisti, digerlerine yayilmamis).
+            world.createExplosion(null, x, y, z, EXPLOSION_POWER, false,
                     World.ExplosionSourceType.TNT);
             return;
         }
         if (!done) super.tick();
+    }
+
+    @Override
+    public void readData(net.minecraft.storage.ReadView reader) {
+        super.readData(reader);
+        reader.getOptionalString("IgniterUuid")
+                .ifPresent(v -> igniterUuid = java.util.UUID.fromString(v));
+    }
+
+    @Override
+    public void writeData(net.minecraft.storage.WriteView writer) {
+        super.writeData(writer);
+        if (igniterUuid != null) writer.putString("IgniterUuid", igniterUuid.toString());
     }
 }

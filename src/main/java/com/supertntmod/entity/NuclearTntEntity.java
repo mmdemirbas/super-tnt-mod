@@ -47,7 +47,10 @@ public class NuclearTntEntity extends TntEntity {
                     SoundEvents.ENTITY_WITHER_SPAWN, SoundCategory.BLOCKS, 2.0f, 0.5f);
 
             // Dev patlama (15x güç)
-            world.createExplosion(null, x, y, z, 15.0f, true,
+            // createFire=false: hicbir tooltip yangindan bahsetmiyor ve
+            // ates krater disina yayilip yapilari yakiyordu (DiamondTnt
+            // ayni sekilde duzeltilmisti, digerlerine yayilmamis).
+            world.createExplosion(null, x, y, z, 15.0f, false,
                     World.ExplosionSourceType.TNT);
 
             // Radyasyon partikülleri (mantar bulutu)

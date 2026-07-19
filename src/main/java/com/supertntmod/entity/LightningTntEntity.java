@@ -44,7 +44,10 @@ public class LightningTntEntity extends TntEntity {
                     SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, SoundCategory.WEATHER, 3.0f, 0.8f);
 
             // Küçük patlama
-            world.createExplosion(null, x, y, z, 3.0f, true,
+            // createFire=false: hicbir tooltip yangindan bahsetmiyor ve
+            // ates krater disina yayilip yapilari yakiyordu (DiamondTnt
+            // ayni sekilde duzeltilmisti, digerlerine yayilmamis).
+            world.createExplosion(null, x, y, z, 3.0f, false,
                     World.ExplosionSourceType.TNT);
 
             // Elektrik kıvılcımları

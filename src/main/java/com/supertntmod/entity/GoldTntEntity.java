@@ -43,14 +43,17 @@ public class GoldTntEntity extends TntEntity {
                     SoundEvents.BLOCK_AMETHYST_BLOCK_CHIME, SoundCategory.BLOCKS, 2.0f, 0.5f);
 
             // Merkez patlama
-            world.createExplosion(null, x, y, z, 4.0f, true,
+            // createFire=false: hicbir tooltip yangindan bahsetmiyor ve
+            // ates krater disina yayilip yapilari yakiyordu (DiamondTnt
+            // ayni sekilde duzeltilmisti, digerlerine yayilmamis).
+            world.createExplosion(null, x, y, z, 4.0f, false,
                     World.ExplosionSourceType.TNT);
 
             // 5 rastgele küçük patlama + her birinde partiküller
             for (int i = 0; i < 5; i++) {
                 double ox = x + (world.random.nextDouble() - 0.5) * 8;
                 double oz = z + (world.random.nextDouble() - 0.5) * 8;
-                world.createExplosion(null, ox, y, oz, 2.5f, true,
+                world.createExplosion(null, ox, y, oz, 2.5f, false,
                         World.ExplosionSourceType.TNT);
 
                 if (world instanceof ServerWorld serverWorld) {

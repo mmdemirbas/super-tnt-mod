@@ -322,7 +322,7 @@ public class SuperTntMod implements ModInitializer {
             java.util.UUID id = handler.player.getUuid();
             EncryptedTntChestBlock.onPlayerDisconnect(id);
             TntDoorBlock.onPlayerDisconnect(id);
-        com.supertntmod.item.RainbowBootsItem.onPlayerDisconnect(id);
+            com.supertntmod.item.RainbowBootsItem.onPlayerDisconnect(id);
             PortalGunItem.onPlayerDisconnect(id);
             com.supertntmod.item.AmethystArmorState.onPlayerDisconnect(id);
             com.supertntmod.block.BlockerChestBlock.onPlayerDisconnect(id);

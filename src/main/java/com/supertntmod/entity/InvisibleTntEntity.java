@@ -36,8 +36,11 @@ public class InvisibleTntEntity extends TntEntity {
 
             // Standart TNT patlaması (güç 4.0). x/y/z zaten blok merkezi
             // (CustomTntBlock.prime '+0.5' ekledi) — tekrar eklemeyiz.
+            // createFire=false: hicbir tooltip yangindan bahsetmiyor ve
+            // ates krater disina yayilip yapilari yakiyordu (DiamondTnt
+            // ayni sekilde duzeltilmisti, digerlerine yayilmamis).
             world.createExplosion(null, x, y, z,
-                    4.0f, true, World.ExplosionSourceType.TNT);
+                    4.0f, false, World.ExplosionSourceType.TNT);
             return;
         }
         if (!done) super.tick();

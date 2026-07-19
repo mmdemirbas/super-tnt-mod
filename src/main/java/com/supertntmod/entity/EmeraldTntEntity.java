@@ -56,7 +56,10 @@ public class EmeraldTntEntity extends TntEntity {
                     SoundEvents.ENTITY_PLAYER_LEVELUP, SoundCategory.BLOCKS, 2.0f, 1.2f);
 
             // Normal patlama
-            world.createExplosion(null, x, y, z, 4.0f, true,
+            // createFire=false: hicbir tooltip yangindan bahsetmiyor ve
+            // ates krater disina yayilip yapilari yakiyordu (DiamondTnt
+            // ayni sekilde duzeltilmisti, digerlerine yayilmamis).
+            world.createExplosion(null, x, y, z, 4.0f, false,
                     World.ExplosionSourceType.TNT);
 
             // Hazine yağmuru (24-40 adet)

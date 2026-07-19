@@ -138,6 +138,9 @@ public class WaterTntEntity extends TntEntity {
     /** Süpürme sıklığı — her tick taramak bu boyutta gereksiz pahalı. */
     private static final int SWEEP_INTERVAL = 20;
 
+    /** Supurme basina en fazla bu kadar blok kaldirilir. */
+    private static final int REMOVALS_PER_SWEEP = 600;
+
     /**
      * Başka bir TNT'nin yerleştirdiği suyu da bu kuyruğa kaydeder.
      * Ölümcül Su TNT bunu kullanır — kendi temizleme makinesini kurmak
@@ -148,7 +151,21 @@ public class WaterTntEntity extends TntEntity {
                 world, pos.toImmutable(), tickCounter + lifetimeTicks));
     }
 
+    /**
+     * Sunucu kapanisi. Sadece listeyi bosaltmak, bekleyen sularin kalici
+     * olmasi demekti — kayit diske yazilmiyor, yani yeniden acilista onlari
+     * temizleyecek kimse kalmiyordu. Kapanmadan once hepsini kaldir.
+     */
     public static void clearAll() {
+        for (PendingWaterRemoval r : pendingRemovals) {
+            try {
+                if (r.world().getBlockState(r.pos()).isOf(Blocks.WATER)) {
+                    r.world().setBlockState(r.pos(), Blocks.AIR.getDefaultState());
+                }
+            } catch (RuntimeException ignored) {
+                // kapanis sirasinda dunya erisimi bozulabilir; kalanlari birak
+            }
+        }
         pendingRemovals.clear();
         tickCounter = 0L;
     }
@@ -162,9 +179,15 @@ public class WaterTntEntity extends TntEntity {
         if (pendingRemovals.isEmpty()) return;
         if (tickCounter % SWEEP_INTERVAL != 0) return;
 
+        // Butce: Olumcul Su tek seferde ~14.000 kayit ekliyor ve hepsinin
+        // omru ayni tick'te doluyor. Butcesiz kaldirmak tek tick'te 14.000
+        // setBlockState demek - saniyelerce donma. Supurme basina sinirli.
         List<PendingWaterRemoval> expired = new ArrayList<>();
         for (PendingWaterRemoval r : pendingRemovals) {
-            if (r.expiryTick() <= tickCounter) expired.add(r);
+            if (r.expiryTick() <= tickCounter) {
+                expired.add(r);
+                if (expired.size() >= REMOVALS_PER_SWEEP) break;
+            }
         }
         if (expired.isEmpty()) return;
 

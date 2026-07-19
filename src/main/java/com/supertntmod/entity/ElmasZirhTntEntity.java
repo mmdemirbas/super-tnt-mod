@@ -49,8 +49,11 @@ public class ElmasZirhTntEntity extends TntEntity {
 
             world.playSound(null, x, y, z,
                     SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, SoundCategory.WEATHER, 5.0f, 0.5f);
+            // createFire=false: hicbir tooltip yangindan bahsetmiyor ve
+            // ates krater disina yayilip yapilari yakiyordu (DiamondTnt
+            // ayni sekilde duzeltilmisti, digerlerine yayilmamis).
 
-            world.createExplosion(null, x, y, z, 20.0f, true, World.ExplosionSourceType.TNT);
+            world.createExplosion(null, x, y, z, 20.0f, false, World.ExplosionSourceType.TNT);
 
             if (world instanceof ServerWorld serverWorld2) {
                 DamageSource src = world.getDamageSources().explosion(null, null);

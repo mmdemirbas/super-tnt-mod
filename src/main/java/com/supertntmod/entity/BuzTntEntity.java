@@ -26,6 +26,11 @@ import java.util.UUID;
  * 30 saniye boyunca thunder/snow yağdırır (gerçek 5 saat oyunu kilitlerdi).
  */
 public class BuzTntEntity extends TntEntity {
+    /** Atesleyen oyuncu. getOwner() hicbir zaman set edilmiyor —
+     *  "patlatan haric" korumasi bu yuzden hic calismiyordu.
+     *  GizliTntEntity\'deki calisan desen. */
+    private @Nullable java.util.UUID igniterUuid = null;
+
     private static final int RADIUS = 14;
     private static final int FREEZE_TICKS = 600; // 30 saniye
     private static final int WEATHER_TICKS = 600; // 30 saniye
@@ -46,6 +51,9 @@ public class BuzTntEntity extends TntEntity {
         super(ModEntities.BUZ_TNT, world);
         this.setPosition(x, y, z);
         this.setFuse(80);
+        if (igniter instanceof net.minecraft.entity.player.PlayerEntity pl) {
+            this.igniterUuid = pl.getUuid();
+        }
     }
 
     @Override
@@ -98,7 +106,7 @@ public class BuzTntEntity extends TntEntity {
             double x = getX(), y = getY(), z = getZ();
             center = this.getBlockPos();
 
-            UUID owner = (this.getOwner() != null) ? this.getOwner().getUuid() : null;
+            UUID owner = this.igniterUuid;
 
             world.playSound(null, x, y, z, SoundEvents.BLOCK_GLASS_BREAK,
                     SoundCategory.BLOCKS, 4.0f, 0.5f);
@@ -138,6 +146,8 @@ public class BuzTntEntity extends TntEntity {
     @Override
     public void readData(ReadView reader) {
         super.readData(reader);
+        reader.getOptionalString("IgniterUuid")
+                .ifPresent(v -> igniterUuid = java.util.UUID.fromString(v));
         done = reader.getBoolean("done", false);
         processing = reader.getBoolean("processing", false);
         int centerX = reader.getInt("centerX", Integer.MIN_VALUE);
@@ -155,6 +165,7 @@ public class BuzTntEntity extends TntEntity {
     @Override
     public void writeData(WriteView writer) {
         super.writeData(writer);
+        if (igniterUuid != null) writer.putString("IgniterUuid", igniterUuid.toString());
         writer.putBoolean("done", done);
         writer.putBoolean("processing", processing);
         if (center != null) {

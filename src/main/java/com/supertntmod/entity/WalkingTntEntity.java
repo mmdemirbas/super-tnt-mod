@@ -107,8 +107,11 @@ public class WalkingTntEntity extends PathAwareEntity {
         World world = getEntityWorld();
 
         this.discard();
+            // createFire=false: hicbir tooltip yangindan bahsetmiyor ve
+            // ates krater disina yayilip yapilari yakiyordu (DiamondTnt
+            // ayni sekilde duzeltilmisti, digerlerine yayilmamis).
 
-        world.createExplosion(null, x, y, z, EXPLOSION_POWER, true,
+        world.createExplosion(null, x, y, z, EXPLOSION_POWER, false,
                 World.ExplosionSourceType.TNT);
     }
 

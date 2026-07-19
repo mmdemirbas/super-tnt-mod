@@ -22,6 +22,11 @@ import java.util.UUID;
  * 5 saatlik gerçek uyku oyunu bozardı.
  */
 public class UykuTntEntity extends TntEntity {
+    /** Atesleyen oyuncu. getOwner() hicbir zaman set edilmiyor —
+     *  "patlatan haric" korumasi bu yuzden hic calismiyordu.
+     *  GizliTntEntity\'deki calisan desen. */
+    private @Nullable java.util.UUID igniterUuid = null;
+
     private boolean done = false;
     private static final int SLEEP_TICKS = 600; // 30 saniye
 
@@ -35,6 +40,9 @@ public class UykuTntEntity extends TntEntity {
         super(ModEntities.UYKU_TNT, world);
         this.setPosition(x, y, z);
         this.setFuse(80);
+        if (igniter instanceof net.minecraft.entity.player.PlayerEntity pl) {
+            this.igniterUuid = pl.getUuid();
+        }
     }
 
     @Override
@@ -44,7 +52,7 @@ public class UykuTntEntity extends TntEntity {
             World world = getEntityWorld();
             double x = getX(), y = getY(), z = getZ();
 
-            UUID owner = (this.getOwner() != null) ? this.getOwner().getUuid() : null;
+            UUID owner = this.igniterUuid;
             this.discard();
 
             world.playSound(null, x, y, z, SoundEvents.ENTITY_PHANTOM_AMBIENT,
@@ -77,5 +85,18 @@ public class UykuTntEntity extends TntEntity {
             return;
         }
         if (!done) super.tick();
+    }
+
+    @Override
+    public void readData(net.minecraft.storage.ReadView reader) {
+        super.readData(reader);
+        reader.getOptionalString("IgniterUuid")
+                .ifPresent(v -> igniterUuid = java.util.UUID.fromString(v));
+    }
+
+    @Override
+    public void writeData(net.minecraft.storage.WriteView writer) {
+        super.writeData(writer);
+        if (igniterUuid != null) writer.putString("IgniterUuid", igniterUuid.toString());
     }
 }

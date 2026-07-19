@@ -163,9 +163,22 @@ public class MagaraTntEntity extends TntEntity {
         }
         cavePhase = reader.getInt("cavePhase", 0);
         blockIdx = reader.getInt("blockIdx", 0);
-        // Kayittan 'processing' geldi ama merkez gelmediyse devam etmek
-        // NPE olurdu; guvenli tarafta islemi iptal et.
-        if (center == null) {
+        caveCenters = null;
+        reader.getOptionalString("caveCenters").ifPresent(str -> {
+            if (str.isEmpty()) return;
+            String[] parts = str.split(";");
+            BlockPos[] arr = new BlockPos[parts.length];
+            for (int i = 0; i < parts.length; i++) {
+                String[] xyz = parts[i].split(",");
+                if (xyz.length != 3) return;
+                arr[i] = new BlockPos(Integer.parseInt(xyz[0]),
+                        Integer.parseInt(xyz[1]), Integer.parseInt(xyz[2]));
+            }
+            caveCenters = arr;
+        });
+        // Kayittan 'processing' geldi ama merkez ya da magara merkezleri
+        // gelmediyse devam etmek NPE olurdu; islemi guvenle iptal et.
+        if (center == null || caveCenters == null) {
             processing = false;   // center yok
         }
     }
@@ -182,5 +195,13 @@ public class MagaraTntEntity extends TntEntity {
         }
         writer.putInt("cavePhase", cavePhase);
         writer.putInt("blockIdx", blockIdx);
+        if (caveCenters != null) {
+            StringBuilder sb = new StringBuilder();
+            for (BlockPos p : caveCenters) {
+                if (sb.length() > 0) sb.append(';');
+                sb.append(p.getX()).append(',').append(p.getY()).append(',').append(p.getZ());
+            }
+            writer.putString("caveCenters", sb.toString());
+        }
     }
 }

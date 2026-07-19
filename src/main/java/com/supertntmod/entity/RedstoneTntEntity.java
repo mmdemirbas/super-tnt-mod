@@ -54,7 +54,10 @@ public class RedstoneTntEntity extends TntEntity {
             }
 
             // Vanilla TNT 4.0; bu çok daha güçlü
-            world.createExplosion(null, x, y, z, 8.0f, true, World.ExplosionSourceType.TNT);
+            // createFire=false: hicbir tooltip yangindan bahsetmiyor ve
+            // ates krater disina yayilip yapilari yakiyordu (DiamondTnt
+            // ayni sekilde duzeltilmisti, digerlerine yayilmamis).
+            world.createExplosion(null, x, y, z, 8.0f, false, World.ExplosionSourceType.TNT);
 
             // Yakındaki oyunculara hız ve güç (1 dakika)
             world.getEntitiesByClass(PlayerEntity.class,
