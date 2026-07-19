@@ -65,7 +65,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 7, 0]
+VERSION = [1, 8, 0]
 MIN_ENGINE = [1, 21, 0]
 
 # ---------------------------------------------------------------- TNT tanimlari
@@ -412,6 +412,53 @@ TNTS = [
 
 FUSE_TICKS = 80  # Java tarafinda setFuse(80)
 
+# ---------------------------------------------------------------- TNT-olmayan bloklar
+# kind: "decor" (sadece dekoratif), "ghost" (carpismasiz, icinden gecilir),
+#       "kill" (ustune/dokununca oldurur - script), "glow" (isik sacar)
+# 16 renkli Lego + hayalet bloklar + ayna + altin plaka tuzaklari.
+_LEGO_COLORS = {
+    "white": (236, 236, 236), "orange": (216, 128, 40), "magenta": (190, 74, 190),
+    "light_blue": (90, 160, 220), "yellow": (240, 210, 60), "lime": (120, 200, 60),
+    "pink": (240, 150, 190), "gray": (80, 80, 86), "light_gray": (150, 150, 156),
+    "cyan": (40, 150, 160), "purple": (130, 60, 180), "blue": (50, 70, 190),
+    "brown": (120, 80, 50), "green": (80, 130, 50), "red": (200, 50, 50),
+    "black": (30, 30, 34),
+}
+_LEGO_TR = {
+    "white": "Beyaz", "orange": "Turuncu", "magenta": "Eflatun", "light_blue": "Açık Mavi",
+    "yellow": "Sarı", "lime": "Fıstık Yeşili", "pink": "Pembe", "gray": "Gri",
+    "light_gray": "Açık Gri", "cyan": "Camgöbeği", "purple": "Mor", "blue": "Mavi",
+    "brown": "Kahverengi", "green": "Yeşil", "red": "Kırmızı", "black": "Siyah",
+}
+
+BLOCKS = []
+for _cn, _rgb in _LEGO_COLORS.items():
+    BLOCKS.append(dict(id=f"lego_{_cn}", tr=f"{_LEGO_TR[_cn]} Lego Tuğla", en=f"{_cn.title()} Lego Brick",
+                       trtip="Çıkıntılı Lego tuğlası — inşa et!", entip="Studded Lego brick - build!",
+                       kind="lego", color=_rgb, mat="minecraft:brick"))
+BLOCKS += [
+    dict(id="ghost_block", tr="Hayalet Blok", en="Ghost Block",
+         trtip="Çim gibi görünür ama içinden geçilir — tuzak!",
+         entip="Looks like grass but you walk through it - a trap!",
+         kind="ghost", color=(90, 150, 70), mat="minecraft:grass"),
+    dict(id="wooden_ghost_block", tr="Tahta Hayalet Blok", en="Wooden Ghost Block",
+         trtip="Tahta gibi görünür ama içinden geçilir — tuzak!",
+         entip="Looks like wood but you walk through it - a trap!",
+         kind="ghost", color=(150, 110, 66), mat="minecraft:planks"),
+    dict(id="mirror", tr="Ayna", en="Mirror",
+         trtip="Karanlıkta parlayan dekoratif ayna.",
+         entip="A decorative mirror that glows in the dark.",
+         kind="glow", color=(210, 230, 240), mat="minecraft:glass"),
+    dict(id="right_golden_plate", tr="Doğru Altın Plaka", en="Right Golden Plate",
+         trtip="Altın plaka gibi görünür — ama tamamen zararsız.",
+         entip="Looks like a gold plate - completely harmless.",
+         kind="decor", color=(232, 200, 90), mat="minecraft:gold_ingot"),
+    dict(id="wrong_golden_plate", tr="Yanlış Altın Plaka", en="Wrong Golden Plate",
+         trtip="Altın plaka gibi görünür — üstüne basan anında ölür!",
+         entip="Looks like a gold plate - whoever steps on it dies instantly!",
+         kind="kill", color=(232, 200, 90), mat="minecraft:gold_ingot"),
+]
+
 
 # ---------------------------------------------------------------- PNG uretici
 def png(path, rows):
@@ -429,6 +476,31 @@ def png(path, rows):
 
 def shade(c, f):
     return tuple(max(0, min(255, int(v * f))) for v in c)
+
+
+def decor_texture(path, base, kind):
+    """TNT-olmayan blok dokusu. lego=cikintili, glow=parlak, plate=cizgili."""
+    studs = [(4, 4), (11, 4), (4, 11), (11, 11)]
+    rows = []
+    for y in range(16):
+        row = []
+        for x in range(16):
+            c = shade(base, 1.0 + ((x * 7 + y * 13) % 5 - 2) * 0.02)
+            if x in (0, 15) or y in (0, 15):
+                c = shade(c, 0.78)
+            if kind == "lego":
+                for (sx, sy) in studs:
+                    if (x - sx) ** 2 + (y - sy) ** 2 <= 3:
+                        c = shade(base, 1.35)
+            elif kind == "glow":
+                if (x + y) % 4 == 0:
+                    c = shade(base, 1.30)
+            elif kind in ("decor", "kill"):
+                if y in (5, 10):
+                    c = shade(base, 0.72)
+            row.append(c)
+        rows.append(row)
+    png(path, rows)
 
 
 # Yeniden renklendirme sablonu: gercek TNT dokusu. Duz renk kare uretmek
@@ -607,6 +679,13 @@ def build():
                 tnt_face(dst, t['color'][idx], band=(face == "side"), face=face)
                 generated += 1
             terrain[key] = {"textures": rel}
+    # DECOR blok dokulari (tek yuz, tum yonler ayni)
+    for blk in BLOCKS:
+        key = f"stnt_{blk['id']}"
+        rel = f"textures/blocks/{key}"
+        decor_texture(os.path.join(RP, rel + ".png"), blk['color'], blk['kind'])
+        terrain[key] = {"textures": rel}
+        generated += 1
     w(os.path.join(RP, "textures/terrain_texture.json"),
       {"resource_pack_name": "super_tnt", "texture_name": "atlas.terrain",
        "padding": 8, "num_mip_levels": 4, "texture_data": terrain})
@@ -639,6 +718,30 @@ def build():
                     "minecraft:light_dampening": 15,
                     "minecraft:geometry": "minecraft:geometry.full_block",
                 },
+            },
+        })
+
+    # ---------- TNT-olmayan bloklar (lego, hayalet, ayna, plaka)
+    for blk in BLOCKS:
+        comps = {
+            "minecraft:material_instances": {
+                "*": {"texture": f"stnt_{blk['id']}", "render_method": "opaque"}},
+            "minecraft:destructible_by_mining": {"seconds_to_destroy": 0.4},
+            "minecraft:geometry": "minecraft:geometry.full_block",
+        }
+        if blk['kind'] == "ghost":
+            # icinden gecilir: carpisma kutusu yok
+            comps["minecraft:collision_box"] = False
+        elif blk['kind'] == "glow":
+            comps["minecraft:light_emission"] = 15
+        w(os.path.join(BP, f"blocks/{blk['id']}.json"), {
+            "format_version": "1.20.20",
+            "minecraft:block": {
+                "description": {"identifier": f"stnt:{blk['id']}",
+                                "is_experimental": False,
+                                "menu_category": {"category": "construction",
+                                                  "group": "itemGroup.name.super_tnt"}},
+                "components": comps,
             },
         })
 
@@ -727,6 +830,9 @@ def build():
             for t in TNTS:
                 lines.append(f"tile.stnt:{t['id']}.name={t[nk]}")
                 lines.append(f"stnt.tip.{t['id']}={t[tk]}")
+            for blk in BLOCKS:
+                lines.append(f"tile.stnt:{blk['id']}.name={blk[nk]}")
+                lines.append(f"stnt.tip.{blk['id']}={blk[tk]}")
             open(os.path.join(pack, f"texts/{lang}.lang"), 'w',
                  encoding='utf-8').write("\n".join(lines) + "\n")
 
@@ -1335,6 +1441,19 @@ system.run(() => {
   loadTracked();
   console.warn(`[SuperTNT] yuklendi - ${Object.keys(SPEC).length} TNT, ${tracked.size} kayitli blok`);
 });
+
+// Yanlis Altin Plaka: ustunde duran oyuncuyu oldurur (Java'daki tuzak).
+system.runInterval(() => {
+  for (const p of world.getPlayers()) {
+    try {
+      const l = p.location;
+      const below = p.dimension.getBlock({ x: Math.floor(l.x), y: Math.floor(l.y) - 1, z: Math.floor(l.z) });
+      if (below && below.typeId === "stnt:wrong_golden_plate") {
+        p.applyDamage(1000);
+      }
+    } catch (e) {}
+  }
+}, 5);
 
 // TANI: oyuncu dunyaya girince chat'e yazar. Bu mesaj gorunuyorsa davranis
 // paketi aktif VE script calisiyor demektir. Gorunmuyorsa paket aktif degil.
