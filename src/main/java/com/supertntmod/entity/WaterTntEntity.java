@@ -125,11 +125,18 @@ public class WaterTntEntity extends TntEntity {
 
     private static final List<PendingWaterRemoval> pendingRemovals = new CopyOnWriteArrayList<>();
 
-    private record PendingWaterRemoval(ServerWorld world, BlockPos pos, int ticksRemaining) {
-        PendingWaterRemoval tick() {
-            return new PendingWaterRemoval(world, pos, ticksRemaining - 1);
-        }
-    }
+    /**
+     * Mutlak sona erme zamanı tutulur, kalan-tick sayacı değil. Sayaç
+     * yaklaşımı her tick tüm listeyi yeniden kuruyordu; Ölümcül Su TNT
+     * tek seferde ~14.000 kayıt eklediği için bu 8,5 milyon kayıt
+     * tahsisi anlamına geliyordu.
+     */
+    private record PendingWaterRemoval(ServerWorld world, BlockPos pos, long expiryTick) {}
+
+    private static long tickCounter = 0L;
+
+    /** Süpürme sıklığı — her tick taramak bu boyutta gereksiz pahalı. */
+    private static final int SWEEP_INTERVAL = 20;
 
     /**
      * Başka bir TNT'nin yerleştirdiği suyu da bu kuyruğa kaydeder.
@@ -137,11 +144,13 @@ public class WaterTntEntity extends TntEntity {
      * yerine buradaki tick/kapanış kablolamasını paylaşır.
      */
     public static void scheduleRemoval(ServerWorld world, BlockPos pos, int lifetimeTicks) {
-        pendingRemovals.add(new PendingWaterRemoval(world, pos.toImmutable(), lifetimeTicks));
+        pendingRemovals.add(new PendingWaterRemoval(
+                world, pos.toImmutable(), tickCounter + lifetimeTicks));
     }
 
     public static void clearAll() {
         pendingRemovals.clear();
+        tickCounter = 0L;
     }
 
     /**
@@ -149,24 +158,22 @@ public class WaterTntEntity extends TntEntity {
      * kaydedilmeli. Ömrü dolan su birikintilerini havaya çevirir.
      */
     public static void tickRemovals() {
+        tickCounter++;
         if (pendingRemovals.isEmpty()) return;
+        if (tickCounter % SWEEP_INTERVAL != 0) return;
 
-        List<PendingWaterRemoval> completed = new ArrayList<>();
-        List<PendingWaterRemoval> updated = new ArrayList<>();
-
+        List<PendingWaterRemoval> expired = new ArrayList<>();
         for (PendingWaterRemoval r : pendingRemovals) {
-            if (r.ticksRemaining() <= 0) completed.add(r);
-            else updated.add(r.tick());
+            if (r.expiryTick() <= tickCounter) expired.add(r);
         }
+        if (expired.isEmpty()) return;
 
-        for (PendingWaterRemoval r : completed) {
+        for (PendingWaterRemoval r : expired) {
             // Sadece hâlâ su olanları temizle (oyuncu üzerine başka blok koymuş olabilir).
             if (r.world().getBlockState(r.pos()).isOf(Blocks.WATER)) {
                 r.world().setBlockState(r.pos(), Blocks.AIR.getDefaultState());
             }
         }
-
-        pendingRemovals.clear();
-        pendingRemovals.addAll(updated);
+        pendingRemovals.removeAll(expired);
     }
 }
