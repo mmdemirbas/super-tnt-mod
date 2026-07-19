@@ -42,7 +42,11 @@ public abstract class AmethystArmorSlotMixin {
         // Sadece zırh slot'unda (PlayerScreenHandler'da 5-8) ametist zırh varken
         // çıkarmayı engelle — envanter slot'larındaki kopyalar serbestçe taşınabilir,
         // aksi halde oyuncu zırhı hiç giyemez.
-        boolean isArmorSlot = slotIndex >= 5 && slotIndex <= 8;
+        // 5-8 aralığı YALNIZCA PlayerScreenHandler'da zırh slotudur. Handler
+        // kontrolü olmadan sandık/varil/shulker'da da 5-8 kilitleniyordu; oraya
+        // konan yedek ametist parçası kalıcı olarak tıklanamaz hale geliyordu.
+        boolean isArmorSlot = handler instanceof net.minecraft.screen.PlayerScreenHandler
+                && slotIndex >= 5 && slotIndex <= 8;
         if (isArmorSlot && isAmethystArmorPiece(stackInSlot)) {
             ci.cancel();
             return;

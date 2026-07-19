@@ -80,6 +80,30 @@ public class BlockerChestBlock extends Block {
         return true;
     }
 
+    /**
+     * Sahiplik sandığı KOYAN oyuncuya geçer.
+     *
+     * Eskiden sahiplik ilk AÇANA geçiyordu: çocuk sandığı koyar, başkası
+     * önce tıklar ve sahibi olur; sonra çocuk kendi sandığı tarafından
+     * öldürülürdü. Tooltip "sadece sahibi açabilir" diyor — sahip, koyandır.
+     */
+    @Override
+    public void onPlaced(World world, BlockPos pos, BlockState state,
+                         @org.jetbrains.annotations.Nullable net.minecraft.entity.LivingEntity placer,
+                         net.minecraft.item.ItemStack itemStack) {
+        super.onPlaced(world, pos, state, placer, itemStack);
+        if (!(world instanceof ServerWorld serverWorld)) return;
+        if (!(placer instanceof PlayerEntity player)) return;
+
+        BlockerChestPersistentState chestState = BlockerChestPersistentState.get(serverWorld);
+        chestState.owners.put(pos.toImmutable(), player.getUuid());
+        SimpleInventory inv = new SimpleInventory(27);
+        inv.addListener(sender -> chestState.markDirty());
+        chestState.inventories.put(pos.toImmutable(), inv);
+        chestState.markDirty();
+        player.sendMessage(Text.translatable("message.supertntmod.blocker_chest.owner_set"), false);
+    }
+
     @Override
     protected ActionResult onUse(BlockState state, World world, BlockPos pos,
                                   PlayerEntity player, BlockHitResult hit) {
@@ -95,7 +119,7 @@ public class BlockerChestBlock extends Block {
         BlockerChestPersistentState chestState = BlockerChestPersistentState.get(serverWorld);
 
         if (!chestState.owners.containsKey(pos)) {
-            // İlk kullanım: sahibi ol
+            // Yedek: sandik onPlaced'siz olustuysa (komut/yapi) ilk acan sahip olur
             chestState.owners.put(pos, player.getUuid());
             SimpleInventory inv = new SimpleInventory(27);
             inv.addListener(sender -> chestState.markDirty());

@@ -126,7 +126,20 @@ public class WoodTntEntity extends TntEntity {
         }
     }
 
+    /**
+     * Sunucu kapanisi. Sadece listeyi bosaltmak, "1 dakika sonra geri gelir"
+     * vaadini sessizce bozuyordu — kuyruk diske yazilmiyor, yani yeniden
+     * acilista agaclari geri getirecek kimse kalmiyor. Kapanmadan once
+     * bekleyen tum restorasyonlari uygula.
+     */
     public static void clearAll() {
+        for (PendingRestore r : pendingRestores) {
+            try {
+                restore(r);
+            } catch (RuntimeException ignored) {
+                // kapanis sirasinda dunya erisimi bozulabilir
+            }
+        }
         pendingRestores.clear();
     }
 
@@ -134,6 +147,16 @@ public class WoodTntEntity extends TntEntity {
      * SuperTntMod.onInitialize() içinde ServerTickEvents.END_SERVER_TICK ile
      * bir kez kaydedilmeli. Her tick'te bekleyen geri yüklemeleri işler.
      */
+    /** Kaydedilen blokları geri koyar. Sadece hava olan yerlere — oyuncu
+     *  araya başka blok koymuşsa dokunma. */
+    private static void restore(PendingRestore r) {
+        for (Map.Entry<BlockPos, BlockState> entry : r.savedBlocks().entrySet()) {
+            if (r.world().getBlockState(entry.getKey()).isOf(Blocks.AIR)) {
+                r.world().setBlockState(entry.getKey(), entry.getValue());
+            }
+        }
+    }
+
     public static void tickRestores() {
         if (pendingRestores.isEmpty()) return;
 
@@ -148,15 +171,8 @@ public class WoodTntEntity extends TntEntity {
             }
         }
 
-        for (PendingRestore restore : completed) {
-            for (Map.Entry<BlockPos, BlockState> entry : restore.savedBlocks().entrySet()) {
-                BlockPos pos = entry.getKey();
-                BlockState state = entry.getValue();
-                // Sadece hava olan yerlere geri koy (oyuncu başka blok koymuşsa dokunma)
-                if (restore.world().getBlockState(pos).isOf(Blocks.AIR)) {
-                    restore.world().setBlockState(pos, state);
-                }
-            }
+        for (PendingRestore r : completed) {
+            restore(r);
         }
 
         pendingRestores.clear();
