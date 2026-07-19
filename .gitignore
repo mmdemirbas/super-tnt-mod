@@ -40,3 +40,6 @@ replay_*.log
 *.jfr
 .mcwork/
 .playwright-mcp/
+bedrock/super_tnt_BP/
+bedrock/super_tnt_RP/
+bedrock/out/
