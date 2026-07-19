@@ -44,7 +44,11 @@ BP_MOD_UUID = "4a9b2d73-8e65-4ca1-af32-9b5a7d1e2f84"
 BP_SCRIPT_UUID = "5bac3e84-9f76-4db2-b043-ac6b8e2f3a95"
 RP_UUID = "6cbd4f95-a087-4ec3-b154-bd7c9f3a4b06"
 RP_MOD_UUID = "7dce50a6-b198-4fd4-c265-ce8da04b5c17"
-VERSION = [1, 0, 0]
+# Surum: ayni UUID + ayni surum tekrar import edilirse Minecraft bunu
+# "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
+# YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
+# surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
+VERSION = [1, 1, 0]
 MIN_ENGINE = [1, 21, 0]
 
 # ---------------------------------------------------------------- TNT tanimlari
@@ -149,6 +153,48 @@ def tnt_face(path, base, band=True):
     png(path, rows)
 
 
+def compose_entity_texture(t, dst):
+    """Blok yuzlerinden varlik dokusu (64x32) uretir.
+
+    MC kutu-UV duzeni, 16x16x16 kup, uv [0,0]:
+      top (16,0) | bottom (32,0) | dogu (0,16) | kuzey (16,16)
+      bati (32,16) | guney (48,16)
+    PIL varsa gercek yuz PNG'leri birlestirilir; yoksa duz renge duser.
+    """
+    os.makedirs(os.path.dirname(dst), exist_ok=True)
+    faces = {}
+    for face in ("top", "side", "bottom"):
+        p = os.path.join(RP, f"textures/blocks/stnt_{t['id']}_{face}.png")
+        faces[face] = p if os.path.exists(p) else None
+    try:
+        from PIL import Image
+        atlas = Image.new("RGBA", (64, 32), (0, 0, 0, 0))
+        def put(face, xy):
+            if faces[face]:
+                atlas.paste(Image.open(faces[face]).convert("RGBA").resize((16, 16)), xy)
+        put("top", (16, 0)); put("bottom", (32, 0))
+        for xy in ((0, 16), (16, 16), (32, 16), (48, 16)):
+            put("side", xy)
+        atlas.save(dst)
+        return "pil"
+    except ImportError:
+        # yedek: renk tanimindan duz doku (PIL yoksa)
+        base = t.get('color', ((200, 60, 60),) * 3)
+        rows = [[base[0] if y < 16 else base[1] for _ in range(64)] for y in range(32)]
+        png_rgb(dst, rows, 64, 32)
+        return "fallback"
+
+
+def png_rgb(path, rows, wd, ht):
+    raw = b''.join(b'\x00' + b''.join(bytes(px) for px in row) for row in rows)
+    def chunk(tag, data):
+        c = struct.pack('>I', len(data)) + tag + data
+        return c + struct.pack('>I', zlib.crc32(tag + data) & 0xffffffff)
+    hdr = struct.pack('>IIBBBBB', wd, ht, 8, 2, 0, 0, 0)
+    open(path, 'wb').write(b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', hdr)
+                          + chunk(b'IDAT', zlib.compress(raw, 9)) + chunk(b'IEND', b''))
+
+
 # ---------------------------------------------------------------- yapi
 def w(path, obj):
     os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -230,6 +276,66 @@ def build():
             },
         })
 
+    # ---------- ates alan TNT varligi (F1)
+    # 16x16x16 tek kup. MC kutu-UV duzeni: 64x32 doku.
+    w(os.path.join(RP, "models/entity/stnt_tnt.geo.json"), {
+        "format_version": "1.12.0",
+        "minecraft:geometry": [{
+            "description": {"identifier": "geometry.stnt_tnt",
+                            "texture_width": 64, "texture_height": 32,
+                            "visible_bounds_width": 2, "visible_bounds_height": 2,
+                            "visible_bounds_offset": [0, 1, 0]},
+            "bones": [{"name": "body", "pivot": [0, 0, 0],
+                       "cubes": [{"origin": [-8, 0, -8], "size": [16, 16, 16], "uv": [0, 0]}]}],
+        }],
+    })
+    # yanip sonen beyaz kaplama - vanilla TNT hissi
+    w(os.path.join(RP, "render_controllers/stnt_tnt.render_controllers.json"), {
+        "format_version": "1.10.0",
+        "render_controllers": {
+            "controller.render.stnt_tnt": {
+                "geometry": "Geometry.default",
+                "materials": [{"*": "Material.default"}],
+                "textures": ["Texture.default"],
+                "overlay_color": {
+                    "r": 1.0, "g": 1.0, "b": 1.0,
+                    "a": "math.mod(math.floor(query.life_time * 10), 2) * 0.55",
+                },
+            }
+        },
+    })
+
+    for t in TNTS:
+        ent = f"stnt:{t['id']}_primed"
+        w(os.path.join(BP, f"entities/{t['id']}_primed.json"), {
+            "format_version": "1.21.0",
+            "minecraft:entity": {
+                "description": {"identifier": ent, "is_spawnable": False,
+                                "is_summonable": True, "is_experimental": False},
+                "components": {
+                    "minecraft:collision_box": {"width": 0.98, "height": 0.98},
+                    "minecraft:physics": {},
+                    "minecraft:pushable": {"is_pushable": False, "is_pushable_by_piston": True},
+                    "minecraft:fire_immune": True,
+                    "minecraft:damage_sensor": {"triggers": [{"deals_damage": False}]},
+                    "minecraft:conditional_bandwidth_optimization": {},
+                },
+            },
+        })
+        w(os.path.join(RP, f"entity/{t['id']}_primed.json"), {
+            "format_version": "1.10.0",
+            "minecraft:client_entity": {
+                "description": {
+                    "identifier": ent,
+                    "materials": {"default": "entity_alphatest"},
+                    "textures": {"default": f"textures/entity/stnt/{t['id']}"},
+                    "geometry": {"default": "geometry.stnt_tnt"},
+                    "render_controllers": ["controller.render.stnt_tnt"],
+                },
+            },
+        })
+        compose_entity_texture(t, os.path.join(RP, f"textures/entity/stnt/{t['id']}.png"))
+
     # ---------- tarifler (8 malzeme + ortada TNT)
     for t in TNTS:
         w(os.path.join(BP, f"recipes/{t['id']}.json"), {
@@ -291,9 +397,45 @@ const SPEC = __SPEC__;
 const NAMES = __NAMES__;
 const FUSE = __FUSE__;
 
-const active = new Set();          // "x,y,z" - ayni blok iki kez ateslenmesin
-const key = (l) => `${l.x},${l.y},${l.z}`;
+const key = (d, l) => `${d}|${Math.floor(l.x)},${Math.floor(l.y)},${Math.floor(l.z)}`;
 
+// ---------------------------------------------------------------- yerlestirilen
+// bloklarin kaydi. Redstone yoklamasi sadece bu listedeki bloklara bakar,
+// boylece maliyet oyuncunun koydugu TNT sayisiyla sinirli kalir.
+// Dunya dinamik ozelliginde saklanir -> dunya yeniden acilinca kaybolmaz.
+const TRACK_PROP = "stnt:placed";
+const TRACK_MAX = 400;
+let tracked = new Set();
+
+function loadTracked() {
+  try {
+    const raw = world.getDynamicProperty(TRACK_PROP);
+    if (typeof raw === "string") tracked = new Set(JSON.parse(raw));
+  } catch (e) { tracked = new Set(); }
+}
+function saveTracked() {
+  try {
+    world.setDynamicProperty(TRACK_PROP, JSON.stringify([...tracked].slice(-TRACK_MAX)));
+  } catch (e) {}
+}
+function track(dimId, loc) {
+  tracked.add(`${dimId}|${Math.floor(loc.x)},${Math.floor(loc.y)},${Math.floor(loc.z)}`);
+  if (tracked.size > TRACK_MAX) tracked = new Set([...tracked].slice(-TRACK_MAX));
+  saveTracked();
+}
+function untrack(dimId, loc) {
+  tracked.delete(`${dimId}|${Math.floor(loc.x)},${Math.floor(loc.y)},${Math.floor(loc.z)}`);
+  saveTracked();
+}
+
+world.afterEvents.playerPlaceBlock.subscribe((ev) => {
+  const b = ev.block;
+  if (b && b.typeId.startsWith("stnt:") && SPEC[b.typeId.slice(5)]) {
+    track(b.dimension.id, b.location);
+  }
+});
+
+// ---------------------------------------------------------------- atesleme
 world.afterEvents.playerInteractWithBlock.subscribe((ev) => {
   const { block, itemStack, player } = ev;
   if (!block || !itemStack) return;
@@ -302,45 +444,120 @@ world.afterEvents.playerInteractWithBlock.subscribe((ev) => {
   if (!id.startsWith("stnt:")) return;
   const short = id.slice(5);
   if (!SPEC[short]) return;
-  ignite(block.dimension, block.location, short, player);
+  ignite(block.dimension, block.location, short);
+  try { player.sendMessage(`§e${NAMES[short] ?? short} §7ateslendi!`); } catch (e) {}
 });
 
-function ignite(dim, loc, short, source) {
-  const k = key(loc);
-  if (active.has(k)) return;
-  active.add(k);
-  try {
-    dim.playSound("random.fuse", loc, { volume: 1.0 });
-    player_msg(source, `§e${NAMES[short] ?? short} §7ateslendi!`);
-  } catch (e) {}
-
-  // fitil: yerinde yanar (bkz. build.py K1)
-  let left = FUSE;
-  const tick = system.runInterval(() => {
-    left -= 5;
+// F2 - redstone. Kayitli bloklari 10 tick'te bir yoklar.
+system.runInterval(() => {
+  if (tracked.size === 0) return;
+  for (const k of [...tracked]) {
     try {
-      dim.spawnParticle("minecraft:basic_smoke_particle",
-        { x: loc.x + 0.5, y: loc.y + 1.1, z: loc.z + 0.5 });
+      const [dimId, xyz] = k.split("|");
+      const [x, y, z] = xyz.split(",").map(Number);
+      const dim = world.getDimension(dimId);
+      const b = dim.getBlock({ x, y, z });
+      if (!b) continue;                       // yuklu degil, sonraki tura birak
+      if (!b.typeId.startsWith("stnt:")) { tracked.delete(k); saveTracked(); continue; }
+      if ((b.getRedstonePower() ?? 0) > 0) ignite(dim, b.location, b.typeId.slice(5));
     } catch (e) {}
-    if (left <= 0) {
-      system.clearRun(tick);
-      active.delete(k);
+  }
+}, 10);
+
+// F3 - baska bir patlama bizim blogu vuruyorsa yok etme, atesle.
+try {
+  world.beforeEvents.explosion.subscribe((ev) => {
+    const dim = ev.dimension;
+    const keep = [];
+    let lit = 0;
+    for (const b of ev.getImpactedBlocks()) {
       try {
-        const b = dim.getBlock(loc);
-        if (b && b.typeId === `stnt:${short}`) b.setType("minecraft:air");
+        if (b.typeId.startsWith("stnt:") && SPEC[b.typeId.slice(5)]) {
+          const loc = { x: b.location.x, y: b.location.y, z: b.location.z };
+          const short = b.typeId.slice(5);
+          system.run(() => ignite(dim, loc, short));
+          lit++;
+          continue;                            // patlamanin yok etmesini engelle
+        }
       } catch (e) {}
-      detonate(dim, { x: loc.x + 0.5, y: loc.y + 0.5, z: loc.z + 0.5 }, short);
+      keep.push(b);
     }
-  }, 5);
+    if (lit > 0) ev.setImpactedBlocks(keep);
+  });
+} catch (e) {
+  console.warn("[SuperTNT] explosion olayi yok, zincirleme sadece kendi TNT'lerimizde");
 }
 
-function player_msg(p, msg) { try { p.sendMessage(msg); } catch (e) {} }
+// ---------------------------------------------------------------- fitil
+// F1 - blok kaldirilir, yerine fiziksel bir varlik dogar. Firlatilabilir,
+// duser, ziplar - vanilla TNT gibi.
+const primed = new Map();  // entityId -> { short, left, dim }
+
+function ignite(dim, loc, short) {
+  const k = key(dim.id, loc);
+  try {
+    const b = dim.getBlock(loc);
+    if (!b || b.typeId !== `stnt:${short}`) return;   // zaten ateslenmis
+    b.setType("minecraft:air");
+  } catch (e) { return; }
+  untrack(dim.id, loc);
+
+  const c = { x: Math.floor(loc.x) + 0.5, y: Math.floor(loc.y) + 0.5, z: Math.floor(loc.z) + 0.5 };
+  try { dim.playSound("random.fuse", c, { volume: 1.0 }); } catch (e) {}
+  try {
+    const e = dim.spawnEntity(`stnt:${short}_primed`, c);
+    try { e.applyImpulse({ x: rnd(0.04), y: 0.22, z: rnd(0.04) }); } catch (err) {}
+    primed.set(e.id, { short, left: FUSE, e });
+  } catch (err) {
+    // varlik dogmadiysa yerinde patlat - islev kaybolmasin
+    system.runTimeout(() => detonate(dim, c, short), FUSE);
+  }
+}
+
+// fitil sayaci
+system.runInterval(() => {
+  for (const [id, p] of [...primed]) {
+    p.left -= 2;
+    let loc = null, dim = null;
+    try { loc = p.e.location; dim = p.e.dimension; } catch (e) { primed.delete(id); continue; }
+    try {
+      dim.spawnParticle("minecraft:basic_smoke_particle", { x: loc.x, y: loc.y + 0.7, z: loc.z });
+    } catch (e) {}
+    if (p.left <= 0) {
+      primed.delete(id);
+      try { p.e.remove(); } catch (e) {}
+      detonate(dim, loc, p.short);
+    }
+  }
+}, 2);
+
+// F3 - patlama aninda cevredeki TNT'leri kademeli atesle
+function chain(dim, c, short) {
+  const R = 6;
+  let n = 0;
+  for (let dx = -R; dx <= R; dx++)
+    for (let dy = -R; dy <= R; dy++)
+      for (let dz = -R; dz <= R; dz++) {
+        if (n > 40) return;
+        try {
+          const p = { x: Math.floor(c.x) + dx, y: Math.floor(c.y) + dy, z: Math.floor(c.z) + dz };
+          const b = dim.getBlock(p);
+          if (!b || !b.typeId.startsWith("stnt:")) continue;
+          const s = b.typeId.slice(5);
+          if (!SPEC[s]) continue;
+          n++;
+          const d = 2 + Math.floor(Math.random() * 8);
+          system.runTimeout(() => { try { ignite(dim, p, s); } catch (e) {} }, d);
+        } catch (e) {}
+      }
+}
 
 function rnd(n) { return (Math.random() - 0.5) * n; }
 
 function detonate(dim, c, short) {
   const s = SPEC[short];
   if (!s) return;
+  chain(dim, c, short);   // F3 - once zinciri kur, sonra patlat (bloklar hala duruyor)
   try {
     switch (s.kind) {
       case "explode":
@@ -450,7 +667,14 @@ function spray(dim, c, particle, n, spread) {
   }
 }
 
-console.warn("[SuperTNT] yuklendi - " + Object.keys(SPEC).length + " TNT");
+// worldLoad her API surumunde yok; olmazsa ilk tick'te yuklenir.
+try {
+  world.afterEvents.worldLoad.subscribe(() => loadTracked());
+} catch (e) {}
+system.run(() => {
+  loadTracked();
+  console.warn(`[SuperTNT] yuklendi - ${Object.keys(SPEC).length} TNT, ${tracked.size} kayitli blok`);
+});
 '''
 
 if __name__ == "__main__":

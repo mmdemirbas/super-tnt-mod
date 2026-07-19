@@ -34,19 +34,41 @@ dosyalarından okundu, uydurulmadı.
 
 ## Nasıl ateşlenir
 
-**Çakmakla sağ tık.** Blok yerinde 4 saniye duman çıkarır, sonra patlar.
+- **Çakmakla sağ tık**
+- **Redstone** — kaldıraç, buton, basınç plakası, redstone tozu
+- **Zincirleme** — yakındaki bir patlama onu da ateşler
+
+Ateşlenince blok kaybolur, yerine fiziksel bir TNT varlığı doğar: yukarı
+sıçrar, düşer, yuvarlanır, yanıp söner. 4 saniye sonra patlar.
+
+## Nasıl çalışır
+
+**Fırlayan varlık.** Her TNT'nin `stnt:<ad>_primed` adında bir varlığı var.
+Ortak `geometry.stnt_tnt` (16³ küp) + TNT'ye özel 64×32 doku. Doku, blok
+yüzlerinden Minecraft'ın kutu-UV düzenine göre `build.py` içinde birleştiriliyor
+(PIL varsa; yoksa düz renge düşer). Yanıp sönme efekti render controller'da
+Molang ile: `math.mod(math.floor(query.life_time * 10), 2)`.
+
+**Redstone.** Bedrock'ta özel bloğa redstone dinletmenin doğrudan yolu yok.
+Oyuncunun yerleştirdiği TNT'ler bir listede tutuluyor ve 10 tick'te bir
+`block.getRedstonePower()` ile yoklanıyor. Liste dünya dinamik özelliğinde
+saklandığı için dünya kapanıp açılınca kaybolmuyor. 400 blokla sınırlı —
+maliyeti sabit tutmak için.
+
+*Bilinçli tercih:* özel blok bileşeni (`minecraft:custom_components`) daha
+zarif olurdu ama blok JSON'unda bildirilip script tarafında kayıt başarısız
+olursa blok tamamen yüklenmez. Test edemediğim bir API için bu riski almadım.
+
+**Zincirleme.** İki yoldan: (a) patlama anında 6 blok yarıçapı taranıp bulunan
+TNT'ler 2–10 tick gecikmeyle ateşleniyor (kademeli, hepsi aynı anda değil),
+(b) `world.beforeEvents.explosion` ile başka bir patlamanın yok edeceği
+TNT'ler listeden çıkarılıp ateşleniyor — yani vanilla TNT veya creeper da
+zinciri başlatabiliyor.
 
 ## Bilinen farklar (Java sürümüne göre)
 
-**F1 — Fitil yerinde yanar.** Java'da TNT ateşlenince fırlayan, zıplayan bir
-varlığa dönüşür. Bedrock'ta bunu yapmak için ayrı entity + geometry + render
-controller yazmak gerekiyor. Şimdilik blok yerinde durup patlıyor. TNT
-fırlatılamaz.
-
-**F2 — Redstone ile ateşleme yok.** Sadece çakmak. Bedrock'ta özel bloğa
-redstone dinletmek ayrı bir iş.
-
-**F3 — Zincirleme patlama yok.** Bir TNT diğerini ateşlemiyor.
+**F1, F2, F3 — çözüldü (v1.1.0).** Fırlayan TNT varlığı, redstone ateşleme
+ve zincirleme patlama artık var. Ayrıntı aşağıda "Nasıl çalışır".
 
 **F4 — Dokular yeniden üretildi.** Elmas ve Zıplatan TNT kendi PNG'lerini Java
 projesinden alıyor. Diğer 10'u Java'da vanilla beton dokusu kullanıyordu;
@@ -66,12 +88,9 @@ katmanı.
 
 Öncelik sırasıyla:
 
-1. **Fırlayan TNT varlığı (F1).** En görünür eksik. Bir entity + `geometry.tnt`
-   benzeri model + fitil animasyonu. Bu çözülünce F3 (zincirleme) de kolaylaşır.
-2. **Redstone ateşleme (F2).**
-3. **Daha fazla TNT.** Java tarafında 70 sınıf var. Şablon oturduğu için her
+1. **Daha fazla TNT.** Java tarafında 70 sınıf var. Şablon oturduğu için her
    yeni TNT `TNTS` listesine bir kayıt + davranış dalı demek.
-4. **Walking TNT.** Java'da AI'lı; Bedrock'ta JSON davranış bileşenleriyle
+2. **Walking TNT.** Java'da AI'lı; Bedrock'ta JSON davranış bileşenleriyle
    yazılır. En eğlencelisi, en öğreticisi.
 
 ## Geliştirme döngüsü
