@@ -65,7 +65,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 6, 0]
+VERSION = [1, 7, 0]
 MIN_ENGINE = [1, 21, 0]
 
 # ---------------------------------------------------------------- TNT tanimlari
@@ -138,6 +138,276 @@ TNTS = [
          entip="Covers a 14 block radius with ice. Freezes everyone except the igniter for 30s. Snows for 30s.",
          color=((150, 200, 232), (176, 216, 240), (150, 200, 232)), mat="minecraft:packed_ice",
          effect=dict(kind="freeze", radius=14, freeze_seconds=30)),
+
+    # ============ EASY: patlama / saçma / efekt / hava / zaman ============
+    dict(id="gold_tnt", tr="Altın TNT", en="Gold TNT",
+         trtip="Merkez patlama + etrafa 5 küçük patlama dalgası saçar.",
+         entip="A centre blast plus 5 smaller explosion waves.",
+         color=((222, 178, 40), (240, 200, 60), (200, 158, 30)), mat="minecraft:gold_ingot",
+         effect=dict(kind="explode", power=7)),
+    dict(id="emerald_tnt", tr="Zümrüt TNT", en="Emerald TNT",
+         trtip="Zümrüt, elmas, altın ve lapis yağdırır.",
+         entip="Rains emeralds, diamonds, gold and lapis.",
+         color=((30, 160, 90), (46, 190, 110), (24, 140, 78)), mat="minecraft:emerald",
+         effect=dict(kind="scatter", spread=6.0, power=4, drops=[
+             {"item": "minecraft:emerald", "count": 24, "stack": 2},
+             {"item": "minecraft:gold_ingot", "count": 12, "stack": 2},
+             {"item": "minecraft:lapis_lazuli", "count": 12, "stack": 3},
+             {"item": "minecraft:diamond", "count": 10}])),
+    dict(id="lightning_tnt", tr="Şimşek TNT", en="Lightning TNT",
+         trtip="20 yıldırım fırtınası çağırır.",
+         entip="Summons 20 lightning bolts.",
+         color=((70, 90, 150), (110, 140, 210), (60, 76, 130)), mat="minecraft:lightning_rod",
+         effect=dict(kind="spawn", entity="minecraft:lightning_bolt", count=20, spread=6.0, power=3)),
+    dict(id="nuclear_tnt", tr="Nükleer TNT", en="Nuclear TNT",
+         trtip="Dev patlama + radyasyon (wither) hasarı — öldürebilir!",
+         entip="Huge explosion + radiation (wither) damage - can kill!",
+         color=((60, 180, 60), (90, 220, 70), (44, 140, 44)), mat="minecraft:emerald",
+         effect=dict(kind="status", target="all", radius=20, power=15, particle="minecraft:huge_explosion_emitter",
+                     effects=[{"id": "poison", "seconds": 30, "amp": 3}, {"id": "slowness", "seconds": 30, "amp": 2},
+                              {"id": "weakness", "seconds": 30, "amp": 2}, {"id": "blindness", "seconds": 10, "amp": 0},
+                              {"id": "nausea", "seconds": 15, "amp": 0}, {"id": "wither", "seconds": 10, "amp": 1}])),
+    dict(id="invisible_tnt", tr="Görünmez TNT", en="Invisible TNT",
+         trtip="Taş kılığında — kimse fark etmez!",
+         entip="Disguised as stone - nobody notices!",
+         color=((124, 124, 124), (136, 136, 136), (112, 112, 112)), mat="minecraft:stone",
+         effect=dict(kind="explode", power=4)),
+    dict(id="redstone_tnt", tr="Redstone TNT", en="Redstone TNT",
+         trtip="Çok güçlü patlama; 20 blok yarıçapındaki oyunculara hız ve güç verir.",
+         entip="Very strong blast; gives nearby players speed and strength.",
+         color=((190, 40, 40), (220, 55, 55), (150, 30, 30)), mat="minecraft:redstone_block",
+         effect=dict(kind="status", target="players", radius=20, power=8, particle="minecraft:redstone_ore_dust_particle",
+                     effects=[{"id": "speed", "seconds": 60, "amp": 2}, {"id": "strength", "seconds": 60, "amp": 1}])),
+    dict(id="maden_tnt", tr="Maden TNT", en="Mine TNT",
+         trtip="Patladığında her işlenmiş madenden 10 tane saçar.",
+         entip="Scatters 10 of every processed mineral.",
+         color=((110, 110, 118), (140, 140, 150), (92, 92, 100)), mat="minecraft:iron_ingot",
+         effect=dict(kind="scatter", spread=6.0, power=3, drops=[
+             {"item": m, "count": 10} for m in [
+                 "minecraft:iron_ingot", "minecraft:gold_ingot", "minecraft:diamond", "minecraft:emerald",
+                 "minecraft:copper_ingot", "minecraft:netherite_scrap", "minecraft:lapis_lazuli",
+                 "minecraft:quartz", "minecraft:amethyst_shard", "minecraft:coal", "minecraft:redstone"]])),
+    dict(id="crafting_table_tnt", tr="Çalışma Tezgahı TNT", en="Crafting Table TNT",
+         trtip="Etrafa altın kasklar, netherite kılıçlar, demir baltalar ve bir netherite külçesi saçar.",
+         entip="Scatters golden helmets, netherite swords, iron axes and a netherite ingot.",
+         color=((150, 110, 66), (172, 128, 78), (120, 88, 52)), mat="minecraft:crafting_table",
+         effect=dict(kind="scatter", spread=6.0, power=3, drops=[
+             {"item": "minecraft:golden_helmet", "count": 8}, {"item": "minecraft:netherite_sword", "count": 6},
+             {"item": "minecraft:iron_axe", "count": 8}, {"item": "minecraft:netherite_ingot", "count": 1}])),
+    dict(id="dunya_tnt", tr="Dünya TNT", en="World TNT",
+         trtip="Etrafa bir sürü 'dünya' (ender pearl, toprak, çim, su) saçar.",
+         entip="Scatters a lot of 'world' (ender pearls, dirt, grass, water).",
+         color=((70, 130, 180), (90, 160, 90), (110, 80, 50)), mat="minecraft:grass_block",
+         effect=dict(kind="scatter", spread=6.0, power=2, drops=[
+             {"item": "minecraft:ender_pearl", "count": 30}, {"item": "minecraft:dirt", "count": 20, "stack": 8},
+             {"item": "minecraft:grass_block", "count": 15, "stack": 4}, {"item": "minecraft:water_bucket", "count": 15}])),
+    dict(id="gokkusagi_tnt", tr="Gökkuşağı TNT", en="Rainbow TNT",
+         trtip="Gerçeğinden bile güzel renkli yünler saçar!",
+         entip="Scatters colorful wool - prettier than the real thing!",
+         color=((220, 60, 60), (80, 180, 90), (70, 110, 200)), mat="minecraft:white_wool",
+         effect=dict(kind="scatter", spread=7.0, power=1.5, drops=[
+             {"item": f"minecraft:{c}_wool", "count": 6, "stack": 4} for c in
+             ["red", "orange", "yellow", "lime", "light_blue", "blue", "purple", "pink"]])),
+    dict(id="zumrut_yagmuru_tnt", tr="Zümrüt Yağmuru TNT", en="Emerald Rain TNT",
+         trtip="Patladığında etrafa zümrüt blokları saçar.",
+         entip="Scatters emerald blocks when it explodes.",
+         color=((30, 170, 95), (46, 200, 115), (24, 150, 82)), mat="minecraft:emerald_block",
+         effect=dict(kind="scatter", spread=8.0, drops=[{"item": "minecraft:emerald_block", "count": 40}])),
+    dict(id="iki_yuz_tl_tnt", tr="200 TL TNT", en="200 Lira TNT",
+         trtip="Patladığında etrafa bir sürü kağıt para saçar.",
+         entip="Scatters a lot of paper money when it explodes.",
+         color=((110, 150, 120), (140, 180, 150), (90, 128, 100)), mat="minecraft:paper",
+         effect=dict(kind="scatter", spread=8.0, drops=[{"item": "minecraft:paper", "count": 100, "stack": 4}])),
+    dict(id="kurus_tnt", tr="Kuruş TNT", en="Coin TNT",
+         trtip="Patladığında etrafa bir sürü madeni para saçar.",
+         entip="Scatters a lot of coins when it explodes.",
+         color=((196, 160, 90), (216, 182, 110), (168, 136, 74)), mat="minecraft:gold_nugget",
+         effect=dict(kind="scatter", spread=9.0, drops=[{"item": "minecraft:gold_nugget", "count": 200, "stack": 8}])),
+    dict(id="pasta_tnt", tr="Pasta TNT", en="Cake TNT",
+         trtip="Patladığında etrafa pastalar saçar.",
+         entip="Scatters cakes when it explodes.",
+         color=((240, 220, 200), (248, 230, 214), (200, 160, 120)), mat="minecraft:cake",
+         effect=dict(kind="scatter", spread=7.0, drops=[{"item": "minecraft:cake", "count": 30}])),
+    dict(id="zebra_tnt", tr="Zebra TNT", en="Zebra TNT",
+         trtip="Siyah-beyaz çizgili — kağıt saçar!",
+         entip="Black and white stripes - scatters paper!",
+         color=((240, 240, 240), (30, 30, 30), (240, 240, 240)), mat="minecraft:paper",
+         effect=dict(kind="scatter", spread=7.0, drops=[{"item": "minecraft:paper", "count": 40, "stack": 4}])),
+    dict(id="harf_tnt", tr="Harf TNT", en="Letter TNT",
+         trtip="Etrafa kağıt saçar.",
+         entip="Scatters paper everywhere.",
+         color=((236, 232, 210), (244, 240, 220), (210, 205, 180)), mat="minecraft:paper",
+         effect=dict(kind="scatter", spread=6.0, drops=[{"item": "minecraft:paper", "count": 30, "stack": 4}])),
+    dict(id="zehir_tnt", tr="Zehir TNT", en="Poison TNT",
+         trtip="Yakındaki herkese yavaşlatma ve zehir verir.",
+         entip="Gives slowness and poison to everyone nearby.",
+         color=((90, 160, 40), (110, 190, 50), (70, 128, 32)), mat="minecraft:spider_eye",
+         effect=dict(kind="status", target="all", radius=20, particle="minecraft:mobspell_emitter",
+                     effects=[{"id": "slowness", "seconds": 30, "amp": 2}, {"id": "poison", "seconds": 30, "amp": 1}])),
+    dict(id="zeynep_komut_tnt", tr="Zeynep Komut TNT", en="Zeynep Command TNT",
+         trtip="Yakındaki oyunculara tüm güçlü efektleri ve 10 Nether Yıldızı verir.",
+         entip="Gives nearby players every strong effect and 10 Nether Stars.",
+         color=((44, 62, 158), (80, 100, 200), (36, 50, 130)), mat="minecraft:nether_star",
+         effect=dict(kind="status", target="players", radius=50, give={"item": "minecraft:nether_star", "count": 10},
+                     particle="minecraft:totem_particle",
+                     effects=[{"id": "speed", "seconds": 300, "amp": 4}, {"id": "strength", "seconds": 300, "amp": 4},
+                              {"id": "regeneration", "seconds": 300, "amp": 4}, {"id": "resistance", "seconds": 300, "amp": 4},
+                              {"id": "saturation", "seconds": 300, "amp": 4}, {"id": "night_vision", "seconds": 300, "amp": 0},
+                              {"id": "fire_resistance", "seconds": 300, "amp": 0}])),
+    dict(id="pirt_tnt", tr="Pırt TNT", en="Fart TNT",
+         trtip="Etrafa pırt kokusu (yeşil bulut) saçar — ufak bulantı verir.",
+         entip="Spreads a fart cloud (green) - mild nausea.",
+         color=((150, 170, 60), (176, 196, 76), (124, 140, 48)), mat="minecraft:brown_mushroom",
+         effect=dict(kind="status", target="players", radius=10, power=0.5, particle="minecraft:mobspell_emitter",
+                     effects=[{"id": "nausea", "seconds": 10, "amp": 0}])),
+    dict(id="cleanse_tnt", tr="Temizleyici TNT", en="Cleanse TNT",
+         trtip="Tüm efektleri ve boyut değişikliklerini temizler.",
+         entip="Clears all effects and size changes.",
+         color=((236, 244, 250), (248, 252, 255), (210, 224, 236)), mat="minecraft:milk_bucket",
+         effect=dict(kind="status", target="all", radius=20, clear=True, particle="minecraft:snowflake_particle", effects=[])),
+    dict(id="yagmur_tnt", tr="Yağmur TNT", en="Rain TNT",
+         trtip="Yağmur başlatır.",
+         entip="Starts rain.",
+         color=((90, 120, 150), (120, 150, 180), (74, 100, 128)), mat="minecraft:water_bucket",
+         effect=dict(kind="weather", weather="Rain")),
+    dict(id="simsek_yagmur_tnt", tr="Şimşek Yağmuru TNT", en="Thunderstorm TNT",
+         trtip="Fırtına başlatır ve 30 yıldırım yağdırır!",
+         entip="Starts a storm and rains 30 lightning bolts!",
+         color=((60, 66, 90), (88, 96, 128), (48, 54, 74)), mat="minecraft:lightning_rod",
+         effect=dict(kind="spawn", entity="minecraft:lightning_bolt", count=30, spread=10.0,
+                     weather="Thunder", weatherTicks=24000)),
+    dict(id="z_gunes_tnt", tr="Güneş TNT", en="Sun TNT",
+         trtip="Geceyse ayı güneşe dönüştürür — gündüz olur.",
+         entip="Turns the moon into the sun - day breaks.",
+         color=((250, 220, 100), (255, 236, 140), (230, 190, 70)), mat="minecraft:glowstone",
+         effect=dict(kind="time", time=6000)),
+    dict(id="virus_tnt", tr="Virüs TNT", en="Virus TNT",
+         trtip="Bir sürü virüs saçar... ama hepsi yok olur. Aslında hiçbir şey olmaz.",
+         entip="Spreads a lot of viruses... but they all vanish. Nothing really happens.",
+         color=((120, 200, 120), (150, 220, 150), (100, 170, 100)), mat="minecraft:slime_ball",
+         effect=dict(kind="status", target="all", radius=1, effects=[], particle="minecraft:mobspell_emitter")),
+
+    # ============ MEDIUM: blok yıkım / koyma / dönüştürme / özel ============
+    dict(id="bedrock_tnt", tr="Kaya Katmanı TNT", en="Bedrock TNT",
+         trtip="25 blok yarıçapında HER ŞEYİ yok eder - bedrock dahil!",
+         entip="Destroys EVERYTHING in a 25 block radius - even bedrock!",
+         color=((60, 60, 66), (78, 78, 84), (48, 48, 54)), mat="minecraft:bedrock",
+         effect=dict(kind="break", radius=25, perTick=1000, power=4)),
+    dict(id="cam_tnt", tr="Cam TNT", en="Glass TNT",
+         trtip="Patlayınca 30 blok yarıçapındaki tüm cam bloklarını kırar!",
+         entip="Breaks all glass within 30 blocks!",
+         color=((190, 220, 230), (210, 236, 244), (170, 200, 212)), mat="minecraft:glass",
+         effect=dict(kind="break", radius=30, filter="glass", perTick=400, power=2)),
+    dict(id="kiyamet_tnt", tr="Kıyamet TNT", en="Doomsday TNT",
+         trtip="Her şeyi yok eder ve tüm oyuncuları öldürür — sen de öldün.",
+         entip="Destroys everything and kills all players - you died too.",
+         color=((40, 20, 20), (90, 30, 30), (24, 12, 12)), mat="minecraft:wither_skeleton_skull",
+         effect=dict(kind="break", radius=35, killPlayers=True, skipBedrock=True, perTick=2000, power=15)),
+    dict(id="freeze_tnt", tr="Dondurucu TNT", en="Freeze TNT",
+         trtip="9 blok yarıçapını buzla kaplar.",
+         entip="Covers a 9 block radius with ice.",
+         color=((150, 210, 240), (176, 224, 248), (150, 200, 232)), mat="minecraft:ice",
+         effect=dict(kind="place", block="minecraft:packed_ice", radius=9, onlyAir=False,
+                     particle="minecraft:snowflake_particle")),
+    dict(id="water_tnt", tr="Su TNT", en="Water TNT",
+         trtip="Ateşleri söndürür ve geçici su birikintileri bırakır (10 sn).",
+         entip="Puts out fires and leaves temporary water (10s).",
+         color=((50, 110, 200), (70, 140, 230), (40, 90, 170)), mat="minecraft:water_bucket",
+         effect=dict(kind="place", block="minecraft:water", radius=10, onlyAir=True, tempSeconds=10,
+                     particle="minecraft:water_splash_particle_manual")),
+    dict(id="olumcul_su_tnt", tr="Ölümcül Su TNT", en="Deadly Water TNT",
+         trtip="15 blok yarıçapını suyla doldurur (30 sn sonra kurur).",
+         entip="Fills a 15 block radius with water (dries after 30s).",
+         color=((30, 70, 150), (44, 92, 180), (24, 56, 120)), mat="minecraft:water_bucket",
+         effect=dict(kind="place", block="minecraft:water", radius=15, onlyAir=True, tempSeconds=30, perTick=700)),
+    dict(id="mob_freeze_tnt", tr="Mob Dondurucu TNT", en="Mob Freeze TNT",
+         trtip="30 blok yarıçapını geçici buza çevirir.",
+         entip="Turns a 30 block radius into temporary ice.",
+         color=((160, 210, 235), (186, 226, 246), (150, 200, 232)), mat="minecraft:blue_ice",
+         effect=dict(kind="place", block="minecraft:ice", radius=14, onlyAir=False, tempSeconds=30, perTick=700)),
+    dict(id="nether_tnt", tr="Nether TNT", en="Nether TNT",
+         trtip="Patlayınca büyük netherrack adası yaratır!",
+         entip="Creates a big netherrack island!",
+         color=((110, 30, 30), (140, 44, 44), (86, 22, 22)), mat="minecraft:netherrack",
+         effect=dict(kind="place", block="minecraft:netherrack", radius=12, onlyAir=False, perTick=700,
+                     particle="minecraft:basic_flame_particle")),
+    dict(id="end_tnt", tr="End TNT", en="End TNT",
+         trtip="Patlayınca end stone adası yaratır!",
+         entip="Creates an end stone island!",
+         color=((220, 224, 170), (236, 240, 190), (200, 204, 150)), mat="minecraft:end_stone",
+         effect=dict(kind="place", block="minecraft:end_stone", radius=10, onlyAir=False, perTick=700,
+                     particle="minecraft:endrod")),
+    dict(id="rainbow_tnt", tr="Gökkuşağı Yün TNT", en="Rainbow Wool TNT",
+         trtip="Blokları renkli yüne dönüştürür (30 blok yarıçap).",
+         entip="Turns blocks into colored wool (30 block radius).",
+         color=((220, 60, 60), (90, 190, 90), (70, 110, 210)), mat="minecraft:white_wool",
+         effect=dict(kind="transform", radius=20, perTick=1000, palette=[
+             f"minecraft:{c}_wool" for c in ["red", "orange", "yellow", "lime", "green", "cyan",
+             "light_blue", "blue", "purple", "magenta", "pink", "white"]])),
+    dict(id="makarna_tnt", tr="Makarna TNT", en="Pasta TNT",
+         trtip="Blokları yiyecek görünümlü bloklara dönüştürür - afiyet olsun!",
+         entip="Turns blocks into food-looking blocks - enjoy!",
+         color=((230, 200, 120), (244, 216, 140), (200, 170, 96)), mat="minecraft:wheat",
+         effect=dict(kind="transform", radius=14, perTick=1000, palette=[
+             "minecraft:cake", "minecraft:melon_block", "minecraft:pumpkin", "minecraft:hay_block",
+             "minecraft:brown_mushroom_block", "minecraft:honey_block"])),
+    dict(id="seker_tnt", tr="Şeker TNT", en="Candy TNT",
+         trtip="Çikolata ve şeker dünyası yaratır + hız ve zıplama! (İnerken dikkat.)",
+         entip="Creates a candy world + speed and jump boost! (Mind the landing.)",
+         color=((236, 120, 180), (248, 150, 200), (210, 96, 156)), mat="minecraft:sugar",
+         effect=dict(kind="transform", radius=14, perTick=1000, palette=[
+             f"minecraft:{c}_glazed_terracotta" for c in ["pink", "magenta", "purple", "lime", "yellow", "light_blue"]])),
+    dict(id="gulen_yuz_tnt", tr="Gülen Yüz TNT", en="Smiley TNT",
+         trtip="Çıngırak sesiyle dünyayı sarıya boyar! 12 blok yarıçap.",
+         entip="Paints the world yellow with a giggle! 12 block radius.",
+         color=((248, 220, 60), (255, 232, 90), (228, 196, 40)), mat="minecraft:yellow_dye",
+         effect=dict(kind="transform", radius=12, perTick=800, palette=[
+             "minecraft:yellow_wool", "minecraft:yellow_concrete", "minecraft:yellow_terracotta", "minecraft:gold_block"])),
+    dict(id="karisik_kurusuk_tnt", tr="Karışık Kuruşuk TNT", en="Crumpled TNT",
+         trtip="Dünyayı ezik büzük yapar — siyah/kahverengi/gri beton.",
+         entip="Crumples the world - black/brown/gray concrete.",
+         color=((70, 60, 56), (96, 82, 74), (54, 46, 42)), mat="minecraft:gravel",
+         effect=dict(kind="transform", radius=18, perTick=600, palette=[
+             "minecraft:black_concrete", "minecraft:brown_concrete", "minecraft:gray_concrete"])),
+    dict(id="elmas_diyari_tnt", tr="Elmas Diyarı TNT", en="Diamond Land TNT",
+         trtip="30 blok yarıçapındaki dünyayı elmas blokuna çevirir.",
+         entip="Turns a 30 block radius into diamond blocks.",
+         color=((100, 220, 220), (130, 236, 236), (80, 190, 190)), mat="minecraft:diamond_block",
+         effect=dict(kind="transform", radius=18, perTick=800, palette=["minecraft:diamond_block"])),
+    dict(id="magnet_tnt", tr="Mıknatıs TNT", en="Magnet TNT",
+         trtip="3 saniye boyunca yakındaki her şeyi çeker, sonra BOOM!",
+         entip="Pulls everything nearby for 3 seconds, then BOOM!",
+         color=((180, 60, 60), (70, 70, 78), (150, 44, 44)), mat="minecraft:iron_ingot",
+         effect=dict(kind="magnet", radius=15, pullTicks=12, power=5)),
+    dict(id="swap_tnt", tr="Takas TNT", en="Swap TNT",
+         trtip="Yakındaki tüm canlıların konumlarını rastgele karıştırır!",
+         entip="Randomly swaps the positions of all nearby creatures!",
+         color=((150, 90, 200), (176, 116, 220), (124, 72, 168)), mat="minecraft:ender_pearl",
+         effect=dict(kind="swap", radius=15)),
+    dict(id="gunes_tnt", tr="Güneş Kristal TNT", en="Sun Crystal TNT",
+         trtip="15 End kristali yaratır.",
+         entip="Spawns 15 End crystals.",
+         color=((250, 210, 90), (255, 226, 120), (230, 186, 66)), mat="minecraft:end_crystal",
+         effect=dict(kind="spawn", entity="minecraft:ender_crystal", count=15, spread=8.0)),
+    dict(id="uyku_tnt", tr="Uyku TNT", en="Sleep TNT",
+         trtip="Patlatan dışındaki herkesi 30 sn 'uyutur': yavaşlama, körlük, bulantı, güçsüzlük.",
+         entip="Puts everyone but the igniter to 'sleep' for 30s.",
+         color=((150, 120, 200), (176, 148, 220), (124, 96, 168)), mat="minecraft:pink_wool",
+         effect=dict(kind="status", target="all", radius=20, exceptIgniter=True, power=0.5,
+                     particle="minecraft:mobspell_emitter",
+                     effects=[{"id": "slowness", "seconds": 30, "amp": 4}, {"id": "blindness", "seconds": 30, "amp": 0},
+                              {"id": "nausea", "seconds": 30, "amp": 0}, {"id": "mining_fatigue", "seconds": 30, "amp": 4},
+                              {"id": "weakness", "seconds": 30, "amp": 4}])),
+    dict(id="gizli_tnt", tr="Gizli TNT", en="Hidden TNT",
+         trtip="Cam kılığında — 25 blok yarıçapındaki tüm canlıları anında öldürür!",
+         entip="Disguised as glass - instantly kills every creature within 25 blocks!",
+         color=((190, 220, 230), (210, 236, 244), (170, 200, 212)), mat="minecraft:glass",
+         effect=dict(kind="instakill", radius=25)),
+    dict(id="magara_tnt", tr="Mağara TNT", en="Cave TNT",
+         trtip="Yer altında mağara oyar ve korkunç yaratıklar doğurur!",
+         entip="Carves a cave underground and spawns scary creatures!",
+         color=((70, 66, 60), (92, 86, 78), (54, 50, 46)), mat="minecraft:stone",
+         effect=dict(kind="spawn", entity="minecraft:zombie", count=15, spread=8.0, yoff=-2, power=4)),
 ]
 
 FUSE_TICKS = 80  # Java tarafinda setFuse(80)
@@ -353,9 +623,12 @@ def build():
             "minecraft:block": {
                 # menu_category'de "group" verilmiyor: gecerliligi dogrulanmamis
                 # bir grup adi blogun yaratici menude hic gorunmemesine yol acar.
+                # Tum TNT'ler yaratici envanterde tek "Super TNT" grubunda
+                # toplanir. Craftopia (1.20.20) ile ayni yontem — dogrulandi.
                 "description": {"identifier": f"stnt:{t['id']}",
                                 "is_experimental": False,
-                                "menu_category": {"category": "construction"}},
+                                "menu_category": {"category": "construction",
+                                                  "group": "itemGroup.name.super_tnt"}},
                 "components": {
                     "minecraft:material_instances": {
                         "up": {"texture": f"stnt_{t['id']}_top", "render_method": "opaque"},
@@ -447,8 +720,10 @@ def build():
         os.makedirs(os.path.join(pack, "texts"), exist_ok=True)
         w(os.path.join(pack, "texts/languages.json"), ["en_US", "tr_TR"])
         for lang, nk, tk in (("en_US", "en", "entip"), ("tr_TR", "tr", "trtip")):
+            grp = "§cSuper TNT" if lang == "tr_TR" else "§cSuper TNT"
             lines = [f"pack.name=Super TNT Mod",
-                     f"pack.description=Super TNT Mod"]
+                     f"pack.description=Super TNT Mod",
+                     f"itemGroup.name.super_tnt={grp}"]
             for t in TNTS:
                 lines.append(f"tile.stnt:{t['id']}.name={t[nk]}")
                 lines.append(f"stnt.tip.{t['id']}={t[tk]}")
@@ -840,6 +1115,200 @@ function detonate(dim, c, short, igniterId) {
           if (dx > r) system.clearRun(job);
         }, 1);
         spray(dim, c, "minecraft:snowflake_particle", 60, 5);
+        break;
+      }
+
+      // ---- coklu item sacma (emerald, maden, gokkusagi, dunya, ...)
+      case "scatter": {
+        for (const d of s.drops) {
+          for (let i = 0; i < d.count; i++) {
+            const p = { x: c.x + rnd(s.spread), y: c.y + 1 + Math.random() * 2, z: c.z + rnd(s.spread) };
+            try { dim.spawnItem(new ItemStack(d.item, d.stack || 1), p); } catch (e) {}
+          }
+        }
+        if (s.power) { try { dim.createExplosion(c, s.power, { breaksBlocks: false, causesFire: false }); } catch (e) {} }
+        spray(dim, c, "minecraft:crop_growth_emitter", 40, 4);
+        break;
+      }
+
+      // ---- durum efekti (zehir, nuclear, buff, cleanse, uyku, ...)
+      case "status": {
+        const targets = s.target === "all"
+          ? dim.getEntities({ location: c, maxDistance: s.radius })
+          : dim.getPlayers({ location: c, maxDistance: s.radius });
+        for (const e of targets) {
+          try {
+            if (s.exceptIgniter && igniterId && e.id === igniterId) continue;
+            if (s.clear) { for (const ef of e.getEffects()) { try { e.removeEffect(ef.typeId); } catch (x) {} } }
+            for (const ef of (s.effects || [])) {
+              e.addEffect(ef.id, ef.seconds * 20, { amplifier: ef.amp || 0, showParticles: true });
+            }
+          } catch (err) {}
+        }
+        if (s.give) {
+          for (const p of dim.getPlayers({ location: c, maxDistance: s.radius })) {
+            try { p.runCommand(`give @s ${s.give.item} ${s.give.count}`); } catch (e) {}
+          }
+        }
+        if (s.power) { try { dim.createExplosion(c, s.power, { breaksBlocks: false, causesFire: false }); } catch (e) {} }
+        spray(dim, c, s.particle || "minecraft:heart_particle", 40, 4);
+        break;
+      }
+
+      // ---- aninda oldur, patlatan haric (gizli)
+      case "instakill": {
+        for (const e of dim.getEntities({ location: c, maxDistance: s.radius })) {
+          try {
+            if (e.typeId === "minecraft:player" && igniterId && e.id === igniterId) continue;
+            e.applyDamage(1000);
+          } catch (err) {}
+        }
+        spray(dim, c, "minecraft:soul_particle", 60, 5);
+        break;
+      }
+
+      // ---- entity spawn (yildirim, kristal)
+      case "spawn": {
+        for (let i = 0; i < s.count; i++) {
+          const p = { x: c.x + rnd(s.spread || 6), y: c.y + (s.yoff || 0), z: c.z + rnd(s.spread || 6) };
+          try { dim.spawnEntity(s.entity, p); } catch (e) {}
+        }
+        if (s.weather) { try { dim.setWeather(s.weather, s.weatherTicks || 12000); } catch (e) {} }
+        if (s.power) { try { dim.createExplosion(c, s.power, { breaksBlocks: false, causesFire: false }); } catch (e) {} }
+        break;
+      }
+
+      // ---- blok yikim, dilim dilim (bedrock, cam, kup, kiyamet)
+      case "break": {
+        const r = s.radius, per = s.perTick || 800;
+        const cx = Math.floor(c.x), cy = Math.floor(c.y), cz = Math.floor(c.z);
+        if (s.killPlayers) { for (const p of dim.getPlayers()) { try { p.applyDamage(1000); } catch (e) {} } }
+        let bx = -r;
+        const job = system.runInterval(() => {
+          let d = 0;
+          while (bx <= r && d < per) {
+            for (let by = -r; by <= r; by++) for (let bz = -r; bz <= r; bz++) {
+              if (bx * bx + by * by + bz * bz > r * r) continue;
+              try {
+                const b = dim.getBlock({ x: cx + bx, y: cy + by, z: cz + bz }); if (!b) continue;
+                const t = b.typeId;
+                if (t === "minecraft:air") continue;
+                if (s.skipBedrock && t === "minecraft:bedrock") continue;
+                if (s.filter === "glass" && !t.includes("glass")) continue;
+                b.setType("minecraft:air"); d++;
+              } catch (e) {}
+            }
+            bx++;
+          }
+          if (bx > r) {
+            system.clearRun(job);
+            if (s.power) { try { dim.createExplosion(c, s.power, { breaksBlocks: true, causesFire: false }); } catch (e) {} }
+          }
+        }, 1);
+        break;
+      }
+
+      // ---- alan doldur, dilim dilim (buz, su, mob_freeze, lego, ...)
+      case "place": {
+        const r = s.radius, per = s.perTick || 700;
+        const cx = Math.floor(c.x), cy = Math.floor(c.y), cz = Math.floor(c.z);
+        let px = -r;
+        const job = system.runInterval(() => {
+          let d = 0;
+          while (px <= r && d < per) {
+            for (let py = -r; py <= r; py++) for (let pz = -r; pz <= r; pz++) {
+              if (px * px + py * py + pz * pz > r * r) continue;
+              try {
+                const b = dim.getBlock({ x: cx + px, y: cy + py, z: cz + pz }); if (!b) continue;
+                const t = b.typeId;
+                if (s.onlyAir && t !== "minecraft:air") continue;
+                if (!s.onlyAir && t === "minecraft:air") continue;
+                if (t === "minecraft:bedrock") continue;
+                b.setType(s.block); d++;
+              } catch (e) {}
+            }
+            px++;
+          }
+          if (px > r) system.clearRun(job);
+        }, 1);
+        if (s.tempSeconds) {
+          system.runTimeout(() => {
+            let ux = -r;
+            const ujob = system.runInterval(() => {
+              let d = 0;
+              while (ux <= r && d < per) {
+                for (let uy = -r; uy <= r; uy++) for (let uz = -r; uz <= r; uz++) {
+                  if (ux * ux + uy * uy + uz * uz > r * r) continue;
+                  try {
+                    const b = dim.getBlock({ x: cx + ux, y: cy + uy, z: cz + uz });
+                    if (b && b.typeId === s.block) { b.setType("minecraft:air"); d++; }
+                  } catch (e) {}
+                }
+                ux++;
+              }
+              if (ux > r) system.clearRun(ujob);
+            }, 1);
+          }, s.tempSeconds * 20);
+        }
+        spray(dim, c, s.particle || "minecraft:crop_growth_emitter", 40, 4);
+        break;
+      }
+
+      // ---- blok donusturme, konum-tabanli palet (rainbow, makarna, seker, ...)
+      case "transform": {
+        const r = s.radius, per = s.perTick || 900, pal = s.palette;
+        const cx = Math.floor(c.x), cy = Math.floor(c.y), cz = Math.floor(c.z);
+        let tx = -r;
+        const job = system.runInterval(() => {
+          let d = 0;
+          while (tx <= r && d < per) {
+            for (let ty = -r; ty <= r; ty++) for (let tz = -r; tz <= r; tz++) {
+              if (tx * tx + ty * ty + tz * tz > r * r) continue;
+              try {
+                const b = dim.getBlock({ x: cx + tx, y: cy + ty, z: cz + tz }); if (!b) continue;
+                const t = b.typeId;
+                if (t === "minecraft:air" || t === "minecraft:bedrock") continue;
+                b.setType(pal[Math.abs(tx * 7 + ty * 13 + tz * 17) % pal.length]); d++;
+              } catch (e) {}
+            }
+            tx++;
+          }
+          if (tx > r) system.clearRun(job);
+        }, 1);
+        spray(dim, c, "minecraft:crop_growth_emitter", 40, 4);
+        break;
+      }
+
+      // ---- yakindaki her seyi merkeze cek, sonra patlat (magnet)
+      case "magnet": {
+        let pulls = 0;
+        const pj = system.runInterval(() => {
+          for (const e of dim.getEntities({ location: c, maxDistance: s.radius })) {
+            try {
+              const l = e.location;
+              const dx = c.x - l.x, dy = c.y - l.y, dz = c.z - l.z;
+              const len = Math.hypot(dx, dy, dz) || 1;
+              e.applyKnockback({ x: dx / len * 0.6, z: dz / len * 0.6 }, 0.5);
+            } catch (err) {}
+          }
+          if (++pulls >= (s.pullTicks || 60)) {
+            system.clearRun(pj);
+            try { dim.createExplosion(c, s.power || 5, { breaksBlocks: true, causesFire: false }); } catch (e) {}
+          }
+        }, 5);
+        break;
+      }
+
+      // ---- yakindaki canlilarin konumlarini karistir (swap)
+      case "swap": {
+        const ents = [...dim.getEntities({ location: c, maxDistance: s.radius })];
+        const locs = ents.map(e => { try { return e.location; } catch (x) { return null; } });
+        for (let i = locs.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          const t = locs[i]; locs[i] = locs[j]; locs[j] = t;
+        }
+        ents.forEach((e, i) => { try { if (locs[i]) e.teleport(locs[i]); } catch (err) {} });
+        spray(dim, c, "minecraft:portal_particle", 50, 5);
         break;
       }
     }
