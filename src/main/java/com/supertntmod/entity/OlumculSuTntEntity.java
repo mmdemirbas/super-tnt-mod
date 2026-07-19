@@ -121,6 +121,11 @@ public class OlumculSuTntEntity extends TntEntity {
         if (cX != Integer.MIN_VALUE) {
             center = new BlockPos(cX, reader.getInt("centerY", 0), reader.getInt("centerZ", 0));
         }
+        // Kayittan 'processing' geldi ama merkez gelmediyse devam etmek
+        // NPE olurdu; guvenli tarafta islemi iptal et.
+        if (center == null) {
+            processing = false;   // center yok
+        }
     }
 
     @Override

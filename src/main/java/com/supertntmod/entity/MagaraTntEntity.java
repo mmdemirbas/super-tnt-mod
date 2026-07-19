@@ -163,6 +163,11 @@ public class MagaraTntEntity extends TntEntity {
         }
         cavePhase = reader.getInt("cavePhase", 0);
         blockIdx = reader.getInt("blockIdx", 0);
+        // Kayittan 'processing' geldi ama merkez gelmediyse devam etmek
+        // NPE olurdu; guvenli tarafta islemi iptal et.
+        if (center == null) {
+            processing = false;   // center yok
+        }
     }
 
     @Override

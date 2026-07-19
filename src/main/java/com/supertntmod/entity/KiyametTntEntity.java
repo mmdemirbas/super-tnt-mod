@@ -122,6 +122,11 @@ public class KiyametTntEntity extends TntEntity {
             center = new BlockPos(centerX, reader.getInt("centerY", 0), reader.getInt("centerZ", 0));
         }
         idx = reader.getInt("idx", 0);
+        // Kayittan 'processing' geldi ama merkez gelmediyse devam etmek
+        // NPE olurdu; guvenli tarafta islemi iptal et.
+        if (center == null) {
+            processing = false;   // center yok
+        }
     }
 
     @Override

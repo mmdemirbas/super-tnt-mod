@@ -69,6 +69,11 @@ public class CommandTntEntity extends TntEntity {
             int cz = reader.getInt("centerZ", 0);
             center = new BlockPos(cx, cy, cz);
         }
+        // Kayittan 'processing' geldi ama merkez gelmediyse devam etmek
+        // NPE olurdu; guvenli tarafta islemi iptal et.
+        if (center == null) {
+            processing = false;   // center yok
+        }
     }
 
     @Override
