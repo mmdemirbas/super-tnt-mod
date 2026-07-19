@@ -74,8 +74,7 @@ public class WaterTntEntity extends TntEntity {
                         world.getBlockState(pos.down()).isSolidBlock(world, pos.down()) &&
                         world.random.nextFloat() < 0.3f) {
                         world.setBlockState(pos, Blocks.WATER.getDefaultState());
-                        pendingRemovals.add(new PendingWaterRemoval(
-                                serverWorld, pos.toImmutable(), WATER_LIFETIME));
+                        scheduleRemoval(serverWorld, pos.toImmutable(), WATER_LIFETIME, Blocks.WATER);
                     }
                 }
             }
@@ -131,7 +130,8 @@ public class WaterTntEntity extends TntEntity {
      * tek seferde ~14.000 kayıt eklediği için bu 8,5 milyon kayıt
      * tahsisi anlamına geliyordu.
      */
-    private record PendingWaterRemoval(ServerWorld world, BlockPos pos, long expiryTick) {}
+    private record PendingWaterRemoval(ServerWorld world, BlockPos pos, long expiryTick,
+                                       net.minecraft.block.Block expected) {}
 
     private static long tickCounter = 0L;
 
@@ -147,8 +147,17 @@ public class WaterTntEntity extends TntEntity {
      * yerine buradaki tick/kapanış kablolamasını paylaşır.
      */
     public static void scheduleRemoval(ServerWorld world, BlockPos pos, int lifetimeTicks) {
+        scheduleRemoval(world, pos, lifetimeTicks, Blocks.WATER);
+    }
+
+    /**
+     * Genel hali: gecici olarak yerlestirilen HERHANGI bir blogu kaydeder.
+     * Mob Dondurucu TNT buz icin kullanir — kalici buz birakiyordu.
+     */
+    public static void scheduleRemoval(ServerWorld world, BlockPos pos, int lifetimeTicks,
+                                       net.minecraft.block.Block expected) {
         pendingRemovals.add(new PendingWaterRemoval(
-                world, pos.toImmutable(), tickCounter + lifetimeTicks));
+                world, pos.toImmutable(), tickCounter + lifetimeTicks, expected));
     }
 
     /**
@@ -159,7 +168,7 @@ public class WaterTntEntity extends TntEntity {
     public static void clearAll() {
         for (PendingWaterRemoval r : pendingRemovals) {
             try {
-                if (r.world().getBlockState(r.pos()).isOf(Blocks.WATER)) {
+                if (r.world().getBlockState(r.pos()).isOf(r.expected())) {
                     r.world().setBlockState(r.pos(), Blocks.AIR.getDefaultState());
                 }
             } catch (RuntimeException ignored) {
@@ -193,7 +202,7 @@ public class WaterTntEntity extends TntEntity {
 
         for (PendingWaterRemoval r : expired) {
             // Sadece hâlâ su olanları temizle (oyuncu üzerine başka blok koymuş olabilir).
-            if (r.world().getBlockState(r.pos()).isOf(Blocks.WATER)) {
+            if (r.world().getBlockState(r.pos()).isOf(r.expected())) {
                 r.world().setBlockState(r.pos(), Blocks.AIR.getDefaultState());
             }
         }

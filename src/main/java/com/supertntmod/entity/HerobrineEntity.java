@@ -27,7 +27,11 @@ public class HerobrineEntity extends HostileEntity {
         goalSelector.add(7, new LookAroundGoal(this));
         // Tüm canlıları hedef alır — koyduğu oyuncuyu da ayırt etmez
         targetSelector.add(1, new RevengeGoal(this));
-        targetSelector.add(2, new ActiveTargetGoal<>(this, LivingEntity.class, true));
+        // Sadece oyuncuyu avlar. LivingEntity.class ile evcil hayvanlari,
+        // koyluleri ve ciftlik hayvanlarini da kesiyordu — cocugun kurdugu
+        // her sey yok oluyordu.
+        targetSelector.add(2, new ActiveTargetGoal<>(
+                this, net.minecraft.entity.player.PlayerEntity.class, true));
     }
 
     public static DefaultAttributeContainer.Builder createAttributes() {

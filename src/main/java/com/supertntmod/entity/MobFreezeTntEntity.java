@@ -75,6 +75,12 @@ public class MobFreezeTntEntity extends TntEntity {
                                 BlockPos icePos = mobPos.add(dx, dy, dz);
                                 if (world.getBlockState(icePos).isOf(Blocks.AIR)) {
                                     world.setBlockState(icePos, Blocks.ICE.getDefaultState());
+                                    // Buz kalici birakiliyordu; donma suresi bitince
+                                    // araziyi buz bloklariyla dolu birakiyordu.
+                                    if (world instanceof net.minecraft.server.world.ServerWorld sw) {
+                                        WaterTntEntity.scheduleRemoval(sw, icePos,
+                                                FREEZE_DURATION, Blocks.ICE);
+                                    }
                                 }
                             }
                         }

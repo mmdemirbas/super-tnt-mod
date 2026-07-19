@@ -68,9 +68,16 @@ public class TntFrisbeeEntity extends ThrownEntity {
             }
         }
 
-        // Patlama efekti (bloklara ekstra zarar vermez)
-        world.createExplosion(this.getOwner(), hitPos.getX() + 0.5, hitPos.getY(),
+        // Patlama efekti (bloklara ekstra zarar vermez).
+        // Sahibi gecici olarak dokunulmaz yapilir: sinif javadoc'u "sahibine
+        // zarar vermez" diyor ama createExplosion kaynagi muaf tutmuyordu,
+        // frisbee'yi atan oyuncu kendi patlamasindan hasar aliyordu.
+        net.minecraft.entity.Entity thrower = this.getOwner();
+        boolean wasInvulnerable = thrower != null && thrower.isInvulnerable();
+        if (thrower != null) thrower.setInvulnerable(true);
+        world.createExplosion(thrower, hitPos.getX() + 0.5, hitPos.getY(),
                 hitPos.getZ() + 0.5, 2.0f, false, World.ExplosionSourceType.NONE);
+        if (thrower != null) thrower.setInvulnerable(wasInvulnerable);
 
         world.playSound(null, hitPos.getX(), hitPos.getY(), hitPos.getZ(),
                 SoundEvents.ENTITY_GENERIC_EXPLODE.value(), SoundCategory.BLOCKS, 1.0f, 1.0f);
