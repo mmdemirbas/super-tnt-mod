@@ -65,7 +65,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 10, 0]
+VERSION = [1, 11, 0]
 MIN_ENGINE = [1, 21, 0]
 
 # ---------------------------------------------------------------- TNT tanimlari
@@ -535,6 +535,26 @@ ITEMS = [
     dict(id="hiz_esyasi", tr="Hız Eşyası", en="Speed Item", kind="food",
          trtip="Kullan ve 60 sn süper hız kazan!", entip="Use for 60s of super speed!",
          color=(90, 200, 230), action=dict(type="eat", effect="speed", seconds=60, amp=3)),
+    dict(id="delici", tr="Delici Aleti", en="Driller", kind="raycast",
+         trtip="TROL: sağ tıkla — önündeki her şeyi deler! Eşya düşmez.",
+         entip="TROLL: right-click - drills everything ahead! No drops.",
+         color=(120, 120, 128), action=dict(type="tunnel", length=12, size=1)),
+    dict(id="lava_crystal", tr="Lav Kristali", en="Lava Crystal", kind="passive",
+         trtip="Elde tutarken ateş ve lav sana zarar vermez.",
+         entip="While held, fire and lava can't hurt you.",
+         color=(220, 90, 30), action=dict(type="held_fireproof")),
+    dict(id="blood_sword", tr="Kanlı Kılıç", en="Blood Sword", kind="weapon",
+         trtip="Vurduğun canlıdan kırmızı damlalar sıçrar!",
+         entip="Hit creatures to spray red droplets!",
+         color=(160, 20, 20), damage=8, action=dict(type="bleed")),
+    dict(id="heart_axe", tr="Kalp Baltası", en="Heart Axe", kind="weapon",
+         trtip="Tek vuruşta mob öldürür; oyunculara ağır hasar!",
+         entip="One-shots mobs; heavy damage to players!",
+         color=(200, 40, 90), damage=20, action=dict(type="heavy")),
+    dict(id="rainbow_boots", tr="Gökkuşağı Botları", en="Rainbow Boots", kind="boots",
+         trtip="Giy — adım attığın yerde renkli yün çıkar! Boşluğa düşmezsin.",
+         entip="Wear them - colored wool appears where you step!",
+         color=(200, 60, 160), action=dict(type="worn_wool")),
 ]
 
 
@@ -841,6 +861,13 @@ def build():
             icomps["minecraft:food"] = {"nutrition": 4, "can_always_eat": True}
             icomps["minecraft:use_animation"] = "eat"
             icomps["minecraft:use_modifiers"] = {"use_duration": 1.4, "movement_modifier": 0.35}
+        elif it['kind'] == "weapon":
+            icomps["minecraft:damage"] = it.get('damage', 6)
+            icomps["minecraft:durability"] = {"max_durability": 800}
+            icomps["minecraft:hand_equipped"] = True
+        elif it['kind'] == "boots":
+            icomps["minecraft:wearable"] = {"slot": "slot.armor.feet", "protection": 2}
+            icomps["minecraft:durability"] = {"max_durability": 400}
         w(os.path.join(BP, f"items/{it['id']}.json"), {
             "format_version": "1.20.20",
             "minecraft:item": {
@@ -1086,9 +1113,69 @@ function itemAction(player, a) {
         spray(dim, player.location, "minecraft:mobspell_emitter", 30, 3);
         break;
       }
+      case "tunnel": {
+        const v = player.getViewDirection(), s = player.getHeadLocation();
+        for (let i = 1; i <= a.length; i++) {
+          for (let dx = -a.size; dx <= a.size; dx++) for (let dy = -a.size; dy <= a.size; dy++) {
+            const p = { x: Math.floor(s.x + v.x * i + dx), y: Math.floor(s.y + v.y * i + dy), z: Math.floor(s.z + v.z * i) };
+            try {
+              const b = dim.getBlock(p);
+              if (b && b.typeId !== "minecraft:air" && b.typeId !== "minecraft:bedrock") b.setType("minecraft:air");
+            } catch (e) {}
+          }
+        }
+        break;
+      }
     }
   } catch (e) {}
 }
+
+// Pasif itemlar: elde Lav Kristali -> ates korumasi; ayakta Gokkusagi Botu ->
+// yun izi. selectedSlotIndex/equippable API'leri surume duyarli, hepsi korumali.
+system.runInterval(() => {
+  for (const p of world.getPlayers()) {
+    try {
+      const inv = p.getComponent("minecraft:inventory") && p.getComponent("minecraft:inventory").container;
+      let held = null;
+      try { held = inv && inv.getItem(p.selectedSlotIndex); } catch (e) {}
+      if (held && held.typeId === "stnt:lava_crystal") {
+        p.addEffect("fire_resistance", 40, { amplifier: 0, showParticles: false });
+      }
+      let feet = null;
+      try {
+        const eq = p.getComponent("minecraft:equippable");
+        feet = eq && eq.getEquipment && eq.getEquipment("Feet");
+      } catch (e) {}
+      if (feet && feet.typeId === "stnt:rainbow_boots") {
+        const below = { x: Math.floor(p.location.x), y: Math.floor(p.location.y) - 1, z: Math.floor(p.location.z) };
+        const b = p.dimension.getBlock(below);
+        if (b && b.typeId === "minecraft:air") {
+          const cols = ["red", "orange", "yellow", "lime", "light_blue", "blue", "purple", "pink"];
+          b.setType("minecraft:" + cols[Math.floor(Math.random() * cols.length)] + "_wool");
+        }
+      }
+    } catch (e) {}
+  }
+}, 10);
+
+// Silahlar: Kanli Kilic -> kirmizi parcacik; Kalp Baltasi -> agir hasar.
+world.afterEvents.entityHurt.subscribe((ev) => {
+  try {
+    const src = ev.damageSource && ev.damageSource.damagingEntity;
+    if (!src || src.typeId !== "minecraft:player") return;
+    const inv = src.getComponent("minecraft:inventory") && src.getComponent("minecraft:inventory").container;
+    let held = null;
+    try { held = inv && inv.getItem(src.selectedSlotIndex); } catch (e) {}
+    if (!held) return;
+    if (held.typeId === "stnt:blood_sword") {
+      spray(ev.hurtEntity.dimension, ev.hurtEntity.location, "minecraft:redstone_ore_dust_particle", 15, 1);
+    } else if (held.typeId === "stnt:heart_axe") {
+      try {
+        ev.hurtEntity.applyDamage(ev.hurtEntity.typeId === "minecraft:player" ? 25 : 1000);
+      } catch (e) {}
+    }
+  } catch (e) {}
+});
 
 // ---------------------------------------------------------------- tooltip
 // Bedrock'ta Java'daki gibi blok tooltip'i yok. Java surumunde her TNT'nin
