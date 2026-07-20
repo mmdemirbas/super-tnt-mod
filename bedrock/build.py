@@ -82,14 +82,15 @@ MIN_ENGINE = [1, 21, 0]
 # paket kazanir); ayri dunyalarda ikisi de calisir. PORT-DURUMU.md'de yazili.
 #
 # st:size 0..4 -> (gorsel olcek, carpisma genisligi, carpisma yuksekligi).
-# 2 = normal (vanilla 0.6 x 1.8). MorphX dev boyutu 3.6y kullaniyor; ustunu
-# asmadik. Gorsel olcek ile hitbox birebir ayni olmak zorunda degil.
+# 2 = normal (vanilla 0.6 x 1.8). Gorsel olcek carpisma yuksekligi / 1.8
+# oranina hizalandi ki model hitbox'in disina tasmasin (denetimde bulunan
+# kozmetik uyumsuzluk). MorphX dev boyutu 3.6y kullaniyor; ustunu asmadik.
 SIZE_TABLE = {
-    0: (0.30, 0.35, 0.60),   # minik
-    1: (0.55, 0.50, 1.00),   # kucuk
-    2: (1.00, 0.60, 1.80),   # normal (vanilla)
-    3: (1.70, 0.90, 3.00),   # buyuk
-    4: (2.50, 1.20, 3.60),   # dev
+    0: (0.33, 0.35, 0.60),   # minik   (0.6/1.8)
+    1: (0.55, 0.50, 1.00),   # kucuk   (1.0/1.8)
+    2: (1.00, 0.60, 1.80),   # normal  (vanilla)
+    3: (1.65, 0.90, 3.00),   # buyuk   (3.0/1.8)
+    4: (2.00, 1.20, 3.60),   # dev     (3.6/1.8)
 }
 SIZE_DEFAULT = 2
 
@@ -1185,6 +1186,10 @@ def build():
     # RP: vanilla client_entity + kademe olcek carpani (render-Molang).
     # vanilla scale "0.9375" tabani korunur, kademe carpaniyla carpilir.
     rp_player = json.load(open(os.path.join(HERE, "player_rp_base.json"), encoding="utf-8"))
+    # Vanilla dosya format 1.26.0; paket min_engine 1.21.0 ile celisiyor
+    # (gercek 1.21 cihaz 1.26 client_entity'yi okuyamaz). MorphX gibi 1.10.0'a
+    # dusur — client_entity yapisi 1.10.0'dan beri ayni, genis uyumlu.
+    rp_player["format_version"] = "1.10.0"
     rp_desc = rp_player["minecraft:client_entity"]["description"]
     factor = "1.0"
     for i in sorted(SIZE_TABLE):
