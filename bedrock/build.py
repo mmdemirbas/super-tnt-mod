@@ -65,7 +65,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 9, 1]
+VERSION = [1, 10, 0]
 MIN_ENGINE = [1, 21, 0]
 
 # ---------------------------------------------------------------- TNT tanimlari
@@ -408,6 +408,28 @@ TNTS = [
          entip="Carves a cave underground and spawns scary creatures!",
          color=((70, 66, 60), (92, 86, 78), (54, 50, 46)), mat="minecraft:stone",
          effect=dict(kind="spawn", entity="minecraft:zombie", count=15, spread=8.0, yoff=-2, power=4)),
+    dict(id="kup_tnt", tr="Küp TNT", en="Cube TNT",
+         trtip="Yerin içine doğru büyük bir küp şeklinde kazı yapar!",
+         entip="Digs a big cube down into the ground!",
+         color=((90, 90, 96), (112, 112, 118), (72, 72, 78)), mat="minecraft:stone",
+         effect=dict(kind="break", radius=12, skipBedrock=True, perTick=1000, power=4)),
+    dict(id="lego_tnt", tr="Lego TNT", en="Lego TNT",
+         trtip="Blokları renkli Lego tuğlalarına dönüştürür!",
+         entip="Turns blocks into colored Lego bricks!",
+         color=((200, 50, 50), (80, 130, 200), (240, 210, 60)), mat="minecraft:brick",
+         effect=dict(kind="transform", radius=12, perTick=800, palette=[
+             f"stnt:lego_{c}" for c in ["red", "blue", "yellow", "green", "orange", "purple", "lime", "white"]])),
+    dict(id="wood_tnt", tr="Odun TNT", en="Wood TNT",
+         trtip="Yakındaki ağaçları yok eder (gövde ve yapraklar).",
+         entip="Destroys nearby trees (logs and leaves).",
+         color=((110, 82, 48), (134, 100, 60), (90, 66, 40)), mat="minecraft:oak_log",
+         effect=dict(kind="break", radius=10, filter=["log", "leaves", "wood"], perTick=500, power=1)),
+    dict(id="gravity_tnt", tr="Yerçekimi TNT", en="Gravity TNT",
+         trtip="Yakındaki canlıları 10 sn havaya kaldırır — inerken dikkat!",
+         entip="Lifts nearby creatures for 10s - mind the landing!",
+         color=((120, 90, 200), (146, 116, 220), (96, 72, 168)), mat="minecraft:feather",
+         effect=dict(kind="status", target="all", radius=12, particle="minecraft:portal_particle",
+                     effects=[{"id": "levitation", "seconds": 10, "amp": 2}])),
 ]
 
 FUSE_TICKS = 80  # Java tarafinda setFuse(80)
@@ -457,6 +479,18 @@ BLOCKS += [
          trtip="Altın plaka gibi görünür — üstüne basan anında ölür!",
          entip="Looks like a gold plate - whoever steps on it dies instantly!",
          kind="kill", color=(232, 200, 90), mat="minecraft:gold_ingot"),
+    dict(id="light_bomb", tr="Işık Bombası", en="Light Bomb",
+         trtip="Çok parlak ışık saçan dekoratif blok.",
+         entip="A decorative block that gives off bright light.",
+         kind="glow", color=(250, 246, 190), mat="minecraft:glowstone"),
+    dict(id="zehir_toprak", tr="Zehir Toprağı", en="Poison Soil",
+         trtip="Zehirli toprak — üstüne basan zehirlenir ve zarar görür!",
+         entip="Poison soil - stepping on it poisons and hurts!",
+         kind="poison", color=(96, 120, 54), mat="minecraft:dirt"),
+    dict(id="soru_blogu", tr="? Bloğu", en="? Block",
+         trtip="Kır — içinden rastgele bir şey çıkar!",
+         entip="Break it - something random pops out!",
+         kind="mystery", color=(232, 192, 64), mat="minecraft:gold_block"),
 ]
 
 # ---------------------------------------------------------------- item tanimlari
@@ -1467,7 +1501,10 @@ function detonate(dim, c, short, igniterId) {
                 const t = b.typeId;
                 if (t === "minecraft:air") continue;
                 if (s.skipBedrock && t === "minecraft:bedrock") continue;
-                if (s.filter === "glass" && !t.includes("glass")) continue;
+                if (s.filter) {
+                  const ok = Array.isArray(s.filter) ? s.filter.some(f => t.includes(f)) : t.includes(s.filter);
+                  if (!ok) continue;
+                }
                 b.setType("minecraft:air"); d++;
               } catch (e) {}
             }
@@ -1609,18 +1646,32 @@ system.run(() => {
   console.warn(`[SuperTNT] yuklendi - ${Object.keys(SPEC).length} TNT, ${tracked.size} kayitli blok`);
 });
 
-// Yanlis Altin Plaka: ustunde duran oyuncuyu oldurur (Java'daki tuzak).
+// Ustunde durulan tuzak bloklari: yanlis altin plaka oldurur, zehir topragi
+// zehirler (Java'daki davranis).
 system.runInterval(() => {
   for (const p of world.getPlayers()) {
     try {
       const l = p.location;
       const below = p.dimension.getBlock({ x: Math.floor(l.x), y: Math.floor(l.y) - 1, z: Math.floor(l.z) });
-      if (below && below.typeId === "stnt:wrong_golden_plate") {
-        p.applyDamage(1000);
-      }
+      if (!below) continue;
+      if (below.typeId === "stnt:wrong_golden_plate") p.applyDamage(1000);
+      else if (below.typeId === "stnt:zehir_toprak") p.addEffect("poison", 100, { amplifier: 2 });
     } catch (e) {}
   }
 }, 5);
+
+// ? Blogu: kirilinca icinden rastgele bir sey cikar.
+world.afterEvents.playerBreakBlock.subscribe((ev) => {
+  try {
+    if (ev.brokenBlockPermutation.type.id !== "stnt:soru_blogu") return;
+    const loot = ["minecraft:diamond", "minecraft:golden_apple", "minecraft:tnt",
+                  "minecraft:iron_ingot", "minecraft:emerald", "minecraft:cooked_beef",
+                  "minecraft:gold_ingot", "minecraft:cake"];
+    const pick = loot[Math.floor(Math.random() * loot.length)];
+    ev.dimension.spawnItem(new ItemStack(pick, 1 + Math.floor(Math.random() * 4)),
+      { x: ev.block.location.x + 0.5, y: ev.block.location.y + 0.5, z: ev.block.location.z + 0.5 });
+  } catch (e) {}
+});
 
 // TANI: oyuncu dunyaya girince chat'e yazar. Bu mesaj gorunuyorsa davranis
 // paketi aktif VE script calisiyor demektir. Gorunmuyorsa paket aktif degil.
