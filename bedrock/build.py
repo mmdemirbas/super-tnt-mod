@@ -1114,7 +1114,9 @@ def build():
             icomps["minecraft:entity_placer"] = {"entity": it['spawn']}
             icomps["minecraft:max_stack_size"] = 16
         w(os.path.join(BP, f"items/{it['id']}.json"), {
-            "format_version": "1.20.20",
+            # 1.20.30: minecraft:wearable en az bu surumu ister (TNT zirhi +
+            # gokkusagi botlari). 1.20.20'de wearable sessizce devre disi kalir.
+            "format_version": "1.20.30",
             "minecraft:item": {
                 "description": {"identifier": f"stnt:{it['id']}",
                                 "menu_category": {"category": "equipment",
@@ -1202,7 +1204,9 @@ def build():
         w(os.path.join(BP, "entities/ender_send.json"), {
             "format_version": "1.21.0",
             "minecraft:entity": {
-                "description": {"identifier": "stnt:ender_send", "is_spawnable": True,
+                # is_spawnable:false -> otomatik (dokusuz) spawn egg'i bastir;
+                # cagirma kendi ender_send_yumurta item'imizla (entity_placer).
+                "description": {"identifier": "stnt:ender_send", "is_spawnable": False,
                                 "is_summonable": True, "is_experimental": False},
                 "components": {
                     "minecraft:type_family": {"family": ["monster", "mob", "ender_send"]},
@@ -2295,8 +2299,8 @@ function pkey(dimId, loc) { return `${dimId}:${Math.floor(loc.x)}:${Math.floor(l
 function hashStr(s) { let h = 0; for (let i = 0; i < s.length; i++) { h = (h * 31 + s.charCodeAt(i)) | 0; } return h; }
 const OWNER_BLOCKS = new Set(["stnt:sahip_kapi", "stnt:blocker_sandik", "stnt:sifreli_sandik"]);
 
-world.afterEvents.worldLoad.subscribe(() => loadOwners());
-loadOwners();
+try { world.afterEvents.worldLoad.subscribe(() => loadOwners()); } catch (e) {}
+loadOwners();   // modul degerlendirmesinde bir kez; worldLoad reload icin yedek
 
 world.afterEvents.playerPlaceBlock.subscribe((ev) => {
   const b = ev.block;
@@ -2425,8 +2429,8 @@ const MINE_PROP = "stnt:mines";
 let mines = {};
 function loadMines() { try { const r = world.getDynamicProperty(MINE_PROP); if (typeof r === "string") mines = JSON.parse(r); } catch (e) { mines = {}; } }
 function saveMines() { try { world.setDynamicProperty(MINE_PROP, JSON.stringify(mines)); } catch (e) {} }
-world.afterEvents.worldLoad.subscribe(() => loadMines());
-loadMines();
+try { world.afterEvents.worldLoad.subscribe(() => loadMines()); } catch (e) {}
+loadMines();   // modul degerlendirmesinde bir kez; worldLoad reload icin yedek
 world.afterEvents.playerPlaceBlock.subscribe((ev) => {
   const b = ev.block;
   if (!b || b.typeId !== "stnt:yakinlik_mayini") return;
