@@ -47,6 +47,19 @@ import json, os, re, shutil, struct, zlib, zipfile
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 JAVA_TEX = os.path.join(ROOT, "src/main/resources/assets/supertntmod/textures/block")
+JAVA_ITEM_TEX = os.path.join(ROOT, "src/main/resources/assets/supertntmod/textures/item")
+
+# Bedrock item id -> Java item texture adi. Turkce id'ler Java'daki Ingilizce
+# dosyaya eslenir; listede olmayan (dogrudan eslesen) id'ler kendi adiyla
+# aranir. Java'da karsiligi olmayanlar duz-renk decor ikonuna duser.
+ITEM_TEX_MAP = {
+    "delici": "tunneling_item", "kucultme_topu": "shrink_ball",
+    "buyutme_topu": "grow_ball", "normal_boyut_topu": "scale_lock",
+    "kontrol_kumandasi": "control_remote", "portal_silahi": "portal_gun",
+    "tnt_armor_kask": "tnt_armor_helmet", "tnt_armor_govus": "tnt_armor_chestplate",
+    "tnt_armor_pantolon": "tnt_armor_leggings", "tnt_armor_bot": "tnt_armor_boots",
+    "ender_send_yumurta": "ender_send_spawn_egg",
+}
 BP = os.path.join(HERE, "super_tnt_BP")
 RP = os.path.join(HERE, "super_tnt_RP")
 OUT = os.path.join(HERE, "out")
@@ -1014,10 +1027,21 @@ def build():
 
     # ---------- item ikonlari
     item_tex = {}
+    item_copied = item_gen = 0
     for it in ITEMS:
         key = f"stnt_{it['id']}"
         rel = f"textures/items/{key}"
-        decor_texture(os.path.join(RP, rel + ".png"), it['color'], "plain")
+        dst = os.path.join(RP, rel + ".png")
+        # Java'da gercek (sembollu) ikon varsa onu kullan; yoksa duz-renk uret.
+        jtex = ITEM_TEX_MAP.get(it['id'], it['id'])
+        src = os.path.join(JAVA_ITEM_TEX, f"{jtex}.png")
+        if os.path.exists(src):
+            os.makedirs(os.path.dirname(dst), exist_ok=True)
+            shutil.copy(src, dst)
+            item_copied += 1
+        else:
+            decor_texture(dst, it['color'], "plain")
+            item_gen += 1
         item_tex[key] = {"textures": rel}
     w(os.path.join(RP, "textures/item_texture.json"),
       {"resource_pack_name": "super_tnt", "texture_data": item_tex})
