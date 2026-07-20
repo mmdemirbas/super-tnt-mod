@@ -78,7 +78,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 16, 0]
+VERSION = [1, 16, 1]
 MIN_ENGINE = [1, 21, 0]
 
 # ---------------------------------------------------------------- oyuncu boyutu
@@ -816,6 +816,10 @@ ITEMS = [
          trtip="Sağ tıkla — DEV bir creeper çağırır! Yaklaşınca kocaman patlar!",
          entip="Right-click - summons a GIANT creeper! Blows up huge when close!",
          color=(60, 160, 60), spawn="stnt:dev_creeper"),
+    dict(id="mutant_warden_yumurta", tr="Mutant Warden Yumurtası", en="Mutant Warden Egg", kind="spawn_egg",
+         trtip="Sağ tıkla — DEV bir Mutant Warden çağırır! 500 can, çok tehlikeli!",
+         entip="Right-click - summons a GIANT Mutant Warden! 500 HP, very dangerous!",
+         color=(40, 70, 82), spawn="stnt:mutant_warden"),
     dict(id="donusum_asasi", tr="Dönüşüm Asası", en="Morph Wand", kind="raycast",
          trtip="Sağ tıkla — sırayla İnsan → Creeper → Demir Golem → İnsan dönüşürsün!",
          entip="Right-click - cycle Human → Creeper → Iron Golem → Human!",
@@ -838,6 +842,9 @@ MONSTERS = [
          geo="geometry.creeper.v1.8", hp=180, scale=3.0, dmg=8, cw=1.5, ch=5.5,
          # creeper temasi: yaklasinca sisip DEV patlar
          explode=dict(power=6, fuse=1.5)),
+    dict(id="mutant_warden", mat="warden", tex="textures/entity/warden/warden",
+         geo="geometry.warden", hp=500, scale=2.2, dmg=22, cw=1.5, ch=6.5,
+         extra={"minecraft:knockback_resistance": {"value": 0.9}}),
 ]
 
 
@@ -1932,7 +1939,6 @@ try {
 const primed = new Map();  // entityId -> { short, left, dim }
 
 function ignite(dim, loc, short, igniterId) {
-  const k = key(dim.id, loc);
   try {
     const b = dim.getBlock(loc);
     if (!b || b.typeId !== `stnt:${short}`) return;   // zaten ateslenmis
