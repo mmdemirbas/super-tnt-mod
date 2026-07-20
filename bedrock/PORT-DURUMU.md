@@ -1,6 +1,27 @@
 # Super TNT — Bedrock Port Durumu
 
-Son sürüm: **v1.15.0** · **144 içerik** portlandı (70 TNT + 40 blok + 34 item).
+Son sürüm: **v1.16.0** · **kendi morph + canavar modülü** eklendi.
+
+## v1.16.0 — kendi (3. partiden bağımsız) morph + canavar modülü
+
+Çocukların ücretli/3. parti morph paketleri tableti dondurdu; onun yerine
+Super TNT'ye kendi hafif modülümüz eklendi (tam kontrol, ücretsiz, çakışmasız).
+
+- **Dönüşüm Asası** — sağ tıkla İnsan → Creeper → Demir Golem → İnsan dönüş.
+  Oyuncu görüntü olarak vanilla mob'a dönüşür (MorphX'in kanıtlanmış render-
+  controller + `st:morph` property pattern'i; vanilla geometry/texture MC'den).
+  **Saf görsel:** çarpışma kutusu küçülme sisteminden gelir, çakışma yok.
+  **Bilinçli sınır:** Ender Dragon eklenmedi — geometry tek başına animate
+  etmediği için (kendi animasyonu kopyalanmadan) donmuş görünürdü; creeper/golem
+  statik bile net okunuyor. Dragon ileride kendi animasyonuyla eklenebilir.
+- **Canavarlar (dev boss):** Ender Send + **Dev Zombi** + **Dev Creeper**
+  (yaklaşınca şişip patlar). Her biri spawn yumurtasıyla çağrılır. Custom
+  entity + ölçekli vanilla görsel — Ender Send'de kanıtlanmış desen.
+- **Item ikonları:** 23 item artık Java'nın gerçek çizilmiş dokusunu kullanıyor
+  (düz-renk yerine); 4 TNT zırh parçası + spawn yumurtaları ayırt edilebilir.
+
+Java modu 71 TNT + 17 blok + 43 item içeriyor. Aşağıda ne portlandı, ne
+portlanamadı — sebepleriyle.
 
 Java modu 71 TNT + 17 blok + 43 item içeriyor. Aşağıda ne portlandı, ne
 portlanamadı — sebepleriyle.
