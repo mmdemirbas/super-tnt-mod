@@ -147,7 +147,7 @@ MORPHS = [
          fp_bones=["leg2", "leg3"], tr="Creeper"),
     dict(n=2, key="iron_golem", mat="iron_golem",
          tex="textures/entity/iron_golem", geo="geometry.irongolem",
-         fp_bones=["arm0", "arm1"], tr="Demir Golem"),
+         fp_bones=["arm0", "arm1"], tr="Demir Golem", scale=1.6),
 ]
 
 # ---------------------------------------------------------------- TNT tanimlari
@@ -1295,6 +1295,9 @@ def build():
             "minecraft:behavior.random_look_around": {"priority": 8},
         }
         comps.update(m.get('extra', {}))
+        # hedefe yuru (chase). Creeper'da bile gerekli: yoksa hedef secer ama
+        # yaklasmaz, sensor/swell hic tetiklenmez (denetimde bulundu).
+        comps["minecraft:behavior.melee_attack"] = {"priority": 2, "track_target": True}
         groups, events = {}, {}
         if m.get('explode'):
             # vanilla creeper mekanigi: yaklasinca sisip patlar (component_group
@@ -1313,8 +1316,6 @@ def build():
                                     "destroy_affected_by_griefing": True}}
             events = {"stnt:fuse": {"add": {"component_groups": ["stnt:fused"]}},
                       "stnt:unfuse": {"remove": {"component_groups": ["stnt:fused"]}}}
-        else:
-            comps["minecraft:behavior.melee_attack"] = {"priority": 2, "track_target": True}
         ent = {"description": {"identifier": f"stnt:{m['id']}", "is_spawnable": False,
                                "is_summonable": True, "is_experimental": False},
                "components": comps}
@@ -1424,7 +1425,12 @@ def build():
         if i == SIZE_DEFAULT:
             continue
         factor = f"(query.property('st:size') == {i} ? {SIZE_TABLE[i][0]} : {factor})"
-    rp_desc["scripts"]["scale"] = f"({rp_desc['scripts']['scale']}) * {factor}"
+    # morph olcegi: golem gercek boyutuna yakin olsun (creeper zaten ~player boyu)
+    mfactor = "1.0"
+    for mo in MORPHS:
+        if mo.get('scale', 1.0) != 1.0:
+            mfactor = f"(query.property('st:morph') == {mo['n']} ? {mo['scale']} : {mfactor})"
+    rp_desc["scripts"]["scale"] = f"({rp_desc['scripts']['scale']}) * {factor} * {mfactor}"
     # ---- morph: gorunum haritalarina mob asset ekle
     for mo in MORPHS:
         rp_desc["materials"][mo['key']] = mo['mat']
