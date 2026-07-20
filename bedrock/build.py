@@ -65,7 +65,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 14, 0]
+VERSION = [1, 15, 0]
 MIN_ENGINE = [1, 21, 0]
 
 # ---------------------------------------------------------------- oyuncu boyutu
@@ -198,6 +198,19 @@ TNTS = [
          entip="Grows nearby players giant! Heart TNT restores your size.",
          color=((220, 120, 40), (240, 150, 60), (190, 96, 30)), mat="minecraft:pumpkin",
          effect=dict(kind="scale", radius=8, delta=2)),
+    dict(id="cizgi_tnt", tr="Çizgi TNT", en="Line TNT",
+         trtip="Her yeri el yazısı defterine çevirir — kağıt, mürekkep ve tüy saçar!",
+         entip="Turns everywhere into a handwriting notebook - scatters paper, ink and feathers!",
+         color=((235, 232, 224), (210, 205, 195), (180, 176, 168)), mat="minecraft:paper",
+         effect=dict(kind="scatter", spread=6.0, power=2, drops=[
+             {"item": "minecraft:paper", "count": 30, "stack": 8},
+             {"item": "minecraft:ink_sac", "count": 15, "stack": 4},
+             {"item": "minecraft:feather", "count": 15, "stack": 4}])),
+    dict(id="zeynep_redstone_tnt", tr="Zeynep Redstone TNT", en="Zeynep Redstone TNT",
+         trtip="Dev patlama — patlatan hariç yakındaki herkesi yener! Dikkatli kullan.",
+         entip="Huge blast - defeats everyone nearby except the igniter! Use with care.",
+         color=((150, 40, 90), (190, 55, 110), (120, 30, 72)), mat="minecraft:redstone_block",
+         effect=dict(kind="instakill", radius=30, power=8)),
 
     # ============ EASY: patlama / saçma / efekt / hava / zaman ============
     dict(id="gold_tnt", tr="Altın TNT", en="Gold TNT",
@@ -601,6 +614,14 @@ BLOCKS += [
          trtip="Portal Silahı bunları koyar ve bağlar — içine gir, diğerine ışınlan!",
          entip="Portal Gun places and links these - walk into one, warp to the other!",
          kind="portal_block", color=(140, 90, 220), mat="minecraft:ender_pearl"),
+    dict(id="fake_tnt", tr="Sahte TNT", en="Fake TNT",
+         trtip="TROL: pasta gibi görünür — kırınca ya da 'yiyince' sadece SENİ patlatır! Blok hasarı yok.",
+         entip="TROLL: looks like cake - break or 'eat' it and only YOU blow up! No block damage.",
+         kind="fake_tnt", color=(236, 224, 208), mat="minecraft:cake"),
+    dict(id="yakinlik_mayini", tr="Yakınlık Mayını", en="Proximity Mine",
+         trtip="Yaklaşan olursa patlar! Kurulunca 2 saniye içinde kaç. Blokları da yıkar.",
+         entip="Detonates when something approaches! Run within 2s of arming. Breaks blocks too.",
+         kind="proximity", color=(150, 70, 60), mat="minecraft:iron_ingot"),
 ]
 
 # Mini bloklar: tam bloktan kucuk (hucre ortasinda 8x8x8 kup). Kucultme
@@ -737,6 +758,24 @@ ITEMS = [
          trtip="Sağ tıkla — bir portal koy, tekrar tıkla ikincisini koy. Aralarında ışınlan!",
          entip="Right-click a portal, again for the second. Teleport between them!",
          color=(120, 90, 220), action=dict(type="portal_gun", range=48)),
+    # TNT Zirhi: giyen hasar alinca saldirgana kucuk patlama misilleme yapar.
+    dict(id="tnt_armor_kask", tr="TNT Kask", en="TNT Helmet", kind="tnt_armor",
+         slot="slot.armor.head", trtip="Giy — sana vurana TNT patlamasıyla karşılık verir!",
+         entip="Wear it - retaliates with a TNT blast against attackers!", color=(196, 48, 54)),
+    dict(id="tnt_armor_govus", tr="TNT Göğüslük", en="TNT Chestplate", kind="tnt_armor",
+         slot="slot.armor.chest", trtip="Giy — sana vurana TNT patlamasıyla karşılık verir!",
+         entip="Wear it - retaliates with a TNT blast against attackers!", color=(196, 48, 54)),
+    dict(id="tnt_armor_pantolon", tr="TNT Pantolon", en="TNT Leggings", kind="tnt_armor",
+         slot="slot.armor.legs", trtip="Giy — sana vurana TNT patlamasıyla karşılık verir!",
+         entip="Wear it - retaliates with a TNT blast against attackers!", color=(196, 48, 54)),
+    dict(id="tnt_armor_bot", tr="TNT Bot", en="TNT Boots", kind="tnt_armor",
+         slot="slot.armor.feet", trtip="Giy — sana vurana TNT patlamasıyla karşılık verir!",
+         entip="Wear it - retaliates with a TNT blast against attackers!", color=(196, 48, 54)),
+    # Ender Send: dev bir enderman-benzeri boss cagiran yumurta.
+    dict(id="ender_send_yumurta", tr="Ender Send Yumurtası", en="Ender Send Egg", kind="spawn_egg",
+         trtip="Sağ tıkla — DEV bir Ender Send çağırır! 300 can, ışınlanır, çok güçlü.",
+         entip="Right-click - summons a GIANT Ender Send! 300 HP, teleports, very strong.",
+         color=(40, 30, 60), spawn="stnt:ender_send"),
 ]
 
 
@@ -1067,6 +1106,13 @@ def build():
         elif it['kind'] == "boots":
             icomps["minecraft:wearable"] = {"slot": "slot.armor.feet", "protection": 2}
             icomps["minecraft:durability"] = {"max_durability": 400}
+        elif it['kind'] == "tnt_armor":
+            icomps["minecraft:wearable"] = {"slot": it['slot'], "protection": 3}
+            icomps["minecraft:durability"] = {"max_durability": 500}
+        elif it['kind'] == "spawn_egg":
+            # sag tikla varligi cagir; Super TNT grubunda gorunur
+            icomps["minecraft:entity_placer"] = {"entity": it['spawn']}
+            icomps["minecraft:max_stack_size"] = 16
         w(os.path.join(BP, f"items/{it['id']}.json"), {
             "format_version": "1.20.20",
             "minecraft:item": {
@@ -1148,6 +1194,53 @@ def build():
             },
         })
         compose_entity_texture(t, os.path.join(RP, f"textures/entity/stnt/{t['id']}.png"))
+
+    # ---------- Ender Send boss (dev enderman-benzeri, spawn egg ile cagrilir)
+    # Java'da 20 blok; Bedrock'ta scale 3.5 (~9 blok hitbox) makul dev boyut —
+    # 20 blok chunk/tavan sorunlari cikarir. Vanilla enderman gorseli olceklenir.
+    if any(it['kind'] == "spawn_egg" for it in ITEMS):
+        w(os.path.join(BP, "entities/ender_send.json"), {
+            "format_version": "1.21.0",
+            "minecraft:entity": {
+                "description": {"identifier": "stnt:ender_send", "is_spawnable": True,
+                                "is_summonable": True, "is_experimental": False},
+                "components": {
+                    "minecraft:type_family": {"family": ["monster", "mob", "ender_send"]},
+                    "minecraft:health": {"value": 300, "max": 300},
+                    "minecraft:scale": {"value": 3.5},
+                    "minecraft:collision_box": {"width": 2.0, "height": 9.0},
+                    "minecraft:attack": {"damage": 15},
+                    "minecraft:movement": {"value": 0.4},
+                    "minecraft:navigation.walk": {"can_path_over_water": True, "avoid_water": True},
+                    "minecraft:movement.basic": {},
+                    "minecraft:jump.static": {},
+                    "minecraft:physics": {},
+                    "minecraft:knockback_resistance": {"value": 0.85},
+                    "minecraft:persistent": {},
+                    "minecraft:nameable": {},
+                    "minecraft:behavior.melee_attack": {"priority": 2, "track_target": True},
+                    "minecraft:behavior.nearest_attackable_target": {"priority": 3, "must_see": True,
+                        "entity_types": [{"filters": {"test": "is_family", "subject": "other", "value": "player"},
+                                          "max_dist": 32}]},
+                    "minecraft:behavior.random_stroll": {"priority": 6, "speed_multiplier": 1.0},
+                    "minecraft:behavior.look_at_player": {"priority": 7, "look_distance": 24},
+                    "minecraft:behavior.random_look_around": {"priority": 8},
+                },
+            },
+        })
+        # RP: vanilla enderman gorseli (materials/texture/geometry MC saglar)
+        w(os.path.join(RP, "entity/ender_send.json"), {
+            "format_version": "1.10.0",
+            "minecraft:client_entity": {
+                "description": {
+                    "identifier": "stnt:ender_send",
+                    "materials": {"default": "enderman"},
+                    "textures": {"default": "textures/entity/enderman/enderman"},
+                    "geometry": {"default": "geometry.enderman"},
+                    "render_controllers": ["controller.render.default"],
+                },
+            },
+        })
 
     # ---------- tarifler (8 malzeme + ortada TNT)
     for t in TNTS:
@@ -1282,7 +1375,7 @@ def build():
 
 SCRIPT_TEMPLATE = r'''// Super TNT Mod - Bedrock
 // Uretilmis dosya. Kaynak: bedrock/build.py  (elle duzenleme, yeniden uretilir)
-import { world, system, ItemStack } from "@minecraft/server";
+import { world, system, ItemStack, EquipmentSlot } from "@minecraft/server";
 import { ModalFormData } from "@minecraft/server-ui";
 
 const SPEC = __SPEC__;
@@ -2302,6 +2395,90 @@ system.runInterval(() => {
     }
   }
 }, 8);
+
+// ---- Sahte TNT: pasta kiligi; kirilinca/etkilesince sadece oyuncuya hasar
+function fakeTntBoom(dim, loc, player) {
+  const c = { x: loc.x + 0.5, y: loc.y + 0.5, z: loc.z + 0.5 };
+  try { dim.createExplosion(c, 2, { breaksBlocks: false, causesFire: false }); } catch (e) {}
+  spray(dim, c, "minecraft:large_explosion", 1, 0);
+  if (player) {
+    try { player.applyDamage(14); } catch (e) {}
+    try { player.onScreenDisplay.setActionBar("§cKANDIRILDIN! O bir Sahte TNT'ydi 😄"); } catch (e) {}
+  }
+}
+world.afterEvents.playerBreakBlock.subscribe((ev) => {
+  try { if (ev.brokenBlockPermutation.type.id === "stnt:fake_tnt") fakeTntBoom(ev.dimension, ev.block.location, ev.player); }
+  catch (e) {}
+});
+world.beforeEvents.playerInteractWithBlock.subscribe((ev) => {
+  try {
+    if (!ev.block || ev.block.typeId !== "stnt:fake_tnt") return;
+    ev.cancel = true;
+    const dim = ev.block.dimension, loc = { x: ev.block.location.x, y: ev.block.location.y, z: ev.block.location.z }, player = ev.player;
+    system.run(() => { try { dim.getBlock(loc)?.setType("minecraft:air"); } catch (e) {} fakeTntBoom(dim, loc, player); });
+  } catch (e) {}
+});
+
+// ---- Yakinlik Mayini: kurulunca 2 sn (40 tick) arm gecikmesi, sonra 10
+// tick'te bir 2.5 blok tarar; canli yaklasirsa patlar (kacis penceresi arm).
+const MINE_PROP = "stnt:mines";
+let mines = {};
+function loadMines() { try { const r = world.getDynamicProperty(MINE_PROP); if (typeof r === "string") mines = JSON.parse(r); } catch (e) { mines = {}; } }
+function saveMines() { try { world.setDynamicProperty(MINE_PROP, JSON.stringify(mines)); } catch (e) {} }
+world.afterEvents.worldLoad.subscribe(() => loadMines());
+loadMines();
+world.afterEvents.playerPlaceBlock.subscribe((ev) => {
+  const b = ev.block;
+  if (!b || b.typeId !== "stnt:yakinlik_mayini") return;
+  mines[pkey(b.dimension.id, b.location)] = { dim: b.dimension.id, x: Math.floor(b.location.x), y: Math.floor(b.location.y), z: Math.floor(b.location.z), armed: system.currentTick + 40 };
+  saveMines();
+  try { ev.player.onScreenDisplay.setActionBar("§cMayın kuruluyor — 2 saniye içinde kaç!"); } catch (e) {}
+});
+world.afterEvents.playerBreakBlock.subscribe((ev) => {
+  const k = pkey(ev.dimension.id, ev.block.location);
+  if (mines[k]) { delete mines[k]; saveMines(); }
+});
+system.runInterval(() => {
+  const now = system.currentTick;
+  let changed = false;
+  for (const k of Object.keys(mines)) {
+    const m = mines[k];
+    if (now < m.armed) continue;
+    try {
+      const dim = world.getDimension(m.dim);
+      const b = dim.getBlock({ x: m.x, y: m.y, z: m.z });
+      if (!b) continue;                                  // yuklu degil
+      if (b.typeId !== "stnt:yakinlik_mayini") { delete mines[k]; changed = true; continue; }
+      const c = { x: m.x + 0.5, y: m.y + 0.5, z: m.z + 0.5 };
+      const near = dim.getEntities({ location: c, maxDistance: 2.5 })
+        .some((e) => e.typeId === "minecraft:player" || (e.getComponent && e.getComponent("minecraft:health")));
+      if (near) {
+        b.setType("minecraft:air");
+        dim.createExplosion(c, 4, { breaksBlocks: true, causesFire: false });
+        delete mines[k]; changed = true;
+      }
+    } catch (e) {}
+  }
+  if (changed) saveMines();
+}, 10);
+
+// ---- TNT Zirhi: giyen hasar alinca saldirgana kucuk patlama misilleme
+world.afterEvents.entityHurt.subscribe((ev) => {
+  try {
+    const victim = ev.hurtEntity;
+    const src = ev.damageSource && ev.damageSource.damagingEntity;
+    if (!src || !victim || src.id === victim.id) return;
+    const eq = victim.getComponent("minecraft:equippable");
+    if (!eq) return;
+    let wearing = false;
+    for (const sl of [EquipmentSlot.Head, EquipmentSlot.Chest, EquipmentSlot.Legs, EquipmentSlot.Feet]) {
+      try { const it = eq.getEquipment(sl); if (it && it.typeId.startsWith("stnt:tnt_armor")) { wearing = true; break; } } catch (e) {}
+    }
+    if (!wearing) return;
+    try { src.dimension.createExplosion(src.location, 2, { breaksBlocks: false, causesFire: false }); } catch (e) {}
+    try { src.applyDamage(8); } catch (e) {}
+  } catch (e) {}
+});
 '''
 
 if __name__ == "__main__":

@@ -1,9 +1,28 @@
 # Super TNT — Bedrock Port Durumu
 
-Son sürüm: **v1.14.0** · **135 içerik** portlandı (68 TNT + 38 blok + 29 item).
+Son sürüm: **v1.15.0** · **144 içerik** portlandı (70 TNT + 40 blok + 34 item).
 
 Java modu 71 TNT + 17 blok + 43 item içeriyor. Aşağıda ne portlandı, ne
 portlanamadı — sebepleriyle.
+
+## v1.15.0 — içerik denetimi sonrası kalan 6 özellik
+
+Java ↔ Bedrock tam içerik diff'i yapıldı: imkansız/atlanan dışında gerçekten
+eksik olan her şey portlandı.
+
+- **Ender Send** — dev enderman-benzeri boss (300 can, 15 hasar, ışınlanır).
+  Spawn yumurtasıyla çağrılır. Java 20 blok; Bedrock'ta ~9 blok (scale 3.5) —
+  20 blok chunk/tavan sorunları çıkarır. Vanilla enderman görseli ölçeklenir.
+- **TNT Zırhı** (kask/göğüslük/pantolon/bot) — giyen hasar alınca saldırgana
+  TNT patlamasıyla karşılık verir (`entityHurt` → `createExplosion`).
+- **Yakınlık Mayını** — kurulunca 2 sn arm gecikmesi, sonra yaklaşanı patlatır.
+- **Sahte TNT** — pasta kılığı; kır/etkileş → sadece oyuncuya 7 kalp, blok
+  hasarı yok (troll).
+- **Zeynep Redstone TNT** — dev patlama, patlatan hariç yakındaki herkesi yener.
+- **Çizgi TNT** — kağıt + mürekkep + tüy saçar (el yazısı teması).
+
+`shrink/grow iksiri` eklenmedi: boyut topları (`kucultme_topu`/`buyutme_topu`)
+zaten aynı işi yapıyor — gereksiz tekrar olurdu.
 
 ## v1.14.0 — `@minecraft/server-ui` + dünya durumu ile 6 özellik daha
 
@@ -72,6 +91,7 @@ Lav Kristali, Kanlı Kılıç, Kalp Baltası, Gökkuşağı Botları, End/Nether
 | İçerik | Neden |
 |---|---|
 | Çizim Eşyası (canvas) | Bedrock script arayüzü boyama tuvali sunmuyor — sadece buton/kaydırıcı/liste. `server-ui` buton ızgarası (tıkla-boya mozaik) mümkün ama küçük çocuk için hantal; Java-only bırakıldı |
+| Günlük (Diary) | Eşya-başına kalıcı veri (NBT) API'si yok — sahip-kilidi + saklanan metin eşyada tutulamaz. Oyuncu-özelliği + sohbet yakalama ile taklit edilebilir ama "kişisel kitap" hissi kaybolur |
 
 ### Yaklaşık portlanabilir ama bilinçli eklenmedi
 | İçerik | Durum |
