@@ -65,7 +65,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 8, 0]
+VERSION = [1, 9, 1]
 MIN_ENGINE = [1, 21, 0]
 
 # ---------------------------------------------------------------- TNT tanimlari
@@ -459,6 +459,50 @@ BLOCKS += [
          kind="kill", color=(232, 200, 90), mat="minecraft:gold_ingot"),
 ]
 
+# ---------------------------------------------------------------- item tanimlari
+# kind "food": yenince efekt. "raycast": bakilan bloga/varliga etki.
+# "self_area": elde kullaninca oyuncunun etrafina etki.
+ITEMS = [
+    dict(id="spicy_chips", tr="Acılı Cips", en="Spicy Chips", kind="food",
+         trtip="Ye ve 20 sn Hız III kazan!", entip="Eat for Speed III for 20s!",
+         color=(224, 120, 40), action=dict(type="eat", effect="speed", seconds=20, amp=2)),
+    dict(id="lightning_spell", tr="Yıldırım Büyüsü", en="Lightning Spell", kind="raycast",
+         trtip="Sağ tıkla — baktığın yere GERÇEK yıldırım çakar! Yakar ve öldürür.",
+         entip="Right-click - strikes REAL lightning where you look!",
+         color=(110, 140, 210), action=dict(type="lightning")),
+    dict(id="black_hole", tr="Kara Delik", en="Black Hole", kind="self_area",
+         trtip="Sağ tıkla — yakındaki her şeyi çeker, kör eder ve hasar verir.",
+         entip="Right-click - pulls, blinds and damages nearby entities.",
+         color=(40, 30, 60), action=dict(type="blackhole", radius=12)),
+    dict(id="energy_crystal", tr="Enerji Kristali", en="Energy Crystal", kind="raycast",
+         trtip="Sağ tıkla — baktığın bedrock'u kırar!",
+         entip="Right-click - breaks the bedrock you look at!",
+         color=(120, 220, 220), action=dict(type="break_any")),
+    dict(id="laser_sword", tr="Lazer Kılıcı", en="Laser Sword", kind="raycast",
+         trtip="Sağ tıkla — önündeki bloklarda 9 bloklık lazer açar!",
+         entip="Right-click - carves a 9-block laser ahead!",
+         color=(210, 40, 40), action=dict(type="laser", length=9)),
+    dict(id="grappling_hook", tr="Kanca", en="Grappling Hook", kind="raycast",
+         trtip="Sağ tıkla — baktığın yere doğru fırlarsın!",
+         entip="Right-click - you fling toward where you look!",
+         color=(90, 90, 100), action=dict(type="grapple")),
+    dict(id="dondurucu", tr="Dondurucu", en="Freezer", kind="raycast",
+         trtip="Sağ tıkla — baktığın canlıyı dondurur!",
+         entip="Right-click - freezes the creature you look at!",
+         color=(150, 210, 240), action=dict(type="freeze_target")),
+    dict(id="koku_bombasi", tr="Koku Bombası", en="Stink Bomb", kind="self_area",
+         trtip="Sağ tıkla — etrafa zehirli koku saçar!",
+         entip="Right-click - spreads a poisonous stink!",
+         color=(120, 150, 50), action=dict(type="poison_area", radius=6)),
+    dict(id="among_us_report", tr="Among Us Rapor", en="Among Us Report", kind="raycast",
+         trtip="Sağ tıkla — baktığın canlıyı anında öldürür! Tek kullanımlık.",
+         entip="Right-click - instantly kills what you look at! Single use.",
+         color=(200, 60, 60), action=dict(type="kill_target")),
+    dict(id="hiz_esyasi", tr="Hız Eşyası", en="Speed Item", kind="food",
+         trtip="Kullan ve 60 sn süper hız kazan!", entip="Use for 60s of super speed!",
+         color=(90, 200, 230), action=dict(type="eat", effect="speed", seconds=60, amp=3)),
+]
+
 
 # ---------------------------------------------------------------- PNG uretici
 def png(path, rows):
@@ -690,6 +734,16 @@ def build():
       {"resource_pack_name": "super_tnt", "texture_name": "atlas.terrain",
        "padding": 8, "num_mip_levels": 4, "texture_data": terrain})
 
+    # ---------- item ikonlari
+    item_tex = {}
+    for it in ITEMS:
+        key = f"stnt_{it['id']}"
+        rel = f"textures/items/{key}"
+        decor_texture(os.path.join(RP, rel + ".png"), it['color'], "plain")
+        item_tex[key] = {"textures": rel}
+    w(os.path.join(RP, "textures/item_texture.json"),
+      {"resource_pack_name": "super_tnt", "texture_data": item_tex})
+
     # ---------- pack_icon (calisan paketlerin hepsinde var; eksikligi
     #            paketi bozuk gosteriyor)
     for pack, base in ((BP, (196, 48, 54)), (RP, (60, 90, 190))):
@@ -742,6 +796,24 @@ def build():
                                 "menu_category": {"category": "construction",
                                                   "group": "itemGroup.name.super_tnt"}},
                 "components": comps,
+            },
+        })
+
+    # ---------- item'lar (yiyecek, buyu, arac)
+    for it in ITEMS:
+        icomps = {"minecraft:icon": f"stnt_{it['id']}",
+                  "minecraft:max_stack_size": 64 if it['kind'] == "food" else 1}
+        if it['kind'] == "food":
+            icomps["minecraft:food"] = {"nutrition": 4, "can_always_eat": True}
+            icomps["minecraft:use_animation"] = "eat"
+            icomps["minecraft:use_modifiers"] = {"use_duration": 1.4, "movement_modifier": 0.35}
+        w(os.path.join(BP, f"items/{it['id']}.json"), {
+            "format_version": "1.20.20",
+            "minecraft:item": {
+                "description": {"identifier": f"stnt:{it['id']}",
+                                "menu_category": {"category": "equipment",
+                                                  "group": "itemGroup.name.super_tnt"}},
+                "components": icomps,
             },
         })
 
@@ -833,6 +905,9 @@ def build():
             for blk in BLOCKS:
                 lines.append(f"tile.stnt:{blk['id']}.name={blk[nk]}")
                 lines.append(f"stnt.tip.{blk['id']}={blk[tk]}")
+            for it in ITEMS:
+                lines.append(f"item.stnt:{it['id']}.name={it[nk]}")
+                lines.append(f"stnt.tip.{it['id']}={it[tk]}")
             open(os.path.join(pack, f"texts/{lang}.lang"), 'w',
                  encoding='utf-8').write("\n".join(lines) + "\n")
 
@@ -840,9 +915,11 @@ def build():
     spec = {t['id']: t['effect'] for t in TNTS}
     tips = {t['id']: t['tr'] for t in TNTS}
     tiptext = {t['id']: t['trtip'] for t in TNTS}
+    item_actions = {it['id']: it['action'] for it in ITEMS}
     script = SCRIPT_TEMPLATE.replace("__SPEC__", json.dumps(spec, indent=2)) \
                             .replace("__NAMES__", json.dumps(tips, ensure_ascii=False)) \
                             .replace("__TIPS__", json.dumps(tiptext, ensure_ascii=False)) \
+                            .replace("__ITEM_ACTIONS__", json.dumps(item_actions)) \
                             .replace("__FUSE__", str(FUSE_TICKS))
     os.makedirs(os.path.join(BP, "scripts"), exist_ok=True)
     open(os.path.join(BP, "scripts/main.js"), 'w', encoding='utf-8').write(script)
@@ -887,7 +964,97 @@ import { world, system, ItemStack } from "@minecraft/server";
 const SPEC = __SPEC__;
 const NAMES = __NAMES__;
 const TIPS = __TIPS__;
+const ITEM_ACTIONS = __ITEM_ACTIONS__;
 const FUSE = __FUSE__;
+
+// ---------------------------------------------------------------- item'lar
+world.afterEvents.itemUse.subscribe((ev) => {
+  const a = ITEM_ACTIONS[ev.itemStack.typeId.replace("stnt:", "")];
+  if (a && a.type !== "eat") itemAction(ev.source, a);
+});
+world.afterEvents.itemCompleteUse.subscribe((ev) => {
+  const a = ITEM_ACTIONS[ev.itemStack.typeId.replace("stnt:", "")];
+  if (a && a.type === "eat") {
+    try { ev.source.addEffect(a.effect, a.seconds * 20, { amplifier: a.amp, showParticles: true }); } catch (e) {}
+  }
+});
+
+function itemAction(player, a) {
+  const dim = player.dimension;
+  try {
+    switch (a.type) {
+      case "lightning": {
+        const hit = player.getBlockFromViewDirection({ maxDistance: 64 });
+        const p = hit ? hit.block.location : player.location;
+        try { dim.spawnEntity("minecraft:lightning_bolt", p); } catch (e) {}
+        break;
+      }
+      case "blackhole": {
+        for (const e of dim.getEntities({ location: player.location, maxDistance: a.radius })) {
+          if (e.id === player.id) continue;
+          try {
+            const l = e.location, pl = player.location;
+            const dx = pl.x - l.x, dy = pl.y - l.y, dz = pl.z - l.z, len = Math.hypot(dx, dy, dz) || 1;
+            e.applyImpulse({ x: dx / len * 0.5, y: 0.1, z: dz / len * 0.5 });
+            e.addEffect("blindness", 100, { amplifier: 0 });
+            e.applyDamage(4);
+          } catch (err) {}
+        }
+        spray(dim, player.location, "minecraft:portal_particle", 40, 3);
+        break;
+      }
+      case "break_any": {
+        const hit = player.getBlockFromViewDirection({ maxDistance: 8 });
+        if (hit) { try { hit.block.setType("minecraft:air"); } catch (e) {} }
+        break;
+      }
+      case "laser": {
+        const v = player.getViewDirection(), s = player.getHeadLocation();
+        for (let i = 1; i <= a.length; i++) {
+          const p = { x: s.x + v.x * i, y: s.y + v.y * i, z: s.z + v.z * i };
+          try {
+            const b = dim.getBlock(p);
+            if (b && b.typeId !== "minecraft:air" && b.typeId !== "minecraft:bedrock") b.setType("minecraft:air");
+          } catch (e) {}
+        }
+        for (const h of player.getEntitiesFromViewDirection({ maxDistance: a.length })) {
+          try { h.entity.applyDamage(30); } catch (err) {}
+        }
+        break;
+      }
+      case "grapple": {
+        const hit = player.getBlockFromViewDirection({ maxDistance: 40 });
+        if (hit) {
+          const l = hit.block.location, pl = player.location;
+          const dx = l.x - pl.x, dy = l.y - pl.y, dz = l.z - pl.z, len = Math.hypot(dx, dy, dz) || 1;
+          const sp = Math.max(0.9, Math.min(2.8, 0.5 + len * 0.12));
+          // player.applyImpulse Bedrock'ta calismaz; player icin applyKnockback (4 sayi)
+          try { player.applyKnockback(dx / len, dz / len, sp, Math.max(0.4, dy / len + 0.4)); }
+          catch (e) { try { player.applyKnockback({ x: dx / len, z: dz / len }, Math.max(0.4, dy / len + 0.4)); } catch (e2) {} }
+        }
+        break;
+      }
+      case "freeze_target": {
+        const hs = player.getEntitiesFromViewDirection({ maxDistance: 30 });
+        if (hs.length) { try { hs[0].entity.addEffect("slowness", 200, { amplifier: 6 }); hs[0].entity.addEffect("weakness", 200, { amplifier: 2 }); } catch (e) {} }
+        break;
+      }
+      case "kill_target": {
+        const hs = player.getEntitiesFromViewDirection({ maxDistance: 30 });
+        if (hs.length) { try { hs[0].entity.applyDamage(1000); } catch (e) {} }
+        break;
+      }
+      case "poison_area": {
+        for (const e of dim.getEntities({ location: player.location, maxDistance: a.radius })) {
+          if (e.id === player.id) continue;
+          try { e.addEffect("poison", 200, { amplifier: 1 }); e.addEffect("nausea", 200, { amplifier: 0 }); } catch (err) {}
+        }
+        spray(dim, player.location, "minecraft:mobspell_emitter", 30, 3);
+        break;
+      }
+    }
+  } catch (e) {}
+}
 
 // ---------------------------------------------------------------- tooltip
 // Bedrock'ta Java'daki gibi blok tooltip'i yok. Java surumunde her TNT'nin
