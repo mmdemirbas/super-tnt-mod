@@ -65,8 +65,57 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 12, 0]
+VERSION = [1, 13, 0]
 MIN_ENGINE = [1, 21, 0]
+
+# ---------------------------------------------------------------- oyuncu boyutu
+# Kucultme/Buyutme: Bedrock'ta oyuncuya minecraft:scale UYGULANAMIYOR
+# (script'ten cagrilinca "event does not exist on minecraft:player" hatasi
+# verir). Calisan yontem MorphX'ten alindi ve dogrulandi: iki bagimsiz katman.
+#   1) GORSEL boyut = RP client_entity'de render-scale Molang, bir entity
+#      ozelligine (st:size) bagli.
+#   2) CARPISMA kutusu = BP component_group icinde minecraft:collision_box,
+#      olaylarla degistirilir.
+# Ikisini de bir entity int-ozelligi (st:size) yonlendirir; script
+# triggerEvent("st:size_N") ile ayarlar. player.json paketler arasi
+# BIRLESMEDIGI icin bu ozellik MorphX ile ayni dunyada CAKISIR (ustteki
+# paket kazanir); ayri dunyalarda ikisi de calisir. PORT-DURUMU.md'de yazili.
+#
+# st:size 0..4 -> (gorsel olcek, carpisma genisligi, carpisma yuksekligi).
+# 2 = normal (vanilla 0.6 x 1.8). MorphX dev boyutu 3.6y kullaniyor; ustunu
+# asmadik. Gorsel olcek ile hitbox birebir ayni olmak zorunda degil.
+SIZE_TABLE = {
+    0: (0.30, 0.35, 0.60),   # minik
+    1: (0.55, 0.50, 1.00),   # kucuk
+    2: (1.00, 0.60, 1.80),   # normal (vanilla)
+    3: (1.70, 0.90, 3.00),   # buyuk
+    4: (2.50, 1.20, 3.60),   # dev
+}
+SIZE_DEFAULT = 2
+
+# MorphX'in (calisan referans) oyuncu taban bilesenleri. Bunlar Mojang'in
+# vanilla oyuncu bilesen degerleri; hareket/kamera/envanter motor tarafinda
+# gomulu oldugu icin player.json'a yazilmaz. Eksik/yanlis deger oyuncuyu
+# bozar, o yuzden tahmin degil kanitlanmis degerler kullanildi.
+PLAYER_BASE = {
+    "minecraft:experience_reward": {"on_death": "Math.Min(query.player_level * 7, 100)"},
+    "minecraft:is_hidden_when_invisible": {},
+    "minecraft:loot": {"table": "loot_tables/empty.json"},
+    "minecraft:can_climb": {},
+    "minecraft:exhaustion_values": {
+        "heal": 6, "jump": 0.05, "sprint_jump": 0.2, "mine": 0.005, "attack": 0.1,
+        "damage": 0.1, "walk": 0.0, "sprint": 0.1, "swim": 0.01},
+    "minecraft:player.saturation": {"value": 5, "max": 20},
+    "minecraft:player.exhaustion": {"value": 0, "max": 20},
+    "minecraft:player.level": {"value": 0, "max": 24791},
+    "minecraft:player.experience": {"value": 0, "max": 1},
+    "minecraft:nameable": {"always_show": True, "allow_name_tag_renaming": False},
+    "minecraft:physics": {"push_towards_closest_space": True},
+    "minecraft:pushable": {"is_pushable": False, "is_pushable_by_piston": True},
+    "minecraft:insomnia": {"days_until_insomnia": 3},
+    "minecraft:conditional_bandwidth_optimization": {},
+    "minecraft:block_climber": {},
+}
 
 # ---------------------------------------------------------------- TNT tanimlari
 # renk: (top, side, bottom) RGB. tex: Java projesinden kopyalanacak taban ad.
@@ -138,6 +187,16 @@ TNTS = [
          entip="Covers a 14 block radius with ice. Freezes everyone except the igniter for 30s. Snows for 30s.",
          color=((150, 200, 232), (176, 216, 240), (150, 200, 232)), mat="minecraft:packed_ice",
          effect=dict(kind="freeze", radius=14, freeze_seconds=30)),
+    dict(id="kucultme_tnt", tr="Küçültme TNT", en="Shrink TNT",
+         trtip="Yakındaki oyuncuları minicik yapar! Kalp TNT ile eski boyutuna dönersin.",
+         entip="Shrinks nearby players tiny! Heart TNT restores your size.",
+         color=((150, 90, 200), (176, 120, 224), (120, 70, 170)), mat="minecraft:amethyst_shard",
+         effect=dict(kind="scale", radius=8, delta=-2)),
+    dict(id="buyutme_tnt", tr="Büyütme TNT", en="Growth TNT",
+         trtip="Yakındaki oyuncuları dev yapar! Kalp TNT ile eski boyutuna dönersin.",
+         entip="Grows nearby players giant! Heart TNT restores your size.",
+         color=((220, 120, 40), (240, 150, 60), (190, 96, 30)), mat="minecraft:pumpkin",
+         effect=dict(kind="scale", radius=8, delta=2)),
 
     # ============ EASY: patlama / saçma / efekt / hava / zaman ============
     dict(id="gold_tnt", tr="Altın TNT", en="Gold TNT",
@@ -527,6 +586,25 @@ BLOCKS += [
          kind="portal_end", color=(52, 42, 82), mat="minecraft:obsidian"),
 ]
 
+# Mini bloklar: tam bloktan kucuk (hucre ortasinda 8x8x8 kup). Kucultme
+# temasiyla uyumlu; cocuklar minik yapilar kurabilir. Her mini kendi
+# hucresini kaplar ama KUCUK gorunur (bir hucreye birden fazla mini
+# konamaz — Bedrock hucre basina tek blok; bu sinir kabul edildi).
+_MINI_COLORS = {
+    "red": (210, 60, 60), "orange": (230, 140, 40), "yellow": (240, 210, 60),
+    "green": (90, 180, 70), "blue": (60, 110, 210), "purple": (140, 70, 190),
+    "pink": (240, 150, 190), "white": (236, 236, 236),
+}
+_MINI_TR = {
+    "red": "Kırmızı", "orange": "Turuncu", "yellow": "Sarı", "green": "Yeşil",
+    "blue": "Mavi", "purple": "Mor", "pink": "Pembe", "white": "Beyaz",
+}
+for _cn, _rgb in _MINI_COLORS.items():
+    BLOCKS.append(dict(id=f"mini_{_cn}", tr=f"{_MINI_TR[_cn]} Mini Blok", en=f"{_cn.title()} Mini Block",
+                       trtip="Küçük dekoratif blok — minik yapılar kur!",
+                       entip="A small decorative block - build tiny things!",
+                       kind="mini", color=_rgb, mat="minecraft:clay_ball"))
+
 # ---------------------------------------------------------------- item tanimlari
 # kind "food": yenince efekt. "raycast": bakilan bloga/varliga etki.
 # "self_area": elde kullaninca oyuncunun etrafina etki.
@@ -615,6 +693,21 @@ ITEMS = [
          trtip="Sağ tıkla — baktığın yeri işaretle, tekrar tıkla arası dolsun.",
          entip="Right-click a point, right-click again to fill between.",
          color=(150, 110, 66), action=dict(type="fill_axe")),
+    # boyut toplari: sag tiklayinca KENDINI bir kademe kucultur/buyutur.
+    # (Bedrock'ta atilan mermiyle baskasini kucultmek yerine kendine
+    #  uygulamak daha guvenilir; player.json st:size ozelligini surer.)
+    dict(id="kucultme_topu", tr="Küçültme Topu", en="Shrink Ball", kind="raycast",
+         trtip="Sağ tıkla — bir kademe küçülürsün! En küçükte minicik olursun.",
+         entip="Right-click - shrink one step! Tiny at the smallest.",
+         color=(150, 90, 200), action=dict(type="resize", delta=-1)),
+    dict(id="buyutme_topu", tr="Büyütme Topu", en="Growth Ball", kind="raycast",
+         trtip="Sağ tıkla — bir kademe büyürsün! En büyükte dev olursun.",
+         entip="Right-click - grow one step! Giant at the biggest.",
+         color=(220, 120, 40), action=dict(type="resize", delta=1)),
+    dict(id="normal_boyut_topu", tr="Normal Boyut Topu", en="Reset Size Ball", kind="raycast",
+         trtip="Sağ tıkla — normal boyutuna dönersin.",
+         entip="Right-click - return to normal size.",
+         color=(80, 180, 100), action=dict(type="resize", reset=True)),
 ]
 
 
@@ -902,6 +995,16 @@ def build():
             comps["minecraft:collision_box"] = False
         elif blk['kind'] == "glow":
             comps["minecraft:light_emission"] = 15
+        elif blk['kind'] == "mini":
+            # tam bloktan kucuk: hucre tabaninda ortali 8x8x8 kup.
+            comps["minecraft:geometry"] = "geometry.stnt_mini"
+            comps["minecraft:collision_box"] = {"origin": [-4, 0, -4], "size": [8, 8, 8]}
+            comps["minecraft:selection_box"] = {"origin": [-4, 0, -4], "size": [8, 8, 8]}
+            # kucuk geometry: komsu culling'i kapatmak icin material'i
+            # alpha_test yap (opaque kalirsa MC blogu tam-kup sanip komsuyu
+            # gorunmez kilabilir).
+            comps["minecraft:material_instances"] = {
+                "*": {"texture": f"stnt_{blk['id']}", "render_method": "alpha_test"}}
         w(os.path.join(BP, f"blocks/{blk['id']}.json"), {
             "format_version": "1.20.20",
             "minecraft:block": {
@@ -936,6 +1039,18 @@ def build():
                                                   "group": "itemGroup.name.super_tnt"}},
                 "components": icomps,
             },
+        })
+
+    # ---------- mini blok geometrisi (hucre tabaninda ortali 8x8x8 kup)
+    if any(b['kind'] == "mini" for b in BLOCKS):
+        w(os.path.join(RP, "models/blocks/stnt_mini.geo.json"), {
+            "format_version": "1.16.0",
+            "minecraft:geometry": [{
+                "description": {"identifier": "geometry.stnt_mini",
+                                "texture_width": 16, "texture_height": 16},
+                "bones": [{"name": "mini", "pivot": [0, 0, 0],
+                           "cubes": [{"origin": [-4, 0, -4], "size": [8, 8, 8], "uv": [0, 0]}]}],
+            }],
         })
 
     # ---------- ates alan TNT varligi (F1)
@@ -1032,6 +1147,53 @@ def build():
             open(os.path.join(pack, f"texts/{lang}.lang"), 'w',
                  encoding='utf-8').write("\n".join(lines) + "\n")
 
+    # ---------- oyuncu boyutu (kucultme/buyutme altyapisi)
+    # BP: st:size ozelligi + her kademe icin collision_box component_group +
+    #     olaylar (triggerEvent ile kademe secilir).
+    # RP: VANILLA client_entity (Mojang bedrock-samples) + kademe olcegi.
+    #     Vanilla alt-varliklar (humanoid geometry, 72 animasyon, render
+    #     controller'lari) MC tarafindan saglanir; sadece client_entity
+    #     override edilir, boylece oyuncu bozulmaz — yalniz gorsel olcek eklenir.
+    # player.json paketler arasi BIRLESMEZ: bu ozellik MorphX ile ayni dunyada
+    #     cakisir (ustteki paket kazanir), ayri dunyalarda ikisi de calisir.
+    all_groups = [f"st:size_{i}" for i in SIZE_TABLE]
+    size_groups, size_events = {}, {}
+    for i, (scale, cw, ch) in SIZE_TABLE.items():
+        size_groups[f"st:size_{i}"] = {"minecraft:collision_box": {"width": cw, "height": ch}}
+        size_events[f"st:size_{i}"] = {
+            "set_property": {"st:size": i},
+            "add": {"component_groups": [f"st:size_{i}"]},
+            "remove": {"component_groups": [g for g in all_groups if g != f"st:size_{i}"]}}
+    _, def_cw, def_ch = SIZE_TABLE[SIZE_DEFAULT]
+    w(os.path.join(BP, "entities/player.json"), {
+        "format_version": "1.21.0",
+        "minecraft:entity": {
+            "description": {
+                "identifier": "minecraft:player",
+                "is_spawnable": False, "is_summonable": False, "is_experimental": False,
+                "properties": {
+                    "st:size": {"type": "int", "range": [0, 4],
+                                "default": SIZE_DEFAULT, "client_sync": True}}},
+            "components": {**PLAYER_BASE,
+                           "minecraft:collision_box": {"width": def_cw, "height": def_ch}},
+            "component_groups": size_groups,
+            "events": size_events,
+        },
+    })
+    # MorphX ile ayni bos loot (oyuncu olunce ekstra drop olmasin)
+    w(os.path.join(BP, "loot_tables/empty.json"), {"pools": []})
+    # RP: vanilla client_entity + kademe olcek carpani (render-Molang).
+    # vanilla scale "0.9375" tabani korunur, kademe carpaniyla carpilir.
+    rp_player = json.load(open(os.path.join(HERE, "player_rp_base.json"), encoding="utf-8"))
+    rp_desc = rp_player["minecraft:client_entity"]["description"]
+    factor = "1.0"
+    for i in sorted(SIZE_TABLE):
+        if i == SIZE_DEFAULT:
+            continue
+        factor = f"(query.property('st:size') == {i} ? {SIZE_TABLE[i][0]} : {factor})"
+    rp_desc["scripts"]["scale"] = f"({rp_desc['scripts']['scale']}) * {factor}"
+    w(os.path.join(RP, "entity/player.json"), rp_player)
+
     # ---------- script
     spec = {t['id']: t['effect'] for t in TNTS}
     tips = {t['id']: t['tr'] for t in TNTS}
@@ -1104,6 +1266,18 @@ function itemAction(player, a) {
   const dim = player.dimension;
   try {
     switch (a.type) {
+      case "resize": {
+        // KENDINI kademe kucult/buyut ya da normale don (a.reset).
+        try {
+          let sz = player.getProperty("st:size");
+          if (typeof sz !== "number") sz = 2;
+          sz = a.reset ? 2 : Math.max(0, Math.min(4, sz + a.delta));
+          player.triggerEvent("st:size_" + sz);
+          spray(dim, player.location,
+                (a.reset || a.delta > 0) ? "minecraft:totem_particle" : "minecraft:portal_particle", 24, 2);
+        } catch (e) {}
+        break;
+      }
       case "lightning": {
         const hit = player.getBlockFromViewDirection({ maxDistance: 64 });
         const p = hit ? hit.block.location : player.location;
@@ -1494,6 +1668,22 @@ function detonate(dim, c, short, igniterId) {
         dim.createExplosion(c, s.power, { breaksBlocks: true, causesFire: false });
         break;
 
+      case "scale": {
+        // SADECE oyuncular. player.json'daki st:size ozelligi kademe degistirir:
+        // gorsel boyut RP render-Molang, hitbox BP collision_box ile eslenir.
+        // Kalp TNT (heal) boyutu normale (2) dondurur.
+        for (const p of dim.getPlayers({ location: c, maxDistance: s.radius })) {
+          try {
+            let sz = p.getProperty("st:size");
+            if (typeof sz !== "number") sz = 2;
+            sz = Math.max(0, Math.min(4, sz + s.delta));
+            p.triggerEvent("st:size_" + sz);
+          } catch (e) {}
+        }
+        spray(dim, c, s.delta < 0 ? "minecraft:portal_particle" : "minecraft:totem_particle", 40, 3);
+        break;
+      }
+
       case "launch": {
         dim.createExplosion(c, 0.1, { breaksBlocks: false, causesFire: false });
         for (const e of dim.getEntities({ location: c, maxDistance: s.radius })) {
@@ -1557,9 +1747,9 @@ function detonate(dim, c, short, igniterId) {
             for (const eff of p.getEffects()) {
               try { p.removeEffect(eff.typeId); } catch (err) {}
             }
-            // Java ayrica olcek degisikligini sifirliyor; Bedrock'ta oyuncu
-            // olcegi script'ten hic degistirilemedigi icin bozulmasi da
-            // mumkun degil - o adimin Bedrock'ta karsiligi yok.
+            // Java gibi boyutu da normale (2) dondurur — Kucultme/Buyutme
+            // TNT'sinin veya boyut toplarinin etkisini temizler.
+            try { p.triggerEvent("st:size_2"); } catch (e) {}
             p.addEffect("regeneration", 600, { amplifier: 2, showParticles: true });
             p.addEffect("absorption", 600, { amplifier: 4, showParticles: true });
           } catch (err) {}

@@ -1,9 +1,30 @@
 # Super TNT — Bedrock Port Durumu
 
-Son sürüm: **v1.12.0** · **115 içerik** portlandı (66 TNT + 26 blok + 23 item).
+Son sürüm: **v1.13.0** · **128 içerik** portlandı (68 TNT + 34 blok + 26 item).
 
 Java modu 71 TNT + 17 blok + 43 item içeriyor. Aşağıda ne portlandı, ne
 portlanamadı — sebepleriyle.
+
+## v1.13.0 — çocukların sevdiği 3 özellik eklendi
+
+- **Küçültme / Büyütme (oyuncu)** — Küçültme TNT + Büyütme TNT + Küçültme
+  Topu + Büyütme Topu + Normal Boyut Topu. Oyuncu 5 kademe arasında
+  gerçekten küçülüp büyür (görsel + çarpışma kutusu). Kalp TNT boyutu
+  normale döndürür. **Yöntem:** `player.json` override — Mojang'ın vanilla
+  RP client_entity'sine kademeli render-Molang ölçeği + BP `st:size`
+  özelliği + kademe başına `collision_box`. `minecraft:scale` oyuncuda
+  çalışmadığı için (script'ten "event does not exist" hatası) MorphX'in
+  kanıtlanmış render-Molang yöntemi kullanıldı.
+  **Bilinen kısıt:** `player.json` Bedrock'ta paketler arası birleşmez —
+  bu özellik MorphX ile **aynı dünyada** kullanılamaz (üstteki paket
+  kazanır). Ayrı dünyalarda ikisi de çalışır.
+- **Mini blok (küçük blok koyma)** — 8 renkli mini blok (hücre tabanında
+  8×8×8 küp). Çocuklar minik yapılar kurar. Bir hücreye tek mini konur
+  (Bedrock hücre başına tek blok).
+- **Tünel açma** — `Delici Aleti` item'ı zaten var: sağ tıkla, önündeki 12
+  bloğu deler ve içinden geçilebilir tünel açar. Java'daki tünel
+  mekaniğinin karşılığı. (Kalıcı *oyulmuş blok* — katı duvar + geçilebilir
+  delik — Bedrock'ta imkansız: çarpışma tek kutu, VoxelShape yok.)
 
 ## Portlandı ✅
 
@@ -44,10 +65,15 @@ Lav Kristali, Kanlı Kılıç, Kalp Baltası, Gökkuşağı Botları, End/Nether
 ### Hâlâ portlanmadı
 | İçerik | Neden |
 |---|---|
-| Küçültme/Büyütme (TNT + top + iksir + kilit) | Bedrock oyuncu/mob ölçeğini script'ten değiştiremiyor |
 | TNT Kapı, Blocker/Şifreli Sandık | Sahip-tabanlı kalıcı container; Bedrock'ta özel container UI yok |
 | Portal Silahı + Portal Blok | Eşleşen çift portal + kalıcı durum |
-| Tünel Kazma + Tünel Blok | Dinamik çarpışma sınırlı blok varlığı |
+| Tünel *Blok* (kalıcı oyulmuş) | Çarpışma tek AABB — katı duvar + geçilebilir delik imkansız (tünel *item* olarak Delici Aleti'nde var) |
+
+**v1.13.0'da çözülenler (eski "hâlâ portlanmadı" satırları):**
+- Küçültme/Büyütme — vanilla `player.json` override + render-Molang ile
+  çözüldü (eski not "script'ten ölçek değiştirilemiyor" yanlıştı; oyuncuda
+  `minecraft:scale` çalışmıyor ama render-Molang çalışıyor).
+- Tünel Kazma — Delici Aleti item'ı ile portlandı (blokları deler).
 
 ## Bilinen sınırlar (portlanan içerikte)
 
