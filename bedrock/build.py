@@ -789,6 +789,32 @@ ITEMS = [
          trtip="Sağ tıkla — DEV bir Ender Send çağırır! 300 can, ışınlanır, çok güçlü.",
          entip="Right-click - summons a GIANT Ender Send! 300 HP, teleports, very strong.",
          color=(40, 30, 60), spawn="stnt:ender_send"),
+    dict(id="dev_zombi_yumurta", tr="Dev Zombi Yumurtası", en="Giant Zombie Egg", kind="spawn_egg",
+         trtip="Sağ tıkla — DEV bir zombi çağırır! 250 can, ağır yumruk.",
+         entip="Right-click - summons a GIANT zombie! 250 HP, heavy punch.",
+         color=(60, 100, 50), spawn="stnt:dev_zombi"),
+    dict(id="dev_creeper_yumurta", tr="Dev Creeper Yumurtası", en="Giant Creeper Egg", kind="spawn_egg",
+         trtip="Sağ tıkla — DEV bir creeper çağırır! Yaklaşınca kocaman patlar!",
+         entip="Right-click - summons a GIANT creeper! Blows up huge when close!",
+         color=(60, 160, 60), spawn="stnt:dev_creeper"),
+]
+
+# ---------------------------------------------------------------- canavarlar
+# Ender Send + dev boss'lar. Vanilla mob gorseli olceklenir (materials/texture/
+# geometry MC saglar). Adlar MorphX'in calisan dosyasindan dogrulandi.
+# spawn egg ITEMS'te (kind=spawn_egg, entity_placer ile cagirir).
+MONSTERS = [
+    dict(id="ender_send", mat="enderman", tex="textures/entity/enderman/enderman",
+         geo="geometry.enderman", hp=300, scale=3.5, dmg=15, cw=2.0, ch=9.0,
+         extra={"minecraft:knockback_resistance": {"value": 0.85}}),
+    dict(id="dev_zombi", mat="zombie", tex="textures/entity/zombie/zombie",
+         geo="geometry.zombie.v1.8", hp=250, scale=3.2, dmg=12, cw=1.5, ch=6.0,
+         extra={"minecraft:knockback_resistance": {"value": 0.7},
+                "minecraft:burns_in_daylight": {}}),
+    dict(id="dev_creeper", mat="creeper", tex="textures/entity/creeper/creeper",
+         geo="geometry.creeper.v1.8", hp=180, scale=3.0, dmg=8, cw=1.5, ch=5.5,
+         # creeper temasi: yaklasinca sisip DEV patlar
+         explode=dict(power=6, fuse=1.5)),
 ]
 
 
@@ -1221,50 +1247,67 @@ def build():
         })
         compose_entity_texture(t, os.path.join(RP, f"textures/entity/stnt/{t['id']}.png"))
 
-    # ---------- Ender Send boss (dev enderman-benzeri, spawn egg ile cagrilir)
-    # Java'da 20 blok; Bedrock'ta scale 3.5 (~9 blok hitbox) makul dev boyut —
-    # 20 blok chunk/tavan sorunlari cikarir. Vanilla enderman gorseli olceklenir.
-    if any(it['kind'] == "spawn_egg" for it in ITEMS):
-        w(os.path.join(BP, "entities/ender_send.json"), {
-            "format_version": "1.21.0",
-            "minecraft:entity": {
-                # is_spawnable:false -> otomatik (dokusuz) spawn egg'i bastir;
-                # cagirma kendi ender_send_yumurta item'imizla (entity_placer).
-                "description": {"identifier": "stnt:ender_send", "is_spawnable": False,
-                                "is_summonable": True, "is_experimental": False},
-                "components": {
-                    "minecraft:type_family": {"family": ["monster", "mob", "ender_send"]},
-                    "minecraft:health": {"value": 300, "max": 300},
-                    "minecraft:scale": {"value": 3.5},
-                    "minecraft:collision_box": {"width": 2.0, "height": 9.0},
-                    "minecraft:attack": {"damage": 15},
-                    "minecraft:movement": {"value": 0.4},
-                    "minecraft:navigation.walk": {"can_path_over_water": True, "avoid_water": True},
-                    "minecraft:movement.basic": {},
-                    "minecraft:jump.static": {},
-                    "minecraft:physics": {},
-                    "minecraft:knockback_resistance": {"value": 0.85},
-                    "minecraft:persistent": {},
-                    "minecraft:nameable": {},
-                    "minecraft:behavior.melee_attack": {"priority": 2, "track_target": True},
-                    "minecraft:behavior.nearest_attackable_target": {"priority": 3, "must_see": True,
-                        "entity_types": [{"filters": {"test": "is_family", "subject": "other", "value": "player"},
-                                          "max_dist": 32}]},
-                    "minecraft:behavior.random_stroll": {"priority": 6, "speed_multiplier": 1.0},
-                    "minecraft:behavior.look_at_player": {"priority": 7, "look_distance": 24},
-                    "minecraft:behavior.random_look_around": {"priority": 8},
-                },
-            },
-        })
-        # RP: vanilla enderman gorseli (materials/texture/geometry MC saglar)
-        w(os.path.join(RP, "entity/ender_send.json"), {
+    # ---------- canavarlar (dev boss'lar, spawn egg ile cagrilir)
+    # scale ~3 dev boyut; vanilla mob gorseli olceklenir. 20 blok yapmiyoruz
+    # (chunk/tavan sorunu). is_spawnable:false -> dokusuz otomatik egg bastirilir.
+    for m in MONSTERS:
+        comps = {
+            "minecraft:type_family": {"family": ["monster", "mob", m['id']]},
+            "minecraft:health": {"value": m['hp'], "max": m['hp']},
+            "minecraft:scale": {"value": m['scale']},
+            "minecraft:collision_box": {"width": m['cw'], "height": m['ch']},
+            "minecraft:attack": {"damage": m['dmg']},
+            "minecraft:movement": {"value": 0.4},
+            "minecraft:navigation.walk": {"can_path_over_water": True, "avoid_water": True},
+            "minecraft:movement.basic": {},
+            "minecraft:jump.static": {},
+            "minecraft:physics": {},
+            "minecraft:persistent": {},
+            "minecraft:nameable": {},
+            "minecraft:behavior.nearest_attackable_target": {"priority": 3, "must_see": True,
+                "entity_types": [{"filters": {"test": "is_family", "subject": "other", "value": "player"},
+                                  "max_dist": 32}]},
+            "minecraft:behavior.random_stroll": {"priority": 6, "speed_multiplier": 1.0},
+            "minecraft:behavior.look_at_player": {"priority": 7, "look_distance": 24},
+            "minecraft:behavior.random_look_around": {"priority": 8},
+        }
+        comps.update(m.get('extra', {}))
+        groups, events = {}, {}
+        if m.get('explode'):
+            # vanilla creeper mekanigi: yaklasinca sisip patlar (component_group
+            # ile fuse_lit toggle). start/stop olaylari fitili yakar/sondurur.
+            ex = m['explode']
+            comps["minecraft:explode"] = {"fuse_length": ex['fuse'], "fuse_lit": False,
+                                          "power": ex['power'], "causes_fire": False,
+                                          "destroy_affected_by_griefing": True}
+            comps["minecraft:target_nearby_sensor"] = {"inside_range": 3, "outside_range": 6,
+                "must_see": True,
+                "on_inside_range": {"event": "stnt:fuse", "target": "self"},
+                "on_outside_range": {"event": "stnt:unfuse", "target": "self"}}
+            comps["minecraft:behavior.swell"] = {"priority": 2, "start_distance": 3, "stop_distance": 6}
+            groups["stnt:fused"] = {"minecraft:explode": {"fuse_length": ex['fuse'], "fuse_lit": True,
+                                    "power": ex['power'], "causes_fire": False,
+                                    "destroy_affected_by_griefing": True}}
+            events = {"stnt:fuse": {"add": {"component_groups": ["stnt:fused"]}},
+                      "stnt:unfuse": {"remove": {"component_groups": ["stnt:fused"]}}}
+        else:
+            comps["minecraft:behavior.melee_attack"] = {"priority": 2, "track_target": True}
+        ent = {"description": {"identifier": f"stnt:{m['id']}", "is_spawnable": False,
+                               "is_summonable": True, "is_experimental": False},
+               "components": comps}
+        if groups: ent["component_groups"] = groups
+        if events: ent["events"] = events
+        w(os.path.join(BP, f"entities/{m['id']}.json"),
+          {"format_version": "1.21.0", "minecraft:entity": ent})
+        # RP: vanilla mob gorseli (materials/texture/geometry MC saglar)
+        w(os.path.join(RP, f"entity/{m['id']}.json"), {
             "format_version": "1.10.0",
             "minecraft:client_entity": {
                 "description": {
-                    "identifier": "stnt:ender_send",
-                    "materials": {"default": "enderman"},
-                    "textures": {"default": "textures/entity/enderman/enderman"},
-                    "geometry": {"default": "geometry.enderman"},
+                    "identifier": f"stnt:{m['id']}",
+                    "materials": {"default": m['mat']},
+                    "textures": {"default": m['tex']},
+                    "geometry": {"default": m['geo']},
                     "render_controllers": ["controller.render.default"],
                 },
             },
