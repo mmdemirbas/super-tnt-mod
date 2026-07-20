@@ -65,7 +65,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 11, 0]
+VERSION = [1, 12, 0]
 MIN_ENGINE = [1, 21, 0]
 
 # ---------------------------------------------------------------- TNT tanimlari
@@ -217,12 +217,12 @@ TNTS = [
          trtip="Patladığında etrafa bir sürü kağıt para saçar.",
          entip="Scatters a lot of paper money when it explodes.",
          color=((110, 150, 120), (140, 180, 150), (90, 128, 100)), mat="minecraft:paper",
-         effect=dict(kind="scatter", spread=8.0, drops=[{"item": "minecraft:paper", "count": 100, "stack": 4}])),
+         effect=dict(kind="scatter", spread=8.0, drops=[{"item": "stnt:iki_yuz_tl", "count": 100, "stack": 4}])),
     dict(id="kurus_tnt", tr="Kuruş TNT", en="Coin TNT",
          trtip="Patladığında etrafa bir sürü madeni para saçar.",
          entip="Scatters a lot of coins when it explodes.",
          color=((196, 160, 90), (216, 182, 110), (168, 136, 74)), mat="minecraft:gold_nugget",
-         effect=dict(kind="scatter", spread=9.0, drops=[{"item": "minecraft:gold_nugget", "count": 200, "stack": 8}])),
+         effect=dict(kind="scatter", spread=9.0, drops=[{"item": "stnt:kurus", "count": 200, "stack": 8}])),
     dict(id="pasta_tnt", tr="Pasta TNT", en="Cake TNT",
          trtip="Patladığında etrafa pastalar saçar.",
          entip="Scatters cakes when it explodes.",
@@ -430,6 +430,32 @@ TNTS = [
          color=((120, 90, 200), (146, 116, 220), (96, 72, 168)), mat="minecraft:feather",
          effect=dict(kind="status", target="all", radius=12, particle="minecraft:portal_particle",
                      effects=[{"id": "levitation", "seconds": 10, "amp": 2}])),
+    dict(id="command_tnt", tr="Komut TNT", en="Command TNT",
+         trtip="20 blok yarıçapındaki her şeyi yok eder.",
+         entip="Destroys everything within 20 blocks.",
+         color=((90, 70, 130), (116, 92, 164), (72, 56, 104)), mat="minecraft:command_block",
+         effect=dict(kind="break", radius=20, skipBedrock=True, perTick=1000, power=3)),
+    dict(id="dag_tnt", tr="Dağ TNT", en="Mountain TNT",
+         trtip="Etrafa taştan bir tepe yükseltir!",
+         entip="Raises a stone hill around it!",
+         color=((100, 100, 96), (124, 124, 118), (80, 80, 76)), mat="minecraft:stone",
+         effect=dict(kind="place", block="minecraft:stone", radius=8, onlyAir=True, perTick=800,
+                     particle="minecraft:basic_smoke_particle")),
+    dict(id="elmas_zirh_tnt", tr="Elmas Zırh TNT", en="Diamond Armor TNT",
+         trtip="50 blok yarıçapındaki TÜM canlıları yok eder — dev patlama!",
+         entip="Destroys ALL creatures within 50 blocks - massive blast!",
+         color=((80, 220, 220), (110, 236, 236), (60, 190, 190)), mat="minecraft:diamond_block",
+         effect=dict(kind="instakill", radius=40, exceptIgniter=False, power=18)),
+    dict(id="ureyen_tnt", tr="Üreyen TNT", en="Breeding TNT",
+         trtip="Güçlü bir patlamayla dünyayı sarsar!",
+         entip="Shakes the world with a powerful blast!",
+         color=((150, 80, 80), (180, 104, 104), (120, 64, 64)), mat="minecraft:tnt",
+         effect=dict(kind="explode", power=6)),
+    dict(id="walking_tnt", tr="Yürüyen TNT", en="Walking TNT",
+         trtip="Büyük bir patlama yapar!",
+         entip="Makes a big explosion!",
+         color=((60, 40, 30), (90, 60, 44), (48, 32, 24)), mat="minecraft:tnt",
+         effect=dict(kind="explode", power=8)),
 ]
 
 FUSE_TICKS = 80  # Java tarafinda setFuse(80)
@@ -491,6 +517,14 @@ BLOCKS += [
          trtip="Kır — içinden rastgele bir şey çıkar!",
          entip="Break it - something random pops out!",
          kind="mystery", color=(232, 192, 64), mat="minecraft:gold_block"),
+    dict(id="herobrine_spawner", tr="Herobrine Çağırıcı", en="Herobrine Spawner",
+         trtip="Yerleştir — korkunç yaratıklar çağırır!",
+         entip="Place it - summons scary creatures!",
+         kind="spawner", color=(46, 34, 34), mat="minecraft:soul_sand"),
+    dict(id="end_gate", tr="End Kapısı", en="End Gate",
+         trtip="Üstüne çık — End boyutuna ışınlanırsın!",
+         entip="Step on it - teleport to the End!",
+         kind="portal_end", color=(52, 42, 82), mat="minecraft:obsidian"),
 ]
 
 # ---------------------------------------------------------------- item tanimlari
@@ -555,6 +589,32 @@ ITEMS = [
          trtip="Giy — adım attığın yerde renkli yün çıkar! Boşluğa düşmezsin.",
          entip="Wear them - colored wool appears where you step!",
          color=(200, 60, 160), action=dict(type="worn_wool")),
+    # ganimet item'lari (TNT'ler bunlari sacar; kendi baslarina davranissiz)
+    dict(id="kurus", tr="1 Kuruş", en="1 Kurus", kind="loot",
+         trtip="1 kuruşluk madeni para.", entip="A 1-kurus coin.", color=(196, 160, 90)),
+    dict(id="iki_yuz_tl", tr="200 TL", en="200 Lira", kind="loot",
+         trtip="200 TL'lik banknot.", entip="A 200-lira banknote.", color=(110, 150, 120)),
+    dict(id="pink_lego_brick", tr="Pembe Lego Tuğla", en="Pink Lego Brick", kind="loot",
+         trtip="Pembe Lego tuğlası.", entip="A pink Lego brick.", color=(240, 150, 190)),
+    dict(id="green_lego_brick", tr="Yeşil Lego Tuğla", en="Green Lego Brick", kind="loot",
+         trtip="Yeşil Lego tuğlası.", entip="A green Lego brick.", color=(80, 130, 50)),
+    # atilabilir (mermi varligi yerine: bakilan yone isinla / etki)
+    dict(id="end_pearl", tr="End İncisi", en="End Pearl", kind="raycast",
+         trtip="Sağ tıkla — baktığın yere ışınlanırsın!",
+         entip="Right-click - teleport to where you look!",
+         color=(60, 130, 110), action=dict(type="teleport")),
+    dict(id="nether_pearl", tr="Nether İncisi", en="Nether Pearl", kind="raycast",
+         trtip="Sağ tıkla — baktığın yere ışınlanır, Ateş Çubuğu alırsın!",
+         entip="Right-click - teleport and get a Blaze Rod!",
+         color=(150, 60, 40), action=dict(type="teleport", give="minecraft:blaze_rod")),
+    dict(id="tnt_frisbee", tr="TNT Frizbi", en="TNT Frisbee", kind="raycast",
+         trtip="Sağ tıkla — baktığın yerde artı şeklinde yıkım!",
+         entip="Right-click - cross-shaped destruction where you look!",
+         color=(220, 60, 60), action=dict(type="frisbee")),
+    dict(id="craft_axe", tr="Craft Baltası", en="Craft Axe", kind="raycast",
+         trtip="Sağ tıkla — baktığın yeri işaretle, tekrar tıkla arası dolsun.",
+         entip="Right-click a point, right-click again to fill between.",
+         color=(150, 110, 66), action=dict(type="fill_axe")),
 ]
 
 
@@ -856,7 +916,7 @@ def build():
     # ---------- item'lar (yiyecek, buyu, arac)
     for it in ITEMS:
         icomps = {"minecraft:icon": f"stnt_{it['id']}",
-                  "minecraft:max_stack_size": 64 if it['kind'] == "food" else 1}
+                  "minecraft:max_stack_size": 64 if it['kind'] in ("food", "loot") else 1}
         if it['kind'] == "food":
             icomps["minecraft:food"] = {"nutrition": 4, "can_always_eat": True}
             icomps["minecraft:use_animation"] = "eat"
@@ -976,7 +1036,7 @@ def build():
     spec = {t['id']: t['effect'] for t in TNTS}
     tips = {t['id']: t['tr'] for t in TNTS}
     tiptext = {t['id']: t['trtip'] for t in TNTS}
-    item_actions = {it['id']: it['action'] for it in ITEMS}
+    item_actions = {it['id']: it['action'] for it in ITEMS if it.get('action')}
     script = SCRIPT_TEMPLATE.replace("__SPEC__", json.dumps(spec, indent=2)) \
                             .replace("__NAMES__", json.dumps(tips, ensure_ascii=False)) \
                             .replace("__TIPS__", json.dumps(tiptext, ensure_ascii=False)) \
@@ -1123,6 +1183,50 @@ function itemAction(player, a) {
               if (b && b.typeId !== "minecraft:air" && b.typeId !== "minecraft:bedrock") b.setType("minecraft:air");
             } catch (e) {}
           }
+        }
+        break;
+      }
+      case "teleport": {
+        const hit = player.getBlockFromViewDirection({ maxDistance: 48 });
+        if (hit) {
+          try { player.teleport({ x: hit.block.location.x + 0.5, y: hit.block.location.y + 1, z: hit.block.location.z + 0.5 }); } catch (e) {}
+        }
+        if (a.give) { try { player.runCommand(`give @s ${a.give} 1`); } catch (e) {} }
+        break;
+      }
+      case "frisbee": {
+        const hit = player.getBlockFromViewDirection({ maxDistance: 40 });
+        if (hit) {
+          const cc = hit.block.location;
+          const offs = [[0,0,0],[1,0,0],[-1,0,0],[0,0,1],[0,0,-1],[2,0,0],[-2,0,0],[0,0,2],[0,0,-2],[0,1,0],[0,-1,0]];
+          for (const [dx, dy, dz] of offs) {
+            try {
+              const b = dim.getBlock({ x: cc.x + dx, y: cc.y + dy, z: cc.z + dz });
+              if (b && b.typeId !== "minecraft:air" && b.typeId !== "minecraft:bedrock") b.setType("minecraft:air");
+            } catch (e) {}
+          }
+        }
+        break;
+      }
+      case "fill_axe": {
+        const hit = player.getBlockFromViewDirection({ maxDistance: 30 });
+        if (!hit) break;
+        const l = hit.block.location, key = "stnt:axe_" + player.id;
+        const saved = world.getDynamicProperty(key);
+        if (typeof saved !== "string") {
+          world.setDynamicProperty(key, `${Math.floor(l.x)},${Math.floor(l.y)},${Math.floor(l.z)}`);
+          try { player.onScreenDisplay.setActionBar("§eİlk nokta kaydedildi — ikinci noktaya tıkla"); } catch (e) {}
+        } else {
+          world.setDynamicProperty(key, undefined);
+          const [x1, y1, z1] = saved.split(",").map(Number);
+          const x2 = Math.floor(l.x), y2 = Math.floor(l.y), z2 = Math.floor(l.z);
+          let placed = 0;
+          for (let x = Math.min(x1, x2); x <= Math.max(x1, x2) && placed < 4096; x++)
+            for (let y = Math.min(y1, y2); y <= Math.max(y1, y2) && placed < 4096; y++)
+              for (let z = Math.min(z1, z2); z <= Math.max(z1, z2) && placed < 4096; z++) {
+                try { const b = dim.getBlock({ x, y, z }); if (b && b.typeId === "minecraft:air") { b.setType("minecraft:stone"); placed++; } } catch (e) {}
+              }
+          try { player.onScreenDisplay.setActionBar(`§a${placed} blok dolduruldu`); } catch (e) {}
         }
         break;
       }
@@ -1549,14 +1653,15 @@ function detonate(dim, c, short, igniterId) {
         break;
       }
 
-      // ---- aninda oldur, patlatan haric (gizli)
+      // ---- aninda oldur (gizli: patlatan haric; elmas_zirh: herkes)
       case "instakill": {
         for (const e of dim.getEntities({ location: c, maxDistance: s.radius })) {
           try {
-            if (e.typeId === "minecraft:player" && igniterId && e.id === igniterId) continue;
+            if (e.typeId === "minecraft:player" && s.exceptIgniter !== false && igniterId && e.id === igniterId) continue;
             e.applyDamage(1000);
           } catch (err) {}
         }
+        if (s.power) { try { dim.createExplosion(c, s.power, { breaksBlocks: true, causesFire: false }); } catch (e) {} }
         spray(dim, c, "minecraft:soul_particle", 60, 5);
         break;
       }
@@ -1743,9 +1848,28 @@ system.runInterval(() => {
       if (!below) continue;
       if (below.typeId === "stnt:wrong_golden_plate") p.applyDamage(1000);
       else if (below.typeId === "stnt:zehir_toprak") p.addEffect("poison", 100, { amplifier: 2 });
+      else if (below.typeId === "stnt:end_gate") {
+        try { p.teleport({ x: 100, y: 70, z: 0 }, { dimension: world.getDimension("minecraft:the_end") }); } catch (e) {}
+      }
     } catch (e) {}
   }
 }, 5);
+
+// Herobrine Cagirici: yerlestirilince yaratik cagirir, sonra kaybolur.
+world.afterEvents.playerPlaceBlock.subscribe((ev) => {
+  try {
+    if (ev.block.typeId !== "stnt:herobrine_spawner") return;
+    const loc = ev.block.location, dim = ev.dimension;
+    ev.block.setType("minecraft:air");
+    for (let i = 0; i < 3; i++) {
+      try {
+        dim.spawnEntity("minecraft:zombie",
+          { x: loc.x + 0.5 + (Math.random() - 0.5) * 3, y: loc.y + 1, z: loc.z + 0.5 + (Math.random() - 0.5) * 3 });
+      } catch (e) {}
+    }
+    spray(dim, loc, "minecraft:soul_particle", 40, 3);
+  } catch (e) {}
+});
 
 // ? Blogu: kirilinca icinden rastgele bir sey cikar.
 world.afterEvents.playerBreakBlock.subscribe((ev) => {
