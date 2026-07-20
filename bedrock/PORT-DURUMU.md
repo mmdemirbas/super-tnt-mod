@@ -1,9 +1,32 @@
 # Super TNT — Bedrock Port Durumu
 
-Son sürüm: **v1.13.0** · **128 içerik** portlandı (68 TNT + 34 blok + 26 item).
+Son sürüm: **v1.14.0** · **135 içerik** portlandı (68 TNT + 38 blok + 29 item).
 
 Java modu 71 TNT + 17 blok + 43 item içeriyor. Aşağıda ne portlandı, ne
 portlanamadı — sebepleriyle.
+
+## v1.14.0 — `@minecraft/server-ui` + dünya durumu ile 6 özellik daha
+
+Önceki "container/UI yok" değerlendirmesi yanlıştı: `@minecraft/server-ui`
+(form/şifre girişi) ve dünya dinamik özelliği (konum-anahtarlı JSON harita)
+birçok özelliği açtı. server-ui 1.3.0'ın cihazda çalıştığı doğrulandı
+(MorphX aynı sürümü kullanıyor).
+
+- **Portal Silahı + Portal Bloğu** — sağ tıkla iki portal koy, aralarında
+  ışınlan. Konum çifti oyuncu başına dünya özelliğinde saklanır (yeniden
+  yüklemede kalır). 2 sn ışınlama beklemesi ile ileri-geri titreme önlenir.
+- **Eşya Çalmaca** — sağ tıkla, en yakın oyuncunun bir eşyasını çal
+  (`Container.transferItem`).
+- **Sahip Kapısı** — sadece koyan kişi açar (4 sn açılır); başkası geçemez.
+- **Kilitli Sandık** — sadece koyan kişi "açar"; başkası engellenir.
+- **Şifreli Sandık** — `ModalFormData` ile şifre. Sahip şifre belirler,
+  doğru gireni ödüllendirir (tek sefer). *Şifre ekranda görünür — Bedrock'ta
+  maskeli alan yok.*
+- **Kontrol Kumandası** — sağ tıkla, yerleştirdiğin tüm TNT'leri uzaktan
+  ateşle (Java'daki T-tuşu yerine sağ tık jesti).
+
+Sahiplik/şifre bir dünya JSON haritasında (`stnt:owners`) tutulur; Bedrock'ta
+blokların kendi dinamik özelliği yoktur.
 
 ## v1.13.0 — çocukların sevdiği 3 özellik eklendi
 
@@ -48,10 +71,12 @@ Lav Kristali, Kanlı Kılıç, Kalp Baltası, Gökkuşağı Botları, End/Nether
 ### Bedrock'ta imkansız (Java-only mekanizma)
 | İçerik | Neden |
 |---|---|
-| Çizim Eşyası (canvas) | Bedrock script arayüzü boyama tuvali sunmuyor — sadece buton/kaydırıcı/liste |
-| Ametist zırh (çıkarılamaz) | "Çıkaramama" Java mixin'iyle zorlanıyor; Bedrock zırh yuvasını engelleyemez |
-| Eşya Çalmaca | Başka oyuncunun envanterini açma API'si yok |
-| Kontrol Kumandası | "T tuşu" özel klavye bağlaması; Bedrock'ta özel tuş yok |
+| Çizim Eşyası (canvas) | Bedrock script arayüzü boyama tuvali sunmuyor — sadece buton/kaydırıcı/liste. `server-ui` buton ızgarası (tıkla-boya mozaik) mümkün ama küçük çocuk için hantal; Java-only bırakıldı |
+
+### Yaklaşık portlanabilir ama bilinçli eklenmedi
+| İçerik | Durum |
+|---|---|
+| Ametist zırh (çıkarılamaz) | Yapılabilir (`setEquipment` ile her tick geri giydir) ama 1-tick kaçış penceresi var ve çocuk için sinir bozucu — istenirse eklenir |
 
 ### Yaklaşık portlandı (Java'daki tam mekanik yerine benzeri)
 - **Komut TNT** — ayar arayüzü yerine sabit 20-blok yıkım.
@@ -65,15 +90,17 @@ Lav Kristali, Kanlı Kılıç, Kalp Baltası, Gökkuşağı Botları, End/Nether
 ### Hâlâ portlanmadı
 | İçerik | Neden |
 |---|---|
-| TNT Kapı, Blocker/Şifreli Sandık | Sahip-tabanlı kalıcı container; Bedrock'ta özel container UI yok |
-| Portal Silahı + Portal Blok | Eşleşen çift portal + kalıcı durum |
 | Tünel *Blok* (kalıcı oyulmuş) | Çarpışma tek AABB — katı duvar + geçilebilir delik imkansız (tünel *item* olarak Delici Aleti'nde var) |
 
-**v1.13.0'da çözülenler (eski "hâlâ portlanmadı" satırları):**
-- Küçültme/Büyütme — vanilla `player.json` override + render-Molang ile
-  çözüldü (eski not "script'ten ölçek değiştirilemiyor" yanlıştı; oyuncuda
+**Çözülenler (eski "hâlâ portlanmadı" satırları):**
+- Küçültme/Büyütme (v1.13.0) — vanilla `player.json` override + render-Molang
+  (eski not "script'ten ölçek değiştirilemiyor" yanlıştı; oyuncuda
   `minecraft:scale` çalışmıyor ama render-Molang çalışıyor).
-- Tünel Kazma — Delici Aleti item'ı ile portlandı (blokları deler).
+- Tünel Kazma (v1.13.0) — Delici Aleti item'ı ile (blokları deler).
+- TNT Kapı, Kilitli/Şifreli Sandık (v1.14.0) — dünya JSON haritası +
+  `ModalFormData` (eski not "container UI yok" yanlıştı; `server-ui` var).
+- Portal Silahı + Portal Blok (v1.14.0) — dünya dinamik özelliğinde konum
+  çifti + ışınlama.
 
 ## Bilinen sınırlar (portlanan içerikte)
 

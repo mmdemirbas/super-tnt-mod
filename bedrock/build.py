@@ -65,7 +65,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 13, 0]
+VERSION = [1, 14, 0]
 MIN_ENGINE = [1, 21, 0]
 
 # ---------------------------------------------------------------- oyuncu boyutu
@@ -585,6 +585,22 @@ BLOCKS += [
          trtip="Üstüne çık — End boyutuna ışınlanırsın!",
          entip="Step on it - teleport to the End!",
          kind="portal_end", color=(52, 42, 82), mat="minecraft:obsidian"),
+    dict(id="sahip_kapi", tr="Sahip Kapısı", en="Owner Door",
+         trtip="Sadece koyan kişi açabilir — başkası geçemez!",
+         entip="Only the placer can open it - nobody else passes!",
+         kind="owner_door", color=(150, 110, 66), mat="minecraft:iron_door"),
+    dict(id="blocker_sandik", tr="Kilitli Sandık", en="Blocker Chest",
+         trtip="Sadece koyan kişi açabilir — başkası açamaz!",
+         entip="Only the placer can open it - nobody else can!",
+         kind="owner_chest", color=(140, 100, 60), mat="minecraft:chest"),
+    dict(id="sifreli_sandik", tr="Şifreli Sandık", en="Password Chest",
+         trtip="Şifre koy — doğru şifreyi giren açar! (Şifre ekranda görünür.)",
+         entip="Set a password - whoever types it right opens it!",
+         kind="password_chest", color=(210, 175, 80), mat="minecraft:gold_block"),
+    dict(id="portal_blok", tr="Portal Bloğu", en="Portal Block",
+         trtip="Portal Silahı bunları koyar ve bağlar — içine gir, diğerine ışınlan!",
+         entip="Portal Gun places and links these - walk into one, warp to the other!",
+         kind="portal_block", color=(140, 90, 220), mat="minecraft:ender_pearl"),
 ]
 
 # Mini bloklar: tam bloktan kucuk (hucre ortasinda 8x8x8 kup). Kucultme
@@ -709,6 +725,18 @@ ITEMS = [
          trtip="Sağ tıkla — normal boyutuna dönersin.",
          entip="Right-click - return to normal size.",
          color=(80, 180, 100), action=dict(type="resize", reset=True)),
+    dict(id="esya_calmaca", tr="Eşya Çalmaca", en="Item Stealer", kind="raycast",
+         trtip="TROL: sağ tıkla — en yakın oyuncunun bir eşyasını çalar!",
+         entip="TROLL: right-click - steals an item from the nearest player!",
+         color=(90, 60, 120), action=dict(type="steal", radius=8)),
+    dict(id="kontrol_kumandasi", tr="Kontrol Kumandası", en="Control Remote", kind="raycast",
+         trtip="Sağ tıkla — yerleştirdiğin tüm TNT'leri uzaktan ateşler!",
+         entip="Right-click - remotely ignites all TNT you placed!",
+         color=(40, 44, 52), action=dict(type="remote_detonate")),
+    dict(id="portal_silahi", tr="Portal Silahı", en="Portal Gun", kind="raycast",
+         trtip="Sağ tıkla — bir portal koy, tekrar tıkla ikincisini koy. Aralarında ışınlan!",
+         entip="Right-click a portal, again for the second. Teleport between them!",
+         color=(120, 90, 220), action=dict(type="portal_gun", range=48)),
 ]
 
 
@@ -902,7 +930,10 @@ def build():
             {"uuid": RP_UUID, "version": VERSION},
             # 1.14.0: MorphX bu surumu kullaniyor ve ayni cihazda yuklendigi
             # dogrulandi. Tahmin yerine bilinen-calisan surume yaslaniyoruz.
-            {"module_name": "@minecraft/server", "version": "1.14.0"}],
+            {"module_name": "@minecraft/server", "version": "1.14.0"},
+            # server-ui 1.3.0: @minecraft/server 1.x hattinin es surumu.
+            # Sifreli sandigin ModalFormData'si icin. (Sadece o kullanir.)
+            {"module_name": "@minecraft/server-ui", "version": "1.3.0"}],
     })
     w(os.path.join(RP, "manifest.json"), {
         "format_version": 2,
@@ -996,6 +1027,10 @@ def build():
             comps["minecraft:collision_box"] = False
         elif blk['kind'] == "glow":
             comps["minecraft:light_emission"] = 15
+        elif blk['kind'] == "portal_block":
+            # gorunur ama icinden gecilir + parlak (portal hissi)
+            comps["minecraft:collision_box"] = False
+            comps["minecraft:light_emission"] = 12
         elif blk['kind'] == "mini":
             # tam bloktan kucuk: hucre tabaninda ortali 8x8x8 kup.
             comps["minecraft:geometry"] = "geometry.stnt_mini"
@@ -1248,6 +1283,7 @@ def build():
 SCRIPT_TEMPLATE = r'''// Super TNT Mod - Bedrock
 // Uretilmis dosya. Kaynak: bedrock/build.py  (elle duzenleme, yeniden uretilir)
 import { world, system, ItemStack } from "@minecraft/server";
+import { ModalFormData } from "@minecraft/server-ui";
 
 const SPEC = __SPEC__;
 const NAMES = __NAMES__;
@@ -1281,6 +1317,65 @@ function itemAction(player, a) {
           spray(dim, player.location,
                 (a.reset || a.delta > 0) ? "minecraft:totem_particle" : "minecraft:portal_particle", 24, 2);
         } catch (e) {}
+        break;
+      }
+      case "steal": {
+        // En yakin BASKA oyuncunun ilk dolu slotunu kendine aktar.
+        try {
+          const mine = player.getComponent("minecraft:inventory")?.container;
+          let done = false;
+          for (const v of dim.getEntities({ location: player.location, maxDistance: a.radius || 8, type: "minecraft:player" })) {
+            if (v.id === player.id) continue;
+            const inv = v.getComponent("minecraft:inventory")?.container;
+            if (inv && mine) {
+              for (let i = 0; i < inv.size; i++) {
+                if (inv.getItem(i)) { inv.transferItem(i, mine); done = true; break; }
+              }
+            }
+            if (done) { try { player.onScreenDisplay.setActionBar(`§e${v.name} adlı oyuncunun eşyasını çaldın!`); } catch (e) {} }
+            break;   // sadece en yakin oyuncu
+          }
+          if (!done) { try { player.onScreenDisplay.setActionBar("§7Yakında çalınacak eşya yok"); } catch (e) {} }
+        } catch (e) {}
+        break;
+      }
+      case "remote_detonate": {
+        // Yerlestirilen tum TNT bloklarini (tracked) uzaktan atesle.
+        let n = 0;
+        for (const k of [...tracked]) {
+          try {
+            const [dimId, xyz] = k.split("|");
+            if (dimId !== player.dimension.id) continue;
+            const [x, y, z] = xyz.split(",").map(Number);
+            const b = dim.getBlock({ x, y, z });
+            if (b && b.typeId.startsWith("stnt:") && SPEC[b.typeId.slice(5)]) {
+              ignite(dim, b.location, b.typeId.slice(5), player.id);
+              n++;
+            }
+          } catch (e) {}
+        }
+        try { player.onScreenDisplay.setActionBar(`§c${n} TNT uzaktan ateşlendi!`); } catch (e) {}
+        break;
+      }
+      case "portal_gun": {
+        // Bakilan yuzeyin ustune portal blogu koy; iki nokta bir cift olusturur.
+        const hit = player.getBlockFromViewDirection({ maxDistance: a.range || 48 });
+        if (!hit) { try { player.onScreenDisplay.setActionBar("§7Portal için bir yüzeye bak"); } catch (e) {} break; }
+        const above = { x: Math.floor(hit.block.location.x), y: Math.floor(hit.block.location.y) + 1, z: Math.floor(hit.block.location.z) };
+        const key = "stnt:portal_" + player.id;
+        let pr = {};
+        try { const raw = world.getDynamicProperty(key); if (typeof raw === "string") pr = JSON.parse(raw); } catch (e) {}
+        const dimId = player.dimension.id;
+        try { dim.getBlock(above)?.setType("stnt:portal_blok"); } catch (e) {}
+        if (!pr.a || (pr.a && pr.b)) {
+          pr = { a: { dim: dimId, x: above.x, y: above.y, z: above.z } };
+          try { player.onScreenDisplay.setActionBar("§bMavi portal kondu — ikinci nokta için tekrar tıkla"); } catch (e) {}
+        } else {
+          pr.b = { dim: dimId, x: above.x, y: above.y, z: above.z };
+          try { player.onScreenDisplay.setActionBar("§dPortallar bağlandı! Üstüne bas, ışınlan."); } catch (e) {}
+        }
+        try { world.setDynamicProperty(key, JSON.stringify(pr)); } catch (e) {}
+        spray(dim, above, "minecraft:portal_particle", 30, 1.5);
         break;
       }
       case "lightning": {
@@ -2091,6 +2186,122 @@ try {
     } catch (e) {}
   });
 } catch (e) {}
+
+// ================= Sahip / Sifre / Portal ozellikleri =================
+// Bedrock'ta blogun kendi dinamik ozelligi YOK; sahiplik/sifre bir DUNYA
+// dinamik ozelliginde JSON harita olarak tutulur (redstone-TNT listesiyle
+// ayni desen). Konum anahtari: "<boyut>:<x>:<y>:<z>".
+const OWNER_PROP = "stnt:owners";
+let owners = {};
+function loadOwners() {
+  try { const raw = world.getDynamicProperty(OWNER_PROP); if (typeof raw === "string") owners = JSON.parse(raw); }
+  catch (e) { owners = {}; }
+}
+function saveOwners() { try { world.setDynamicProperty(OWNER_PROP, JSON.stringify(owners)); } catch (e) {} }
+function pkey(dimId, loc) { return `${dimId}:${Math.floor(loc.x)}:${Math.floor(loc.y)}:${Math.floor(loc.z)}`; }
+function hashStr(s) { let h = 0; for (let i = 0; i < s.length; i++) { h = (h * 31 + s.charCodeAt(i)) | 0; } return h; }
+const OWNER_BLOCKS = new Set(["stnt:sahip_kapi", "stnt:blocker_sandik", "stnt:sifreli_sandik"]);
+
+world.afterEvents.worldLoad.subscribe(() => loadOwners());
+loadOwners();
+
+world.afterEvents.playerPlaceBlock.subscribe((ev) => {
+  const b = ev.block;
+  if (!b || !OWNER_BLOCKS.has(b.typeId)) return;
+  owners[pkey(b.dimension.id, b.location)] = { owner: ev.player.id, ownerName: ev.player.name };
+  saveOwners();
+  try { ev.player.onScreenDisplay.setActionBar("\u00A7aBu blok art\u0131k sana ait"); } catch (e) {}
+});
+
+world.afterEvents.playerBreakBlock.subscribe((ev) => {
+  const k = pkey(ev.dimension.id, ev.block.location);
+  if (owners[k]) { delete owners[k]; saveOwners(); }
+});
+
+world.beforeEvents.playerInteractWithBlock.subscribe((ev) => {
+  const b = ev.block;
+  if (!b || !OWNER_BLOCKS.has(b.typeId)) return;
+  const k = pkey(b.dimension.id, b.location);
+  const rec = owners[k];
+  const player = ev.player;
+  if (!rec) return;                       // sahipsiz (eski blok) - dokunma
+  if (b.typeId === "stnt:sifreli_sandik") {
+    ev.cancel = true;                      // vanilla etkilesimi bastir
+    system.run(() => promptPassword(player, k, rec));   // form before-event'te acilmaz; ertele
+    return;
+  }
+  if (player.id !== rec.owner) {           // sahip kapi / kilitli sandik: sadece sahip
+    ev.cancel = true;
+    try { player.onScreenDisplay.setActionBar(`\u00A7cBu ${rec.ownerName ?? "birinin"} \u2014 a\u00E7amazs\u0131n!`); } catch (e) {}
+    return;
+  }
+  if (b.typeId === "stnt:sahip_kapi") {
+    ev.cancel = true;
+    const dim = b.dimension, loc = { x: b.location.x, y: b.location.y, z: b.location.z }, type = b.typeId;
+    system.run(() => {                     // sahip acinca 4 sn acilir
+      try {
+        dim.getBlock(loc)?.setType("minecraft:air");
+        system.runTimeout(() => { try { const nb = dim.getBlock(loc); if (nb && nb.typeId === "minecraft:air") nb.setType(type); } catch (e) {} }, 80);
+      } catch (e) {}
+    });
+  } else if (b.typeId === "stnt:blocker_sandik") {
+    ev.cancel = true;                      // sahip icin geri bildirim
+    system.run(() => { try { player.onScreenDisplay.setActionBar("§aSenin kilitli sandığın — güvende"); } catch (e) {} });
+  }
+});
+
+function promptPassword(player, k, rec) {
+  try {
+    const first = !rec.hash;
+    const form = new ModalFormData()
+      .title(first ? "\u015Eifre Belirle" : "\u015Eifreli Sand\u0131k")
+      .textField(first ? "Bu sand\u0131\u011Fa yeni \u015Fifre koy:" : "\u015Eifreyi gir:", "1234");
+    form.show(player).then((r) => {
+      if (r.canceled || !r.formValues) return;
+      const pw = String(r.formValues[0] || "");
+      const h = hashStr(pw);
+      if (first) {
+        rec.hash = h; owners[k] = rec; saveOwners();
+        try { player.onScreenDisplay.setActionBar("\u00A7a\u015Eifre belirlendi! Do\u011Fru \u015Fifreyi giren a\u00E7ar."); } catch (e) {}
+      } else if (h === rec.hash) {
+        if (!rec.looted) {
+          rec.looted = true; owners[k] = rec; saveOwners();
+          try { player.runCommand("give @s minecraft:diamond 5"); } catch (e) {}
+          try { player.onScreenDisplay.setActionBar("\u00A7aDo\u011Fru \u015Fifre! Sand\u0131ktan 5 elmas ald\u0131n!"); } catch (e) {}
+        } else {
+          try { player.onScreenDisplay.setActionBar("\u00A7aDo\u011Fru \u015Fifre \u2014 sand\u0131k zaten bo\u015Falt\u0131lm\u0131\u015F"); } catch (e) {}
+        }
+      } else {
+        try { player.onScreenDisplay.setActionBar("\u00A7cYanl\u0131\u015F \u015Fifre!"); } catch (e) {}
+      }
+    }).catch(() => {});
+  } catch (e) {}
+}
+
+// ---- Portal Silahi: iki portal blogu arasinda isinlanma
+const portalCd = new Map();
+system.runInterval(() => {
+  const now = system.currentTick;
+  for (const p of world.getPlayers()) {
+    let pr;
+    try { const raw = world.getDynamicProperty("stnt:portal_" + p.id); if (typeof raw !== "string") continue; pr = JSON.parse(raw); }
+    catch (e) { continue; }
+    if (!pr.a || !pr.b) continue;
+    if ((portalCd.get(p.id) || 0) > now) continue;
+    const l = p.location, d = p.dimension.id;
+    for (const [from, to] of [["a", "b"], ["b", "a"]]) {
+      const f = pr[from], t = pr[to];
+      if (f.dim === d && Math.abs(l.x - (f.x + 0.5)) < 1 && Math.abs(l.y - f.y) < 1.5 && Math.abs(l.z - (f.z + 0.5)) < 1) {
+        try {
+          p.teleport({ x: t.x + 0.5, y: t.y, z: t.z + 0.5 }, { dimension: world.getDimension(t.dim) });
+          spray(p.dimension, { x: t.x + 0.5, y: t.y + 0.5, z: t.z + 0.5 }, "minecraft:portal_particle", 20, 1);
+        } catch (e) {}
+        portalCd.set(p.id, now + 40);       // 2 sn bekleme - ileri-geri titremeyi onler
+        break;
+      }
+    }
+  }
+}, 8);
 '''
 
 if __name__ == "__main__":
