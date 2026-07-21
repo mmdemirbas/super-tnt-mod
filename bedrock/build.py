@@ -78,7 +78,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 17, 0]
+VERSION = [1, 17, 1]
 MIN_ENGINE = [1, 21, 0]
 
 # ---------------------------------------------------------------- oyuncu boyutu
@@ -843,8 +843,12 @@ MONSTERS = [
          geo="geometry.creeper.v1.8", hp=180, scale=3.0, dmg=8, cw=1.5, ch=5.5,
          # creeper temasi: yaklasinca sisip DEV patlar
          explode=dict(power=6, fuse=1.5)),
-    dict(id="mutant_warden", mat="warden", tex="textures/entity/warden/warden",
-         geo="geometry.warden", hp=500, scale=2.2, dmg=22, cw=1.5, ch=6.5,
+    # OZGUN model (custom=True): kendi geometry.mutant_warden + dokumuz.
+    # Vanilla warden'in BONE iskeletine (isim+pivot) sadik oldugu icin vanilla
+    # animation.warden.move/bob/look_at_target custom cube'lari hareket ettirir
+    # (asagida RP client_entity'de baglanir). Model zaten iri modellendi -> scale
+    # dusuk (1.6) yeter; ~5 blok dev boss.
+    dict(id="mutant_warden", custom=True, hp=500, scale=1.6, dmg=22, cw=1.7, ch=8.5,
          extra={"minecraft:knockback_resistance": {"value": 0.9}}),
 ]
 
@@ -979,6 +983,41 @@ def png_rgb(path, rows, wd, ht):
     hdr = struct.pack('>IIBBBBB', wd, ht, 8, 2, 0, 0, 0)
     open(path, 'wb').write(b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', hdr)
                           + chunk(b'IDAT', zlib.compress(raw, 9)) + chunk(b'IEND', b''))
+
+
+def mutant_warden_texture(path):
+    """OZGUN mutant warden dokusu (128x128 RGB). Koyu teal deri + biyolüminesan
+    damarlar + kafa on-yuzunde parlak gozler + acik gogus kafesinde kalp +
+    tendril uclari. Bolgeler geometry.mutant_warden'in box-uv koseleriyle hizali:
+    kafa uv[40,78] size[14,13,10] -> on yuz (50,88) 14x13; kalp uv[0,112];
+    tendril uv[16/24,46]. UV-hizasiz kalan tum yuzeyler deri deseni gorur."""
+    W = H = 128
+    base = (18, 40, 46)
+    vein = (28, 115, 125)
+    grid = [[list(base) for _ in range(W)] for _ in range(H)]
+    for y in range(H):
+        for x in range(W):
+            n = ((x * 13 + y * 7) % 17) - 8          # deterministik hafif noise
+            px = [base[0] + n, base[1] + n, base[2] + n]
+            if (x * 7 + y * 3) % 37 < 2:             # ince damar cizgileri
+                px = list(vein)
+            grid[y][x] = [max(0, min(255, v)) for v in px]
+
+    def rect(x0, y0, x1, y1, c):
+        for yy in range(max(0, y0), min(y1, H)):
+            for xx in range(max(0, x0), min(x1, W)):
+                grid[yy][xx] = list(c)
+
+    rect(50, 88, 64, 101, (10, 22, 26))              # kafa on-yuz koyulasir
+    rect(52, 91, 55, 95, (130, 255, 240))            # sol goz (parlak cyan)
+    rect(58, 91, 61, 95, (130, 255, 240))            # sag goz
+    rect(52, 98, 62, 99, (120, 240, 225))            # agiz cizgisi
+    rect(0, 112, 16, 122, (210, 45, 55))             # kalp bolgesi (uv[0,112])
+    rect(3, 114, 10, 120, (255, 95, 95))             # parlak kalp ortasi
+    for u in (16, 24):                               # tendril uclari
+        rect(u, 46, u + 8, 59, (36, 150, 140))
+        rect(u + 2, 46, u + 5, 50, (150, 255, 240))
+    png_rgb(path, grid, W, H)
 
 
 # ---------------------------------------------------------------- yapi
@@ -1331,19 +1370,67 @@ def build():
         if events: ent["events"] = events
         w(os.path.join(BP, f"entities/{m['id']}.json"),
           {"format_version": "1.21.0", "minecraft:entity": ent})
-        # RP: vanilla mob gorseli (materials/texture/geometry MC saglar)
-        w(os.path.join(RP, f"entity/{m['id']}.json"), {
-            "format_version": "1.10.0",
-            "minecraft:client_entity": {
-                "description": {
-                    "identifier": f"stnt:{m['id']}",
-                    "materials": {"default": m['mat']},
-                    "textures": {"default": m['tex']},
-                    "geometry": {"default": m['geo']},
-                    "render_controllers": ["controller.render.default"],
+        if m.get('custom'):
+            # OZGUN model: kendi geo.json + dokumuzu RP'ye koy, vanilla warden
+            # ambient animasyonlarini bagla. pre_animation SART: move/bob bone
+            # rotasyonlarini variable.*'tan okur; onlar burada hesaplanmazsa
+            # yuruyus donuk poza cozer (agent bulgusu).
+            shutil.copy(os.path.join(HERE, f"custom/{m['id']}.geo.json"),
+                        os.path.join(RP, f"models/entity/{m['id']}.geo.json"))
+            mutant_warden_texture(os.path.join(RP, f"textures/entity/{m['id']}.png"))
+            w(os.path.join(RP, f"entity/{m['id']}.json"), {
+                "format_version": "1.10.0",
+                "minecraft:client_entity": {
+                    "description": {
+                        "identifier": f"stnt:{m['id']}",
+                        "materials": {"default": "entity_alphatest"},
+                        "textures": {"default": f"textures/entity/{m['id']}"},
+                        "geometry": {"default": f"geometry.{m['id']}"},
+                        "animations": {
+                            "base_pose": "animation.humanoid.base_pose.v1.0",
+                            "move": "animation.warden.move",
+                            "bob": "animation.warden.bob",
+                            "look_at_target": "animation.warden.look_at_target.default",
+                        },
+                        "scripts": {
+                            "pre_animation": [
+                                "variable.animation_speed = Math.min(0.5, 3.0 * query.modified_move_speed);",
+                                "variable.anim_pos_mod = 49.388962;",
+                                "variable.bob = query.life_time * 20;",
+                                "variable.modified_bob = variable.bob * 0.1 * 57.2958;",
+                                "variable.modified_bob_sin = math.sin(variable.modified_bob);",
+                                "variable.modified_bob_cos = math.cos(variable.modified_bob);",
+                                "variable.pi = 180;",
+                                "variable.halfpi = variable.pi / 2.0;",
+                                "variable.head_x_rot = (68.7549 * math.cos(query.modified_distance_moved * variable.anim_pos_mod + variable.halfpi) * math.min(0.35, variable.animation_speed)) + (math.sin(variable.bob * 5.72958) * 0.06);",
+                                "variable.head_z_rot = (17.1887 * math.sin(query.modified_distance_moved * variable.anim_pos_mod) * variable.animation_speed) + (Math.cos(variable.bob * 5.72958) * 0.06);",
+                                "variable.body_x_rot = (57.2958 * math.cos(query.modified_distance_moved * variable.anim_pos_mod) * math.min(0.35, variable.animation_speed)) + (math.cos(variable.bob * 5.72958) * 0.025);",
+                                "variable.body_z_rot = (5.72958 * math.sin(query.modified_distance_moved * variable.anim_pos_mod) * variable.animation_speed) + (math.sin(variable.bob * 5.72958) * 0.025);",
+                                "variable.left_leg_x_rot = 57.2958 * math.cos(query.modified_distance_moved * variable.anim_pos_mod) * variable.animation_speed;",
+                                "variable.right_leg_x_rot = 57.2958 * math.cos(query.modified_distance_moved * variable.anim_pos_mod + variable.pi) * variable.animation_speed;",
+                                "variable.left_arm_x_rot = -(45.8366 * math.cos(query.modified_distance_moved * variable.anim_pos_mod) * variable.animation_speed);",
+                                "variable.right_arm_x_rot = -(45.8366 * math.sin(query.modified_distance_moved * variable.anim_pos_mod) * variable.animation_speed);",
+                            ],
+                            "animate": ["base_pose", "move", "bob", "look_at_target"],
+                        },
+                        "render_controllers": ["controller.render.default"],
+                    },
                 },
-            },
-        })
+            })
+        else:
+            # RP: vanilla mob gorseli (materials/texture/geometry MC saglar)
+            w(os.path.join(RP, f"entity/{m['id']}.json"), {
+                "format_version": "1.10.0",
+                "minecraft:client_entity": {
+                    "description": {
+                        "identifier": f"stnt:{m['id']}",
+                        "materials": {"default": m['mat']},
+                        "textures": {"default": m['tex']},
+                        "geometry": {"default": m['geo']},
+                        "render_controllers": ["controller.render.default"],
+                    },
+                },
+            })
 
     # ---------- tarifler (8 malzeme + ortada TNT)
     for t in TNTS:

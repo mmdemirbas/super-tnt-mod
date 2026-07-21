@@ -1,0 +1,68 @@
+{
+  "format_version": "1.12.0",
+  "minecraft:geometry": [
+    {
+      "description": {
+        "identifier": "geometry.mutant_warden",
+        "texture_width": 128,
+        "texture_height": 128,
+        "visible_bounds_width": 6,
+        "visible_bounds_height": 8,
+        "visible_bounds_offset": [0, 3, 0]
+      },
+      "//": "OZGUN mutant warden modeli. Cube'lar tamamen bize ait (vanilla",
+      "//2": "cube/UV kopyalanmadi). Bone ISIM + PIVOT'lari vanilla warden ile",
+      "//3": "ayni tutuldu ki animation.warden.move/bob/look_at_target custom",
+      "//4": "cube'lari hareket ettirsin (Bedrock animasyonu bone-isme baglanir).",
+      "bones": [
+        { "name": "root", "pivot": [0, 0, 0] },
+
+        { "name": "body", "parent": "root", "pivot": [0, 21, 0], "cubes": [
+          { "//": "alt karin", "origin": [-8, 14, -5], "size": [16, 13, 9], "uv": [0, 0] },
+          { "//": "ust govde / gogus kafesi (daha genis, mutant)", "origin": [-10, 27, -6], "size": [20, 15, 11], "uv": [0, 24] },
+          { "//": "sirt kamburu", "origin": [-6, 40, 2], "size": [12, 6, 4], "uv": [52, 24] },
+          { "//": "acik gogus kafesinde parlayan kalp", "origin": [-3, 31, -7], "size": [6, 7, 2], "uv": [0, 112] },
+          { "//": "sirt dikeni 1", "origin": [-1, 41, 3], "size": [2, 7, 2], "uv": [88, 0], "pivot": [0, 41, 4], "rotation": [30, 0, 0] },
+          { "//": "sirt dikeni 2", "origin": [-1, 36, 4], "size": [2, 6, 2], "uv": [88, 12], "pivot": [0, 36, 5], "rotation": [45, 0, 0] }
+        ]},
+
+        { "name": "right_ribcage", "parent": "body", "pivot": [-7, 23, -4], "cubes": [
+          { "//": "disa cikmis kaburga kemikleri", "origin": [-11, 24, -7], "size": [3, 14, 3], "uv": [96, 0] }
+        ]},
+        { "name": "left_ribcage", "parent": "body", "pivot": [7, 23, -4], "cubes": [
+          { "origin": [8, 24, -7], "size": [3, 14, 3], "uv": [108, 0] }
+        ]},
+
+        { "name": "head", "parent": "body", "pivot": [0, 34, 0], "cubes": [
+          { "//": "buyuk kafa (gozler texture on-yuzde)", "origin": [-7, 34, -6], "size": [14, 13, 10], "uv": [40, 78] },
+          { "//": "one cikik cene / agiz", "origin": [-6, 34, -8], "size": [12, 5, 2], "uv": [44, 46] },
+          { "//": "sol boynuz", "origin": [3, 45, -3], "size": [2, 8, 2], "uv": [72, 46], "pivot": [4, 45, -2], "rotation": [-20, 0, 20] },
+          { "//": "sag boynuz", "origin": [-5, 45, -3], "size": [2, 8, 2], "uv": [80, 46], "pivot": [-4, 45, -2], "rotation": [-20, 0, -20] }
+        ]},
+
+        { "name": "right_tendril", "parent": "head", "pivot": [-8, 46, 0], "cubes": [
+          { "origin": [-9, 46, -1], "size": [2, 11, 2], "uv": [16, 46] }
+        ]},
+        { "name": "left_tendril", "parent": "head", "pivot": [8, 46, 0], "cubes": [
+          { "origin": [7, 46, -1], "size": [2, 11, 2], "uv": [24, 46] }
+        ]},
+
+        { "name": "right_arm", "parent": "body", "pivot": [-13, 34, 1], "cubes": [
+          { "//": "uzun ust kol", "origin": [-18, 11, -4], "size": [7, 25, 9], "uv": [58, 0] },
+          { "//": "iri yumruk", "origin": [-19, 2, -5], "size": [9, 10, 11], "uv": [0, 48] }
+        ]},
+        { "name": "left_arm", "parent": "body", "pivot": [13, 34, 1], "cubes": [
+          { "origin": [11, 11, -4], "size": [7, 25, 9], "uv": [58, 34] },
+          { "origin": [10, 2, -5], "size": [9, 10, 11], "uv": [42, 48] }
+        ]},
+
+        { "name": "right_leg", "parent": "root", "pivot": [-5.9, 13, 0], "cubes": [
+          { "//": "kalin bacak", "origin": [-9, 0, -4], "size": [7, 14, 8], "uv": [0, 78] }
+        ]},
+        { "name": "left_leg", "parent": "root", "pivot": [5.9, 13, 0], "cubes": [
+          { "origin": [2, 0, -4], "size": [7, 14, 8], "uv": [86, 78] }
+        ]}
+      ]
+    }
+  ]
+}
