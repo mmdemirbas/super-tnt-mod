@@ -78,7 +78,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 16, 2]
+VERSION = [1, 16, 3]
 MIN_ENGINE = [1, 21, 0]
 
 # ---------------------------------------------------------------- oyuncu boyutu
@@ -1743,19 +1743,27 @@ function itemAction(player, a) {
         const l = hit.block.location, key = "stnt:axe_" + player.id;
         const saved = world.getDynamicProperty(key);
         if (typeof saved !== "string") {
-          world.setDynamicProperty(key, `${Math.floor(l.x)},${Math.floor(l.y)},${Math.floor(l.z)}`);
-          try { player.onScreenDisplay.setActionBar("§eİlk nokta kaydedildi — ikinci noktaya tıkla"); } catch (e) {}
+          // ILK nokta + DOLDURMA BLOGU = tiklanan blogun tipi. Hangi blokla
+          // doldurmak istiyorsan ilk noktayi o bloga tikla (tas/tahta/cam...).
+          world.setDynamicProperty(key,
+            `${Math.floor(l.x)},${Math.floor(l.y)},${Math.floor(l.z)},${hit.block.typeId}`);
+          const bn = hit.block.typeId.replace("minecraft:", "");
+          try { player.onScreenDisplay.setActionBar(`§eİlk nokta — §b${bn}§e ile doldurulacak. İkinci noktaya tıkla`); } catch (e) {}
         } else {
           world.setDynamicProperty(key, undefined);
-          const [x1, y1, z1] = saved.split(",").map(Number);
+          const parts = saved.split(",");
+          const x1 = Number(parts[0]), y1 = Number(parts[1]), z1 = Number(parts[2]);
+          const fill = parts[3] || "minecraft:stone";   // ilk noktadaki blok tipi
           const x2 = Math.floor(l.x), y2 = Math.floor(l.y), z2 = Math.floor(l.z);
           let placed = 0;
+          // iki nokta arasi kutu doldurulur; noktalar farkli yukseklikteyse
+          // dikey de dolar -> otomatik DUVAR (aralarindaki yuksekligi orer).
           for (let x = Math.min(x1, x2); x <= Math.max(x1, x2) && placed < 4096; x++)
             for (let y = Math.min(y1, y2); y <= Math.max(y1, y2) && placed < 4096; y++)
               for (let z = Math.min(z1, z2); z <= Math.max(z1, z2) && placed < 4096; z++) {
-                try { const b = dim.getBlock({ x, y, z }); if (b && b.typeId === "minecraft:air") { b.setType("minecraft:stone"); placed++; } } catch (e) {}
+                try { const b = dim.getBlock({ x, y, z }); if (b && b.typeId === "minecraft:air") { b.setType(fill); placed++; } } catch (e) {}
               }
-          try { player.onScreenDisplay.setActionBar(`§a${placed} blok dolduruldu`); } catch (e) {}
+          try { player.onScreenDisplay.setActionBar(`§a${placed} blok dolduruldu (§b${fill.replace("minecraft:", "")}§a)`); } catch (e) {}
         }
         break;
       }
