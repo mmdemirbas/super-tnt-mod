@@ -78,7 +78,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 16, 1]
+VERSION = [1, 16, 2]
 MIN_ENGINE = [1, 21, 0]
 
 # ---------------------------------------------------------------- oyuncu boyutu
@@ -1422,10 +1422,11 @@ def build():
     # RP: vanilla client_entity + kademe olcek carpani (render-Molang).
     # vanilla scale "0.9375" tabani korunur, kademe carpaniyla carpilir.
     rp_player = json.load(open(os.path.join(HERE, "player_rp_base.json"), encoding="utf-8"))
-    # Vanilla dosya format 1.26.0; paket min_engine 1.21.0 ile celisiyor
-    # (gercek 1.21 cihaz 1.26 client_entity'yi okuyamaz). MorphX gibi 1.10.0'a
-    # dusur — client_entity yapisi 1.10.0'dan beri ayni, genis uyumlu.
-    rp_player["format_version"] = "1.10.0"
+    # Vanilla format 1.26.0 KORUNUR. Onceden 1.10.0'a dusurulmustu (min_engine
+    # tutarliligi icin) ama vanilla dosya 1.26 icerikli — 1.10.0 etiketi altinda
+    # yeni scripts alanlari (scale dahil) yanlis yorumlanip render olcegini VE
+    # morph render controller'larini bozuyordu (kucultunce gorsel degismiyordu).
+    # Cihaz 1.26.33 oldugu icin 1.26.0 format sorunsuz calisir.
     rp_desc = rp_player["minecraft:client_entity"]["description"]
     factor = "1.0"
     for i in sorted(SIZE_TABLE):
