@@ -761,6 +761,13 @@ ITEMS = [
          trtip="Sağ tıkla — baktığın yeri işaretle, tekrar tıkla arası dolsun.",
          entip="Right-click a point, right-click again to fill between.",
          color=(150, 110, 66), action=dict(type="fill_axe")),
+    # Takim Asasi: bir mob'a dokun -> senin takimina katilir. Ayni takimdaki
+    # mob'lar birbirine saldiramaz (beforeEvents.entityHurt cancel). Etiket
+    # save/reload'da mob'da kalir. Mob'a dokunma isi playerInteractWithEntity'de.
+    dict(id="takim_asasi", tr="Takım Asası", en="Team Wand", kind="raycast",
+         trtip="Bir mob'a dokun — takımına katılır. Aynı takımdakiler birbirine saldırmaz!",
+         entip="Tap a mob - it joins your team. Same-team mobs won't attack each other!",
+         color=(80, 200, 140), action=dict(type="team_wand")),
     # boyut toplari: sag tiklayinca KENDINI bir kademe kucultur/buyutur.
     # (Bedrock'ta atilan mermiyle baskasini kucultmek yerine kendine
     #  uygulamak daha guvenilir; player.json st:size ozelligini surer.)
@@ -1559,6 +1566,12 @@ function itemAction(player, a) {
         } catch (e) {}
         break;
       }
+      case "team_wand": {
+        // bosluga tiklandiginda ipucu; asil isaretleme mob'a dokununca
+        // (playerInteractWithEntity handler'i) olur.
+        try { player.onScreenDisplay.setActionBar("§eBir mob'a dokun — takımına katsın."); } catch (e) {}
+        break;
+      }
       case "resize": {
         // KENDINI kademe kucult/buyut ya da normale don (a.reset).
         try {
@@ -1812,6 +1825,37 @@ world.afterEvents.entityHurt.subscribe((ev) => {
         ev.hurtEntity.applyDamage(ev.hurtEntity.typeId === "minecraft:player" ? 25 : 1000);
       } catch (e) {}
     }
+  } catch (e) {}
+});
+
+// ---------------------------------------------------------------- mob takimi
+// Takim Asasi ile bir mob'a dokun -> mob senin takim etiketini alir. Ayni
+// takimdaki iki varlik birbirine hasar veremez (beforeEvents.entityHurt.cancel
+// stable kanalda calisir; script'ten mob AI hedefi degistirilemedigi icin
+// dostlugu "hasar iptali" ile sagliyoruz). Etiket save/reload'da mob'da kalir.
+const TEAM_PREFIX = "stnt_team:";
+function teamOf(e) {
+  try { return e.getTags().find((t) => t.startsWith(TEAM_PREFIX)); } catch (x) { return undefined; }
+}
+world.beforeEvents.playerInteractWithEntity.subscribe((ev) => {
+  try {
+    if (!ev.itemStack || ev.itemStack.typeId !== "stnt:takim_asasi") return;
+    const target = ev.target;
+    if (!target || target.typeId === "minecraft:player") return;
+    const tag = TEAM_PREFIX + ev.player.id;
+    if (target.hasTag(tag)) return;                 // zaten bu takimda
+    for (const t of target.getTags()) if (t.startsWith(TEAM_PREFIX)) target.removeTag(t);
+    target.addTag(tag);
+    try { ev.player.onScreenDisplay.setActionBar("§aMob takımına katıldı! Aynı takım birbirine saldırmaz."); } catch (e) {}
+    try { spray(target.dimension, target.location, "minecraft:heart_particle", 10, 1.2); } catch (e) {}
+  } catch (e) {}
+});
+world.beforeEvents.entityHurt.subscribe((ev) => {
+  try {
+    const attacker = ev.damageSource && ev.damageSource.damagingEntity;
+    if (!attacker) return;                          // cevre hasari: dokunma
+    const a = teamOf(attacker), b = teamOf(ev.hurtEntity);
+    if (a && b && a === b) ev.cancel = true;         // ayni takim -> hasar iptal
   } catch (e) {}
 });
 
