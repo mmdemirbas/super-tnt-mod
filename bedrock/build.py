@@ -78,7 +78,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 16, 3]
+VERSION = [1, 16, 4]
 MIN_ENGINE = [1, 21, 0]
 
 # ---------------------------------------------------------------- oyuncu boyutu
@@ -141,14 +141,12 @@ PLAYER_BASE = {
 # eder. Ender dragon animasyon olmadan donmus/kotu goruneceginden EKLENMEDI.
 # Asset adlari (geometry.creeper.v1.8 vb.) MorphX'in RP player.json'undan
 # dogrulandi; dosya SHIP EDILMEZ, MC vanilla'dan saglar.
-MORPHS = [
-    dict(n=1, key="creeper", mat="creeper",
-         tex="textures/entity/creeper/creeper", geo="geometry.creeper.v1.8",
-         fp_bones=["leg2", "leg3"], tr="Creeper"),
-    dict(n=2, key="iron_golem", mat="iron_golem",
-         tex="textures/entity/iron_golem", geo="geometry.irongolem",
-         fp_bones=["arm0", "arm1"], tr="Demir Golem", scale=1.6),
-]
+# Super TNT'nin kendi morph'u KALDIRILDI: morph paketi (merge/MorphX) zaten
+# 90+ mob veriyor (warden dahil, calisiyor) ve player.json'i override eden iki
+# sistem ayni dunyada CAKISIR. Super TNT morph'u ayrica statik (animasyonsuz)
+# oldugundan dusuk kaliteliydi. MORPHS bos -> morph kodu uretilmez, kucultme
+# (st:size) aynen korunur. Ileride istenirse buraya mob eklenir.
+MORPHS = []
 
 # ---------------------------------------------------------------- TNT tanimlari
 # renk: (top, side, bottom) RGB. tex: Java projesinden kopyalanacak taban ad.
@@ -820,10 +818,6 @@ ITEMS = [
          trtip="Sağ tıkla — DEV bir Mutant Warden çağırır! 500 can, çok tehlikeli!",
          entip="Right-click - summons a GIANT Mutant Warden! 500 HP, very dangerous!",
          color=(40, 70, 82), spawn="stnt:mutant_warden"),
-    dict(id="donusum_asasi", tr="Dönüşüm Asası", en="Morph Wand", kind="raycast",
-         trtip="Sağ tıkla — sırayla İnsan → Creeper → Demir Golem → İnsan dönüşürsün!",
-         entip="Right-click - cycle Human → Creeper → Iron Golem → Human!",
-         color=(120, 200, 120), action=dict(type="morph_cycle")),
 ]
 
 # ---------------------------------------------------------------- canavarlar
@@ -1395,10 +1389,12 @@ def build():
             "set_property": {"st:size": i},
             "add": {"component_groups": [f"st:size_{i}"]},
             "remove": {"component_groups": [g for g in all_groups if g != f"st:size_{i}"]}}
-    # morph olaylari: sadece set_property (saf gorsel, component_group yok).
-    morph_events = {"st:morph_human": {"set_property": {"st:morph": 0}}}
-    for mo in MORPHS:
-        morph_events[f"st:morph_{mo['key']}"] = {"set_property": {"st:morph": mo['n']}}
+    # morph olaylari (MORPHS bossa hic uretilmez -> morph tamamen kapali).
+    morph_events = {}
+    if MORPHS:
+        morph_events["st:morph_human"] = {"set_property": {"st:morph": 0}}
+        for mo in MORPHS:
+            morph_events[f"st:morph_{mo['key']}"] = {"set_property": {"st:morph": mo['n']}}
     _, def_cw, def_ch = SIZE_TABLE[SIZE_DEFAULT]
     w(os.path.join(BP, "entities/player.json"), {
         "format_version": "1.21.0",
@@ -1409,8 +1405,8 @@ def build():
                 "properties": {
                     "st:size": {"type": "int", "range": [0, 4],
                                 "default": SIZE_DEFAULT, "client_sync": True},
-                    "st:morph": {"type": "int", "range": [0, len(MORPHS)],
-                                 "default": 0, "client_sync": True}}},
+                    **({"st:morph": {"type": "int", "range": [0, len(MORPHS)],
+                                     "default": 0, "client_sync": True}} if MORPHS else {})}},
             "components": {**PLAYER_BASE,
                            "minecraft:collision_box": {"width": def_cw, "height": def_ch}},
             "component_groups": size_groups,
@@ -1439,38 +1435,39 @@ def build():
         if mo.get('scale', 1.0) != 1.0:
             mfactor = f"(query.property('st:morph') == {mo['n']} ? {mo['scale']} : {mfactor})"
     rp_desc["scripts"]["scale"] = f"({rp_desc['scripts']['scale']}) * {factor} * {mfactor}"
-    # ---- morph: gorunum haritalarina mob asset ekle
-    for mo in MORPHS:
-        rp_desc["materials"][mo['key']] = mo['mat']
-        rp_desc["textures"][mo['key']] = mo['tex']
-        rp_desc["geometry"][mo['key']] = mo['geo']
-    # vanilla insan render controller'larini st:morph==0 ile guardla (morph'tayken
-    # kapansinlar); "map" controller'i guard'siz kalir. Sonra morph controller'lari ekle.
-    guarded = []
-    for e in rp_desc["render_controllers"]:
-        for name, cond in e.items():
-            guarded.append({name: cond} if name.endswith(".map")
-                           else {name: f"({cond}) && query.property('st:morph') == 0"})
-    for mo in MORPHS:
-        guarded.append({f"controller.render.morph.{mo['key']}.first_person":
-                        f"variable.is_first_person && !query.is_spectator && query.property('st:morph') == {mo['n']}"})
-        guarded.append({f"controller.render.morph.{mo['key']}.third_person":
-                        f"!variable.is_first_person && !variable.map_face_icon && !query.is_spectator && query.property('st:morph') == {mo['n']}"})
-    rp_desc["render_controllers"] = guarded
+    # ---- morph gorunumleri: SADECE MORPHS doluysa (bossa vanilla korunur).
+    if MORPHS:
+        for mo in MORPHS:
+            rp_desc["materials"][mo['key']] = mo['mat']
+            rp_desc["textures"][mo['key']] = mo['tex']
+            rp_desc["geometry"][mo['key']] = mo['geo']
+        # vanilla insan controller'larini st:morph==0 ile guardla + morph ekle.
+        guarded = []
+        for e in rp_desc["render_controllers"]:
+            for name, cond in e.items():
+                guarded.append({name: cond} if name.endswith(".map")
+                               else {name: f"({cond}) && query.property('st:morph') == 0"})
+        for mo in MORPHS:
+            guarded.append({f"controller.render.morph.{mo['key']}.first_person":
+                            f"variable.is_first_person && !query.is_spectator && query.property('st:morph') == {mo['n']}"})
+            guarded.append({f"controller.render.morph.{mo['key']}.third_person":
+                            f"!variable.is_first_person && !variable.map_face_icon && !query.is_spectator && query.property('st:morph') == {mo['n']}"})
+        rp_desc["render_controllers"] = guarded
     w(os.path.join(RP, "entity/player.json"), rp_player)
 
-    # ---- morph render controller tanimlari (harita anahtarlarina baglanir)
-    morph_rc = {}
-    for mo in MORPHS:
-        base = {"geometry": f"Geometry.{mo['key']}",
-                "materials": [{"*": f"Material.{mo['key']}"}],
-                "textures": [f"Texture.{mo['key']}"]}
-        morph_rc[f"controller.render.morph.{mo['key']}.third_person"] = dict(base)
-        fp = dict(base)  # ilk sahiste mob'un on uzvu gorunsun ki el bos olmasin
-        fp["part_visibility"] = [{"*": False}] + [{b: True} for b in mo['fp_bones']]
-        morph_rc[f"controller.render.morph.{mo['key']}.first_person"] = fp
-    w(os.path.join(RP, "render_controllers/morph.render_controllers.json"),
-      {"format_version": "1.10.0", "render_controllers": morph_rc})
+    # ---- morph render controller dosyasi (SADECE MORPHS doluysa)
+    if MORPHS:
+        morph_rc = {}
+        for mo in MORPHS:
+            base = {"geometry": f"Geometry.{mo['key']}",
+                    "materials": [{"*": f"Material.{mo['key']}"}],
+                    "textures": [f"Texture.{mo['key']}"]}
+            morph_rc[f"controller.render.morph.{mo['key']}.third_person"] = dict(base)
+            fp = dict(base)  # ilk sahiste mob'un on uzvu gorunsun ki el bos olmasin
+            fp["part_visibility"] = [{"*": False}] + [{b: True} for b in mo['fp_bones']]
+            morph_rc[f"controller.render.morph.{mo['key']}.first_person"] = fp
+        w(os.path.join(RP, "render_controllers/morph.render_controllers.json"),
+          {"format_version": "1.10.0", "render_controllers": morph_rc})
 
     # ---------- script
     spec = {t['id']: t['effect'] for t in TNTS}
