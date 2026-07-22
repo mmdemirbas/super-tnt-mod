@@ -78,7 +78,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 18, 1]
+VERSION = [1, 18, 2]
 MIN_ENGINE = [1, 21, 0]
 
 # ---------------------------------------------------------------- oyuncu boyutu
@@ -1858,8 +1858,9 @@ function itemAction(player, a) {
         let n = 0;
         for (const k of [...tracked]) {
           try {
-            const [dimId, xyz] = k.split("|");
+            const [dimId, xyz, owner] = k.split("|");
             if (dimId !== player.dimension.id) continue;
+            if (owner && owner !== player.id) continue;   // sadece KENDI koydugun TNT
             const [x, y, z] = xyz.split(",").map(Number);
             const b = dim.getBlock({ x, y, z });
             if (b && b.typeId.startsWith("stnt:") && SPEC[b.typeId.slice(5)]) {
@@ -1926,6 +1927,7 @@ function itemAction(player, a) {
       case "break_any": {
         const hit = player.getBlockFromViewDirection({ maxDistance: 8 });
         if (hit) { try { hit.block.setType("minecraft:air"); } catch (e) {} }
+        else { try { player.onScreenDisplay.setActionBar("§7Kırmak için bir bloğa bak"); } catch (e) {} }
         break;
       }
       case "laser": {
@@ -1951,17 +1953,25 @@ function itemAction(player, a) {
           // player.applyImpulse Bedrock'ta calismaz; player icin applyKnockback (4 sayi)
           try { player.applyKnockback(dx / len, dz / len, sp, Math.max(0.4, dy / len + 0.4)); }
           catch (e) { try { player.applyKnockback({ x: dx / len, z: dz / len }, Math.max(0.4, dy / len + 0.4)); } catch (e2) {} }
-        }
+        } else { try { player.onScreenDisplay.setActionBar("§7Bir yere/bloğa bak — kancayla oraya çekilirsin"); } catch (e) {} }
         break;
       }
       case "freeze_target": {
         const hs = player.getEntitiesFromViewDirection({ maxDistance: 30 });
         if (hs.length) { try { hs[0].entity.addEffect("slowness", 200, { amplifier: 6 }); hs[0].entity.addEffect("weakness", 200, { amplifier: 2 }); } catch (e) {} }
+        else { try { player.onScreenDisplay.setActionBar("§7Bir canlıya bak — onu dondurur"); } catch (e) {} }
         break;
       }
       case "kill_target": {
+        // "tek kullanim" hissi + kardes spam'ini onlemek icin 3 sn bekleme.
+        const now = system.currentTick;
+        const cd = player.getDynamicProperty("stnt:au_cd") || 0;
+        if (now < cd) { try { player.onScreenDisplay.setActionBar("§7Rapor hazırlanıyor... birazdan"); } catch (e) {} break; }
         const hs = player.getEntitiesFromViewDirection({ maxDistance: 30 });
-        if (hs.length) { try { hs[0].entity.applyDamage(1000); } catch (e) {} }
+        if (hs.length) {
+          try { hs[0].entity.applyDamage(1000); } catch (e) {}
+          try { player.setDynamicProperty("stnt:au_cd", now + 60); } catch (e) {}
+        } else { try { player.onScreenDisplay.setActionBar("§7Bir canlıya bak — Among Us raporu onu yener"); } catch (e) {} }
         break;
       }
       case "poison_area": {
@@ -2173,20 +2183,22 @@ function saveTracked() {
     world.setDynamicProperty(TRACK_PROP, JSON.stringify([...tracked].slice(-TRACK_MAX)));
   } catch (e) {}
 }
-function track(dimId, loc) {
-  tracked.add(`${dimId}|${Math.floor(loc.x)},${Math.floor(loc.y)},${Math.floor(loc.z)}`);
+function track(dimId, loc, owner) {
+  // konum + koyan oyuncu. Kontrol Kumandasi sadece KENDI koydugunu atesler.
+  tracked.add(`${dimId}|${Math.floor(loc.x)},${Math.floor(loc.y)},${Math.floor(loc.z)}|${owner || ""}`);
   if (tracked.size > TRACK_MAX) tracked = new Set([...tracked].slice(-TRACK_MAX));
   saveTracked();
 }
 function untrack(dimId, loc) {
-  tracked.delete(`${dimId}|${Math.floor(loc.x)},${Math.floor(loc.y)},${Math.floor(loc.z)}`);
+  const pre = `${dimId}|${Math.floor(loc.x)},${Math.floor(loc.y)},${Math.floor(loc.z)}`;
+  for (const k of [...tracked]) if (k === pre || k.startsWith(pre + "|")) tracked.delete(k);
   saveTracked();
 }
 
 world.afterEvents.playerPlaceBlock.subscribe((ev) => {
   const b = ev.block;
   if (b && b.typeId.startsWith("stnt:") && SPEC[b.typeId.slice(5)]) {
-    track(b.dimension.id, b.location);
+    track(b.dimension.id, b.location, ev.player?.id);
   }
 });
 
