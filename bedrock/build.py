@@ -1371,13 +1371,18 @@ def build():
         w(os.path.join(BP, f"entities/{m['id']}.json"),
           {"format_version": "1.21.0", "minecraft:entity": ent})
         if m.get('custom'):
-            # OZGUN model: kendi geo.json + dokumuzu RP'ye koy, vanilla warden
-            # ambient animasyonlarini bagla. pre_animation SART: move/bob bone
-            # rotasyonlarini variable.*'tan okur; onlar burada hesaplanmazsa
-            # yuruyus donuk poza cozer (agent bulgusu).
+            # OZGUN model + OZGUN animasyon. Vanilla warden animasyon referansi
+            # custom entity'de baglanmadi (donuk cikti); yerine kendi
+            # animation.{id}.walk/idle'imiz (built-in query.anim_time/life_time,
+            # kesin calisir). geo + animation.json custom/ altindan kopyalanir,
+            # doku {id}_texture() ile uretilir.
+            os.makedirs(os.path.join(RP, "models/entity"), exist_ok=True)
+            os.makedirs(os.path.join(RP, "animations"), exist_ok=True)
             shutil.copy(os.path.join(HERE, f"custom/{m['id']}.geo.json"),
                         os.path.join(RP, f"models/entity/{m['id']}.geo.json"))
-            mutant_warden_texture(os.path.join(RP, f"textures/entity/{m['id']}.png"))
+            shutil.copy(os.path.join(HERE, f"custom/{m['id']}.animation.json"),
+                        os.path.join(RP, f"animations/{m['id']}.animation.json"))
+            globals()[f"{m['id']}_texture"](os.path.join(RP, f"textures/entity/{m['id']}.png"))
             w(os.path.join(RP, f"entity/{m['id']}.json"), {
                 "format_version": "1.10.0",
                 "minecraft:client_entity": {
@@ -1387,31 +1392,12 @@ def build():
                         "textures": {"default": f"textures/entity/{m['id']}"},
                         "geometry": {"default": f"geometry.{m['id']}"},
                         "animations": {
-                            "base_pose": "animation.humanoid.base_pose.v1.0",
-                            "move": "animation.warden.move",
-                            "bob": "animation.warden.bob",
-                            "look_at_target": "animation.warden.look_at_target.default",
+                            "walk": f"animation.{m['id']}.walk",
+                            "idle": f"animation.{m['id']}.idle",
                         },
                         "scripts": {
-                            "pre_animation": [
-                                "variable.animation_speed = Math.min(0.5, 3.0 * query.modified_move_speed);",
-                                "variable.anim_pos_mod = 49.388962;",
-                                "variable.bob = query.life_time * 20;",
-                                "variable.modified_bob = variable.bob * 0.1 * 57.2958;",
-                                "variable.modified_bob_sin = math.sin(variable.modified_bob);",
-                                "variable.modified_bob_cos = math.cos(variable.modified_bob);",
-                                "variable.pi = 180;",
-                                "variable.halfpi = variable.pi / 2.0;",
-                                "variable.head_x_rot = (68.7549 * math.cos(query.modified_distance_moved * variable.anim_pos_mod + variable.halfpi) * math.min(0.35, variable.animation_speed)) + (math.sin(variable.bob * 5.72958) * 0.06);",
-                                "variable.head_z_rot = (17.1887 * math.sin(query.modified_distance_moved * variable.anim_pos_mod) * variable.animation_speed) + (Math.cos(variable.bob * 5.72958) * 0.06);",
-                                "variable.body_x_rot = (57.2958 * math.cos(query.modified_distance_moved * variable.anim_pos_mod) * math.min(0.35, variable.animation_speed)) + (math.cos(variable.bob * 5.72958) * 0.025);",
-                                "variable.body_z_rot = (5.72958 * math.sin(query.modified_distance_moved * variable.anim_pos_mod) * variable.animation_speed) + (math.sin(variable.bob * 5.72958) * 0.025);",
-                                "variable.left_leg_x_rot = 57.2958 * math.cos(query.modified_distance_moved * variable.anim_pos_mod) * variable.animation_speed;",
-                                "variable.right_leg_x_rot = 57.2958 * math.cos(query.modified_distance_moved * variable.anim_pos_mod + variable.pi) * variable.animation_speed;",
-                                "variable.left_arm_x_rot = -(45.8366 * math.cos(query.modified_distance_moved * variable.anim_pos_mod) * variable.animation_speed);",
-                                "variable.right_arm_x_rot = -(45.8366 * math.sin(query.modified_distance_moved * variable.anim_pos_mod) * variable.animation_speed);",
-                            ],
-                            "animate": ["base_pose", "move", "bob", "look_at_target"],
+                            # idle her zaman; walk sadece hareket ederken (bacak/kol sallar)
+                            "animate": ["idle", {"walk": "query.modified_move_speed > 0.05"}],
                         },
                         "render_controllers": ["controller.render.default"],
                     },
