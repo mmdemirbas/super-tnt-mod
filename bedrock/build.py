@@ -78,7 +78,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 18, 0]
+VERSION = [1, 18, 1]
 MIN_ENGINE = [1, 21, 0]
 
 # ---------------------------------------------------------------- oyuncu boyutu
@@ -640,10 +640,6 @@ BLOCKS += [
          trtip="Şifre koy — doğru şifreyi giren açar! (Şifre ekranda görünür.)",
          entip="Set a password - whoever types it right opens it!",
          kind="password_chest", color=(210, 175, 80), mat="minecraft:gold_block"),
-    dict(id="portal_blok", tr="Portal Bloğu", en="Portal Block",
-         trtip="Portal Silahı bunları koyar ve bağlar — içine gir, diğerine ışınlan!",
-         entip="Portal Gun places and links these - walk into one, warp to the other!",
-         kind="portal_block", color=(140, 90, 220), mat="minecraft:ender_pearl"),
     dict(id="fake_tnt", tr="Sahte TNT", en="Fake TNT",
          trtip="TROL: pasta gibi görünür — kırınca ya da 'yiyince' sadece SENİ patlatır! Blok hasarı yok.",
          entip="TROLL: looks like cake - break or 'eat' it and only YOU blow up! No block damage.",
@@ -672,6 +668,20 @@ for _cn, _rgb in _MINI_COLORS.items():
                        trtip="Küçük dekoratif blok — minik yapılar kur!",
                        entip="A small decorative block - build tiny things!",
                        kind="mini", color=_rgb, mat="minecraft:clay_ball"))
+
+# Renkli portal ciftleri: Portal Silahi yerlestirir. AYNI renk iki kapi bir cift
+# olusturur; farkli ciftler farkli renk (cocuklar karistirmasin). Bir kapi
+# kirilinca esi de kirilir (script: playerBreakBlock). Renk sayisi = PORTAL_N.
+PORTAL_COLORS = [
+    ("mavi", (60, 120, 240)), ("kırmızı", (230, 60, 60)), ("yeşil", (70, 200, 100)),
+    ("sarı", (240, 215, 60)), ("mor", (175, 85, 235)), ("turuncu", (245, 140, 45)),
+    ("camgöbeği", (60, 210, 210)), ("pembe", (240, 130, 200)),
+]
+for _i, (_pn, _pc) in enumerate(PORTAL_COLORS):
+    BLOCKS.append(dict(id=f"portal_{_i}", tr=f"Portal ({_pn})", en=f"Portal ({_pn})",
+                       trtip="Portal Silahı yerleştirir; aynı renk iki kapı birbirine ışınlar. Kırınca eşi de gider.",
+                       entip="Placed by the Portal Gun; same-color pair teleports. Break one, its twin goes too.",
+                       kind="portal_block", color=_pc, mat="minecraft:ender_pearl"))
 
 # ---------------------------------------------------------------- item tanimlari
 # kind "food": yenince efekt. "raycast": bakilan bloga/varliga etki.
@@ -1726,7 +1736,9 @@ def build():
                                 [{"ev": "st:morph_human", "name": "İnsan"}]
                                 + [{"ev": f"st:morph_{mo['key']}", "name": mo['tr']} for mo in MORPHS],
                                 ensure_ascii=False)) \
-                            .replace("__FUSE__", str(FUSE_TICKS))
+                            .replace("__FUSE__", str(FUSE_TICKS)) \
+                            .replace("__PORTAL_N__", str(len(PORTAL_COLORS))) \
+                            .replace("__PORTAL_NAMES__", json.dumps([n for n, _ in PORTAL_COLORS], ensure_ascii=False))
     os.makedirs(os.path.join(BP, "scripts"), exist_ok=True)
     open(os.path.join(BP, "scripts/main.js"), 'w', encoding='utf-8').write(script)
 
@@ -1860,21 +1872,32 @@ function itemAction(player, a) {
         break;
       }
       case "portal_gun": {
-        // Bakilan yuzeyin ustune portal blogu koy; iki nokta bir cift olusturur.
+        // Bakilan yuzeyin ustune RENKLI portal blogu koy. Ilk tik: yeni cift
+        // baslatir (kullanilmayan ilk renk). Ikinci tik: ayni renkte esini
+        // koyup baglar. Boylece her cift ayri renk -> karismaz. Bir kapiyi
+        // kirinca esi de silinir (playerBreakBlock handler'i).
         const hit = player.getBlockFromViewDirection({ maxDistance: a.range || 48 });
         if (!hit) { try { player.onScreenDisplay.setActionBar("§7Portal için bir yüzeye bak"); } catch (e) {} break; }
         const above = { x: Math.floor(hit.block.location.x), y: Math.floor(hit.block.location.y) + 1, z: Math.floor(hit.block.location.z) };
-        const key = "stnt:portal_" + player.id;
-        let pr = {};
-        try { const raw = world.getDynamicProperty(key); if (typeof raw === "string") pr = JSON.parse(raw); } catch (e) {}
         const dimId = player.dimension.id;
-        try { dim.getBlock(above)?.setType("stnt:portal_blok"); } catch (e) {}
-        if (!pr.a || (pr.a && pr.b)) {
-          pr = { a: { dim: dimId, x: above.x, y: above.y, z: above.z } };
-          try { player.onScreenDisplay.setActionBar("§bMavi portal kondu — ikinci nokta için tekrar tıkla"); } catch (e) {}
+        const key = "stnt:portal_" + player.id;
+        let pr = { open: null, pairs: [] };
+        try { const raw = world.getDynamicProperty(key); if (typeof raw === "string") { const o = JSON.parse(raw); if (o && o.pairs) pr = o; } } catch (e) {}
+        const PORTAL_N = __PORTAL_N__;   // build.py PORTAL_COLORS ile senkron
+        const PC = __PORTAL_NAMES__;
+        if (pr.open) {
+          const c = pr.open.color;
+          try { dim.getBlock(above)?.setType("stnt:portal_" + c); } catch (e) {}
+          pr.pairs.push({ color: c, a: pr.open.a, b: { dim: dimId, x: above.x, y: above.y, z: above.z } });
+          pr.open = null;
+          try { player.onScreenDisplay.setActionBar(`§a${PC[c]} portal bağlandı! Üstüne bas, eşine ışınlan.`); } catch (e) {}
         } else {
-          pr.b = { dim: dimId, x: above.x, y: above.y, z: above.z };
-          try { player.onScreenDisplay.setActionBar("§dPortallar bağlandı! Üstüne bas, ışınlan."); } catch (e) {}
+          const used = new Set(pr.pairs.map((p) => p.color));
+          let c = 0; while (c < PORTAL_N && used.has(c)) c++;
+          if (c >= PORTAL_N) c = pr.pairs.length % PORTAL_N;   // hepsi doluysa dongusel
+          try { dim.getBlock(above)?.setType("stnt:portal_" + c); } catch (e) {}
+          pr.open = { color: c, a: { dim: dimId, x: above.x, y: above.y, z: above.z } };
+          try { player.onScreenDisplay.setActionBar(`§b${PC[c]} portal kondu — ikinci ${PC[c]} kapı için tekrar tıkla`); } catch (e) {}
         }
         try { world.setDynamicProperty(key, JSON.stringify(pr)); } catch (e) {}
         spray(dim, above, "minecraft:portal_particle", 30, 1.5);
@@ -2818,7 +2841,7 @@ function promptPassword(player, k, rec) {
   } catch (e) {}
 }
 
-// ---- Portal Silahi: iki portal blogu arasinda isinlanma
+// ---- Portal Silahi: ayni renk cift arasinda isinlanma (coklu cift)
 const portalCd = new Map();
 system.runInterval(() => {
   const now = system.currentTick;
@@ -2826,22 +2849,53 @@ system.runInterval(() => {
     let pr;
     try { const raw = world.getDynamicProperty("stnt:portal_" + p.id); if (typeof raw !== "string") continue; pr = JSON.parse(raw); }
     catch (e) { continue; }
-    if (!pr.a || !pr.b) continue;
+    if (!pr.pairs || !pr.pairs.length) continue;
     if ((portalCd.get(p.id) || 0) > now) continue;
     const l = p.location, d = p.dimension.id;
-    for (const [from, to] of [["a", "b"], ["b", "a"]]) {
-      const f = pr[from], t = pr[to];
-      if (f.dim === d && Math.abs(l.x - (f.x + 0.5)) < 1 && Math.abs(l.y - f.y) < 1.5 && Math.abs(l.z - (f.z + 0.5)) < 1) {
-        try {
-          p.teleport({ x: t.x + 0.5, y: t.y, z: t.z + 0.5 }, { dimension: world.getDimension(t.dim) });
-          spray(p.dimension, { x: t.x + 0.5, y: t.y + 0.5, z: t.z + 0.5 }, "minecraft:portal_particle", 20, 1);
-        } catch (e) {}
-        portalCd.set(p.id, now + 40);       // 2 sn bekleme - ileri-geri titremeyi onler
-        break;
+    let done = false;
+    for (const pair of pr.pairs) {
+      for (const [from, to] of [["a", "b"], ["b", "a"]]) {
+        const f = pair[from], t = pair[to];
+        if (f && t && f.dim === d && Math.abs(l.x - (f.x + 0.5)) < 1 && Math.abs(l.y - f.y) < 1.5 && Math.abs(l.z - (f.z + 0.5)) < 1) {
+          try {
+            p.teleport({ x: t.x + 0.5, y: t.y, z: t.z + 0.5 }, { dimension: world.getDimension(t.dim) });
+            spray(p.dimension, { x: t.x + 0.5, y: t.y + 0.5, z: t.z + 0.5 }, "minecraft:portal_particle", 20, 1);
+          } catch (e) {}
+          portalCd.set(p.id, now + 40);       // 2 sn bekleme - ileri-geri titremeyi onler
+          done = true; break;
+        }
       }
+      if (done) break;
     }
   }
 }, 8);
+
+// ---- Portal kapisi kirilinca ESI de kirilsin (cift bozulmasin)
+world.afterEvents.playerBreakBlock.subscribe((ev) => {
+  try {
+    if (!ev.brokenBlockPermutation.type.id.startsWith("stnt:portal_")) return;
+    const key = "stnt:portal_" + ev.player.id;
+    let pr;
+    try { pr = JSON.parse(world.getDynamicProperty(key)); } catch (e) { return; }
+    if (!pr || !pr.pairs) return;
+    const bl = ev.block.location;
+    const bx = Math.floor(bl.x), by = Math.floor(bl.y), bz = Math.floor(bl.z), bd = ev.dimension.id;
+    const hitPt = (pt) => pt && pt.x === bx && pt.y === by && pt.z === bz && pt.dim === bd;
+    for (let i = 0; i < pr.pairs.length; i++) {
+      const pair = pr.pairs[i];
+      let mate = null;
+      if (hitPt(pair.a)) mate = pair.b; else if (hitPt(pair.b)) mate = pair.a;
+      if (mate) {
+        try { world.getDimension(mate.dim).getBlock({ x: mate.x, y: mate.y, z: mate.z })?.setType("minecraft:air"); } catch (e) {}
+        pr.pairs.splice(i, 1);
+        try { world.setDynamicProperty(key, JSON.stringify(pr)); } catch (e) {}
+        try { ev.player.onScreenDisplay.setActionBar("§7Portal çifti kaldırıldı (iki kapı da)."); } catch (e) {}
+        return;
+      }
+    }
+    if (pr.open && hitPt(pr.open.a)) { pr.open = null; try { world.setDynamicProperty(key, JSON.stringify(pr)); } catch (e) {} }
+  } catch (e) {}
+});
 
 // ---- Sahte TNT: pasta kiligi; kirilinca/etkilesince sadece oyuncuya hasar
 function fakeTntBoom(dim, loc, player) {
