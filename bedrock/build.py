@@ -782,8 +782,8 @@ ITEMS = [
          entip="One-shots mobs; heavy damage to players!",
          color=(200, 40, 90), damage=20, action=dict(type="heavy")),
     dict(id="rainbow_boots", tr="Gökkuşağı Botları", en="Rainbow Boots", kind="boots",
-         trtip="Giy — adım attığın yerde renkli yün çıkar! Boşluğa düşmezsin.",
-         entip="Wear them - colored wool appears where you step!",
+         trtip="Giy — adım attığın yerde renkli yün izi bırakırsın!",
+         entip="Wear them - leave a colored wool trail where you step!",
          color=(200, 60, 160), action=dict(type="worn_wool")),
     # ganimet item'lari (TNT'ler bunlari sacar; kendi baslarina davranissiz)
     dict(id="kurus", tr="1 Kuruş", en="1 Kurus", kind="loot",
@@ -2074,13 +2074,18 @@ function itemAction(player, a) {
         if (typeof saved !== "string") {
           // ILK nokta + DOLDURMA BLOGU = tiklanan blogun tipi. Hangi blokla
           // doldurmak istiyorsan ilk noktayi o bloga tikla (tas/tahta/cam...).
+          // Boyut (dim.id) de saklanir ki iki nokta farkli boyutta olamasin.
           world.setDynamicProperty(key,
-            `${Math.floor(l.x)},${Math.floor(l.y)},${Math.floor(l.z)},${hit.block.typeId}`);
+            `${Math.floor(l.x)},${Math.floor(l.y)},${Math.floor(l.z)},${hit.block.typeId},${dim.id}`);
           const bn = hit.block.typeId.replace("minecraft:", "");
           try { player.onScreenDisplay.setActionBar(`§eİlk nokta — §b${bn}§e ile doldurulacak. İkinci noktaya tıkla`); } catch (e) {}
         } else {
           world.setDynamicProperty(key, undefined);
           const parts = saved.split(",");
+          if (parts[4] && parts[4] !== dim.id) {       // iki nokta farkli boyutta -> iptal
+            try { player.onScreenDisplay.setActionBar("§cİki nokta farklı boyutta olamaz — baştan başla"); } catch (e) {}
+            break;
+          }
           const x1 = Number(parts[0]), y1 = Number(parts[1]), z1 = Number(parts[2]);
           const fill = parts[3] || "minecraft:stone";   // ilk noktadaki blok tipi
           const x2 = Math.floor(l.x), y2 = Math.floor(l.y), z2 = Math.floor(l.z);
@@ -2871,7 +2876,8 @@ world.beforeEvents.playerInteractWithBlock.subscribe((ev) => {
   if (!rec) return;                       // sahipsiz (eski blok) - dokunma
   if (b.typeId === "stnt:sifreli_sandik") {
     ev.cancel = true;                      // vanilla etkilesimi bastir
-    system.run(() => promptPassword(player, k, rec));   // form before-event'te acilmaz; ertele
+    // sahip mi? sifre KOYMA sadece sahibe; sifre GIRME herkese acik.
+    system.run(() => promptPassword(player, k, rec, player.id === rec.owner));
     return;
   }
   if (player.id !== rec.owner) {           // sahip kapi / kilitli sandik: sadece sahip
@@ -2896,9 +2902,13 @@ world.beforeEvents.playerInteractWithBlock.subscribe((ev) => {
   }
 });
 
-function promptPassword(player, k, rec) {
+function promptPassword(player, k, rec, isOwner) {
   try {
     const first = !rec.hash;
+    if (first && !isOwner) {               // sahipsiz sandiga sifreyi baskasi koyamasin
+      try { player.onScreenDisplay.setActionBar("§cŞifreyi sadece sandığın sahibi koyabilir"); } catch (e) {}
+      return;
+    }
     const form = new ModalFormData()
       .title(first ? "\u015Eifre Belirle" : "\u015Eifreli Sand\u0131k")
       .textField(first ? "Bu sand\u0131\u011Fa yeni \u015Fifre koy:" : "\u015Eifreyi gir:", "1234");
