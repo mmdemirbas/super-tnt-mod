@@ -1,6 +1,47 @@
 # Super TNT — Bedrock Port Durumu
 
-Son sürüm: **v1.16.0** · **kendi morph + canavar modülü** eklendi.
+Son sürüm: **v1.19.1** · Mobil sürüm ana odak; Super TNT tek başına yeterli
+olacak şekilde geliştiriliyor (MorphX / mutant paketine bağımlılık yok).
+
+## v1.17 – v1.19.1 — mobil odak, kalite ve içerik
+
+**Morph modülü (kendi, v1.19.0-1.19.1).** Dönüşüm Asası: bir mob'a dokun → o
+mob olursun (15 mob: creeper, zombi, iskelet, enderman, demir golem, kurt,
+domuz, inek, tavuk, örümcek, piglin, allay, wither iskeleti, ghast, slime).
+Boşluğa sağ tık → insana dön. Asset id'leri bedrock-samples'tan doğrulandı;
+sadece temiz render eden moblar (warden/sheep/villager/axolotl bilinçli dışlandı).
+Küçülme (st:size) korundu. **Morph yetenekleri:** çömelme ile creeper patlar,
+enderman ışınlanır, ghast ateş topu atar, allay süzülür; slime/örümcek zıplar,
+tavuk/allay yavaş düşer, golem dayanıklı, kurt hızlı.
+
+**Canavar modelleri (v1.17-1.18).** Mutant Warden özgün custom model + kendi
+animasyonu (artık hareket ediyor, donuk değil). Ender Send özgün **3 kafalı**
+model. İkisi de kendi geo + doku + walk/idle animasyonu.
+
+**Simgeler (v1.18).** 15 düz-renk item'a anlamlı sembol (spawn egg'ler yumurta
+silueti + tür yüzü — Mutant Warden yumurtası artık bulunuyor), 6 bloğa gerçek
+Java dokusu.
+
+**Portal (v1.18.1).** 8 renkli çift; her çift ayrı renk (karışmaz); bir kapıyı
+kırınca eşi de gider.
+
+**UX düzeltmeleri (v1.18.2-1.19).** Kontrol Kumandası sadece kendi TNT'ni
+patlatır; Among Us bekleme süresi; hedef-gerektiren item'lara boş-tık ipucu;
+Sahip Kapısı kalıcı-kayıp fix; Şifreli Sandık şifresini sadece sahip koyar;
+Craft Baltası boyut güvenliği; Gökkuşağı tooltip dürüstlüğü.
+
+**Aktarım (deploy/).** `deploy/deploy.sh` USB + kablosuz WiFi + emülatör +
+iPhone/iCloud; `deploy/wifi-setup.sh` kablosuz adb kurulumu.
+
+### Bilinen sınırlar / sıradaki
+- Kilitli/Şifreli Sandık'ta gerçek eşya envanteri yok (Bedrock script-API'de
+  özel sandık UI'si — ChestFormData — yok; sahiplik/şifre mantığı çalışıyor).
+- ? Blok / Sahte TNT / Herobrine survival'da kendini düşürür (creative'de sorun
+  değil; empty loot table eklenebilir).
+
+---
+
+## v1.16.0 — kendi morph + canavar modülü (eski, artık genişletildi)
 
 ## v1.16.0 — kendi (3. partiden bağımsız) morph + canavar modülü
 
