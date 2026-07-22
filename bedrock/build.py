@@ -78,7 +78,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 19, 0]
+VERSION = [1, 19, 1]
 MIN_ENGINE = [1, 21, 0]
 
 # ---------------------------------------------------------------- oyuncu boyutu
@@ -821,8 +821,8 @@ ITEMS = [
     # Donusum Asasi: bir mob'a dokun -> o mob'un gorunumune don. Bosluga sag
     # tik -> insana don. 15 mob (bkz MORPHS). Gorunum degisir, carpisma player.
     dict(id="donusum_asasi", tr="Dönüşüm Asası", en="Morph Wand", kind="raycast",
-         trtip="Bir mob'a dokun — onun görünümüne dönüş! Boşluğa sağ tık — insana geri dön.",
-         entip="Tap a mob - morph into it! Right-click air - turn back to human.",
+         trtip="Bir mob'a dokun — o mob olursun! Bazılarının özel gücü var: ÇÖMEL (sneak) dene. Boşluğa sağ tık — insana dön.",
+         entip="Tap a mob - become it! Some have powers: try SNEAK. Right-click air - turn back.",
          color=(150, 70, 220), action=dict(type="morph_reset")),
     # boyut toplari: sag tiklayinca KENDINI bir kademe kucultur/buyutur.
     # (Bedrock'ta atilan mermiyle baskasini kucultmek yerine kendine
@@ -2194,6 +2194,52 @@ world.beforeEvents.playerInteractWithEntity.subscribe((ev) => {
     });
   } catch (e) {}
 });
+// ---- Morph YETENEKLERI: bir mob'a donunce o mob'un gucunu kazan.
+// Pasif olanlar surekli yenilenir; aktif olanlar comelme (sneak) ile tetiklenir
+// (3 sn bekleme). Sadece gorunum degil -> morph anlamli ve eglenceli.
+const morphCd = new Map();
+system.runInterval(() => {
+  const now = system.currentTick;
+  for (const p of world.getPlayers()) {
+    let m;
+    try { m = p.getProperty("st:morph"); } catch (e) { continue; }
+    if (typeof m !== "number" || m === 0) continue;
+    const dim = p.dimension;
+    try {                                           // pasif yetenekler
+      if (m === 15 || m === 10) p.addEffect("jump_boost", 20, { amplifier: 2, showParticles: false });   // slime/orumcek ziplar
+      else if (m === 9 || m === 12) p.addEffect("slow_falling", 20, { amplifier: 0, showParticles: false }); // tavuk/allay yavas duser
+      else if (m === 5) p.addEffect("resistance", 20, { amplifier: 1, showParticles: false });            // demir golem dayanikli
+      else if (m === 6) p.addEffect("speed", 20, { amplifier: 1, showParticles: false });                 // kurt hizli
+    } catch (e) {}
+    if (p.isSneaking && (morphCd.get(p.id) || 0) <= now) {   // aktif yetenek (comel)
+      try {
+        if (m === 1) {                              // creeper: comel -> patla (blok kirmaz)
+          const l = p.location;
+          dim.createExplosion({ x: l.x, y: l.y + 0.5, z: l.z }, 3, { breaksBlocks: false, causesFire: false });
+          spray(dim, l, "minecraft:large_explosion", 1, 0);
+          morphCd.set(p.id, now + 80);
+        } else if (m === 4) {                       // enderman: comel -> baktigin yere isinlan
+          const hit = p.getBlockFromViewDirection({ maxDistance: 48 });
+          if (hit) {
+            p.teleport({ x: hit.block.location.x + 0.5, y: hit.block.location.y + 1, z: hit.block.location.z + 0.5 });
+            spray(dim, p.location, "minecraft:portal_particle", 20, 1);
+          }
+          morphCd.set(p.id, now + 30);
+        } else if (m === 14) {                      // ghast: comel -> baktigin yere ates topu
+          const hit = p.getBlockFromViewDirection({ maxDistance: 40 });
+          const v = p.getViewDirection(), s = p.getHeadLocation();
+          const t = hit ? hit.block.location : { x: s.x + v.x * 20, y: s.y + v.y * 20, z: s.z + v.z * 20 };
+          dim.createExplosion({ x: t.x + 0.5, y: t.y + 0.5, z: t.z + 0.5 }, 3, { breaksBlocks: false, causesFire: true });
+          morphCd.set(p.id, now + 60);
+        } else if (m === 12) {                      // allay: comel -> yukari suzul
+          p.applyKnockback(0, 0, 0, 1.0);
+          morphCd.set(p.id, now + 20);
+        }
+      } catch (e) {}
+    }
+  }
+}, 5);
+
 world.beforeEvents.entityHurt.subscribe((ev) => {
   try {
     const attacker = ev.damageSource && ev.damageSource.damagingEntity;
