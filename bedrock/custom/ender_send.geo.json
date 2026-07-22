@@ -1,0 +1,49 @@
+{
+  "format_version": "1.12.0",
+  "minecraft:geometry": [
+    {
+      "description": {
+        "identifier": "geometry.ender_send",
+        "texture_width": 128,
+        "texture_height": 128,
+        "visible_bounds_width": 5,
+        "visible_bounds_height": 8,
+        "visible_bounds_offset": [0, 3, 0]
+      },
+      "//": "OZGUN 3 kafali Ender Send. Uzun ince enderman govdesi, tepede 3",
+      "//2": "kafa (orta yuksek + yanlarda). Kendi animasyonu bone-isme baglanir.",
+      "bones": [
+        { "name": "root", "pivot": [0, 0, 0] },
+
+        { "name": "body", "parent": "root", "pivot": [0, 20, 0], "cubes": [
+          { "//": "uzun ince govde", "origin": [-4, 18, -2], "size": [8, 26, 4], "uv": [0, 0] },
+          { "//": "omuz kusagi (3 kafayi tasir)", "origin": [-11, 42, -3], "size": [22, 4, 6], "uv": [0, 32] }
+        ]},
+
+        { "name": "right_leg", "parent": "root", "pivot": [-2, 18, 0], "cubes": [
+          { "origin": [-3, 0, -2], "size": [3, 18, 4], "uv": [24, 0] }
+        ]},
+        { "name": "left_leg", "parent": "root", "pivot": [2, 18, 0], "cubes": [
+          { "origin": [0, 0, -2], "size": [3, 18, 4], "uv": [38, 0] }
+        ]},
+
+        { "name": "right_arm", "parent": "body", "pivot": [-5, 44, 0], "cubes": [
+          { "//": "uzun ince kol", "origin": [-8, 18, -2], "size": [3, 26, 3], "uv": [52, 0] }
+        ]},
+        { "name": "left_arm", "parent": "body", "pivot": [5, 44, 0], "cubes": [
+          { "origin": [5, 18, -2], "size": [3, 26, 3], "uv": [64, 0] }
+        ]},
+
+        { "name": "head_c", "parent": "body", "pivot": [0, 46, 0], "cubes": [
+          { "//": "orta kafa (en yuksek)", "origin": [-4, 47, -4], "size": [8, 9, 8], "uv": [40, 78] }
+        ]},
+        { "name": "right_head", "parent": "body", "pivot": [-8, 46, 0], "cubes": [
+          { "//": "sol kafa (biraz alcak)", "origin": [-13, 45, -3], "size": [6, 7, 6], "uv": [0, 96] }
+        ]},
+        { "name": "left_head", "parent": "body", "pivot": [8, 46, 0], "cubes": [
+          { "//": "sag kafa", "origin": [7, 45, -3], "size": [6, 7, 6], "uv": [28, 96] }
+        ]}
+      ]
+    }
+  ]
+}

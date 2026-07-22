@@ -78,7 +78,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 17, 1]
+VERSION = [1, 18, 0]
 MIN_ENGINE = [1, 21, 0]
 
 # ---------------------------------------------------------------- oyuncu boyutu
@@ -832,8 +832,9 @@ ITEMS = [
 # geometry MC saglar). Adlar MorphX'in calisan dosyasindan dogrulandi.
 # spawn egg ITEMS'te (kind=spawn_egg, entity_placer ile cagirir).
 MONSTERS = [
-    dict(id="ender_send", mat="enderman", tex="textures/entity/enderman/enderman",
-         geo="geometry.enderman", hp=300, scale=3.5, dmg=15, cw=2.0, ch=9.0,
+    # OZGUN 3 kafali model (custom=True): kafalar tepede. Model zaten uzun
+    # (~3.5 blok) modellendi -> scale 2.4 ile ~8 blok dev boss.
+    dict(id="ender_send", custom=True, hp=300, scale=2.4, dmg=15, cw=2.0, ch=9.0,
          extra={"minecraft:knockback_resistance": {"value": 0.85}}),
     dict(id="dev_zombi", mat="zombie", tex="textures/entity/zombie/zombie",
          geo="geometry.zombie.v1.8", hp=250, scale=3.2, dmg=12, cw=1.5, ch=6.0,
@@ -869,6 +870,123 @@ def png(path, rows):
 
 def shade(c, f):
     return tuple(max(0, min(255, int(v * f))) for v in c)
+
+
+# Paylasilan yumurta silueti — 4 spawn egg de "yumurta" gibi okunsun (satir -> x araligi)
+SPAWN_EGG_MASK = {2: (7, 8), 3: (6, 9), 4: (5, 10), 5: (5, 11), 6: (4, 11), 7: (4, 11),
+                  8: (4, 11), 9: (4, 11), 10: (4, 11), 11: (5, 11), 12: (5, 10),
+                  13: (6, 9), 14: (7, 8)}
+
+
+def symbol_texture(path, item_id):
+    """Duz-renk kalan item'lar icin anlamli 16x16 sembol cizer (opak RGB).
+    Cocuklar item'lari ikonundan taniyabilsin diye; her biri ayirt edilebilir.
+    Taninmayan id icin False doner (cagiran duz-renge duser)."""
+    SPECS = {
+        # id -> (arka plan). Cizim asagida id'ye gore.
+        "dev_zombi_yumurta": (45, 80, 40), "dev_creeper_yumurta": (40, 110, 45),
+        "mutant_warden_yumurta": (18, 40, 46), "blood_sword": (70, 14, 18),
+        "heart_axe": (120, 40, 70), "dondurucu": (35, 85, 160),
+        "hiz_esyasi": (55, 165, 210), "koku_bombasi": (95, 120, 45),
+        "end_pearl": (24, 20, 40), "nether_pearl": (48, 14, 14),
+        "takim_asasi": (65, 38, 105), "esya_calmaca": (55, 42, 80),
+        "rainbow_boots": (120, 180, 220), "kurus": (60, 52, 38),
+        "iki_yuz_tl": (65, 120, 85),
+    }
+    if item_id not in SPECS:
+        return False
+    bg = SPECS[item_id]
+    g = [[list(bg) for _ in range(16)] for _ in range(16)]
+
+    def rect(x0, y0, x1, y1, c):
+        for y in range(max(0, y0), min(16, y1 + 1)):
+            for x in range(max(0, x0), min(16, x1 + 1)):
+                g[y][x] = list(c)
+
+    def hline(y, x0, x1, c): rect(x0, y, x1, y, c)
+
+    def vline(x, y0, y1, c): rect(x, y0, x, y1, c)
+
+    def disc(cx, cy, r, c):
+        for y in range(16):
+            for x in range(16):
+                if (x - cx) ** 2 + (y - cy) ** 2 <= r * r:
+                    g[y][x] = list(c)
+
+    def px(x, y, c):
+        if 0 <= x < 16 and 0 <= y < 16:
+            g[y][x] = list(c)
+
+    def egg(body):
+        for yy, (x0, x1) in SPAWN_EGG_MASK.items():
+            rect(x0, yy, x1, yy, body)
+
+    iid = item_id
+    if iid == "dev_zombi_yumurta":
+        egg((110, 165, 75))
+        for (sx, sy) in [(6, 5), (9, 9), (7, 12), (10, 6)]:
+            px(sx, sy, (70, 120, 55))
+        rect(5, 7, 6, 8, (20, 20, 20)); rect(9, 7, 10, 8, (20, 20, 20)); hline(11, 6, 9, (20, 20, 20))
+    elif iid == "dev_creeper_yumurta":
+        egg((95, 195, 95))
+        rect(5, 6, 6, 8, (15, 15, 15)); rect(9, 6, 10, 8, (15, 15, 15))
+        rect(7, 8, 8, 11, (15, 15, 15)); rect(6, 10, 9, 12, (15, 15, 15))
+    elif iid == "mutant_warden_yumurta":
+        egg((30, 60, 70))
+        rect(5, 6, 6, 8, (130, 255, 240)); rect(9, 6, 10, 8, (130, 255, 240))
+        disc(8, 11, 2, (40, 150, 140)); rect(7, 11, 8, 11, (255, 95, 95))
+        px(6, 4, (28, 115, 125)); px(10, 13, (28, 115, 125))
+    elif iid == "blood_sword":
+        rect(7, 2, 8, 10, (205, 210, 220)); vline(7, 2, 10, (235, 240, 250))
+        hline(11, 5, 10, (120, 120, 130)); rect(7, 12, 8, 14, (110, 70, 40))
+        px(7, 11, (200, 20, 20)); disc(8, 13, 1, (200, 20, 20))
+    elif iid == "heart_axe":
+        for (hx, hy) in [(5, 14), (6, 13), (7, 11), (8, 9), (9, 7)]:
+            px(hx, hy, (110, 70, 40))
+        disc(9, 5, 2, (235, 45, 80)); disc(12, 5, 2, (235, 45, 80)); rect(10, 7, 11, 9, (235, 45, 80))
+    elif iid == "dondurucu":
+        vline(8, 2, 13, (235, 245, 255)); hline(8, 2, 13, (235, 245, 255))
+        for i in range(3, 13):
+            px(i, i, (235, 245, 255)); px(i, 16 - i, (235, 245, 255))
+    elif iid == "hiz_esyasi":
+        for base_x in (3, 7):
+            for i in range(5):
+                px(base_x + i, 4 + i, (255, 230, 60)); px(base_x + i, 12 - i, (255, 230, 60))
+                px(base_x + i + 1, 4 + i, (255, 230, 60)); px(base_x + i + 1, 12 - i, (255, 230, 60))
+    elif iid == "koku_bombasi":
+        disc(8, 12, 3, (35, 45, 25)); px(9, 8, (230, 160, 40)); px(10, 7, (230, 160, 40)); px(11, 6, (230, 160, 40))
+        disc(5, 6, 2, (175, 215, 95)); disc(9, 5, 2, (175, 215, 95)); disc(7, 3, 1, (175, 215, 95))
+    elif iid == "end_pearl":
+        disc(8, 8, 5, (30, 150, 140)); disc(8, 8, 2, (15, 60, 60)); px(5, 5, (140, 225, 205)); px(6, 5, (140, 225, 205))
+    elif iid == "nether_pearl":
+        disc(8, 8, 5, (120, 30, 20)); disc(8, 8, 3, (220, 90, 30)); disc(8, 8, 1, (250, 215, 90))
+    elif iid == "takim_asasi":
+        for (wx, wy) in [(4, 13), (5, 12), (6, 11), (7, 9), (8, 8), (9, 7), (10, 6), (11, 5)]:
+            px(wx, wy, (110, 80, 50))
+        px(12, 4, (255, 235, 90)); px(12, 2, (255, 235, 90)); px(12, 6, (255, 235, 90)); px(10, 4, (255, 235, 90)); px(14, 4, (255, 235, 90))
+    elif iid == "esya_calmaca":
+        vline(5, 5, 9, (220, 185, 145)); vline(8, 4, 9, (220, 185, 145)); vline(11, 5, 9, (220, 185, 145))
+        rect(5, 9, 11, 12, (220, 185, 145)); rect(7, 2, 9, 4, (240, 205, 70))
+    elif iid == "rainbow_boots":
+        bands = [(3, 4, (220, 40, 40)), (5, 6, (230, 140, 40)), (7, 8, (235, 215, 60)),
+                 (9, 10, (70, 180, 80)), (11, 12, (60, 110, 210)), (13, 14, (150, 70, 190))]
+        for (y0, y1, c) in bands:
+            for y in range(y0, y1 + 1):
+                x0, x1 = (5, 8) if y <= 10 else (5, 12)
+                rect(x0, y, x1, y, c)
+    elif iid == "kurus":
+        disc(8, 8, 6, (200, 150, 40)); disc(8, 8, 5, (230, 190, 70)); vline(8, 5, 11, (120, 85, 20)); px(7, 6, (120, 85, 20))
+    elif iid == "iki_yuz_tl":
+        rect(2, 5, 13, 11, (210, 225, 200))
+        for x in range(2, 14):
+            px(x, 5, (90, 160, 110)); px(x, 11, (90, 160, 110))
+        vline(2, 5, 11, (90, 160, 110)); vline(13, 5, 11, (90, 160, 110))
+        disc(5, 8, 1, (150, 180, 150)); hline(7, 9, 12, (90, 160, 110)); hline(9, 9, 12, (90, 160, 110))
+    for i in range(16):                     # 1px cerceve (tum ikonlarla tutarli)
+        g[0][i] = shade(bg, 0.7); g[15][i] = shade(bg, 0.7)
+        g[i][0] = shade(bg, 0.7); g[i][15] = shade(bg, 0.7)
+    png(path, g)
+    return True
 
 
 def decor_texture(path, base, kind):
@@ -1020,6 +1138,39 @@ def mutant_warden_texture(path):
     png_rgb(path, grid, W, H)
 
 
+def ender_send_texture(path):
+    """Ender Send dokusu (128x128 RGB). Koyu siyah-mor enderman derisi + her
+    kafanin on-yuzunde parlak mor gozler. Bolgeler geometry.ender_send box-uv:
+    orta kafa uv[40,78] -> on yuz (48,86); sol kafa uv[0,96] -> (6,102);
+    sag kafa uv[28,96] -> (34,102)."""
+    W = H = 128
+    base = (12, 10, 20)
+    glow = (185, 60, 235)
+    grid = [[list(base) for _ in range(W)] for _ in range(H)]
+    for y in range(H):
+        for x in range(W):
+            n = ((x * 11 + y * 5) % 13) - 6
+            grid[y][x] = [max(0, min(255, base[0] + n)),
+                          max(0, min(255, base[1] + n)),
+                          max(0, min(255, base[2] + n + 4))]
+
+    def rect(x0, y0, x1, y1, c):
+        for yy in range(max(0, y0), min(y1, H)):
+            for xx in range(max(0, x0), min(x1, W)):
+                grid[yy][xx] = list(c)
+
+    rect(48, 86, 56, 95, (6, 4, 10))                 # orta kafa yuz
+    rect(49, 89, 51, 91, glow)
+    rect(53, 89, 55, 91, glow)
+    rect(6, 102, 12, 109, (6, 4, 10))                # sol kafa yuz
+    rect(7, 104, 8, 106, glow)
+    rect(10, 104, 11, 106, glow)
+    rect(34, 102, 40, 109, (6, 4, 10))               # sag kafa yuz
+    rect(35, 104, 36, 106, glow)
+    rect(38, 104, 39, 106, glow)
+    png_rgb(path, grid, W, H)
+
+
 # ---------------------------------------------------------------- yapi
 def w(path, obj):
     os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -1110,11 +1261,22 @@ def build():
                 tnt_face(dst, t['color'][idx], band=(face == "side"), face=face)
                 generated += 1
             terrain[key] = {"textures": rel}
-    # DECOR blok dokulari (tek yuz, tum yonler ayni)
+    # DECOR blok dokulari (tek yuz, tum yonler ayni). Java'da gercek cizilmis
+    # dokusu olan bloklar icin onu kullan (item klasorunde duruyorlar).
+    BLOCK_TEX_MAP = {"herobrine_spawner": "herobrine_spawner", "fake_tnt": "fake_tnt",
+                     "yakinlik_mayini": "proximity_mine", "sifreli_sandik": "encrypted_tnt_chest",
+                     "blocker_sandik": "encrypted_tnt_chest", "sahip_kapi": "tnt_door"}
     for blk in BLOCKS:
         key = f"stnt_{blk['id']}"
         rel = f"textures/blocks/{key}"
-        decor_texture(os.path.join(RP, rel + ".png"), blk['color'], blk['kind'])
+        dst = os.path.join(RP, rel + ".png")
+        jt = BLOCK_TEX_MAP.get(blk['id'])
+        jsrc = os.path.join(JAVA_ITEM_TEX, f"{jt}.png") if jt else None
+        if jsrc and os.path.exists(jsrc):
+            os.makedirs(os.path.dirname(dst), exist_ok=True)
+            shutil.copy(jsrc, dst)
+        else:
+            decor_texture(dst, blk['color'], blk['kind'])
         terrain[key] = {"textures": rel}
         generated += 1
     w(os.path.join(RP, "textures/terrain_texture.json"),
@@ -1135,6 +1297,8 @@ def build():
             os.makedirs(os.path.dirname(dst), exist_ok=True)
             shutil.copy(src, dst)
             item_copied += 1
+        elif symbol_texture(dst, it['id']):     # anlamli sembol (spawn egg, silah, vb.)
+            item_gen += 1
         else:
             decor_texture(dst, it['color'], "plain")
             item_gen += 1
