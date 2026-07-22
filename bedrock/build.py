@@ -78,7 +78,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 18, 2]
+VERSION = [1, 19, 0]
 MIN_ENGINE = [1, 21, 0]
 
 # ---------------------------------------------------------------- oyuncu boyutu
@@ -146,7 +146,47 @@ PLAYER_BASE = {
 # sistem ayni dunyada CAKISIR. Super TNT morph'u ayrica statik (animasyonsuz)
 # oldugundan dusuk kaliteliydi. MORPHS bos -> morph kodu uretilmez, kucultme
 # (st:size) aynen korunur. Ileride istenirse buraya mob eklenir.
-MORPHS = []
+# Mob morph'lari: Donusum Asasi ile bir mob'a dokununca o mob'un GORUNUMUNE
+# gecersin (carpisma kutusu st:size'dan gelir; morph sadece gorunum). Asset
+# adlari (geometry/texture/material) bedrock-samples'tan bire bir dogrulandi —
+# yanlisi = gorunmez model. SADECE tek-katman temiz render eden moblar alindi;
+# warden (kara blob, glow katmanlari), sheep (kel pembe), villager/axolotl
+# (default texture yok) bilincli DISLANDI. fp_bones=[] -> ilk sahiste el bos
+# (cocuk ucuncu sahis oynar; onemsiz). n = st:morph tam sayisi.
+MORPHS = [
+    dict(key="creeper", n=1, tr="Creeper", geo="geometry.creeper.v1.8",
+         tex="textures/entity/creeper/creeper", mat="creeper", scale=1.0, fp_bones=[]),
+    dict(key="zombie", n=2, tr="Zombi", geo="geometry.zombie.v1.8",
+         tex="textures/entity/zombie/zombie", mat="zombie", scale=1.0, fp_bones=[]),
+    dict(key="skeleton", n=3, tr="İskelet", geo="geometry.skeleton.v1.8",
+         tex="textures/entity/skeleton/skeleton", mat="skeleton", scale=1.0, fp_bones=[]),
+    dict(key="enderman", n=4, tr="Enderman", geo="geometry.enderman.v1.8",
+         tex="textures/entity/enderman/enderman", mat="enderman", scale=1.0, fp_bones=[]),
+    dict(key="iron_golem", n=5, tr="Demir Golem", geo="geometry.irongolem",
+         tex="textures/entity/iron_golem", mat="iron_golem", scale=1.0, fp_bones=[]),
+    dict(key="wolf", n=6, tr="Kurt", geo="geometry.wolf",
+         tex="textures/entity/wolf/wolf", mat="wolf", scale=1.0, fp_bones=[]),
+    dict(key="pig", n=7, tr="Domuz", geo="geometry.pig.v3",
+         tex="textures/entity/pig/pig_v3", mat="pig_v3", scale=1.0, fp_bones=[]),
+    dict(key="cow", n=8, tr="İnek", geo="geometry.cow.v2",
+         tex="textures/entity/cow/cow_v2", mat="cow", scale=1.0, fp_bones=[]),
+    dict(key="chicken", n=9, tr="Tavuk", geo="geometry.chicken.v1.12",
+         tex="textures/entity/chicken/chicken", mat="chicken", scale=1.0, fp_bones=[]),
+    dict(key="spider", n=10, tr="Örümcek", geo="geometry.spider.v1.8",
+         tex="textures/entity/spider/spider", mat="spider", scale=1.0, fp_bones=[]),
+    dict(key="piglin", n=11, tr="Piglin", geo="geometry.piglin",
+         tex="textures/entity/piglin/piglin", mat="piglin", scale=1.0, fp_bones=[]),
+    dict(key="allay", n=12, tr="Allay", geo="geometry.allay",
+         tex="textures/entity/allay/allay", mat="allay", scale=1.0, fp_bones=[]),
+    dict(key="wither_skeleton", n=13, tr="Wither İskeleti", geo="geometry.skeleton.wither.v1.8",
+         tex="textures/entity/skeleton/wither_skeleton", mat="skeleton", scale=1.0, fp_bones=[]),
+    dict(key="ghast", n=14, tr="Ghast", geo="geometry.ghast",
+         tex="textures/entity/ghast/ghast", mat="ghast", scale=1.0, fp_bones=[]),
+    dict(key="slime", n=15, tr="Slime", geo="geometry.slime",
+         tex="textures/entity/slime/slime", mat="slime", scale=1.0, fp_bones=[]),
+]
+# mob typeId -> morph olayi (script tiklanan mob'u buradan bulur)
+MORPH_MAP = {f"minecraft:{m['key']}": f"st:morph_{m['key']}" for m in MORPHS}
 
 # ---------------------------------------------------------------- TNT tanimlari
 # renk: (top, side, bottom) RGB. tex: Java projesinden kopyalanacak taban ad.
@@ -778,6 +818,12 @@ ITEMS = [
          trtip="Bir mob'a dokun — takımına katılır. Aynı takımdakiler birbirine saldırmaz!",
          entip="Tap a mob - it joins your team. Same-team mobs won't attack each other!",
          color=(80, 200, 140), action=dict(type="team_wand")),
+    # Donusum Asasi: bir mob'a dokun -> o mob'un gorunumune don. Bosluga sag
+    # tik -> insana don. 15 mob (bkz MORPHS). Gorunum degisir, carpisma player.
+    dict(id="donusum_asasi", tr="Dönüşüm Asası", en="Morph Wand", kind="raycast",
+         trtip="Bir mob'a dokun — onun görünümüne dönüş! Boşluğa sağ tık — insana geri dön.",
+         entip="Tap a mob - morph into it! Right-click air - turn back to human.",
+         color=(150, 70, 220), action=dict(type="morph_reset")),
     # boyut toplari: sag tiklayinca KENDINI bir kademe kucultur/buyutur.
     # (Bedrock'ta atilan mermiyle baskasini kucultmek yerine kendine
     #  uygulamak daha guvenilir; player.json st:size ozelligini surer.)
@@ -1738,7 +1784,8 @@ def build():
                                 ensure_ascii=False)) \
                             .replace("__FUSE__", str(FUSE_TICKS)) \
                             .replace("__PORTAL_N__", str(len(PORTAL_COLORS))) \
-                            .replace("__PORTAL_NAMES__", json.dumps([n for n, _ in PORTAL_COLORS], ensure_ascii=False))
+                            .replace("__PORTAL_NAMES__", json.dumps([n for n, _ in PORTAL_COLORS], ensure_ascii=False)) \
+                            .replace("__MORPH_MAP__", json.dumps(MORPH_MAP, ensure_ascii=False))
     os.makedirs(os.path.join(BP, "scripts"), exist_ok=True)
     open(os.path.join(BP, "scripts/main.js"), 'w', encoding='utf-8').write(script)
 
@@ -1785,6 +1832,7 @@ const NAMES = __NAMES__;
 const TIPS = __TIPS__;
 const ITEM_ACTIONS = __ITEM_ACTIONS__;
 const MORPH_FORMS = __MORPH_FORMS__;
+const MORPH_MAP = __MORPH_MAP__;   // mob typeId -> st:morph_<key> olayi
 const FUSE = __FUSE__;
 
 // ---------------------------------------------------------------- item'lar
@@ -1803,14 +1851,15 @@ function itemAction(player, a) {
   const dim = player.dimension;
   try {
     switch (a.type) {
-      case "morph_cycle": {
-        // sirayla forma gec: insan -> creeper -> golem -> insan (saf gorsel).
+      case "morph_reset": {
+        // Donusum Asasi bosluga sag tik -> insana geri don. Mob'a dokunma
+        // (morph) playerInteractWithEntity handler'inda; bir moba BAKIYORSAN
+        // reset'i atla ki dokunma morph'u devralsin.
         try {
-          let m = player.getProperty("st:morph");
-          if (typeof m !== "number") m = 0;
-          const next = (m + 1) % MORPH_FORMS.length;
-          player.triggerEvent(MORPH_FORMS[next].ev);
-          try { player.onScreenDisplay.setActionBar(`§a${MORPH_FORMS[next].name} formuna geçtin!`); } catch (e) {}
+          const hs = player.getEntitiesFromViewDirection({ maxDistance: 4 });
+          if (hs.length && MORPH_MAP[hs[0].entity && hs[0].entity.typeId]) break;
+          player.triggerEvent("st:morph_human");
+          player.onScreenDisplay.setActionBar("§aİnsana geri döndün");
           spray(dim, player.location, "minecraft:portal_particle", 20, 1.5);
         } catch (e) {}
         break;
@@ -2118,6 +2167,26 @@ world.beforeEvents.playerInteractWithEntity.subscribe((ev) => {
     target.addTag(tag);
     try { ev.player.onScreenDisplay.setActionBar("§aMob takımına katıldı! Aynı takım birbirine saldırmaz."); } catch (e) {}
     try { spray(target.dimension, target.location, "minecraft:heart_particle", 10, 1.2); } catch (e) {}
+  } catch (e) {}
+});
+// Donusum Asasi: bir moba dokun -> o mob'un gorunumune don. before-event'te
+// triggerEvent calismaz (read-only), system.run ile ertele.
+world.beforeEvents.playerInteractWithEntity.subscribe((ev) => {
+  try {
+    if (!ev.itemStack || ev.itemStack.typeId !== "stnt:donusum_asasi") return;
+    const target = ev.target, pl = ev.player;
+    const evName = target ? MORPH_MAP[target.typeId] : undefined;
+    if (!evName) {
+      system.run(() => { try { pl.onScreenDisplay.setActionBar("§7Bu yaratığa dönüşülemiyor"); } catch (e) {} });
+      return;
+    }
+    system.run(() => {
+      try {
+        pl.triggerEvent(evName);
+        pl.onScreenDisplay.setActionBar("§aDönüştün! Boşluğa sağ tık → insana dön.");
+        spray(pl.dimension, pl.location, "minecraft:portal_particle", 20, 1.5);
+      } catch (e) {}
+    });
   } catch (e) {}
 });
 world.beforeEvents.entityHurt.subscribe((ev) => {
@@ -2816,7 +2885,9 @@ world.beforeEvents.playerInteractWithBlock.subscribe((ev) => {
     system.run(() => {                     // sahip acinca 4 sn acilir
       try {
         dim.getBlock(loc)?.setType("minecraft:air");
-        system.runTimeout(() => { try { const nb = dim.getBlock(loc); if (nb && nb.typeId === "minecraft:air") nb.setType(type); } catch (e) {} }, 80);
+        // 4 sn sonra KOSULSUZ geri koy: onceden "sadece hala air ise" kontrolu
+        // vardi; o pencerede bir blok akarsa/konursa kapi kalici kayboluyordu.
+        system.runTimeout(() => { try { dim.getBlock(loc)?.setType(type); } catch (e) {} }, 80);
       } catch (e) {}
     });
   } else if (b.typeId === "stnt:blocker_sandik") {
