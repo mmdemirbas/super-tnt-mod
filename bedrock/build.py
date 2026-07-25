@@ -78,8 +78,13 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 19, 1]
+VERSION = [1, 20, 0]
 MIN_ENGINE = [1, 21, 0]
+# Surum etiketi paket ADINA yazilir. UUID + klasor adlari sabit oldugu icin
+# Minecraft ayni UUID'li paketi yerinde GUNCELLER; ama cihazda eski surum
+# girdisi kalirsa listede iki "Super TNT" gorunur. Adi surumle etiketleyince
+# hangisinin yeni oldugu bir bakista belli olur ve eskisi silinebilir.
+VER_STR = ".".join(str(n) for n in VERSION)
 
 # ---------------------------------------------------------------- oyuncu boyutu
 # Kucultme/Buyutme: Bedrock'ta oyuncuya minecraft:scale UYGULANAMIYOR
@@ -167,7 +172,7 @@ MORPHS = [
     dict(key="wolf", n=6, tr="Kurt", geo="geometry.wolf",
          tex="textures/entity/wolf/wolf", mat="wolf", scale=1.0, fp_bones=[]),
     dict(key="pig", n=7, tr="Domuz", geo="geometry.pig.v3",
-         tex="textures/entity/pig/pig_v3", mat="pig_v3", scale=1.0, fp_bones=[]),
+         tex="textures/entity/pig/pig_v3", mat="pig", scale=1.0, fp_bones=[]),
     dict(key="cow", n=8, tr="İnek", geo="geometry.cow.v2",
          tex="textures/entity/cow/cow_v2", mat="cow", scale=1.0, fp_bones=[]),
     dict(key="chicken", n=9, tr="Tavuk", geo="geometry.chicken.v1.12",
@@ -1266,8 +1271,8 @@ def build():
     # ---------- manifestler
     w(os.path.join(BP, "manifest.json"), {
         "format_version": 2,
-        "header": {"name": "Super TNT Mod [BP]",
-                   "description": "Super TNT Mod - Bedrock surumu",
+        "header": {"name": f"Super TNT Mod v{VER_STR} [BP]",
+                   "description": f"Super TNT Mod - Bedrock surumu (v{VER_STR})",
                    "uuid": BP_UUID, "version": VERSION,
                    "min_engine_version": MIN_ENGINE},
         # script modulunde "language": "javascript" ZORUNLU. Onsuz Minecraft
@@ -1292,8 +1297,8 @@ def build():
     })
     w(os.path.join(RP, "manifest.json"), {
         "format_version": 2,
-        "header": {"name": "Super TNT Mod [RP]",
-                   "description": "Super TNT Mod - dokular",
+        "header": {"name": f"Super TNT Mod v{VER_STR} [RP]",
+                   "description": f"Super TNT Mod - dokular (v{VER_STR})",
                    "uuid": RP_UUID, "version": VERSION,
                    "min_engine_version": MIN_ENGINE},
         "modules": [{"type": "resources", "uuid": RP_MOD_UUID, "version": VERSION}],
@@ -1612,12 +1617,16 @@ def build():
                         "textures": {"default": f"textures/entity/{m['id']}"},
                         "geometry": {"default": f"geometry.{m['id']}"},
                         "animations": {
-                            "walk": f"animation.{m['id']}.walk",
-                            "idle": f"animation.{m['id']}.idle",
+                            "move": f"animation.{m['id']}.move",
                         },
                         "scripts": {
-                            # idle her zaman; walk sadece hareket ederken (bacak/kol sallar)
-                            "animate": ["idle", {"walk": "query.modified_move_speed > 0.05"}],
+                            # Tek 'move' animasyonu daima aktif. Uzuv genligi
+                            # animasyon icinde query.ground_speed ile olcekleniyor:
+                            # dururken hafif kimildar, yururken genis sallar.
+                            # Eski gate'li ("modified_move_speed > 0.05") yontem
+                            # custom mob'da tetiklenmiyordu -> uzuvlar donuk, govde
+                            # suruklenir gorunuyordu. Gate kaldirildi.
+                            "animate": ["move"],
                         },
                         "render_controllers": ["controller.render.default"],
                     },
@@ -2176,22 +2185,38 @@ world.beforeEvents.playerInteractWithEntity.subscribe((ev) => {
 });
 // Donusum Asasi: bir moba dokun -> o mob'un gorunumune don. before-event'te
 // triggerEvent calismaz (read-only), system.run ile ertele.
+function tryMorph(pl, target) {
+  const evName = target ? MORPH_MAP[target.typeId] : undefined;
+  if (!evName) {
+    system.run(() => { try { pl.onScreenDisplay.setActionBar("§7Bu yaratığa dönüşülemiyor"); } catch (e) {} });
+    return;
+  }
+  system.run(() => {
+    try {
+      pl.triggerEvent(evName);
+      pl.onScreenDisplay.setActionBar("§aDönüştün! Boşluğa sağ tık → insana dön.");
+      spray(pl.dimension, pl.location, "minecraft:portal_particle", 20, 1.5);
+    } catch (e) {}
+  });
+}
+// (1) Interact/Use hareketi (PC sag tik, mobilde uysal mob'a uzun dokunma).
 world.beforeEvents.playerInteractWithEntity.subscribe((ev) => {
   try {
     if (!ev.itemStack || ev.itemStack.typeId !== "stnt:donusum_asasi") return;
-    const target = ev.target, pl = ev.player;
-    const evName = target ? MORPH_MAP[target.typeId] : undefined;
-    if (!evName) {
-      system.run(() => { try { pl.onScreenDisplay.setActionBar("§7Bu yaratığa dönüşülemiyor"); } catch (e) {} });
-      return;
-    }
-    system.run(() => {
-      try {
-        pl.triggerEvent(evName);
-        pl.onScreenDisplay.setActionBar("§aDönüştün! Boşluğa sağ tık → insana dön.");
-        spray(pl.dimension, pl.location, "minecraft:portal_particle", 20, 1.5);
-      } catch (e) {}
-    });
+    tryMorph(ev.player, ev.target);
+  } catch (e) {}
+});
+// (2) VURMA hareketi. Mobilde moba dokunmak saldiridir (interact degil) ve
+// dusman mob'larda interact hic tetiklenmez. Bu yuzden Donusum Asasi ile
+// vurunca da morph olur -> asıl "mobil odak" senaryosu.
+world.afterEvents.entityHitEntity.subscribe((ev) => {
+  try {
+    const pl = ev.damagingEntity;
+    if (!pl || pl.typeId !== "minecraft:player") return;
+    const eq = pl.getComponent("equippable");
+    const held = eq && eq.getEquipment(EquipmentSlot.Mainhand);
+    if (!held || held.typeId !== "stnt:donusum_asasi") return;
+    tryMorph(pl, ev.hitEntity);
   } catch (e) {}
 });
 // ---- Morph YETENEKLERI: bir mob'a donunce o mob'un gucunu kazan.
@@ -2378,7 +2403,22 @@ try {
 // ---------------------------------------------------------------- fitil
 // F1 - blok kaldirilir, yerine fiziksel bir varlik dogar. Firlatilabilir,
 // duser, ziplar - vanilla TNT gibi.
-const primed = new Map();  // entityId -> { short, left, dim }
+const primed = new Map();  // entityId -> { short, left, e, ig, lastLoc, lastDim }
+
+// Fitili TAM BIR KEZ patlat. Hem sayac (p.left<=0) hem de guvenlik zaman
+// asimi bunu cagirir; primed'ten silinmis id ikinci kez patlamaz. Varligin
+// konumu okunamiyorsa (chunk bosaldi, itildi, silindi) SON BILINEN konumda
+// patlar. "Bazi TNT'ler patlamiyor" hatasinin asil kaynagi buydu: eskiden
+// konum okunamayinca sessizce siliniyor, hic patlamiyordu.
+function fireOnce(id) {
+  const p = primed.get(id);
+  if (!p) return;                       // zaten patladi/silindi
+  primed.delete(id);
+  let loc = p.lastLoc, dim = p.lastDim;
+  try { loc = p.e.location; dim = p.e.dimension; } catch (e) {}
+  try { p.e.remove(); } catch (e) {}
+  if (dim && loc) detonate(dim, loc, p.short, p.ig);
+}
 
 function ignite(dim, loc, short, igniterId) {
   try {
@@ -2393,9 +2433,13 @@ function ignite(dim, loc, short, igniterId) {
   try {
     const e = dim.spawnEntity(`stnt:${short}_primed`, c);
     try { e.applyImpulse({ x: rnd(0.04), y: 0.22, z: rnd(0.04) }); } catch (err) {}
-    primed.set(e.id, { short, left: FUSE, e, ig: igniterId });
+    const pid = e.id;
+    primed.set(pid, { short, left: FUSE, e, ig: igniterId, lastLoc: c, lastDim: dim });
+    // Kosulsuz guvenlik zaman asimi: sayac herhangi bir sebeple patlatmazsa
+    // yine de patlar. Normalde sayac once patlatir, id silinir, bu no-op olur.
+    system.runTimeout(() => fireOnce(pid), FUSE + 6);
   } catch (err) {
-    // varlik dogmadiysa yerinde patlat - islev kaybolmasin
+    // varlik hic dogmadiysa yerinde patlat - islev kaybolmasin
     system.runTimeout(() => detonate(dim, c, short, igniterId), FUSE);
   }
 }
@@ -2404,16 +2448,12 @@ function ignite(dim, loc, short, igniterId) {
 system.runInterval(() => {
   for (const [id, p] of [...primed]) {
     p.left -= 2;
-    let loc = null, dim = null;
-    try { loc = p.e.location; dim = p.e.dimension; } catch (e) { primed.delete(id); continue; }
     try {
-      dim.spawnParticle("minecraft:basic_smoke_particle", { x: loc.x, y: loc.y + 0.7, z: loc.z });
-    } catch (e) {}
-    if (p.left <= 0) {
-      primed.delete(id);
-      try { p.e.remove(); } catch (e) {}
-      detonate(dim, loc, p.short, p.ig);
-    }
+      const loc = p.e.location;
+      p.lastLoc = loc; p.lastDim = p.e.dimension;   // son iyi konumu hatirla
+      p.lastDim.spawnParticle("minecraft:basic_smoke_particle", { x: loc.x, y: loc.y + 0.7, z: loc.z });
+    } catch (e) {}                                    // konum okunamadi -> son konum kalir, SILME YOK
+    if (p.left <= 0) fireOnce(id);
   }
 }, 2);
 
@@ -2456,6 +2496,12 @@ function rnd(n) { return (Math.random() - 0.5) * n; }
 function detonate(dim, c, short, igniterId) {
   const s = SPEC[short];
   if (!s) return;
+  // HER TNT patlama ANI geri bildirimi versin: gorsel patlama + ses. Hasar
+  // vermez (createExplosion degil). Efekt-TNT'lerinin cogu blok patlatmaz;
+  // onsuz cocuklar "patlamadi" saniyordu. Gercekten patlayanlar zaten
+  // createExplosion ile ayrica ses/parcacik uretir, ustune binmesi zararsiz.
+  try { dim.spawnParticle("minecraft:huge_explosion_emitter", c); } catch (e) {}
+  try { dim.playSound("random.explode", c, { volume: 1.0, pitch: 1.0 }); } catch (e) {}
   chain(dim, c);   // F3 - zinciri kur (patlamadan once, bloklar hala duruyor)
   try {
     switch (s.kind) {

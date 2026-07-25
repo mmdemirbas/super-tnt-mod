@@ -1,22 +1,19 @@
 {
   "format_version": "1.8.0",
-  "//": "OZGUN animasyon — vanilla warden referansi custom entity'de baglanmadi",
-  "//2": "(donuk cikti). Bunlar built-in query.anim_time/life_time kullanir, kesin",
-  "//3": "calisir. walk yururken (scripts.animate gate) aktif; idle her zaman.",
+  "//": "TEK 'move' animasyonu — her zaman aciktir (scripts.animate gate YOK).",
+  "//2": "Bacak/kol genligi query.ground_speed ile olceklenir: dururken hafif",
+  "//3": "(6 derece taban), yururken 45 dereceye kadar. Boylece 'suruklenip donan",
+  "//4": "uzuvlar' hatasi imkansiz — hareket bool sorgusu tetiklenmese bile uzuvlar",
+  "//5": "canli kalir. Kafa/dokunaclar life_time ile daima kimildar.",
   "animations": {
-    "animation.mutant_warden.walk": {
+    "animation.mutant_warden.move": {
       "loop": true,
       "bones": {
-        "right_leg": { "rotation": ["math.cos(query.anim_time * 240) * 32", 0, 0] },
-        "left_leg": { "rotation": ["-math.cos(query.anim_time * 240) * 32", 0, 0] },
-        "right_arm": { "rotation": ["-math.cos(query.anim_time * 240) * 26", 0, 0] },
-        "left_arm": { "rotation": ["math.cos(query.anim_time * 240) * 26", 0, 0] },
-        "body": { "rotation": [0, 0, "math.sin(query.anim_time * 480) * 3"] }
-      }
-    },
-    "animation.mutant_warden.idle": {
-      "loop": true,
-      "bones": {
+        "right_leg": { "rotation": ["math.cos(query.anim_time * 200) * math.clamp(query.ground_speed * 120, 6, 45)", 0, 0] },
+        "left_leg": { "rotation": ["-math.cos(query.anim_time * 200) * math.clamp(query.ground_speed * 120, 6, 45)", 0, 0] },
+        "right_arm": { "rotation": ["-math.cos(query.anim_time * 200) * math.clamp(query.ground_speed * 100, 8, 40)", 0, 0] },
+        "left_arm": { "rotation": ["math.cos(query.anim_time * 200) * math.clamp(query.ground_speed * 100, 8, 40)", 0, 0] },
+        "body": { "rotation": [0, 0, "math.sin(query.anim_time * 400) * math.clamp(query.ground_speed * 20, 1, 4)"] },
         "head": { "rotation": ["math.sin(query.life_time * 45) * 4", "math.cos(query.life_time * 33) * 4", 0] },
         "left_tendril": { "rotation": ["math.sin(query.life_time * 70) * 12", 0, 0] },
         "right_tendril": { "rotation": ["math.sin(query.life_time * 70 + 40) * 12", 0, 0] }
