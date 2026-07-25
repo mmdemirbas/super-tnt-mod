@@ -78,7 +78,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 20, 0]
+VERSION = [1, 21, 0]
 MIN_ENGINE = [1, 21, 0]
 # Surum etiketi paket ADINA yazilir. UUID + klasor adlari sabit oldugu icin
 # Minecraft ayni UUID'li paketi yerinde GUNCELLER; ama cihazda eski surum
@@ -1628,8 +1628,23 @@ def build():
             shutil.copy(os.path.join(HERE, f"custom/{m['id']}.animation.json"),
                         os.path.join(RP, f"animations/{m['id']}.animation.json"))
             globals()[f"{m['id']}_texture"](os.path.join(RP, f"textures/entity/{m['id']}.png"))
-            w(os.path.join(RP, f"entity/{m['id']}.json"), {
+            # Animasyonu BIR ANIMASYON KONTROLCUSU uzerinden surer, ciplak
+            # scripts.animate ["move"] KISAYOL baglamasi yerine. Kanit: eski
+            # yontemde query.life_time ile surulen kafa sallanmasi bile
+            # oynamiyordu (life_time hareketten bagimsiz, daima ilerler) ->
+            # yani animasyon HIC baglanmiyordu, "ground_speed=0" degil. Mojang'in
+            # belgeledigi saglam "daima acik" deseni: default state'li kontrolcu
+            # spawn aninda aktif olur ve dongoyu her karede surer. Ayrica
+            # client_entity format'i 1.21.0'a cekildi — player.json'da 1.10.0
+            # etiketinin motor 1.26'da yeni scripts alanlarini yanlis yorumladigi
+            # gorulmustu; ayni sinif hatayi burada da onler.
+            w(os.path.join(RP, f"animation_controllers/{m['id']}.animation_controllers.json"), {
                 "format_version": "1.10.0",
+                "animation_controllers": {
+                    f"controller.animation.{m['id']}.move": {
+                        "states": {"default": {"animations": ["move"]}}}}})
+            w(os.path.join(RP, f"entity/{m['id']}.json"), {
+                "format_version": "1.21.0",
                 "minecraft:client_entity": {
                     "description": {
                         "identifier": f"stnt:{m['id']}",
@@ -1642,16 +1657,12 @@ def build():
                         "geometry": {"default": f"geometry.{m['id']}"},
                         "animations": {
                             "move": f"animation.{m['id']}.move",
+                            "move_ctrl": f"controller.animation.{m['id']}.move",
                         },
-                        "scripts": {
-                            # Tek 'move' animasyonu daima aktif. Uzuv genligi
-                            # animasyon icinde query.ground_speed ile olcekleniyor:
-                            # dururken hafif kimildar, yururken genis sallar.
-                            # Eski gate'li ("modified_move_speed > 0.05") yontem
-                            # custom mob'da tetiklenmiyordu -> uzuvlar donuk, govde
-                            # suruklenir gorunuyordu. Gate kaldirildi.
-                            "animate": ["move"],
-                        },
+                        # Kontrolcu her karede 'move'u surer. Uzuv genligi
+                        # animasyon icinde query.ground_speed ile olcekleniyor:
+                        # dururken hafif kimildar, yururken genis sallar.
+                        "scripts": {"animate": ["move_ctrl"]},
                         "render_controllers": ["controller.render.default"],
                     },
                 },
