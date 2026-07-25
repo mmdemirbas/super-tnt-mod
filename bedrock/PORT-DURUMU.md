@@ -119,6 +119,13 @@ blokların kendi dinamik özelliği yoktur.
   özelliği + kademe başına `collision_box`. `minecraft:scale` oyuncuda
   çalışmadığı için (script'ten "event does not exist" hatası) MorphX'in
   kanıtlanmış render-Molang yöntemi kullanıldı.
+  **Motor sınırı:** Bu ölçek yalnız GÖRSELDİR — üçüncü şahıs modeli ve
+  başkalarının gördüğü boyut değişir, ama oyuncunun kendi ILK-ŞAHIS göz
+  yüksekliği motor tarafından sabittir (Bedrock'ta göz yüksekliği ne
+  render-ölçekten ne collision_box'tan etkilenir). "Küçülünce dünya büyük
+  görünsün" add-on ile yapılamaz; kamerayı tümüyle devralmak (`/camera` /
+  Script Camera) normal oyunu bozar, çocuklar için uygun değil. Özellik
+  bilinçli olarak sadece kozmetik.
   **Bilinen kısıt:** `player.json` Bedrock'ta paketler arası birleşmez —
   bu özellik MorphX ile **aynı dünyada** kullanılamaz (üstteki paket
   kazanır). Ayrı dünyalarda ikisi de çalışır.

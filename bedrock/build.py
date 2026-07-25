@@ -103,6 +103,17 @@ VER_STR = ".".join(str(n) for n in VERSION)
 # 2 = normal (vanilla 0.6 x 1.8). Gorsel olcek carpisma yuksekligi / 1.8
 # oranina hizalandi ki model hitbox'in disina tasmasin (denetimde bulunan
 # kozmetik uyumsuzluk). MorphX dev boyutu 3.6y kullaniyor; ustunu asmadik.
+#
+# MOTOR SINIRI (ILK SAHIS KAMERASI DEGISMEZ): Kucultme/Buyutme yalniz
+# GORSELDIR — ucuncu sahis modeli ve BASKALARININ gordugu boyut degisir,
+# ama oyuncunun KENDI ilk-sahis goz yuksekligi motor tarafindan sabittir.
+# Bedrock'ta goz yuksekligi ne render-olcekten ne de collision_box'tan
+# etkilenir (Java'nin aksine); oyuncuya ozel bir eye_height bileseni yoktur.
+# Yani "kuculunce dunya buyuk gorunsun" ADDON ILE YAPILAMAZ. Tek yol
+# /camera veya Script Camera ile kamerayi tamamen devralmak — normal oyunu
+# bozar, cocuklar icin uygun degil. Kaynak: learn.microsoft.com/minecraft/
+# creator (Camera Script API, /camera) + wiki.bedrock.dev (scripts.scale
+# "sadece modeli olcekler"). Bu ozellik bilincli olarak sadece kozmetik.
 SIZE_TABLE = {
     0: (0.33, 0.35, 0.60),   # minik   (0.6/1.8)
     1: (0.55, 0.50, 1.00),   # kucuk   (1.0/1.8)
