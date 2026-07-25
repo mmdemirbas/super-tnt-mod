@@ -1,0 +1,179 @@
+#!/usr/bin/env bash
+# Super TNT — tek komut derleme + dagitim.
+#
+# Alt komutlar cihaz/hedef secer; derleme (bedrock/build.py) her seferinde bir
+# kez calisir. Android tarafi mevcut deploy/deploy.sh'i (push + dogrulama +
+# Samsung MediaStore duzeltmesi) yeniden kullanir.
+
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")" && pwd)"
+DEPLOY="$ROOT/deploy/deploy.sh"
+MCADDON="$ROOT/bedrock/out/SuperTNT.mcaddon"
+ADB="${ADB:-adb}"
+SDK="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-$HOME/Library/Android/sdk}}"
+EMU_BIN="$SDK/emulator/emulator"
+MC_PKG="com.mojang.minecraftpe"          # Minecraft paket adi (Android)
+
+# ---- cikti yardimcilari (renkler tek yerde) -------------------------------
+if [ -t 1 ]; then
+  C_H=$'\033[1;36m'; C_OK=$'\033[1;32m'; C_WARN=$'\033[1;33m'; C_ERR=$'\033[1;31m'; C_0=$'\033[0m'
+else
+  C_H=''; C_OK=''; C_WARN=''; C_ERR=''; C_0=''
+fi
+header() { printf '%s== %s ==%s\n' "$C_H" "$*" "$C_0"; }
+ok()     { printf '%s✓%s %s\n'   "$C_OK"  "$C_0" "$*"; }
+warn()   { printf '%s!%s %s\n'   "$C_WARN" "$C_0" "$*"; }
+err()    { printf '%s✗%s %s\n'   "$C_ERR" "$C_0" "$*" >&2; }
+need()   { command -v "$1" >/dev/null 2>&1 || { err "$1 bulunamadi"; exit 1; }; }
+
+usage() {
+  cat <<'EOF'
+Super TNT — derle ve dagit
+
+KULLANIM
+  ./minecraft <alt-komut>
+
+ALT KOMUTLAR
+  tablet    Bagli Android tabletlere derle + gonder (USB veya WiFi)
+  iphone    Bagli iPhone'a gonder (iCloud Drive kanaliyla)
+  android   Android emulatorunde calistir (yoksa AVD baslatir)
+  ios       iPhone simulatorunu ac (SINIRLI — asagi bkz.)
+  build     Sadece SuperTNT.mcaddon derle
+  help      Bu yardimi goster
+
+DEGISKENLER
+  AVD=<ad>           android icin AVD adi (varsayilan: ilk AVD)
+  IOS_SIM=<ad>       ios icin simulator adi (varsayilan: "iPhone 17")
+
+ORNEKLER
+  ./minecraft tablet
+  ./minecraft android
+  AVD=bb_tablet ./minecraft android
+  IOS_SIM='iPhone 17 Pro' ./minecraft ios
+
+NOTLAR
+  * tablet / android: Minecraft'in o cihazda KURULU olmasi gerekir.
+  * iphone: App Store Minecraft'ina USB'den dogrudan dosya yazilamaz (Apple
+    sinirlamasi). iCloud Drive senkronu tek guvenilir kanaldir.
+  * ios: iOS Simulator App Store uygulamalarini (Minecraft dahil) CALISTIRAMAZ;
+    komut yalnizca simulatoru acar.
+EOF
+}
+
+# ---- ortak adimlar --------------------------------------------------------
+build() {
+  header "derle"
+  python3 "$ROOT/bedrock/build.py" | tail -3
+  [ -f "$MCADDON" ] || { err "derleme ciktisi yok: $MCADDON"; exit 1; }
+  ok "hazir: $(basename "$MCADDON")"
+}
+
+# Calisan bir emulatorun seri numarasini stdout'a yazar; yoksa baslatir.
+# Tum ilerleme mesajlari stderr'e gider ki $(ensure_emulator) sadece seriyi alsin.
+ensure_emulator() {
+  local serial
+  serial="$("$ADB" devices | awk '$1 ~ /^emulator-/ && $2=="device"{print $1; exit}')"
+  if [ -n "$serial" ]; then
+    header "emulator (zaten calisiyor: $serial)" >&2
+    printf '%s\n' "$serial"; return 0
+  fi
+  [ -x "$EMU_BIN" ] || { err "emulator bulunamadi: $EMU_BIN — ANDROID_HOME dogru mu?"; exit 1; }
+  local avd="${AVD:-}"
+  [ -n "$avd" ] || avd="$("$EMU_BIN" -list-avds 2>/dev/null | head -1)"
+  [ -n "$avd" ] || { err "hic AVD yok. Android Studio > Device Manager ile bir tane olustur."; exit 1; }
+  header "emulator baslatiliyor: $avd" >&2
+  "$EMU_BIN" -avd "$avd" >/dev/null 2>&1 &
+  "$ADB" wait-for-device
+  local i=0
+  until [ "$("$ADB" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = "1" ]; do
+    i=$((i + 1)); [ "$i" -gt 180 ] && { err "emulator acilis zaman asimi (180s)"; exit 1; }
+    sleep 1
+  done
+  serial="$("$ADB" devices | awk '$1 ~ /^emulator-/ && $2=="device"{print $1; exit}')"
+  ok "emulator hazir: $serial" >&2
+  printf '%s\n' "$serial"
+}
+
+# Minecraft'i Android cihazda ac (kuruluysa). Kurulu degilse uyar, hata verme.
+android_launch_mc() {
+  local serial="$1"
+  if "$ADB" -s "$serial" shell pm list packages 2>/dev/null | grep -q "$MC_PKG"; then
+    "$ADB" -s "$serial" shell monkey -p "$MC_PKG" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1 || true
+    ok "Minecraft acildi — Ayarlar > Global Kaynaklar/Davranislar'da paketi etkinlestir"
+  else
+    warn "Minecraft bu cihazda kurulu degil. Dosya gonderildi: Indirilenler > $(basename "$MCADDON")"
+  fi
+}
+
+# ---- alt komutlar ---------------------------------------------------------
+cmd_tablet() {
+  need "$ADB"
+  build
+  header "Android tabletlere gonder (USB/WiFi)"
+  "$DEPLOY" --no-build            # varsayilan: emulator haric tum Android cihazlar
+}
+
+cmd_android() {
+  need "$ADB"
+  build
+  local serial; serial="$(ensure_emulator)"
+  header "emulatore gonder ($serial)"
+  "$DEPLOY" --no-build "$serial"  # yalnizca bu emulator hedeflenir
+  android_launch_mc "$serial"
+}
+
+cmd_iphone() {
+  need xcrun
+  build
+  header "iPhone'a gonder (iCloud Drive)"
+  if xcrun devicectl list devices 2>/dev/null | grep -qiE 'iphone'; then
+    ok "USB'de iPhone algilandi (dosya iCloud ile senkronlanir)"
+  else
+    warn "USB'de iPhone gorunmuyor — iCloud yine de acik oturuma senkronlar"
+  fi
+  local name dir
+  name="$(basename "$MCADDON")"
+  dir="$HOME/Library/Mobile Documents/com~apple~CloudDocs/SuperTNT"
+  mkdir -p "$dir"
+  cp "$MCADDON" "$dir/$name"
+  ok "iCloud Drive'a kopyalandi: iCloud Drive > SuperTNT > $name"
+  cat <<EOF
+  iPhone'da: Dosyalar (Files) > iCloud Drive > SuperTNT > $name
+             dosyaya dokun -> Minecraft ile ac.
+  Neden iCloud: App Store Minecraft'ina USB'den dogrudan dosya yazilamaz
+  (Apple uygulama kutusu erisimi kapali); iCloud tek guvenilir kanaldir.
+EOF
+}
+
+cmd_ios() {
+  need xcrun
+  build
+  header "iPhone simulator"
+  local dev="${IOS_SIM:-iPhone 17}"
+  xcrun simctl boot "$dev" 2>/dev/null || true      # zaten aciksa hata verir -> yut
+  open -a Simulator >/dev/null 2>&1 || true
+  xcrun simctl bootstatus "$dev" 2>/dev/null || true
+  ok "simulator acik: $dev"
+  cat <<EOF
+  SINIRLAMA: Minecraft Bedrock iOS Simulator'da CALISMAZ — App Store yalnizca
+  gercek cihaz (arm64) surumunu dagitir, simulator surumu yoktur. Bu komut
+  simulatoru acmaktan oteye gidemez. Gercek iOS testi icin:  ./minecraft iphone
+  .mcaddon: $MCADDON
+EOF
+}
+
+main() {
+  local sub="${1:-help}"; shift || true
+  case "$sub" in
+    tablet)         cmd_tablet  "$@" ;;
+    iphone)         cmd_iphone  "$@" ;;
+    android)        cmd_android "$@" ;;
+    ios)            cmd_ios     "$@" ;;
+    build)          build ;;
+    help|-h|--help) usage ;;
+    *)              err "bilinmeyen alt komut: $sub"; echo; usage; exit 2 ;;
+  esac
+}
+
+main "$@"
