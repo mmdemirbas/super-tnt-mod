@@ -827,9 +827,10 @@ ITEMS = [
          trtip="Sağ tıkla — baktığın yeri işaretle, tekrar tıkla arası dolsun.",
          entip="Right-click a point, right-click again to fill between.",
          color=(150, 110, 66), action=dict(type="fill_axe")),
-    # Takim Asasi: bir mob'a dokun -> senin takimina katilir. Ayni takimdaki
-    # mob'lar birbirine saldiramaz (beforeEvents.entityHurt cancel). Etiket
-    # save/reload'da mob'da kalir. Mob'a dokunma isi playerInteractWithEntity'de.
+    # Takim Asasi: bir mob'a dokun/vur -> senin takimina katilir. Ayni takimdaki
+    # mob'lar birbirini olduremez (afterEvents.entityHurt ile hasar geri
+    # iyilestirilir). Etiket save/reload'da mob'da kalir. Tablette dusman moba
+    # dokunmak saldiri oldugundan hem interact hem entityHitEntity dinlenir.
     dict(id="takim_asasi", tr="Takım Asası", en="Team Wand", kind="raycast",
          trtip="Bir mob'a dokun — takımına katılır. Aynı takımdakiler birbirine saldırmaz!",
          entip="Tap a mob - it joins your team. Same-team mobs won't attack each other!",
@@ -2209,24 +2210,40 @@ world.afterEvents.entityHurt.subscribe((ev) => {
 
 // ---------------------------------------------------------------- mob takimi
 // Takim Asasi ile bir mob'a dokun -> mob senin takim etiketini alir. Ayni
-// takimdaki iki varlik birbirine hasar veremez (beforeEvents.entityHurt.cancel
-// stable kanalda calisir; script'ten mob AI hedefi degistirilemedigi icin
-// dostlugu "hasar iptali" ile sagliyoruz). Etiket save/reload'da mob'da kalir.
+// takimdakiler birbirini OLDURMEZ (asagida afterEvents.entityHurt ile hasar
+// geri iyilestirilir; script'ten mob AI hedefi degistirilemedigi icin dostlugu
+// boyle sagliyoruz). Etiket save/reload'da mob'da kalir.
 const TEAM_PREFIX = "stnt_team:";
 function teamOf(e) {
   try { return e.getTags().find((t) => t.startsWith(TEAM_PREFIX)); } catch (x) { return undefined; }
 }
+function recruitToTeam(player, target) {
+  if (!target || target.typeId === "minecraft:player") return;
+  const tag = TEAM_PREFIX + player.id;
+  if (target.hasTag(tag)) return;                   // zaten bu takimda
+  for (const t of target.getTags()) if (t.startsWith(TEAM_PREFIX)) target.removeTag(t);
+  target.addTag(tag);
+  try { player.onScreenDisplay.setActionBar("§aMob takımına katıldı! Aynı takım birbirini öldürmez."); } catch (e) {}
+  try { spray(target.dimension, target.location, "minecraft:heart_particle", 10, 1.2); } catch (e) {}
+}
+// (1) Interact hareketi (PC sag tik, mobilde uysal moba dokunma).
 world.beforeEvents.playerInteractWithEntity.subscribe((ev) => {
   try {
     if (!ev.itemStack || ev.itemStack.typeId !== "stnt:takim_asasi") return;
-    const target = ev.target;
-    if (!target || target.typeId === "minecraft:player") return;
-    const tag = TEAM_PREFIX + ev.player.id;
-    if (target.hasTag(tag)) return;                 // zaten bu takimda
-    for (const t of target.getTags()) if (t.startsWith(TEAM_PREFIX)) target.removeTag(t);
-    target.addTag(tag);
-    try { ev.player.onScreenDisplay.setActionBar("§aMob takımına katıldı! Aynı takım birbirine saldırmaz."); } catch (e) {}
-    try { spray(target.dimension, target.location, "minecraft:heart_particle", 10, 1.2); } catch (e) {}
+    recruitToTeam(ev.player, ev.target);
+  } catch (e) {}
+});
+// (2) VURMA hareketi. Mobilde dusman moba dokunmak SALDIRIDIR (interact hic
+// tetiklenmez) -> Takim Asasi ile vurunca da takima katsin. Donusum Asasi ile
+// ayni "mobil odak" cozumu; onsuz tablette hicbir dusman moba takim kurulamaz.
+world.afterEvents.entityHitEntity.subscribe((ev) => {
+  try {
+    const pl = ev.damagingEntity;
+    if (!pl || pl.typeId !== "minecraft:player") return;
+    const eq = pl.getComponent("equippable");
+    const held = eq && eq.getEquipment(EquipmentSlot.Mainhand);
+    if (!held || held.typeId !== "stnt:takim_asasi") return;
+    recruitToTeam(pl, ev.hitEntity);
   } catch (e) {}
 });
 // Donusum Asasi: bir moba dokun -> o mob'un gorunumune don. before-event'te
@@ -2311,12 +2328,23 @@ system.runInterval(() => {
   }
 }, 5);
 
-world.beforeEvents.entityHurt.subscribe((ev) => {
+// KRITIK: world.beforeEvents.entityHurt @minecraft/server 1.x'te YOKTUR (2.x'te
+// eklendi). Manifest 1.14.0'a bagli oldugundan eski hali (beforeEvents...cancel)
+// modul yuklenirken TypeError atip main.js'i BU SATIRDAN SONRA komple
+// durduruyordu -> portal isinlanmasi, cakmakla atesleme, redstone, patlama
+// zinciri HIC kaydolmuyordu (portal "sıradan blok" gibiydi). 1.x'te var olan
+// afterEvents.entityHurt ile ayni takimdan gelen hasari GERI IYILESTIR: iptal
+// edemeyiz ama takim birbirini olduremez. try ile sarili — asla akisi durdurmaz.
+world.afterEvents.entityHurt.subscribe((ev) => {
   try {
     const attacker = ev.damageSource && ev.damageSource.damagingEntity;
     if (!attacker) return;                          // cevre hasari: dokunma
     const a = teamOf(attacker), b = teamOf(ev.hurtEntity);
-    if (a && b && a === b) ev.cancel = true;         // ayni takim -> hasar iptal
+    if (!a || a !== b) return;                       // farkli/takimsiz -> dokunma
+    const h = ev.hurtEntity.getComponent("minecraft:health");
+    if (h && typeof h.setCurrentValue === "function") {
+      h.setCurrentValue((h.currentValue || 0) + (ev.damage || 0));
+    }
   } catch (e) {}
 });
 
