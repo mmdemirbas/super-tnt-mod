@@ -905,11 +905,10 @@ MONSTERS = [
          geo="geometry.creeper.v1.8", hp=180, scale=3.0, dmg=8, cw=1.5, ch=5.5,
          # creeper temasi: yaklasinca sisip DEV patlar
          explode=dict(power=6, fuse=1.5)),
-    # OZGUN model (custom=True): kendi geometry.mutant_warden + dokumuz.
-    # Vanilla warden'in BONE iskeletine (isim+pivot) sadik oldugu icin vanilla
-    # animation.warden.move/bob/look_at_target custom cube'lari hareket ettirir
-    # (asagida RP client_entity'de baglanir). Model zaten iri modellendi -> scale
-    # dusuk (1.6) yeter; ~5 blok dev boss.
+    # OZGUN model (custom=True): kendi geometry.mutant_warden + dokumuz + kendi
+    # animation.mutant_warden.move'umuz (query.ground_speed ile olcekli uzuv).
+    # Doku emissive: goz/kalp/damar karanlikta parlar. Model zaten iri
+    # modellendi -> scale dusuk (1.6) yeter; ~5 blok dev boss.
     dict(id="mutant_warden", custom=True, hp=500, scale=1.6, dmg=22, cw=1.7, ch=8.5,
          extra={"minecraft:knockback_resistance": {"value": 0.9}}),
 ]
@@ -1164,72 +1163,93 @@ def png_rgb(path, rows, wd, ht):
                           + chunk(b'IDAT', zlib.compress(raw, 9)) + chunk(b'IEND', b''))
 
 
+def png_rgba(path, rows, wd, ht):
+    """RGBA PNG (renk tipi 6). Alpha kanali entity_emissive_alpha materyalinde
+    ISIMA seviyesi olur: alpha 255 = isimasiz (normal deri), dusuk alpha =
+    parlak isima (karanlikta parlar). rows: her piksel (r,g,b,a)."""
+    raw = b''.join(b'\x00' + b''.join(bytes(px) for px in row) for row in rows)
+    def chunk(tag, data):
+        c = struct.pack('>I', len(data)) + tag + data
+        return c + struct.pack('>I', zlib.crc32(tag + data) & 0xffffffff)
+    hdr = struct.pack('>IIBBBBB', wd, ht, 8, 6, 0, 0, 0)
+    open(path, 'wb').write(b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', hdr)
+                          + chunk(b'IDAT', zlib.compress(raw, 9)) + chunk(b'IEND', b''))
+
+
 def mutant_warden_texture(path):
-    """OZGUN mutant warden dokusu (128x128 RGB). Koyu teal deri + biyolüminesan
-    damarlar + kafa on-yuzunde parlak gozler + acik gogus kafesinde kalp +
-    tendril uclari. Bolgeler geometry.mutant_warden'in box-uv koseleriyle hizali:
-    kafa uv[40,78] size[14,13,10] -> on yuz (50,88) 14x13; kalp uv[0,112];
-    tendril uv[16/24,46]. UV-hizasiz kalan tum yuzeyler deri deseni gorur."""
+    """OZGUN mutant warden dokusu (128x128 RGBA). Koyu teal deri + KARANLIKTA
+    PARLAYAN (emissive) biyolüminesan damarlar, gozler, agiz, kalp ve tendril
+    uclari. Parlaklik ALPHA kanalinda kodlanir (dusuk alpha = guclu isima);
+    entity_emissive_alpha materyali bunu isiga cevirir, deri (alpha 255) opak
+    kalir. Bolgeler geometry.mutant_warden box-uv koseleriyle hizali: kafa
+    uv[40,78] -> on yuz (50,88); kalp uv[0,112]; tendril uv[16/24,46]."""
     W = H = 128
-    base = (18, 40, 46)
-    vein = (28, 115, 125)
-    grid = [[list(base) for _ in range(W)] for _ in range(H)]
+    OPA = 255            # isimasiz (deri)
+    G = 0               # en guclu isima (goz/kalp)
+    Gv = 90             # yumusak isima (damar)
+    Gm = 50             # orta isima (agiz)
+    base = (16, 38, 44)
+    vein = (44, 160, 168)
+    grid = [[[base[0], base[1], base[2], OPA] for _ in range(W)] for _ in range(H)]
     for y in range(H):
         for x in range(W):
             n = ((x * 13 + y * 7) % 17) - 8          # deterministik hafif noise
-            px = [base[0] + n, base[1] + n, base[2] + n]
-            if (x * 7 + y * 3) % 37 < 2:             # ince damar cizgileri
-                px = list(vein)
-            grid[y][x] = [max(0, min(255, v)) for v in px]
+            ao = -7 if (y % 32) >= 26 else 0         # kup altlarinda hafif golge (derinlik)
+            px = [base[0] + n + ao, base[1] + n + ao, base[2] + n + ao, OPA]
+            if (x * 7 + y * 3) % 37 < 2:             # ince ISILDAYAN damar cizgileri
+                px = [vein[0], vein[1], vein[2], Gv]
+            grid[y][x] = [max(0, min(255, v)) for v in px[:3]] + [px[3]]
 
-    def rect(x0, y0, x1, y1, c):
+    def rect(x0, y0, x1, y1, c, a=OPA):
         for yy in range(max(0, y0), min(y1, H)):
             for xx in range(max(0, x0), min(x1, W)):
-                grid[yy][xx] = list(c)
+                grid[yy][xx] = [c[0], c[1], c[2], a]
 
-    rect(50, 88, 64, 101, (10, 22, 26))              # kafa on-yuz koyulasir
-    rect(52, 91, 55, 95, (130, 255, 240))            # sol goz (parlak cyan)
-    rect(58, 91, 61, 95, (130, 255, 240))            # sag goz
-    rect(52, 98, 62, 99, (120, 240, 225))            # agiz cizgisi
-    rect(0, 112, 16, 122, (210, 45, 55))             # kalp bolgesi (uv[0,112])
-    rect(3, 114, 10, 120, (255, 95, 95))             # parlak kalp ortasi
-    for u in (16, 24):                               # tendril uclari
-        rect(u, 46, u + 8, 59, (36, 150, 140))
-        rect(u + 2, 46, u + 5, 50, (150, 255, 240))
-    png_rgb(path, grid, W, H)
+    rect(50, 88, 64, 101, (8, 20, 24))               # kafa on-yuz koyulasir (deri)
+    rect(52, 91, 55, 95, (150, 255, 245), G)         # sol goz (ISILDAR cyan)
+    rect(58, 91, 61, 95, (150, 255, 245), G)         # sag goz
+    rect(52, 98, 62, 99, (120, 245, 230), Gm)        # agiz cizgisi (isildar)
+    rect(0, 112, 16, 122, (140, 28, 36))             # kalp bolgesi deri (koyu kirmizi)
+    rect(3, 114, 10, 120, (255, 90, 90), G)          # parlak kalp ortasi (ISILDAR)
+    for u in (16, 24):                               # tendril uclari (isildar)
+        rect(u, 46, u + 8, 59, (34, 140, 132))
+        rect(u + 2, 46, u + 5, 50, (170, 255, 245), G)
+    png_rgba(path, grid, W, H)
 
 
 def ender_send_texture(path):
-    """Ender Send dokusu (128x128 RGB). Koyu siyah-mor enderman derisi + her
-    kafanin on-yuzunde parlak mor gozler. Bolgeler geometry.ender_send box-uv:
-    orta kafa uv[40,78] -> on yuz (48,86); sol kafa uv[0,96] -> (6,102);
-    sag kafa uv[28,96] -> (34,102)."""
+    """Ender Send dokusu (128x128 RGBA). Koyu siyah-mor enderman derisi + her
+    kafanin on-yuzunde KARANLIKTA PARLAYAN mor gozler (isima alpha ile kodlu,
+    entity_emissive_alpha). Bolgeler geometry.ender_send box-uv: orta kafa
+    uv[40,78] -> on yuz (48,86); sol kafa uv[0,96] -> (6,102); sag (34,102)."""
     W = H = 128
+    OPA = 255
+    G = 0                                            # gozler en guclu isima
     base = (12, 10, 20)
-    glow = (185, 60, 235)
-    grid = [[list(base) for _ in range(W)] for _ in range(H)]
+    glow = (205, 75, 255)
+    grid = [[[base[0], base[1], base[2], OPA] for _ in range(W)] for _ in range(H)]
     for y in range(H):
         for x in range(W):
             n = ((x * 11 + y * 5) % 13) - 6
             grid[y][x] = [max(0, min(255, base[0] + n)),
                           max(0, min(255, base[1] + n)),
-                          max(0, min(255, base[2] + n + 4))]
+                          max(0, min(255, base[2] + n + 4)), OPA]
 
-    def rect(x0, y0, x1, y1, c):
+    def rect(x0, y0, x1, y1, c, a=OPA):
         for yy in range(max(0, y0), min(y1, H)):
             for xx in range(max(0, x0), min(x1, W)):
-                grid[yy][xx] = list(c)
+                grid[yy][xx] = [c[0], c[1], c[2], a]
 
-    rect(48, 86, 56, 95, (6, 4, 10))                 # orta kafa yuz
-    rect(49, 89, 51, 91, glow)
-    rect(53, 89, 55, 91, glow)
+    rect(48, 86, 56, 95, (6, 4, 10))                 # orta kafa yuz (deri)
+    rect(49, 89, 51, 91, glow, G)
+    rect(53, 89, 55, 91, glow, G)
     rect(6, 102, 12, 109, (6, 4, 10))                # sol kafa yuz
-    rect(7, 104, 8, 106, glow)
-    rect(10, 104, 11, 106, glow)
+    rect(7, 104, 8, 106, glow, G)
+    rect(10, 104, 11, 106, glow, G)
     rect(34, 102, 40, 109, (6, 4, 10))               # sag kafa yuz
-    rect(35, 104, 36, 106, glow)
-    rect(38, 104, 39, 106, glow)
-    png_rgb(path, grid, W, H)
+    rect(35, 104, 36, 106, glow, G)
+    rect(38, 104, 39, 106, glow, G)
+    png_rgba(path, grid, W, H)
 
 
 # ---------------------------------------------------------------- yapi
@@ -1613,7 +1633,11 @@ def build():
                 "minecraft:client_entity": {
                     "description": {
                         "identifier": f"stnt:{m['id']}",
-                        "materials": {"default": "entity_alphatest"},
+                        # entity_emissive_alpha: dokunun alpha kanali ISIMA seviyesi
+                        # olur (dusuk alpha = parlar). Deri alpha 255 -> opak/isimasiz;
+                        # goz/kalp/damar dusuk alpha -> karanlikta parlar. Custom
+                        # mob'lar (warden, ender_send) icin gorsel zenginlik.
+                        "materials": {"default": "entity_emissive_alpha"},
                         "textures": {"default": f"textures/entity/{m['id']}"},
                         "geometry": {"default": f"geometry.{m['id']}"},
                         "animations": {
