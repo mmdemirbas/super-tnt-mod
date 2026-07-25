@@ -1582,7 +1582,14 @@ def build():
             "minecraft:type_family": {"family": ["monster", "mob", m['id']]},
             "minecraft:health": {"value": m['hp'], "max": m['hp']},
             "minecraft:scale": {"value": m['scale']},
-            "minecraft:collision_box": {"width": m['cw'], "height": m['ch']},
+            # DIKKAT: minecraft:scale carpisma kutusunu DA carpar (model + hitbox;
+            # wiki.bedrock.dev dogrulandi). cw/ch DOGRUDAN yazilirsa efektif hitbox
+            # cw*scale x ch*scale olur -> ender 4.8 x 21.6 blok gibi devasa; mob
+            # zemine SIKISIR, gecerli yol bulamaz, oylece durur (yurumez). Bu #3
+            # "koyunca duruyor" hatasinin asil sebebiydi. scale'e bolerek efektif
+            # hitbox'i istenen cw x ch degerine geri getiriyoruz.
+            "minecraft:collision_box": {"width": round(m['cw'] / m['scale'], 3),
+                                        "height": round(m['ch'] / m['scale'], 3)},
             "minecraft:attack": {"damage": m['dmg']},
             "minecraft:movement": {"value": 0.4},
             "minecraft:navigation.walk": {"can_path_over_water": True, "avoid_water": True},
