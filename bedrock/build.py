@@ -78,7 +78,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 24, 0]
+VERSION = [1, 25, 0]
 MIN_ENGINE = [1, 21, 0]
 # Surum etiketi paket ADINA yazilir. UUID + klasor adlari sabit oldugu icin
 # Minecraft ayni UUID'li paketi yerinde GUNCELLER; ama cihazda eski surum
@@ -113,9 +113,11 @@ VER_STR = ".".join(str(n) for n in VERSION)
 # ornek: Coco & Vici "True POV Size Changer". BEDELI: dunyada "Beta APIs" +
 # "Experimental Creator Cameras" acik olmali, ve donusum boyunca oyuncu
 # scripted ucuncu-sahis/orbit kameraya KILITLENIR (gercek ilk-sahise gecince
-# yukseklik sifirlanir). Bu yuzden su an sadece gorsel; POV istenirse ayri
-# bir ozellik olarak (deneysel bayraklarla) eklenir. Kaynak: learn.microsoft.
-# com Camera Script API; curseforge Coco & Vici True POV Size Changer.
+# yukseklik sifirlanir). POV EKLENDI: script'te camState runInterval'i boyut
+# normalden farkliysa p.camera.setCamera("minecraft:free")'i olcekli goz
+# yuksekligine surer; bayraklar kapaliysa try ile yutulur (mod bozulmaz).
+# Kaynak: learn.microsoft.com Camera Script API; curseforge Coco & Vici
+# True POV Size Changer.
 SIZE_TABLE = {
     0: (0.33, 0.35, 0.60),   # minik   (0.6/1.8)
     1: (0.55, 0.50, 1.00),   # kucuk   (1.0/1.8)
@@ -1863,6 +1865,7 @@ def build():
                             .replace("__FUSE__", str(FUSE_TICKS)) \
                             .replace("__PORTAL_N__", str(len(PORTAL_COLORS))) \
                             .replace("__PORTAL_NAMES__", json.dumps([n for n, _ in PORTAL_COLORS], ensure_ascii=False)) \
+                            .replace("__SIZE_SCALES__", json.dumps({i: SIZE_TABLE[i][0] for i in SIZE_TABLE})) \
                             .replace("__MORPH_MAP__", json.dumps(MORPH_MAP, ensure_ascii=False))
     os.makedirs(os.path.join(BP, "scripts"), exist_ok=True)
     open(os.path.join(BP, "scripts/main.js"), 'w', encoding='utf-8').write(script)
@@ -1911,6 +1914,7 @@ const TIPS = __TIPS__;
 const ITEM_ACTIONS = __ITEM_ACTIONS__;
 const MORPH_FORMS = __MORPH_FORMS__;
 const MORPH_MAP = __MORPH_MAP__;   // mob typeId -> st:morph_<key> olayi
+const SIZE_SCALES = __SIZE_SCALES__;   // st:size kademe -> gorsel olcek
 const FUSE = __FUSE__;
 
 // ---------------------------------------------------------------- item'lar
@@ -3119,6 +3123,41 @@ function promptPassword(player, k, rec, isOwner) {
     }).catch(() => {});
   } catch (e) {}
 }
+
+// ---- Kucultme/Buyutme POV kamerasi (DENEYSEL — dunyada "Beta APIs" +
+// "Experimental Creator Cameras" acik olmalidir). Boyut normalden (2) farkliysa
+// kamerayi OLCEKLI goz yuksekligine surer: kucukken goz yere yakin -> dunya DEV
+// gorunur; buyukken goz yukarida -> dunya kucuk gorunur. Her tick oyuncunun
+// konumu + bakis acisiyla guncellenir (minecraft:free serbest kamera).
+// GRACEFUL DEGRADATION: bayraklar KAPALIYSA/Kamera API yoksa setCamera hata
+// atar -> try ile YUTULUR; kamera oldugu gibi kalir, mod'un geri kalani ve
+// gorsel olcek (render-scale) calismaya DEVAM eder. Normale (2) donunce kamera
+// bir kez temizlenir -> normal ilk-sahis geri gelir.
+const camState = new Map();   // playerId -> kamera icin uygulanan son size
+system.runInterval(() => {
+  for (const p of world.getPlayers()) {
+    let sz;
+    try { sz = p.getProperty("st:size"); } catch (e) { continue; }
+    if (typeof sz !== "number") sz = 2;
+    if (sz === 2) {                                 // normal boyut -> kamerayi birak
+      if (camState.get(p.id) !== 2) {
+        try { p.camera.clear(); } catch (e) {}
+        camState.set(p.id, 2);
+      }
+      continue;
+    }
+    try {
+      const scale = SIZE_SCALES[sz] || 1;           // gorsel olcek (0.33 .. 2.0)
+      const eye = 1.62 * scale;                      // vanilla goz ~1.62 blok
+      const loc = p.location, rot = p.getRotation();
+      p.camera.setCamera("minecraft:free", {
+        location: { x: loc.x, y: loc.y + eye, z: loc.z },
+        rotation: { x: rot.x, y: rot.y },
+      });
+      camState.set(p.id, sz);
+    } catch (e) { /* Kamera API / deneysel bayrak yok -> sessizce gec */ }
+  }
+}, 1);
 
 // ---- Portal: AYNI RENK iki blok birbirine isinlar. Kayit global bir dunya
 // ozelliginde (herkes icin gecerli); portal blogu KONUNCA eklenir, KIRILINCA
