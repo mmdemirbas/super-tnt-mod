@@ -78,7 +78,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 23, 0]
+VERSION = [1, 24, 0]
 MIN_ENGINE = [1, 21, 0]
 # Surum etiketi paket ADINA yazilir. UUID + klasor adlari sabit oldugu icin
 # Minecraft ayni UUID'li paketi yerinde GUNCELLER; ama cihazda eski surum
@@ -104,16 +104,18 @@ VER_STR = ".".join(str(n) for n in VERSION)
 # oranina hizalandi ki model hitbox'in disina tasmasin (denetimde bulunan
 # kozmetik uyumsuzluk). MorphX dev boyutu 3.6y kullaniyor; ustunu asmadik.
 #
-# MOTOR SINIRI (ILK SAHIS KAMERASI DEGISMEZ): Kucultme/Buyutme yalniz
-# GORSELDIR — ucuncu sahis modeli ve BASKALARININ gordugu boyut degisir,
-# ama oyuncunun KENDI ilk-sahis goz yuksekligi motor tarafindan sabittir.
-# Bedrock'ta goz yuksekligi ne render-olcekten ne de collision_box'tan
-# etkilenir (Java'nin aksine); oyuncuya ozel bir eye_height bileseni yoktur.
-# Yani "kuculunce dunya buyuk gorunsun" ADDON ILE YAPILAMAZ. Tek yol
-# /camera veya Script Camera ile kamerayi tamamen devralmak — normal oyunu
-# bozar, cocuklar icin uygun degil. Kaynak: learn.microsoft.com/minecraft/
-# creator (Camera Script API, /camera) + wiki.bedrock.dev (scripts.scale
-# "sadece modeli olcekler"). Bu ozellik bilincli olarak sadece kozmetik.
+# ILK SAHIS KAMERASI: render-scale ve collision_box goz yuksekligini
+# DEGISTIRMEZ (Java'nin aksine Bedrock'ta goz ~1.62 blokta sabit). minecraft:
+# scale oyuncuya UYGULANABILIR (MorphX kaniti: component_group+event ile) ama
+# o da model+hitbox'i olcekler, goz yuksekligini DEGIL. POV'u gercekten
+# oynatmanin TEK yolu deneysel Script Kamera sistemi: player.camera.setCamera
+# ("minecraft:free" / attachToEntity) her tick surulur. Bunu yapan calisan
+# ornek: Coco & Vici "True POV Size Changer". BEDELI: dunyada "Beta APIs" +
+# "Experimental Creator Cameras" acik olmali, ve donusum boyunca oyuncu
+# scripted ucuncu-sahis/orbit kameraya KILITLENIR (gercek ilk-sahise gecince
+# yukseklik sifirlanir). Bu yuzden su an sadece gorsel; POV istenirse ayri
+# bir ozellik olarak (deneysel bayraklarla) eklenir. Kaynak: learn.microsoft.
+# com Camera Script API; curseforge Coco & Vici True POV Size Changer.
 SIZE_TABLE = {
     0: (0.33, 0.35, 0.60),   # minik   (0.6/1.8)
     1: (0.55, 0.50, 1.00),   # kucuk   (1.0/1.8)
@@ -921,7 +923,7 @@ MONSTERS = [
     # animation.mutant_warden.move'umuz (query.ground_speed ile olcekli uzuv).
     # Doku emissive: goz/kalp/damar karanlikta parlar. Model zaten iri
     # modellendi -> scale dusuk (1.6) yeter; ~5 blok dev boss.
-    dict(id="mutant_warden", custom=True, hp=500, scale=1.6, dmg=22, cw=1.7, ch=8.5,
+    dict(id="mutant_warden", mirror="warden", hp=500, scale=2.0, dmg=22, cw=1.7, ch=8.5,
          extra={"minecraft:knockback_resistance": {"value": 0.9}}),
 ]
 
@@ -1637,7 +1639,17 @@ def build():
         if events: ent["events"] = events
         w(os.path.join(BP, f"entities/{m['id']}.json"),
           {"format_version": "1.21.0", "minecraft:entity": ent})
-        if m.get('custom'):
+        if m.get('mirror'):
+            # GORUNUM = BIREBIR vanilla mob (custom/{id}.mirror.json). Vanilla
+            # geometry/doku/materyal/render-controller/animation ADIYLA referans
+            # alinir (morph deseni — paketleme yok, kopya-id cakismasi olmaz).
+            # Warden icin: pre_animation query.modified_distance_moved ile bacak/
+            # kol degiskenlerini hesaplar, animation.warden.move kemige baglar ->
+            # GERCEK Warden gorunumu + yuruyusu. BP tarafi kendi dusman AI+scale.
+            os.makedirs(os.path.join(RP, "entity"), exist_ok=True)
+            shutil.copy(os.path.join(HERE, f"custom/{m['id']}.mirror.json"),
+                        os.path.join(RP, f"entity/{m['id']}.json"))
+        elif m.get('custom'):
             # OZGUN model + OZGUN animasyon. Vanilla warden animasyon referansi
             # custom entity'de baglanmadi (donuk cikti); yerine kendi
             # animation.{id}.walk/idle'imiz (built-in query.anim_time/life_time,

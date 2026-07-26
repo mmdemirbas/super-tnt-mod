@@ -119,13 +119,15 @@ blokların kendi dinamik özelliği yoktur.
   özelliği + kademe başına `collision_box`. `minecraft:scale` oyuncuda
   çalışmadığı için (script'ten "event does not exist" hatası) MorphX'in
   kanıtlanmış render-Molang yöntemi kullanıldı.
-  **Motor sınırı:** Bu ölçek yalnız GÖRSELDİR — üçüncü şahıs modeli ve
-  başkalarının gördüğü boyut değişir, ama oyuncunun kendi ILK-ŞAHIS göz
-  yüksekliği motor tarafından sabittir (Bedrock'ta göz yüksekliği ne
-  render-ölçekten ne collision_box'tan etkilenir). "Küçülünce dünya büyük
-  görünsün" add-on ile yapılamaz; kamerayı tümüyle devralmak (`/camera` /
-  Script Camera) normal oyunu bozar, çocuklar için uygun değil. Özellik
-  bilinçli olarak sadece kozmetik.
+  **İlk-şahıs kamerası:** Render-ölçek ve collision_box göz yüksekliğini
+  DEĞİŞTİRMEZ (Bedrock'ta göz ~1.62 blokta sabit). `minecraft:scale` oyuncuya
+  uygulanabilir ama o da model+hitbox'ı ölçekler, gözü değil. POV'u gerçekten
+  oynatmak MÜMKÜN ama deneysel **Script Kamera** sistemi gerekir
+  (`player.camera.setCamera`/`attachToEntity`, her tick). Çalışan örnek: Coco &
+  Vici "True POV Size Changer". Bedeli: dünyada Beta APIs + Experimental
+  Creator Cameras açık olmalı ve dönüşüm boyunca oyuncu scripted üçüncü-şahıs/
+  orbit kameraya kilitlenir. İstenirse ayrı bir özellik olarak eklenebilir;
+  şu an ölçek sadece görsel.
   **Bilinen kısıt:** `player.json` Bedrock'ta paketler arası birleşmez —
   bu özellik MorphX ile **aynı dünyada** kullanılamaz (üstteki paket
   kazanır). Ayrı dünyalarda ikisi de çalışır.
