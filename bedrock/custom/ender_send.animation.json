@@ -1,20 +1,21 @@
 {
   "format_version": "1.8.0",
-  "//": "TEK 'move' animasyonu — daima acik (gate YOK). Bacak/kol genligi",
-  "//2": "query.ground_speed ile olceklenir; dururken hafif, yururken genis.",
-  "//3": "3 kafa life_time ile farkli fazlarda salinir (urkutucu enderman havasi).",
+  "//": "Vanilla Warden TEKNIGI: bacak/kol donusu client_entity scripts.",
+  "//2": "pre_animation'da query.modified_distance_moved'dan hesaplanir (harekete",
+  "//3": "SENKRON adimlar; dururken bacak sabit = hayalet yuruyus YOK). Kafalar",
+  "//4": "query.life_time ile daima salinir (urkutucu enderman havasi).",
   "animations": {
     "animation.ender_send.move": {
       "loop": true,
       "bones": {
-        "right_leg": { "rotation": ["math.cos(query.life_time * 140) * math.clamp(query.ground_speed * 110, 14, 40)", 0, 0] },
-        "left_leg": { "rotation": ["-math.cos(query.life_time * 140) * math.clamp(query.ground_speed * 110, 14, 40)", 0, 0] },
-        "right_arm": { "rotation": ["-math.cos(query.life_time * 140) * math.clamp(query.ground_speed * 90, 16, 30)", 0, "math.sin(query.life_time * 80) * 5"] },
-        "left_arm": { "rotation": ["math.cos(query.life_time * 140) * math.clamp(query.ground_speed * 90, 16, 30)", 0, "-math.sin(query.life_time * 80) * 5"] },
-        "body": { "rotation": ["math.cos(query.life_time * 140) * 3", "math.sin(query.life_time * 55) * 4", 0] },
-        "head_c": { "rotation": ["math.sin(query.life_time * 90) * 7", "math.cos(query.life_time * 64) * 10", 0] },
-        "right_head": { "rotation": ["math.sin(query.life_time * 110 + 60) * 8", "math.sin(query.life_time * 70) * 14", 0] },
-        "left_head": { "rotation": ["math.sin(query.life_time * 110 + 120) * 8", "math.cos(query.life_time * 74) * 14", 0] }
+        "right_leg": { "rotation": ["variable.es_leg", 0, 0] },
+        "left_leg": { "rotation": ["-variable.es_leg", 0, 0] },
+        "right_arm": { "rotation": ["variable.es_arm_sin", 0, "math.sin(query.life_time * 80) * 4"] },
+        "left_arm": { "rotation": ["variable.es_arm_cos", 0, "-math.sin(query.life_time * 80) * 4"] },
+        "body": { "rotation": ["variable.es_body", "math.sin(query.life_time * 55) * 3", 0] },
+        "head_c": { "rotation": ["math.sin(query.life_time * 90) * 6", "math.cos(query.life_time * 64) * 10", 0] },
+        "right_head": { "rotation": ["math.sin(query.life_time * 110 + 60) * 7", "math.sin(query.life_time * 70) * 13", 0] },
+        "left_head": { "rotation": ["math.sin(query.life_time * 110 + 120) * 7", "math.cos(query.life_time * 74) * 13", 0] }
       }
     }
   }

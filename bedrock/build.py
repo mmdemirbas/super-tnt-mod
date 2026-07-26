@@ -78,7 +78,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 25, 0]
+VERSION = [1, 26, 0]
 MIN_ENGINE = [1, 21, 0]
 # Surum etiketi paket ADINA yazilir. UUID + klasor adlari sabit oldugu icin
 # Minecraft ayni UUID'li paketi yerinde GUNCELLER; ama cihazda eski surum
@@ -912,7 +912,17 @@ MONSTERS = [
     # OZGUN 3 kafali model (custom=True): kafalar tepede. Model zaten uzun
     # (~3.5 blok) modellendi -> scale 2.4 ile ~8 blok dev boss.
     dict(id="ender_send", custom=True, hp=300, scale=2.4, dmg=15, cw=2.0, ch=9.0,
-         extra={"minecraft:knockback_resistance": {"value": 0.85}}),
+         extra={"minecraft:knockback_resistance": {"value": 0.85}},
+         # Vanilla Warden teknigi: bacak/kol donusu modified_distance_moved'dan
+         # (harekete senkron). animation.ender_send.move bu degiskenleri baglar.
+         pre_anim=[
+             "variable.es_speed = Math.min(0.5, 3.0 * query.modified_move_speed);",
+             "variable.es_phase = query.modified_distance_moved * 49.388962;",
+             "variable.es_leg = 55.0 * math.cos(variable.es_phase) * variable.es_speed;",
+             "variable.es_arm_cos = -(38.0 * math.cos(variable.es_phase) * variable.es_speed);",
+             "variable.es_arm_sin = -(38.0 * math.sin(variable.es_phase) * variable.es_speed);",
+             "variable.es_body = 5.0 * math.cos(variable.es_phase) * variable.es_speed;",
+         ]),
     dict(id="dev_zombi", mat="zombie", tex="textures/entity/zombie/zombie",
          geo="geometry.zombie.v1.8", hp=250, scale=3.2, dmg=12, cw=1.5, ch=6.0,
          extra={"minecraft:knockback_resistance": {"value": 0.7},
@@ -1652,11 +1662,14 @@ def build():
             shutil.copy(os.path.join(HERE, f"custom/{m['id']}.mirror.json"),
                         os.path.join(RP, f"entity/{m['id']}.json"))
         elif m.get('custom'):
-            # OZGUN model + OZGUN animasyon. Vanilla warden animasyon referansi
-            # custom entity'de baglanmadi (donuk cikti); yerine kendi
-            # animation.{id}.walk/idle'imiz (built-in query.anim_time/life_time,
-            # kesin calisir). geo + animation.json custom/ altindan kopyalanir,
-            # doku {id}_texture() ile uretilir.
+            # OZGUN model + OZGUN doku, ama animasyon VANILLA MOB TEKNIGIYLE:
+            # scripts.pre_animation query.modified_distance_moved'dan bacak/kol
+            # degiskenlerini hesaplar, scripts.animate ["move"] animasyonu DOGRUDAN
+            # oynatir (animasyon kontrolcusu YOK) ve move animasyonu bu degiskenleri
+            # kemige baglar. Vanilla Warden'in aynen yaptigi, KANITLANMIS yontem.
+            # (Eski kontrolcu + query.ground_speed yaklasimi "hayalet gibi kayma"
+            # veriyordu: bacaklar harekete senkron degildi.) geo + animation.json
+            # custom/ altindan kopyalanir, doku {id}_texture() ile uretilir.
             os.makedirs(os.path.join(RP, "models/entity"), exist_ok=True)
             os.makedirs(os.path.join(RP, "animations"), exist_ok=True)
             shutil.copy(os.path.join(HERE, f"custom/{m['id']}.geo.json"),
@@ -1664,41 +1677,22 @@ def build():
             shutil.copy(os.path.join(HERE, f"custom/{m['id']}.animation.json"),
                         os.path.join(RP, f"animations/{m['id']}.animation.json"))
             globals()[f"{m['id']}_texture"](os.path.join(RP, f"textures/entity/{m['id']}.png"))
-            # Animasyonu BIR ANIMASYON KONTROLCUSU uzerinden surer, ciplak
-            # scripts.animate ["move"] KISAYOL baglamasi yerine. Kanit: eski
-            # yontemde query.life_time ile surulen kafa sallanmasi bile
-            # oynamiyordu (life_time hareketten bagimsiz, daima ilerler) ->
-            # yani animasyon HIC baglanmiyordu, "ground_speed=0" degil. Mojang'in
-            # belgeledigi saglam "daima acik" deseni: default state'li kontrolcu
-            # spawn aninda aktif olur ve dongoyu her karede surer. Ayrica
-            # client_entity format'i 1.21.0'a cekildi — player.json'da 1.10.0
-            # etiketinin motor 1.26'da yeni scripts alanlarini yanlis yorumladigi
-            # gorulmustu; ayni sinif hatayi burada da onler.
-            w(os.path.join(RP, f"animation_controllers/{m['id']}.animation_controllers.json"), {
-                "format_version": "1.10.0",
-                "animation_controllers": {
-                    f"controller.animation.{m['id']}.move": {
-                        "states": {"default": {"animations": ["move"]}}}}})
+            scripts = {"animate": ["move"]}
+            if m.get('pre_anim'):
+                scripts = {"pre_animation": m['pre_anim'], "animate": ["move"]}
             w(os.path.join(RP, f"entity/{m['id']}.json"), {
-                "format_version": "1.21.0",
+                "format_version": "1.10.0",
                 "minecraft:client_entity": {
                     "description": {
                         "identifier": f"stnt:{m['id']}",
                         # entity_emissive_alpha: dokunun alpha kanali ISIMA seviyesi
-                        # olur (dusuk alpha = parlar). Deri alpha 255 -> opak/isimasiz;
-                        # goz/kalp/damar dusuk alpha -> karanlikta parlar. Custom
-                        # mob'lar (warden, ender_send) icin gorsel zenginlik.
+                        # olur (dusuk alpha = parlar). goz/kalp/damar dusuk alpha ->
+                        # karanlikta parlar (custom mob gorsel zenginligi).
                         "materials": {"default": "entity_emissive_alpha"},
                         "textures": {"default": f"textures/entity/{m['id']}"},
                         "geometry": {"default": f"geometry.{m['id']}"},
-                        "animations": {
-                            "move": f"animation.{m['id']}.move",
-                            "move_ctrl": f"controller.animation.{m['id']}.move",
-                        },
-                        # Kontrolcu her karede 'move'u surer. Uzuv genligi
-                        # animasyon icinde query.ground_speed ile olcekleniyor:
-                        # dururken hafif kimildar, yururken genis sallar.
-                        "scripts": {"animate": ["move_ctrl"]},
+                        "animations": {"move": f"animation.{m['id']}.move"},
+                        "scripts": scripts,
                         "render_controllers": ["controller.render.default"],
                     },
                 },
@@ -3133,29 +3127,38 @@ function promptPassword(player, k, rec, isOwner) {
 // atar -> try ile YUTULUR; kamera oldugu gibi kalir, mod'un geri kalani ve
 // gorsel olcek (render-scale) calismaya DEVAM eder. Normale (2) donunce kamera
 // bir kez temizlenir -> normal ilk-sahis geri gelir.
-const camState = new Map();   // playerId -> kamera icin uygulanan son size
+const camState = new Map();   // playerId -> kamera surulen son size (yoksa hic surmedik)
+function clearCam(p) {         // kamerayi guvenle birak (normal ilk-sahis geri gelir)
+  try { p.camera.clear(); } catch (e) {}
+  camState.set(p.id, 2);
+}
 system.runInterval(() => {
   for (const p of world.getPlayers()) {
     let sz;
-    try { sz = p.getProperty("st:size"); } catch (e) { continue; }
+    try { sz = p.getProperty("st:size"); } catch (e) { continue; }  // ozellik yoksa dokunma
     if (typeof sz !== "number") sz = 2;
-    if (sz === 2) {                                 // normal boyut -> kamerayi birak
-      if (camState.get(p.id) !== 2) {
-        try { p.camera.clear(); } catch (e) {}
-        camState.set(p.id, 2);
-      }
+    const prev = camState.get(p.id);
+    if (sz === 2) {                                 // normal boyut
+      // SADECE daha once kamera surdukse temizle -> hic kuculmemis oyuncunun
+      // varsayilan kamerasina asla dokunma (gereksiz clear/titreme olmaz).
+      if (prev !== undefined && prev !== 2) clearCam(p);
       continue;
     }
     try {
-      const scale = SIZE_SCALES[sz] || 1;           // gorsel olcek (0.33 .. 2.0)
+      const scale = SIZE_SCALES[sz] || SIZE_SCALES[String(sz)] || 1;   // gorsel olcek
+      if (typeof scale !== "number" || scale <= 0) continue;
       const eye = 1.62 * scale;                      // vanilla goz ~1.62 blok
-      const loc = p.location, rot = p.getRotation();
+      const loc = p.location;
+      let rot;
+      try { rot = p.getRotation(); } catch (e) { rot = null; }
+      if (!loc || !rot || typeof rot.x !== "number" || typeof rot.y !== "number") continue;
+      if (!p.camera || typeof p.camera.setCamera !== "function") continue;  // API yok -> gorsel-only kal
       p.camera.setCamera("minecraft:free", {
         location: { x: loc.x, y: loc.y + eye, z: loc.z },
         rotation: { x: rot.x, y: rot.y },
       });
       camState.set(p.id, sz);
-    } catch (e) { /* Kamera API / deneysel bayrak yok -> sessizce gec */ }
+    } catch (e) { /* Kamera API/bayrak yok ya da gecici hata -> sessizce gec, mod calisir */ }
   }
 }, 1);
 
