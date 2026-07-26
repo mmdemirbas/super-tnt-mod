@@ -78,7 +78,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 22, 0]
+VERSION = [1, 23, 0]
 MIN_ENGINE = [1, 21, 0]
 # Surum etiketi paket ADINA yazilir. UUID + klasor adlari sabit oldugu icin
 # Minecraft ayni UUID'li paketi yerinde GUNCELLER; ama cihazda eski surum
@@ -1586,10 +1586,13 @@ def build():
             # wiki.bedrock.dev dogrulandi). cw/ch DOGRUDAN yazilirsa efektif hitbox
             # cw*scale x ch*scale olur -> ender 4.8 x 21.6 blok gibi devasa; mob
             # zemine SIKISIR, gecerli yol bulamaz, oylece durur (yurumez). Bu #3
-            # "koyunca duruyor" hatasinin asil sebebiydi. scale'e bolerek efektif
-            # hitbox'i istenen cw x ch degerine geri getiriyoruz.
-            "minecraft:collision_box": {"width": round(m['cw'] / m['scale'], 3),
-                                        "height": round(m['ch'] / m['scale'], 3)},
+            # "koyunca duruyor" hatasinin sebebi. Efektif hitbox'i YURUYEBILIR bir
+            # boyuta (en fazla 2.0 x 4.0 blok) kapiyoruz; scale'e bolunce blok
+            # icinde bu deger elde edilir. Model gorsel olarak dev kalir (scale
+            # aynen), sadece carpisma kutusu makul -> vanilla yuruyen moblar ~3
+            # blok; 4 blok acik alanda rahat yol bulur.
+            "minecraft:collision_box": {"width": round(min(m['cw'], 2.0) / m['scale'], 3),
+                                        "height": round(min(m['ch'], 4.0) / m['scale'], 3)},
             "minecraft:attack": {"damage": m['dmg']},
             "minecraft:movement": {"value": 0.4},
             "minecraft:navigation.walk": {"can_path_over_water": True, "avoid_water": True},
@@ -1985,34 +1988,24 @@ function itemAction(player, a) {
         break;
       }
       case "portal_gun": {
-        // Bakilan yuzeyin ustune RENKLI portal blogu koy. Ilk tik: yeni cift
-        // baslatir (kullanilmayan ilk renk). Ikinci tik: ayni renkte esini
-        // koyup baglar. Boylece her cift ayri renk -> karismaz. Bir kapiyi
-        // kirinca esi de silinir (playerBreakBlock handler'i).
+        // Bakilan yuzeyin ustune RENKLI portal blogu koy + kaydet. Her iki tik
+        // ayni rengi kullanir -> bir cift. AYNI RENKTEN iki portal birbirine
+        // isinlar (global kayit + en yakin es). Elle envanterden konan portal
+        // bloklari da ayni sekilde calisir (playerPlaceBlock handler'i).
         const hit = player.getBlockFromViewDirection({ maxDistance: a.range || 48 });
         if (!hit) { try { player.onScreenDisplay.setActionBar("§7Portal için bir yüzeye bak"); } catch (e) {} break; }
         const above = { x: Math.floor(hit.block.location.x), y: Math.floor(hit.block.location.y) + 1, z: Math.floor(hit.block.location.z) };
-        const dimId = player.dimension.id;
-        const key = "stnt:portal_" + player.id;
-        let pr = { open: null, pairs: [] };
-        try { const raw = world.getDynamicProperty(key); if (typeof raw === "string") { const o = JSON.parse(raw); if (o && o.pairs) pr = o; } } catch (e) {}
         const PORTAL_N = __PORTAL_N__;   // build.py PORTAL_COLORS ile senkron
         const PC = __PORTAL_NAMES__;
-        if (pr.open) {
-          const c = pr.open.color;
-          try { dim.getBlock(above)?.setType("stnt:portal_" + c); } catch (e) {}
-          pr.pairs.push({ color: c, a: pr.open.a, b: { dim: dimId, x: above.x, y: above.y, z: above.z } });
-          pr.open = null;
-          try { player.onScreenDisplay.setActionBar(`§a${PC[c]} portal bağlandı! Üstüne bas, eşine ışınlan.`); } catch (e) {}
-        } else {
-          const used = new Set(pr.pairs.map((p) => p.color));
-          let c = 0; while (c < PORTAL_N && used.has(c)) c++;
-          if (c >= PORTAL_N) c = pr.pairs.length % PORTAL_N;   // hepsi doluysa dongusel
-          try { dim.getBlock(above)?.setType("stnt:portal_" + c); } catch (e) {}
-          pr.open = { color: c, a: { dim: dimId, x: above.x, y: above.y, z: above.z } };
-          try { player.onScreenDisplay.setActionBar(`§b${PC[c]} portal kondu — ikinci ${PC[c]} kapı için tekrar tıkla`); } catch (e) {}
-        }
-        try { world.setDynamicProperty(key, JSON.stringify(pr)); } catch (e) {}
+        const gc = portalGunCount.get(player.id) || 0;
+        portalGunCount.set(player.id, gc + 1);
+        const c = Math.floor(gc / 2) % PORTAL_N;   // 1.-2. tik renk0, 3.-4. renk1 ...
+        try { dim.getBlock(above)?.setType("stnt:portal_" + c); } catch (e) {}
+        addPortal(player.dimension.id, above.x, above.y, above.z, c);
+        const total = getPortals().filter((q) => q.c === c).length;
+        try { player.onScreenDisplay.setActionBar(total >= 2
+          ? `§a${PC[c]} portal bağlandı! Üstüne bas, eşine ışınlan.`
+          : `§b${PC[c]} portal kondu — ikinci ${PC[c]} kapı için tekrar tıkla`); } catch (e) {}
         spray(dim, above, "minecraft:portal_particle", 30, 1.5);
         break;
       }
@@ -2340,15 +2333,23 @@ system.runInterval(() => {
 // modul yuklenirken TypeError atip main.js'i BU SATIRDAN SONRA komple
 // durduruyordu -> portal isinlanmasi, cakmakla atesleme, redstone, patlama
 // zinciri HIC kaydolmuyordu (portal "sıradan blok" gibiydi). 1.x'te var olan
-// afterEvents.entityHurt ile ayni takimdan gelen hasari GERI IYILESTIR: iptal
-// edemeyiz ama takim birbirini olduremez. try ile sarili — asla akisi durdurmaz.
+// afterEvents.entityHurt ile hasari GERI IYILESTIR (iptal edemeyiz). IKI durum:
+//   (1) ayni takimdan iki mob birbirini vurursa -> olduremezler.
+//   (2) takima aldigin mob SENI (sahibini) vurursa -> "dost" olsun diye hasar
+//       geri verilir; mob AI'si degistirilemiyor (1.x) ama sana zarar veremez.
+// try ile sarili — asla akisi durdurmaz.
 world.afterEvents.entityHurt.subscribe((ev) => {
   try {
     const attacker = ev.damageSource && ev.damageSource.damagingEntity;
     if (!attacker) return;                          // cevre hasari: dokunma
-    const a = teamOf(attacker), b = teamOf(ev.hurtEntity);
-    if (!a || a !== b) return;                       // farkli/takimsiz -> dokunma
-    const h = ev.hurtEntity.getComponent("minecraft:health");
+    const at = teamOf(attacker);
+    if (!at) return;                                 // saldirgan takimsiz -> normal
+    const victim = ev.hurtEntity;
+    const ownerId = at.slice(TEAM_PREFIX.length);
+    const sameTeam = teamOf(victim) === at;
+    const ownerHit = victim.typeId === "minecraft:player" && victim.id === ownerId;
+    if (!sameTeam && !ownerHit) return;              // yabanciya normal hasar
+    const h = victim.getComponent("minecraft:health");
     if (h && typeof h.setCurrentValue === "function") {
       h.setCurrentValue((h.currentValue || 0) + (ev.damage || 0));
     }
@@ -3107,59 +3108,71 @@ function promptPassword(player, k, rec, isOwner) {
   } catch (e) {}
 }
 
-// ---- Portal Silahi: ayni renk cift arasinda isinlanma (coklu cift)
+// ---- Portal: AYNI RENK iki blok birbirine isinlar. Kayit global bir dunya
+// ozelliginde (herkes icin gecerli); portal blogu KONUNCA eklenir, KIRILINCA
+// silinir. Boylece hem Portal Silahi hem elle konan bloklar calisir.
 const portalCd = new Map();
+const portalGunCount = new Map();
+function getPortals() {
+  try { const r = world.getDynamicProperty("stnt:portals"); return typeof r === "string" ? JSON.parse(r) : []; }
+  catch (e) { return []; }
+}
+function setPortals(a) { try { world.setDynamicProperty("stnt:portals", JSON.stringify(a.slice(-64))); } catch (e) {} }
+function addPortal(d, x, y, z, c) {
+  const a = getPortals();
+  if (!a.some((q) => q.d === d && q.x === x && q.y === y && q.z === z)) { a.push({ c, d, x, y, z }); setPortals(a); }
+}
+function removePortal(d, x, y, z) {
+  setPortals(getPortals().filter((q) => !(q.d === d && q.x === x && q.y === y && q.z === z)));
+}
+// Portal blogu ELLE konunca da kaydet (Portal Silahi'yla ayni sistem).
+world.afterEvents.playerPlaceBlock.subscribe((ev) => {
+  try {
+    const id = ev.block && ev.block.typeId;
+    if (!id || !id.startsWith("stnt:portal_")) return;
+    const c = parseInt(id.slice("stnt:portal_".length), 10);
+    if (Number.isNaN(c)) return;
+    const bl = ev.block.location;
+    addPortal(ev.block.dimension.id, Math.floor(bl.x), Math.floor(bl.y), Math.floor(bl.z), c);
+    const n = getPortals().filter((q) => q.c === c).length;
+    try { ev.player.onScreenDisplay.setActionBar(n >= 2
+      ? "§aPortal bağlandı! Üstüne bas, eşine ışınlan."
+      : "§bPortal kondu — aynı renkten bir tane daha koy."); } catch (e) {}
+  } catch (e) {}
+});
 system.runInterval(() => {
   const now = system.currentTick;
+  const all = getPortals();
+  if (!all.length) return;
   for (const p of world.getPlayers()) {
-    let pr;
-    try { const raw = world.getDynamicProperty("stnt:portal_" + p.id); if (typeof raw !== "string") continue; pr = JSON.parse(raw); }
-    catch (e) { continue; }
-    if (!pr.pairs || !pr.pairs.length) continue;
     if ((portalCd.get(p.id) || 0) > now) continue;
     const l = p.location, d = p.dimension.id;
-    let done = false;
-    for (const pair of pr.pairs) {
-      for (const [from, to] of [["a", "b"], ["b", "a"]]) {
-        const f = pair[from], t = pair[to];
-        if (f && t && f.dim === d && Math.abs(l.x - (f.x + 0.5)) < 1 && Math.abs(l.y - f.y) < 1.5 && Math.abs(l.z - (f.z + 0.5)) < 1) {
-          try {
-            p.teleport({ x: t.x + 0.5, y: t.y, z: t.z + 0.5 }, { dimension: world.getDimension(t.dim) });
-            spray(p.dimension, { x: t.x + 0.5, y: t.y + 0.5, z: t.z + 0.5 }, "minecraft:portal_particle", 20, 1);
-          } catch (e) {}
-          portalCd.set(p.id, now + 40);       // 2 sn bekleme - ileri-geri titremeyi onler
-          done = true; break;
-        }
-      }
-      if (done) break;
+    let on = null;                                   // uzerinde durdugun portal
+    for (const P of all) {
+      if (P.d === d && Math.abs(l.x - (P.x + 0.5)) < 1 && Math.abs(l.y - P.y) < 1.6 && Math.abs(l.z - (P.z + 0.5)) < 1) { on = P; break; }
     }
+    if (!on) continue;
+    let best = null, bestDist = Infinity;             // ayni renk EN YAKIN es
+    for (const Q of all) {
+      if (Q === on || Q.c !== on.c) continue;
+      const dx = Q.x - on.x, dy = Q.y - on.y, dz = Q.z - on.z, dist = dx * dx + dy * dy + dz * dz;
+      if (dist < bestDist) { bestDist = dist; best = Q; }
+    }
+    if (!best) continue;
+    try {
+      p.teleport({ x: best.x + 0.5, y: best.y + 1, z: best.z + 0.5 }, { dimension: world.getDimension(best.d) });
+      spray(p.dimension, { x: best.x + 0.5, y: best.y + 1, z: best.z + 0.5 }, "minecraft:portal_particle", 20, 1);
+    } catch (e) {}
+    portalCd.set(p.id, now + 40);                     // 2 sn - ileri-geri titremeyi onler
   }
 }, 8);
 
-// ---- Portal kapisi kirilinca ESI de kirilsin (cift bozulmasin)
+// ---- Portal blogu kirilinca kayittan cikar
 world.afterEvents.playerBreakBlock.subscribe((ev) => {
   try {
     if (!ev.brokenBlockPermutation.type.id.startsWith("stnt:portal_")) return;
-    const key = "stnt:portal_" + ev.player.id;
-    let pr;
-    try { pr = JSON.parse(world.getDynamicProperty(key)); } catch (e) { return; }
-    if (!pr || !pr.pairs) return;
     const bl = ev.block.location;
-    const bx = Math.floor(bl.x), by = Math.floor(bl.y), bz = Math.floor(bl.z), bd = ev.dimension.id;
-    const hitPt = (pt) => pt && pt.x === bx && pt.y === by && pt.z === bz && pt.dim === bd;
-    for (let i = 0; i < pr.pairs.length; i++) {
-      const pair = pr.pairs[i];
-      let mate = null;
-      if (hitPt(pair.a)) mate = pair.b; else if (hitPt(pair.b)) mate = pair.a;
-      if (mate) {
-        try { world.getDimension(mate.dim).getBlock({ x: mate.x, y: mate.y, z: mate.z })?.setType("minecraft:air"); } catch (e) {}
-        pr.pairs.splice(i, 1);
-        try { world.setDynamicProperty(key, JSON.stringify(pr)); } catch (e) {}
-        try { ev.player.onScreenDisplay.setActionBar("§7Portal çifti kaldırıldı (iki kapı da)."); } catch (e) {}
-        return;
-      }
-    }
-    if (pr.open && hitPt(pr.open.a)) { pr.open = null; try { world.setDynamicProperty(key, JSON.stringify(pr)); } catch (e) {} }
+    removePortal(ev.dimension.id, Math.floor(bl.x), Math.floor(bl.y), Math.floor(bl.z));
   } catch (e) {}
 });
 
