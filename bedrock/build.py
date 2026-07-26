@@ -78,7 +78,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 26, 0]
+VERSION = [1, 27, 0]
 MIN_ENGINE = [1, 21, 0]
 # Surum etiketi paket ADINA yazilir. UUID + klasor adlari sabit oldugu icin
 # Minecraft ayni UUID'li paketi yerinde GUNCELLER; ama cihazda eski surum
@@ -1318,7 +1318,13 @@ def build():
     w(os.path.join(BP, "manifest.json"), {
         "format_version": 2,
         "header": {"name": f"Super TNT Mod v{VER_STR} [BP]",
-                   "description": f"Super TNT Mod - Bedrock surumu (v{VER_STR})",
+                   # Aciklama = "surum notu": Kucultme/Buyutme kamerasi icin
+                   # gereken deneysel ayarlar burada da yazili (paket listesinde
+                   # gorunur), boylece hangi bayragin acilacagi unutulmaz.
+                   "description": (f"Super TNT Mod v{VER_STR}. "
+                                   "Kucultme/Buyutme KAMERASI icin dunya ayarlarinda "
+                                   "Deneyler > 'Beta APIs' + 'Creator Cameras' acin "
+                                   "(kapaliyken gerisi normal calisir)."),
                    "uuid": BP_UUID, "version": VERSION,
                    "min_engine_version": MIN_ENGINE},
         # script modulunde "language": "javascript" ZORUNLU. Onsuz Minecraft
@@ -3017,6 +3023,15 @@ try {
         `\u00A7a[Super TNT] Yuklendi! ${Object.keys(SPEC).length} TNT hazir. ` +
         `\u00A7fYaratici envanterde ara ya da: \u00A7e/give @s stnt:zeynep_tnt`);
     } catch (e) {}
+    // Girises hatirlatmasi: Kucultme/Buyutme KAMERASI icin deneysel ayarlar.
+    // Bu bilgi ucuncu kez burada gorunur (paket aciklamasi + kucululunce anlik
+    // uyari da var) \u2014 kimse hangi bayragi acacagini unutmasin.
+    try {
+      ev.player.sendMessage(
+        "\u00A77Not: \u00A7fKucultme/Buyutme kamerasi icin dunya ayarlarinda " +
+        "\u00A7aBeta APIs\u00A7f + \u00A7aCreator Cameras\u00A7f (Deneyler) acik olmali. " +
+        "\u00A77Kapaliyken gerisi normal calisir.");
+    } catch (e) {}
   });
 } catch (e) {}
 
@@ -3128,6 +3143,20 @@ function promptPassword(player, k, rec, isOwner) {
 // gorsel olcek (render-scale) calismaya DEVAM eder. Normale (2) donunce kamera
 // bir kez temizlenir -> normal ilk-sahis geri gelir.
 const camState = new Map();   // playerId -> kamera surulen son size (yoksa hic surmedik)
+const camWarned = new Set();  // bayrak uyarisi oyuncu basina bir kez
+// Kucultme/Buyutme kamerasi calismasi icin GEREKEN deneysel ayarlar. Bunu 3
+// yerde hatirlatiriz (bkz. giris mesaji + paket aciklamasi): en onemlisi
+// asagida — oyuncu KUCULUP kamera calismayinca tam o an gosterilir (en isabetli).
+const CAM_FLAGS_HINT =
+  "§e§l[Süper TNT] Küçülme/Büyüme kamerası kapalı!§r\n" +
+  "§fAçmak için: §bDünyayı Düzenle → Ayarlar → Deneyler (Experiments)§f bölümünde\n" +
+  "§a‘Beta APIs’§f ve §a‘Creator Cameras / Yaratıcı Kameralar’§f seçeneklerini aç,\n" +
+  "§7sonra dünyayı yeniden yükle. (Kapalıyken oyunun geri kalanı normal çalışır.)";
+function warnCamFlags(p) {
+  if (camWarned.has(p.id)) return;                   // spam yok — oyuncu basina bir kez
+  camWarned.add(p.id);
+  try { p.sendMessage(CAM_FLAGS_HINT); } catch (e) {}
+}
 function clearCam(p) {         // kamerayi guvenle birak (normal ilk-sahis geri gelir)
   try { p.camera.clear(); } catch (e) {}
   camState.set(p.id, 2);
@@ -3144,21 +3173,27 @@ system.runInterval(() => {
       if (prev !== undefined && prev !== 2) clearCam(p);
       continue;
     }
+    // Boyut normalden farkli -> kamerayi surmeye CALIS.
+    // (1) Kamera API'si hic yoksa (Beta APIs kapali) -> ROTASYONA gerek yok,
+    //     hemen hatirlat ve gec. Boylece "oyuncu kuculdu ama kamera degismedi"
+    //     durumu her zaman aciklanir.
+    if (!p.camera || typeof p.camera.setCamera !== "function") { warnCamFlags(p); continue; }
+    const scale = SIZE_SCALES[sz] || SIZE_SCALES[String(sz)] || 1;
+    if (typeof scale !== "number" || scale <= 0) continue;
+    const loc = p.location;
+    let rot;
+    try { rot = p.getRotation(); } catch (e) { rot = null; }
+    if (!loc || !rot || typeof rot.x !== "number" || typeof rot.y !== "number") continue;  // gecici
     try {
-      const scale = SIZE_SCALES[sz] || SIZE_SCALES[String(sz)] || 1;   // gorsel olcek
-      if (typeof scale !== "number" || scale <= 0) continue;
-      const eye = 1.62 * scale;                      // vanilla goz ~1.62 blok
-      const loc = p.location;
-      let rot;
-      try { rot = p.getRotation(); } catch (e) { rot = null; }
-      if (!loc || !rot || typeof rot.x !== "number" || typeof rot.y !== "number") continue;
-      if (!p.camera || typeof p.camera.setCamera !== "function") continue;  // API yok -> gorsel-only kal
       p.camera.setCamera("minecraft:free", {
-        location: { x: loc.x, y: loc.y + eye, z: loc.z },
+        location: { x: loc.x, y: loc.y + 1.62 * scale, z: loc.z },  // goz ~1.62 blok
         rotation: { x: rot.x, y: rot.y },
       });
       camState.set(p.id, sz);
-    } catch (e) { /* Kamera API/bayrak yok ya da gecici hata -> sessizce gec, mod calisir */ }
+    } catch (e) {
+      // (2) API var ama deneysel "Creator Cameras" kapali -> setCamera hata verir
+      warnCamFlags(p);
+    }
   }
 }, 1);
 
