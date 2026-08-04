@@ -163,10 +163,11 @@ each iteration is `build.py` → `adb push` to `/sdcard/Download/` → open the 
 Bump `VERSION` in `build.py` every time, otherwise Minecraft treats the import as
 a duplicate instead of an update. See `docs/cocuk-paketleri.md`.
 
-## Commit Kuralları
+## Commit rules
 
-- Başka bir göreve geçmeden önce mevcut değişiklikler commit edilir. Yarım kalan iş commit'siz bırakılmaz.
-- Değişiklikler anlamsal gruplara ayrılarak commit edilir.
+- Commit the current changes before moving to another task. No unfinished
+  work left uncommitted.
+- Split the changes into semantic groups, one commit each.
 
 ## Language
 
