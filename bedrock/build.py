@@ -78,7 +78,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 27, 0]
+VERSION = [1, 28, 0]
 MIN_ENGINE = [1, 21, 0]
 # Surum etiketi paket ADINA yazilir. UUID + klasor adlari sabit oldugu icin
 # Minecraft ayni UUID'li paketi yerinde GUNCELLER; ama cihazda eski surum
@@ -744,12 +744,32 @@ for _i, (_pn, _pc) in enumerate(PORTAL_COLORS):
                        kind="portal_block", color=_pc, mat="minecraft:ender_pearl"))
 
 # ---------------------------------------------------------------- item tanimlari
-# kind "food": yenince efekt. "raycast": bakilan bloga/varliga etki.
+# kind "food": yenince efekt. "drink": icince efekt (icme animasyonu).
+# "raycast": bakilan bloga/varliga etki.
 # "self_area": elde kullaninca oyuncunun etrafina etki.
+
+# Saglik Iksiri sayilari. Bedrock'ta oyuncunun taban azami cani 20'dir ve
+# betikten dogrudan degistirilemez; tek yol health_boost etkisi. Bu etki
+# SEVIYE basina +4 can ekler, seviye = amplifier + 1. 200 can icin +180 can
+# gerekir -> 45 seviye -> amplifier 44. Etki sadece azami cani buyutur,
+# doldurmaz; betik icildikten sonra cani tepeye cekiyor (bkz. heal_boost).
+POTION_HP = 200
+POTION_BASE_HP = 20          # oyuncunun etkisiz taban azami cani
+POTION_SECONDS = 600         # 10 dk; bitince azami can 20'ye doner
+POTION_AMP = (POTION_HP - POTION_BASE_HP) // 4 - 1
+
 ITEMS = [
     dict(id="spicy_chips", tr="Acılı Cips", en="Spicy Chips", kind="food",
          trtip="Ye ve 20 sn Hız III kazan!", entip="Eat for Speed III for 20s!",
          color=(224, 120, 40), action=dict(type="eat", effect="speed", seconds=20, amp=2)),
+    dict(id="saglik_iksiri", tr="Sağlık İksiri", en="Health Potion", kind="drink",
+         trtip=f"İç — canın {POTION_HP} olur ve tamamen dolar! "
+               f"{POTION_SECONDS // 60} dakika sürer, sonra normale döner.",
+         entip=f"Drink - your health becomes {POTION_HP} and refills! "
+               f"Lasts {POTION_SECONDS // 60} minutes, then back to normal.",
+         color=(215, 40, 65),
+         action=dict(type="heal_boost", hp=POTION_HP,
+                     seconds=POTION_SECONDS, amp=POTION_AMP)),
     dict(id="lightning_spell", tr="Yıldırım Büyüsü", en="Lightning Spell", kind="raycast",
          trtip="Sağ tıkla — baktığın yere GERÇEK yıldırım çakar! Yakar ve öldürür.",
          entip="Right-click - strikes REAL lightning where you look!",
@@ -977,7 +997,7 @@ def symbol_texture(path, item_id):
         "end_pearl": (24, 20, 40), "nether_pearl": (48, 14, 14),
         "takim_asasi": (65, 38, 105), "esya_calmaca": (55, 42, 80),
         "rainbow_boots": (120, 180, 220), "kurus": (60, 52, 38),
-        "iki_yuz_tl": (65, 120, 85),
+        "iki_yuz_tl": (65, 120, 85), "saglik_iksiri": (58, 18, 30),
     }
     if item_id not in SPECS:
         return False
@@ -1062,6 +1082,16 @@ def symbol_texture(path, item_id):
                 rect(x0, y, x1, y, c)
     elif iid == "kurus":
         disc(8, 8, 6, (200, 150, 40)); disc(8, 8, 5, (230, 190, 70)); vline(8, 5, 11, (120, 85, 20)); px(7, 6, (120, 85, 20))
+    elif iid == "saglik_iksiri":
+        rect(6, 0, 9, 2, (150, 110, 70))            # mantar tipa
+        rect(7, 3, 8, 5, (205, 230, 240))           # sise boynu
+        disc(8, 10, 5, (205, 230, 240))             # cam govde
+        disc(8, 10, 4, (215, 40, 65))               # kirmizi iksir
+        hline(7, 6, 10, (250, 140, 160))            # sivinin yuzeyi
+        for (hy, hx0, hx1) in ((8, 6, 7), (9, 5, 11), (10, 6, 10), (11, 7, 9), (12, 8, 8)):
+            hline(hy, hx0, hx1, (255, 240, 245))    # ortadaki kalp
+        hline(8, 9, 10, (255, 240, 245))            # kalbin ikinci tumsegi
+        vline(3, 9, 11, (250, 250, 255))            # camin sol parlamasi
     elif iid == "iki_yuz_tl":
         rect(2, 5, 13, 11, (210, 225, 200))
         for x in range(2, 14):
@@ -1492,10 +1522,17 @@ def build():
     for it in ITEMS:
         icomps = {"minecraft:icon": f"stnt_{it['id']}",
                   "minecraft:max_stack_size": 64 if it['kind'] in ("food", "loot") else 1}
-        if it['kind'] == "food":
-            icomps["minecraft:food"] = {"nutrition": 4, "can_always_eat": True}
-            icomps["minecraft:use_animation"] = "eat"
+        if it['kind'] in ("food", "drink"):
+            # "drink": icme animasyonu + sifir doyum (iksir yiyecek degil).
+            # can_always_eat ikisinde de sart: yoksa acligi tok olan oyuncu
+            # esyayi hic kullanamaz, itemCompleteUse olayi da hic tetiklenmez.
+            drink = it['kind'] == "drink"
+            icomps["minecraft:food"] = {"nutrition": 0 if drink else 4,
+                                        "can_always_eat": True}
+            icomps["minecraft:use_animation"] = "drink" if drink else "eat"
             icomps["minecraft:use_modifiers"] = {"use_duration": 1.4, "movement_modifier": 0.35}
+            if drink:
+                icomps["minecraft:max_stack_size"] = 16
         elif it['kind'] == "weapon":
             icomps["minecraft:damage"] = it.get('damage', 6)
             icomps["minecraft:durability"] = {"max_durability": 800}
@@ -1918,16 +1955,40 @@ const SIZE_SCALES = __SIZE_SCALES__;   // st:size kademe -> gorsel olcek
 const FUSE = __FUSE__;
 
 // ---------------------------------------------------------------- item'lar
+// Yiyip-icilen esyalar sag tikta DEGIL, animasyon bitince etki etmeli; yoksa
+// cocuk tiklayip birakiyor ve esya harcanmadan efekt aliyor.
+const CONSUMED = { eat: 1, heal_boost: 1 };
 world.afterEvents.itemUse.subscribe((ev) => {
   const a = ITEM_ACTIONS[ev.itemStack.typeId.replace("stnt:", "")];
-  if (a && a.type !== "eat") itemAction(ev.source, a);
+  if (a && !CONSUMED[a.type]) itemAction(ev.source, a);
 });
 world.afterEvents.itemCompleteUse.subscribe((ev) => {
   const a = ITEM_ACTIONS[ev.itemStack.typeId.replace("stnt:", "")];
-  if (a && a.type === "eat") {
+  if (!a) return;
+  if (a.type === "eat") {
     try { ev.source.addEffect(a.effect, a.seconds * 20, { amplifier: a.amp, showParticles: true }); } catch (e) {}
+  } else if (a.type === "heal_boost") {
+    healBoost(ev.source, a);
   }
 });
+
+// Saglik Iksiri. health_boost AZAMI cani buyutur ama mevcut cani doldurmaz;
+// ayrica yeni azami deger ayni tick'te okunamiyor. Bu yuzden efekti verip bir
+// tick sonra cani tepeye cekiyoruz.
+function healBoost(player, a) {
+  try {
+    player.addEffect("health_boost", a.seconds * 20, { amplifier: a.amp, showParticles: true });
+  } catch (e) { return; }
+  system.runTimeout(() => {
+    try {
+      const hp = player.getComponent("minecraft:health");
+      if (hp) hp.resetToMaxValue();
+      spray(player.dimension, player.location, "minecraft:heart_particle", 12, 1.0);
+      player.onScreenDisplay.setActionBar(
+        `§aCanın §c${hp ? Math.round(hp.currentValue) : a.hp}§a oldu! §7${a.seconds / 60} dakika sürer`);
+    } catch (e) {}
+  }, 1);
+}
 
 function itemAction(player, a) {
   const dim = player.dimension;

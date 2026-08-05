@@ -1,7 +1,30 @@
 # Super TNT — Bedrock Port Durumu
 
-Son sürüm: **v1.19.1** · Mobil sürüm ana odak; Super TNT tek başına yeterli
+Son sürüm: **v1.28.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
 olacak şekilde geliştiriliyor (MorphX / mutant paketine bağımlılık yok).
+
+## v1.28.0 — Sağlık İksiri (Bedrock'a özel, Java'da yok)
+
+İçince canı 200'e çıkaran iksir. Dev boss'lar (Mutant Warden 500 can, Ender
+Send 300 can) karşısında çocuğun elinde bir koz olsun diye eklendi.
+
+**Nasıl çalışıyor.** Bedrock'ta oyuncunun taban azami canı 20'dir ve betikten
+doğrudan değiştirilemez; tek yol `health_boost` etkisi. Bu etki seviye başına
++4 can ekler (seviye = amplifier + 1), yani 200 can için amplifier 44. Etki
+yalnız azami canı büyütür, mevcut canı doldurmaz — ayrıca yeni azami değer
+aynı tick'te okunamıyor. Bu yüzden betik etkiyi verip **bir tick sonra**
+`resetToMaxValue()` ile canı tepeye çekiyor.
+
+**Süre 10 dakika, sonra normale döner.** Kalıcı değil: süre bitince azami can
+20'ye iner ve mevcut can oraya kırpılır (ölüm olmaz). Tooltip bunu iki dilde
+de açıkça yazıyor.
+
+Yeni `kind="drink"` item türü: yeme yerine **içme animasyonu**, doyum 0
+(iksir yiyecek değil), yığın 16. Etki sağ tıkta değil `itemCompleteUse` ile
+uygulanıyor — yoksa çocuk tıklayıp bırakıyor ve eşya harcanmadan can alıyor.
+
+Simge elle çiziliyor (`symbol_texture`): mantar tıpalı şişe, kırmızı sıvı,
+ortada beyaz kalp.
 
 ## v1.17 – v1.19.1 — mobil odak, kalite ve içerik
 
@@ -155,6 +178,8 @@ doğru/yanlış altın plaka, zehir toprağı, ? bloğu, Herobrine Çağırıcı
 Acılı Cips, Hız Eşyası, Yıldırım Büyüsü, Kara Delik, Enerji Kristali,
 Lazer Kılıcı, Kanca, Dondurucu, Koku Bombası, Among Us Rapor, Delici,
 Lav Kristali, Kanlı Kılıç, Kalp Baltası, Gökkuşağı Botları, End/Nether İncisi, TNT Frizbi, Craft Baltası, + ganimet item'ları (Kuruş, 200 TL, Lego tuğlaları).
+
+**Bedrock'a özel (Java'da karşılığı yok):** Sağlık İksiri.
 
 ## Portlanmadı — teknik sebeple
 
