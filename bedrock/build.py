@@ -153,60 +153,254 @@ PLAYER_BASE = {
 
 # ---------------------------------------------------------------- oyuncu morph'u
 # Oyuncu GORUNTU olarak vanilla mob'a donusur (render controller + vanilla
-# geometry/texture/material — MorphX'in kanitlanmis patterni). SAF GORSEL:
-# carpisma kutusu st:size'dan gelir, morph sadece gorunumu degistirir, boylece
-# st:size ile carpisma-kutusu cakismasi olmaz.
+# geometry/texture/material). SAF GORSEL: carpisma kutusu st:size'dan gelir,
+# morph sadece gorunumu degistirir, boylece st:size ile cakisma olmaz.
 # DIKKAT: geometry tek basina animate ETMEZ — mob statik bind-pose'da gorunur.
-# Creeper statik bile net okunur; golem iki-bacakli, player animasyonu tolere
-# eder. Ender dragon animasyon olmadan donmus/kotu goruneceginden EKLENMEDI.
-# Asset adlari (geometry.creeper.v1.8 vb.) MorphX'in RP player.json'undan
-# dogrulandi; dosya SHIP EDILMEZ, MC vanilla'dan saglar.
-# Super TNT'nin kendi morph'u KALDIRILDI: morph paketi (merge/MorphX) zaten
-# 90+ mob veriyor (warden dahil, calisiyor) ve player.json'i override eden iki
-# sistem ayni dunyada CAKISIR. Super TNT morph'u ayrica statik (animasyonsuz)
-# oldugundan dusuk kaliteliydi. MORPHS bos -> morph kodu uretilmez, kucultme
-# (st:size) aynen korunur. Ileride istenirse buraya mob eklenir.
-# Mob morph'lari: Donusum Asasi ile bir mob'a dokununca o mob'un GORUNUMUNE
-# gecersin (carpisma kutusu st:size'dan gelir; morph sadece gorunum). Asset
-# adlari (geometry/texture/material) bedrock-samples'tan bire bir dogrulandi —
-# yanlisi = gorunmez model. SADECE tek-katman temiz render eden moblar alindi;
-# warden (kara blob, glow katmanlari), sheep (kel pembe), villager/axolotl
-# (default texture yok) bilincli DISLANDI. fp_bones=[] -> ilk sahiste el bos
-# (cocuk ucuncu sahis oynar; onemsiz). n = st:morph tam sayisi.
+#
+# TABLO ELLE YAZILMAZ. bedrock/tools/gen_morphs.py, Mojang/bedrock-samples
+# deposundaki resource_pack/entity/*.entity.json dosyalarindan geometry/texture/
+# material adlarini okuyup bu blogu uretir; yanlis ad = gorunmez model oldugu
+# icin adlarin tek dogru kaynagi odur. Yeni mob eklerken o betige satir ekle
+# ve `--write` ile calistir.
+#
+# Alanlar:
+#   key  mob'un typeId son eki (minecraft:<key>) — MORPH_MAP bununla eslesir
+#   n    st:morph tam sayisi. ILK 15 DEGER SABIT: kayitli st:morph'u olan
+#        oyuncu guncellemeden sonra baska bir moba donusmesin.
+#   cat  donusum menusundeki grup (Hayvanlar / Su / Canavarlar / Devler)
+#   mat_parts  [[kemik_deseni, materyal], ...] — tek materyal yetmeyen mob
+#              (blaze'in kafasi, kardan adamin bal kabagi)
+#   layers     ustune cizilen ek katmanlar (iskelet giysisi, gicirdak gozleri,
+#              koylu meslek dokusu). Her katman ayri bir render controller.
+#   pas / act  morph yetenegi: pas surekli verilen etki, act comelme ile
+#              tetiklenen aktif yetenek (bkz. MORPH_ABIL).
+# Vanilla animasyon/degisken gerektiren katmanlar (warden'in nabiz gibi yanip
+# sonen lekeleri, bakir golemin cicegi) ALINMADI: o Molang degiskenlerini
+# oyuncu varligi hesaplamaz, katman sabit/parlak takilir.
 MORPHS = [
-    dict(key="creeper", n=1, tr="Creeper", geo="geometry.creeper.v1.8",
-         tex="textures/entity/creeper/creeper", mat="creeper", scale=1.0, fp_bones=[]),
-    dict(key="zombie", n=2, tr="Zombi", geo="geometry.zombie.v1.8",
-         tex="textures/entity/zombie/zombie", mat="zombie", scale=1.0, fp_bones=[]),
-    dict(key="skeleton", n=3, tr="İskelet", geo="geometry.skeleton.v1.8",
-         tex="textures/entity/skeleton/skeleton", mat="skeleton", scale=1.0, fp_bones=[]),
-    dict(key="enderman", n=4, tr="Enderman", geo="geometry.enderman.v1.8",
-         tex="textures/entity/enderman/enderman", mat="enderman", scale=1.0, fp_bones=[]),
-    dict(key="iron_golem", n=5, tr="Demir Golem", geo="geometry.irongolem",
-         tex="textures/entity/iron_golem", mat="iron_golem", scale=1.0, fp_bones=[]),
-    dict(key="wolf", n=6, tr="Kurt", geo="geometry.wolf",
-         tex="textures/entity/wolf/wolf", mat="wolf", scale=1.0, fp_bones=[]),
-    dict(key="pig", n=7, tr="Domuz", geo="geometry.pig.v3",
-         tex="textures/entity/pig/pig_v3", mat="pig", scale=1.0, fp_bones=[]),
-    dict(key="cow", n=8, tr="İnek", geo="geometry.cow.v2",
-         tex="textures/entity/cow/cow_v2", mat="cow", scale=1.0, fp_bones=[]),
-    dict(key="chicken", n=9, tr="Tavuk", geo="geometry.chicken.v1.12",
-         tex="textures/entity/chicken/chicken", mat="chicken", scale=1.0, fp_bones=[]),
-    dict(key="spider", n=10, tr="Örümcek", geo="geometry.spider.v1.8",
-         tex="textures/entity/spider/spider", mat="spider", scale=1.0, fp_bones=[]),
-    dict(key="piglin", n=11, tr="Piglin", geo="geometry.piglin",
-         tex="textures/entity/piglin/piglin", mat="piglin", scale=1.0, fp_bones=[]),
-    dict(key="allay", n=12, tr="Allay", geo="geometry.allay",
-         tex="textures/entity/allay/allay", mat="allay", scale=1.0, fp_bones=[]),
-    dict(key="wither_skeleton", n=13, tr="Wither İskeleti", geo="geometry.skeleton.wither.v1.8",
-         tex="textures/entity/skeleton/wither_skeleton", mat="skeleton", scale=1.0, fp_bones=[]),
-    dict(key="ghast", n=14, tr="Ghast", geo="geometry.ghast",
-         tex="textures/entity/ghast/ghast", mat="ghast", scale=1.0, fp_bones=[]),
-    dict(key="slime", n=15, tr="Slime", geo="geometry.slime",
-         tex="textures/entity/slime/slime", mat="slime", scale=1.0, fp_bones=[]),
+    dict(key="creeper", n=1, tr="Creeper", cat="Canavarlar", geo="geometry.creeper.v1.8",
+         tex="textures/entity/creeper/creeper", mat="creeper", act="explode"),
+    dict(key="zombie", n=2, tr="Zombi", cat="Canavarlar", geo="geometry.zombie.v1.8",
+         tex="textures/entity/zombie/zombie", mat="zombie"),
+    dict(key="skeleton", n=3, tr="İskelet", cat="Canavarlar", geo="geometry.skeleton.v1.8",
+         tex="textures/entity/skeleton/skeleton", mat="skeleton"),
+    dict(key="enderman", n=4, tr="Enderman", cat="Canavarlar", geo="geometry.enderman.v1.8",
+         tex="textures/entity/enderman/enderman", mat="enderman", act="teleport"),
+    dict(key="iron_golem", n=5, tr="Demir Golem", cat="Hayvanlar", geo="geometry.irongolem",
+         tex="textures/entity/iron_golem", mat="iron_golem", pas=["resistance", 1]),
+    dict(key="wolf", n=6, tr="Kurt", cat="Hayvanlar", geo="geometry.wolf",
+         tex="textures/entity/wolf/wolf", mat="wolf", pas=["speed", 1]),
+    dict(key="pig", n=7, tr="Domuz", cat="Hayvanlar", geo="geometry.pig.v3",
+         tex="textures/entity/pig/pig_v3", mat="pig_v3"),
+    dict(key="cow", n=8, tr="İnek", cat="Hayvanlar", geo="geometry.cow.v2",
+         tex="textures/entity/cow/cow_v2", mat="cow"),
+    dict(key="chicken", n=9, tr="Tavuk", cat="Hayvanlar", geo="geometry.chicken.v1.12",
+         tex="textures/entity/chicken/chicken", mat="chicken", pas=["slow_falling", 0]),
+    dict(key="spider", n=10, tr="Örümcek", cat="Canavarlar", geo="geometry.spider.v1.8",
+         tex="textures/entity/spider/spider", mat="spider", pas=["jump_boost", 2]),
+    dict(key="piglin", n=11, tr="Piglin", cat="Canavarlar", geo="geometry.piglin",
+         tex="textures/entity/piglin/piglin", mat="piglin"),
+    dict(key="allay", n=12, tr="Allay", cat="Hayvanlar", geo="geometry.allay",
+         tex="textures/entity/allay/allay", mat="allay", pas=["slow_falling", 0], act="float"),
+    dict(key="wither_skeleton", n=13, tr="Wither İskeleti", cat="Canavarlar",
+         geo="geometry.skeleton.wither.v1.8", tex="textures/entity/skeleton/wither_skeleton",
+         mat="skeleton", pas=["fire_resistance", 0]),
+    dict(key="ghast", n=14, tr="Ghast", cat="Canavarlar", geo="geometry.ghast",
+         tex="textures/entity/ghast/ghast", mat="ghast", pas=["slow_falling", 0],
+         act="fireball"),
+    dict(key="slime", n=15, tr="Slime", cat="Canavarlar", geo="geometry.slime",
+         tex="textures/entity/slime/slime", mat="slime", pas=["jump_boost", 2]),
+    dict(key="strider", n=16, tr="Adımlayıcı", cat="Hayvanlar", geo="geometry.strider",
+         tex="textures/entity/strider/strider", mat="strider", pas=["fire_resistance", 0]),
+    dict(key="armadillo", n=17, tr="Armadillo", cat="Hayvanlar", geo="geometry.armadillo",
+         tex="textures/entity/armadillo", mat="armadillo", pas=["resistance", 0]),
+    dict(key="bee", n=18, tr="Arı", cat="Hayvanlar", geo="geometry.bee",
+         tex="textures/entity/bee/bee", mat="bee", pas=["slow_falling", 0], act="float"),
+    dict(key="horse", n=19, tr="At", cat="Hayvanlar", geo="geometry.horse.v3",
+         tex="textures/entity/horse2/horse_brown", mat="horse_leather_armor", pas=["speed", 2]),
+    dict(key="copper_golem", n=20, tr="Bakır Golem", cat="Hayvanlar",
+         geo="geometry.copper_golem", tex="textures/entity/copper_golem/copper_golem",
+         mat="copper_golem",
+         layers=[{"tex": ["textures/entity/copper_golem/copper_golem_eyes"],
+         "mat": "copper_golem_eyes"}], pas=["resistance", 0]),
+    dict(key="camel", n=21, tr="Deve", cat="Hayvanlar", geo="geometry.camel",
+         tex="textures/entity/camel/camel", mat="camel", pas=["speed", 1]),
+    dict(key="donkey", n=22, tr="Eşek", cat="Hayvanlar", geo="geometry.horse.v3",
+         tex="textures/entity/horse2/donkey", mat="horse", pas=["speed", 1]),
+    dict(key="wandering_trader", n=23, tr="Gezgin Tüccar", cat="Hayvanlar",
+         geo="geometry.villager_v2", tex="textures/entity/wandering_trader",
+         mat="wandering_trader"),
+    dict(key="snow_golem", n=24, tr="Kardan Adam", cat="Hayvanlar",
+         geo="geometry.snowgolem.v1.8", tex="textures/entity/snow_golem", mat="snow_golem",
+         mat_parts=[["head*", "snow_golem_pumpkin"]]),
+    dict(key="mule", n=25, tr="Katır", cat="Hayvanlar", geo="geometry.horse.v3",
+         tex="textures/entity/horse2/mule", mat="horse", pas=["speed", 1]),
+    dict(key="cat", n=26, tr="Kedi", cat="Hayvanlar", geo="geometry.cat",
+         tex="textures/entity/cat/redtabby", mat="cat", pas=["speed", 1]),
+    dict(key="goat", n=27, tr="Keçi", cat="Hayvanlar", geo="geometry.goat",
+         tex="textures/entity/goat/goat", mat="goat", pas=["jump_boost", 1]),
+    dict(key="sniffer", n=28, tr="Koklayıcı", cat="Hayvanlar", geo="geometry.sniffer",
+         tex="textures/entity/sniffer/sniffer", mat="sniffer"),
+    dict(key="sheep", n=29, tr="Koyun", cat="Hayvanlar", geo="geometry.sheep.v1.8",
+         tex="textures/entity/sheep/sheep", mat="sheep"),
+    dict(key="frog", n=30, tr="Kurbağa", cat="Hayvanlar", geo="geometry.frog",
+         tex="textures/entity/frog/temperate_frog", mat="frog", pas=["jump_boost", 2]),
+    dict(key="polar_bear", n=31, tr="Kutup Ayısı", cat="Hayvanlar", geo="geometry.polarbear",
+         tex="textures/entity/polar_bear", mat="polar_bear", pas=["resistance", 0]),
+    dict(key="villager_v2", n=32, tr="Köylü", cat="Hayvanlar", geo="geometry.villager_v2",
+         tex="textures/entity/villager2/villager", mat="villager_v2",
+         layers=[{"tex": ["textures/entity/villager2/biomes/biome_plains",
+         "textures/entity/villager2/professions/farmer"], "mat": "villager_v2_masked"}]),
+    dict(key="llama", n=33, tr="Lama", cat="Hayvanlar", geo="geometry.llama.v1.8",
+         tex="textures/entity/llama/llama_creamy", mat="llama"),
+    dict(key="mooshroom", n=34, tr="Mantar İnek", cat="Hayvanlar", geo="geometry.mooshroom.v2",
+         tex="textures/entity/cow/mooshroom_v2", mat="mooshroom"),
+    dict(key="ocelot", n=35, tr="Ocelot", cat="Hayvanlar", geo="geometry.ocelot.v1.8",
+         tex="textures/entity/cat/ocelot", mat="ocelot", pas=["speed", 1]),
+    dict(key="panda", n=36, tr="Panda", cat="Hayvanlar", geo="geometry.panda",
+         tex="textures/entity/panda/panda", mat="panda"),
+    dict(key="parrot", n=37, tr="Papağan", cat="Hayvanlar", geo="geometry.parrot",
+         tex="textures/entity/parrot/parrot_red_blue", mat="parrot", pas=["slow_falling", 0],
+         act="float"),
+    dict(key="rabbit", n=38, tr="Tavşan", cat="Hayvanlar", geo="geometry.rabbit.v2",
+         tex="textures/entity/rabbit/rabbit_brown", mat="rabbit", pas=["jump_boost", 2]),
+    dict(key="fox", n=39, tr="Tilki", cat="Hayvanlar", geo="geometry.fox",
+         tex="textures/entity/fox/fox", mat="fox", pas=["speed", 1]),
+    dict(key="trader_llama", n=40, tr="Tüccar Laması", cat="Hayvanlar",
+         geo="geometry.llama.v1.8", tex="textures/entity/llama/llama_creamy", mat="llama"),
+    dict(key="bat", n=41, tr="Yarasa", cat="Hayvanlar", geo="geometry.bat_v2",
+         tex="textures/entity/bat_v2", mat="bat_v2", pas=["slow_falling", 0], act="float"),
+    dict(key="axolotl", n=42, tr="Axolotl", cat="Su", geo="geometry.axolotl",
+         tex="textures/entity/axolotl/axolotl_wild", mat="axolotl", pas=["water_breathing", 0]),
+    dict(key="pufferfish", n=43, tr="Balon Balığı", cat="Su",
+         geo="geometry.pufferfish.large.v1.8", tex="textures/entity/fish/pufferfish",
+         mat="pufferfish", pas=["water_breathing", 0]),
+    dict(key="glow_squid", n=44, tr="Işıklı Mürekkep Balığı", cat="Su", geo="geometry.squid",
+         tex="textures/entity/glow_squid/glow_squid", mat="glow_squid", pas=["water_breathing",
+         0]),
+    dict(key="turtle", n=45, tr="Kaplumbağa", cat="Su", geo="geometry.turtle",
+         tex="textures/entity/sea_turtle", mat="turtle", pas=["water_breathing", 0]),
+    dict(key="cod", n=46, tr="Morina Balığı", cat="Su", geo="geometry.cod",
+         tex="textures/entity/fish/cod", mat="cod", pas=["water_breathing", 0]),
+    dict(key="guardian", n=47, tr="Muhafız", cat="Su", geo="geometry.guardian.v1.8",
+         tex="textures/entity/guardian", mat="guardian", pas=["water_breathing", 0]),
+    dict(key="squid", n=48, tr="Mürekkep Balığı", cat="Su", geo="geometry.squid",
+         tex="textures/entity/squid", mat="squid", pas=["water_breathing", 0]),
+    dict(key="salmon", n=49, tr="Somon", cat="Su", geo="geometry.salmon",
+         tex="textures/entity/fish/salmon", mat="salmon", pas=["water_breathing", 0]),
+    dict(key="tropicalfish", n=50, tr="Tropikal Balık", cat="Su",
+         geo="geometry.tropicalfish_a", tex="textures/entity/fish/tropical_a",
+         mat="tropicalfish", pas=["water_breathing", 0]),
+    dict(key="elder_guardian", n=51, tr="Yaşlı Muhafız", cat="Su",
+         geo="geometry.guardian.v1.8", tex="textures/entity/guardian_elder", mat="guardian",
+         pas=["water_breathing", 0]),
+    dict(key="dolphin", n=52, tr="Yunus", cat="Su", geo="geometry.dolphin",
+         tex="textures/entity/dolphin", mat="dolphin", pas=["water_breathing", 0]),
+    dict(key="tadpole", n=53, tr="İribaş", cat="Su", geo="geometry.tadpole",
+         tex="textures/entity/tadpole/tadpole", mat="tadpole", pas=["water_breathing", 0]),
+    dict(key="bogged", n=54, tr="Bataklık İskeleti", cat="Canavarlar",
+         geo="geometry.skeleton.bogged", tex="textures/entity/skeleton/bogged", mat="bogged",
+         layers=[{"tex": ["textures/entity/skeleton/bogged_clothes"], "mat": "bogged_clothes",
+         "geo": "geometry.bogged.armor"}]),
+    dict(key="blaze", n=55, tr="Blaze", cat="Canavarlar", geo="geometry.blaze",
+         tex="textures/entity/blaze", mat="blaze_body", mat_parts=[["head", "blaze_head"]],
+         pas=["fire_resistance", 0], act="fireball"),
+    dict(key="drowned", n=56, tr="Boğulmuş", cat="Canavarlar",
+         geo="geometry.zombie.drowned.v1.16", tex="textures/entity/zombie/drowned",
+         mat="drowned", pas=["water_breathing", 0]),
+    dict(key="stray", n=57, tr="Buz İskeleti", cat="Canavarlar",
+         geo="geometry.skeleton.stray.v1.8", tex="textures/entity/skeleton/stray", mat="stray",
+         layers=[{"tex": ["textures/entity/skeleton/stray_overlay"], "mat": "stray_clothes",
+         "geo": "geometry.stray.armor.v1.8"}]),
+    dict(key="witch", n=58, tr="Cadı", cat="Canavarlar", geo="geometry.villager.witch.v1.8",
+         tex="textures/entity/witch", mat="witch"),
+    dict(key="endermite", n=59, tr="Endermit", cat="Canavarlar", geo="geometry.endermite",
+         tex="textures/entity/endermite", mat="endermite"),
+    dict(key="breeze", n=60, tr="Esinti", cat="Canavarlar", geo="geometry.breeze",
+         tex="textures/entity/breeze/breeze", mat="breeze", pas=["slow_falling", 0],
+         act="float"),
+    dict(key="evocation_illager", n=61, tr="Evoker", cat="Canavarlar",
+         geo="geometry.evoker.v1.8", tex="textures/entity/illager/evoker", mat="evoker"),
+    dict(key="silverfish", n=62, tr="Gümüş Balığı", cat="Canavarlar",
+         geo="geometry.silverfish", tex="textures/entity/silverfish", mat="silverfish"),
+    dict(key="creaking", n=63, tr="Gıcırdak", cat="Canavarlar", geo="geometry.creaking",
+         tex="textures/entity/creaking/creaking", mat="creaking",
+         layers=[{"tex": ["textures/entity/creaking/creaking_eyes"], "mat": "creaking_eyes"}]),
+    dict(key="phantom", n=64, tr="Hayalet Kuş", cat="Canavarlar", geo="geometry.phantom",
+         tex="textures/entity/phantom", mat="phantom", pas=["slow_falling", 0], act="float"),
+    dict(key="hoglin", n=65, tr="Hoglin", cat="Canavarlar", geo="geometry.hoglin",
+         tex="textures/entity/hoglin/hoglin", mat="hoglin"),
+    dict(key="magma_cube", n=66, tr="Magma Küpü", cat="Canavarlar",
+         geo="geometry.magma_cube_v2", tex="textures/entity/slime/magmacube_v2",
+         mat="magma_cube", pas=["fire_resistance", 0]),
+    dict(key="cave_spider", n=67, tr="Mağara Örümceği", cat="Canavarlar",
+         geo="geometry.spider.v1.8", tex="textures/entity/spider/cave_spider", mat="spider",
+         pas=["jump_boost", 2]),
+    dict(key="piglin_brute", n=68, tr="Piglin Kabadayı", cat="Canavarlar",
+         geo="geometry.piglin", tex="textures/entity/piglin/piglin_brute", mat="piglin_brute",
+         pas=["resistance", 0]),
+    dict(key="ravager", n=69, tr="Ravager", cat="Canavarlar", geo="geometry.ravager",
+         tex="textures/entity/illager/ravager", mat="ravager", pas=["resistance", 0]),
+    dict(key="shulker", n=70, tr="Shulker", cat="Canavarlar", geo="geometry.shulker.v1.8",
+         tex="textures/entity/shulker/shulker_undyed", mat="shulker"),
+    dict(key="vex", n=71, tr="Vex", cat="Canavarlar", geo="geometry.vex.v1.8",
+         tex="textures/entity/vex/vex", mat="vex", pas=["slow_falling", 0], act="float"),
+    dict(key="vindicator", n=72, tr="Vindicator", cat="Canavarlar",
+         geo="geometry.vindicator.v1.8", tex="textures/entity/vindicator", mat="vindicator"),
+    dict(key="pillager", n=73, tr="Yağmacı", cat="Canavarlar", geo="geometry.pillager",
+         tex="textures/entity/pillager", mat="pillager"),
+    dict(key="zoglin", n=74, tr="Zoglin", cat="Canavarlar", geo="geometry.hoglin",
+         tex="textures/entity/zoglin/zoglin", mat="zoglin"),
+    dict(key="zombie_horse", n=75, tr="Zombi At", cat="Canavarlar", geo="geometry.horse.v3",
+         tex="textures/entity/horse2/horse_zombie", mat="horse_leather_armor", pas=["speed",
+         1]),
+    dict(key="zombie_villager_v2", n=76, tr="Zombi Köylü", cat="Canavarlar",
+         geo="geometry.zombie.villager_v2",
+         tex="textures/entity/zombie_villager2/zombie-villager", mat="zombie_villager_v2"),
+    dict(key="zombie_pigman", n=77, tr="Zombi Piglin", cat="Canavarlar", geo="geometry.piglin",
+         tex="textures/entity/piglin/zombie_piglin", mat="zombie", pas=["fire_resistance", 0]),
+    dict(key="husk", n=78, tr="Çöl Zombisi", cat="Canavarlar", geo="geometry.zombie.husk.v1.8",
+         tex="textures/entity/zombie/husk", mat="husk"),
+    dict(key="skeleton_horse", n=79, tr="İskelet At", cat="Canavarlar",
+         geo="geometry.horse.v3", tex="textures/entity/horse2/horse_skeleton", mat="horse",
+         pas=["speed", 2]),
+    dict(key="ender_dragon", n=80, tr="Ender Ejderha", cat="Devler", geo="geometry.dragon",
+         tex="textures/entity/dragon/dragon", mat="ender_dragon", scale=0.4,
+         pas=["fire_resistance", 0], act="float"),
+    dict(key="happy_ghast", n=81, tr="Mutlu Ghast", cat="Devler", geo="geometry.happy_ghast",
+         tex="textures/entity/happy_ghast/happy_ghast", mat="ghast", scale=0.5,
+         pas=["slow_falling", 0], act="float"),
+    dict(key="warden", n=82, tr="Warden", cat="Devler", geo="geometry.warden",
+         tex="textures/entity/warden/warden", mat="warden", pas=["resistance", 1], act="sonic"),
+    dict(key="wither", n=83, tr="Wither", cat="Devler", geo="geometry.witherBoss",
+         tex="textures/entity/wither_boss/wither", mat="wither_boss", scale=0.8,
+         pas=["fire_resistance", 0], act="float"),
 ]
+
 # mob typeId -> morph olayi (script tiklanan mob'u buradan bulur)
 MORPH_MAP = {f"minecraft:{m['key']}": f"st:morph_{m['key']}" for m in MORPHS}
+
+# Donusum menusundeki grup sirasi (cocuk once dost yaratiklari gorsun).
+MORPH_CATS = ["Hayvanlar", "Su", "Canavarlar", "Devler"]
+
+
+def morph_passes(mo):
+    """Bir morph'un cizim gecisleri. Her gecis = bir render controller cifti
+    (ucuncu sahis + ilk sahis). Ilk gecis mob'un govdesi, sonrakiler layers
+    girdileri (giysi, goz, meslek dokusu). Dondurdugu demet:
+        (slot, geometry, [(doku_kaydi, doku_yolu)], [(kemik, materyal_kaydi, materyal)])
+    slot player.json'daki kayit adlarini benzersiz kilar ("" / "__l0" / "__l1").
+    """
+    k = mo['key']
+    mats = [("*", k, mo['mat'])]
+    for i, (bone, material) in enumerate(mo.get('mat_parts', [])):
+        mats.append((bone, f"{k}__m{i}", material))
+    yield "", mo['geo'], [(k, mo['tex'])], mats
+    for i, lay in enumerate(mo.get('layers', [])):
+        slot = f"__l{i}"
+        texs = [(f"{k}{slot}_t{j}", t) for j, t in enumerate(lay['tex'])]
+        yield slot, lay.get('geo', mo['geo']), texs, [("*", f"{k}{slot}", lay['mat'])]
+
 
 # ---------------------------------------------------------------- TNT tanimlari
 # renk: (top, side, bottom) RGB. tex: Java projesinden kopyalanacak taban ad.
@@ -890,8 +1084,8 @@ ITEMS = [
     # Donusum Asasi: bir mob'a dokun -> o mob'un gorunumune don. Bosluga sag
     # tik -> insana don. 15 mob (bkz MORPHS). Gorunum degisir, carpisma player.
     dict(id="donusum_asasi", tr="Dönüşüm Asası", en="Morph Wand", kind="raycast",
-         trtip="Bir mob'a dokun — o mob olursun! Bazılarının özel gücü var: ÇÖMEL (sneak) dene. Boşluğa sağ tık — insana dön.",
-         entip="Tap a mob - become it! Some have powers: try SNEAK. Right-click air - turn back.",
+         trtip="Bir mob'a dokun — o mob olursun! Boşluğa sağ tık — tüm yaratıkların listesi açılır (insana dönmek de orada). Bazılarının özel gücü var: ÇÖMEL (sneak) dene.",
+         entip="Tap a mob - become it! Right-click air - opens the full creature list (turning back to human is there too). Some have powers: try SNEAK.",
          color=(150, 70, 220), action=dict(type="morph_reset")),
     # boyut toplari: sag tiklayinca KENDINI bir kademe kucultur/buyutur.
     # (Bedrock'ta atilan mermiyle baskasini kucultmek yerine kendine
@@ -1902,9 +2096,12 @@ def build():
     # ---- morph gorunumleri: SADECE MORPHS doluysa (bossa vanilla korunur).
     if MORPHS:
         for mo in MORPHS:
-            rp_desc["materials"][mo['key']] = mo['mat']
-            rp_desc["textures"][mo['key']] = mo['tex']
-            rp_desc["geometry"][mo['key']] = mo['geo']
+            for slot, geo, texs, mats in morph_passes(mo):
+                rp_desc["geometry"][f"{mo['key']}{slot}"] = geo
+                for tk, tv in texs:
+                    rp_desc["textures"][tk] = tv
+                for _bone, mk, mv in mats:
+                    rp_desc["materials"][mk] = mv
         # vanilla insan controller'larini st:morph==0 ile guardla + morph ekle.
         guarded = []
         for e in rp_desc["render_controllers"]:
@@ -1912,10 +2109,12 @@ def build():
                 guarded.append({name: cond} if name.endswith(".map")
                                else {name: f"({cond}) && query.property('st:morph') == 0"})
         for mo in MORPHS:
-            guarded.append({f"controller.render.morph.{mo['key']}.first_person":
-                            f"variable.is_first_person && !query.is_spectator && query.property('st:morph') == {mo['n']}"})
-            guarded.append({f"controller.render.morph.{mo['key']}.third_person":
-                            f"!variable.is_first_person && !variable.map_face_icon && !query.is_spectator && query.property('st:morph') == {mo['n']}"})
+            for slot, _, _, _ in morph_passes(mo):
+                rc = f"controller.render.morph.{mo['key']}{slot}"
+                guarded.append({f"{rc}.first_person":
+                                f"variable.is_first_person && !query.is_spectator && query.property('st:morph') == {mo['n']}"})
+                guarded.append({f"{rc}.third_person":
+                                f"!variable.is_first_person && !variable.map_face_icon && !query.is_spectator && query.property('st:morph') == {mo['n']}"})
         rp_desc["render_controllers"] = guarded
     w(os.path.join(RP, "entity/player.json"), rp_player)
 
@@ -1923,13 +2122,15 @@ def build():
     if MORPHS:
         morph_rc = {}
         for mo in MORPHS:
-            base = {"geometry": f"Geometry.{mo['key']}",
-                    "materials": [{"*": f"Material.{mo['key']}"}],
-                    "textures": [f"Texture.{mo['key']}"]}
-            morph_rc[f"controller.render.morph.{mo['key']}.third_person"] = dict(base)
-            fp = dict(base)  # ilk sahiste mob'un on uzvu gorunsun ki el bos olmasin
-            fp["part_visibility"] = [{"*": False}] + [{b: True} for b in mo['fp_bones']]
-            morph_rc[f"controller.render.morph.{mo['key']}.first_person"] = fp
+            for slot, _, texs, mats in morph_passes(mo):
+                name = f"controller.render.morph.{mo['key']}{slot}"
+                base = {"geometry": f"Geometry.{mo['key']}{slot}",
+                        "materials": [{bone: f"Material.{mk}"} for bone, mk, _ in mats],
+                        "textures": [f"Texture.{tk}" for tk, _ in texs]}
+                morph_rc[f"{name}.third_person"] = dict(base)
+                fp = dict(base)  # ilk sahiste mob'un on uzvu gorunsun ki el bos olmasin
+                fp["part_visibility"] = [{"*": False}] + [{b: True} for b in mo.get('fp_bones', [])]
+                morph_rc[f"{name}.first_person"] = fp
         w(os.path.join(RP, "render_controllers/morph.render_controllers.json"),
           {"format_version": "1.10.0", "render_controllers": morph_rc})
 
@@ -1943,8 +2144,13 @@ def build():
                             .replace("__TIPS__", json.dumps(tiptext, ensure_ascii=False)) \
                             .replace("__ITEM_ACTIONS__", json.dumps(item_actions)) \
                             .replace("__MORPH_FORMS__", json.dumps(
-                                [{"ev": "st:morph_human", "name": "İnsan"}]
-                                + [{"ev": f"st:morph_{mo['key']}", "name": mo['tr']} for mo in MORPHS],
+                                [{"cat": c, "items": [{"ev": f"st:morph_{mo['key']}", "name": mo['tr']}
+                                                      for mo in MORPHS if mo['cat'] == c]}
+                                 for c in MORPH_CATS],
+                                ensure_ascii=False)) \
+                            .replace("__MORPH_ABIL__", json.dumps(
+                                {mo['n']: {k: mo[k] for k in ("pas", "act") if k in mo}
+                                 for mo in MORPHS if 'pas' in mo or 'act' in mo},
                                 ensure_ascii=False)) \
                             .replace("__FUSE__", str(FUSE_TICKS)) \
                             .replace("__PORTAL_N__", str(len(PORTAL_COLORS))) \
@@ -1990,13 +2196,14 @@ def build():
 SCRIPT_TEMPLATE = r'''// Super TNT Mod - Bedrock
 // Uretilmis dosya. Kaynak: bedrock/build.py  (elle duzenleme, yeniden uretilir)
 import { world, system, ItemStack, EquipmentSlot } from "@minecraft/server";
-import { ModalFormData } from "@minecraft/server-ui";
+import { ActionFormData, ModalFormData } from "@minecraft/server-ui";
 
 const SPEC = __SPEC__;
 const NAMES = __NAMES__;
 const TIPS = __TIPS__;
 const ITEM_ACTIONS = __ITEM_ACTIONS__;
-const MORPH_FORMS = __MORPH_FORMS__;
+const MORPH_FORMS = __MORPH_FORMS__;   // donusum menusu: kategori -> mob listesi
+const MORPH_ABIL = __MORPH_ABIL__;     // st:morph -> {pas:[etki,seviye], act:"..."}
 const MORPH_MAP = __MORPH_MAP__;   // mob typeId -> st:morph_<key> olayi
 const SIZE_SCALES = __SIZE_SCALES__;   // st:size kademe -> gorsel olcek
 const FUSE = __FUSE__;
@@ -2073,15 +2280,13 @@ function itemAction(player, a) {
   try {
     switch (a.type) {
       case "morph_reset": {
-        // Donusum Asasi bosluga sag tik -> insana geri don. Mob'a dokunma
-        // (morph) playerInteractWithEntity handler'inda; bir moba BAKIYORSAN
-        // reset'i atla ki dokunma morph'u devralsin.
+        // Donusum Asasi bosluga sag tik -> donusum menusu (insana donmek de
+        // menunun ilk maddesi). Mob'a dokunma (morph) playerInteractWithEntity
+        // handler'inda; bir moba BAKIYORSAN menuyu atla ki dokunma devralsin.
         try {
           const hs = player.getEntitiesFromViewDirection({ maxDistance: 4 });
           if (hs.length && MORPH_MAP[hs[0].entity && hs[0].entity.typeId]) break;
-          player.triggerEvent("st:morph_human");
-          player.onScreenDisplay.setActionBar("§aİnsana geri döndün");
-          spray(dim, player.location, "minecraft:portal_particle", 20, 1.5);
+          morphMenu(player);
         } catch (e) {}
         break;
       }
@@ -2411,19 +2616,54 @@ world.afterEvents.entityHitEntity.subscribe((ev) => {
 });
 // Donusum Asasi: bir moba dokun -> o mob'un gorunumune don. before-event'te
 // triggerEvent calismaz (read-only), system.run ile ertele.
+function morphTo(pl, evName, msg) {
+  try {
+    pl.triggerEvent(evName);
+    pl.onScreenDisplay.setActionBar("§a" + msg);
+    spray(pl.dimension, pl.location, "minecraft:portal_particle", 20, 1.5);
+  } catch (e) {}
+}
 function tryMorph(pl, target) {
   const evName = target ? MORPH_MAP[target.typeId] : undefined;
   if (!evName) {
-    system.run(() => { try { pl.onScreenDisplay.setActionBar("§7Bu yaratığa dönüşülemiyor"); } catch (e) {} });
+    system.run(() => { try { pl.onScreenDisplay.setActionBar("§7Bu yaratığa dönüşülemiyor — asayı boşluğa tıkla, listeden seç"); } catch (e) {} });
     return;
   }
-  system.run(() => {
-    try {
-      pl.triggerEvent(evName);
-      pl.onScreenDisplay.setActionBar("§aDönüştün! Boşluğa sağ tık → insana dön.");
-      spray(pl.dimension, pl.location, "minecraft:portal_particle", 20, 1.5);
-    } catch (e) {}
-  });
+  system.run(() => morphTo(pl, evName, "Dönüştün! Boşluğa sağ tık → liste."));
+}
+
+// Donusum MENUSU. Mob'a dokunmak tek basina yetmiyor: ejderha, wither, deniz
+// mob'lari ve dogal ortaminda bulunmasi zor olanlara elle ulasilamiyor. Asayi
+// bosluga tiklayinca kategorili liste acilir; her mob buradan secilebilir.
+// show() oyuncu tiki hala basiliyken "UserBusy" doner -> kisa araliklarla tekrar.
+function showForm(pl, form, onPick, tries) {
+  form.show(pl).then((r) => {
+    if (r.canceled) {
+      if (r.cancelationReason === "UserBusy" && tries > 0) {
+        system.runTimeout(() => showForm(pl, form, onPick, tries - 1), 10);
+      }
+      return;
+    }
+    onPick(r.selection);
+  }).catch(() => {});
+}
+function morphMenu(pl) {
+  const f = new ActionFormData().title("Dönüşüm").body("Ne olmak istersin?");
+  f.button("§aİnsana dön");
+  for (const g of MORPH_FORMS) f.button(`${g.cat} (${g.items.length})`);
+  showForm(pl, f, (i) => {
+    if (i === 0) { morphTo(pl, "st:morph_human", "İnsana geri döndün"); return; }
+    const g = MORPH_FORMS[i - 1];
+    if (!g) return;
+    const sub = new ActionFormData().title(g.cat).body("Bir yaratık seç:");
+    sub.button("§7◀ Geri");
+    for (const m of g.items) sub.button(m.name);
+    showForm(pl, sub, (j) => {
+      if (j === 0) { morphMenu(pl); return; }
+      const m = g.items[j - 1];
+      if (m) morphTo(pl, m.ev, m.name + " oldun!");
+    }, 20);
+  }, 20);
 }
 // (1) Interact/Use hareketi (PC sag tik, mobilde uysal mob'a uzun dokunma).
 world.beforeEvents.playerInteractWithEntity.subscribe((ev) => {
@@ -2446,8 +2686,10 @@ world.afterEvents.entityHitEntity.subscribe((ev) => {
   } catch (e) {}
 });
 // ---- Morph YETENEKLERI: bir mob'a donunce o mob'un gucunu kazan.
-// Pasif olanlar surekli yenilenir; aktif olanlar comelme (sneak) ile tetiklenir
-// (3 sn bekleme). Sadece gorunum degil -> morph anlamli ve eglenceli.
+// Pasif olanlar surekli yenilenir; aktif olanlar comelme (sneak) ile tetiklenir.
+// Tablo build.py'de MORPHS'tan uretilir; yetenekler st:morph SAYISINA elle
+// yazilmaz — mob listesi buyudukce sayilar kayar ve yanlis moba yanlis guc
+// baglanirdi.
 const morphCd = new Map();
 system.runInterval(() => {
   const now = system.currentTick;
@@ -2455,41 +2697,52 @@ system.runInterval(() => {
     let m;
     try { m = p.getProperty("st:morph"); } catch (e) { continue; }
     if (typeof m !== "number" || m === 0) continue;
-    const dim = p.dimension;
-    try {                                           // pasif yetenekler
-      if (m === 15 || m === 10) p.addEffect("jump_boost", 20, { amplifier: 2, showParticles: false });   // slime/orumcek ziplar
-      else if (m === 9 || m === 12) p.addEffect("slow_falling", 20, { amplifier: 0, showParticles: false }); // tavuk/allay yavas duser
-      else if (m === 5) p.addEffect("resistance", 20, { amplifier: 1, showParticles: false });            // demir golem dayanikli
-      else if (m === 6) p.addEffect("speed", 20, { amplifier: 1, showParticles: false });                 // kurt hizli
-    } catch (e) {}
-    if (p.isSneaking && (morphCd.get(p.id) || 0) <= now) {   // aktif yetenek (comel)
-      try {
-        if (m === 1) {                              // creeper: comel -> patla (blok kirmaz)
-          const l = p.location;
-          dim.createExplosion({ x: l.x, y: l.y + 0.5, z: l.z }, 3, { breaksBlocks: false, causesFire: false });
-          spray(dim, l, "minecraft:large_explosion", 1, 0);
-          morphCd.set(p.id, now + 80);
-        } else if (m === 4) {                       // enderman: comel -> baktigin yere isinlan
-          const hit = p.getBlockFromViewDirection({ maxDistance: 48 });
-          if (hit) {
-            p.teleport({ x: hit.block.location.x + 0.5, y: hit.block.location.y + 1, z: hit.block.location.z + 0.5 });
-            spray(dim, p.location, "minecraft:portal_particle", 20, 1);
-          }
-          morphCd.set(p.id, now + 30);
-        } else if (m === 14) {                      // ghast: comel -> baktigin yere ates topu
-          const hit = p.getBlockFromViewDirection({ maxDistance: 40 });
-          const v = p.getViewDirection(), s = p.getHeadLocation();
-          const t = hit ? hit.block.location : { x: s.x + v.x * 20, y: s.y + v.y * 20, z: s.z + v.z * 20 };
-          dim.createExplosion({ x: t.x + 0.5, y: t.y + 0.5, z: t.z + 0.5 }, 3, { breaksBlocks: false, causesFire: true });
-          morphCd.set(p.id, now + 60);
-        } else if (m === 12) {                      // allay: comel -> yukari suzul
-          p.applyKnockback(0, 0, 0, 1.0);
-          morphCd.set(p.id, now + 20);
-        }
-      } catch (e) {}
+    const ab = MORPH_ABIL[m];
+    if (!ab) continue;
+    if (ab.pas) {
+      try { p.addEffect(ab.pas[0], 20, { amplifier: ab.pas[1], showParticles: false }); } catch (e) {}
+    }
+    if (ab.act && p.isSneaking && (morphCd.get(p.id) || 0) <= now) {
+      try { morphCd.set(p.id, now + morphAct(p, ab.act)); } catch (e) {}
     }
   }
 }, 5);
+
+// Aktif morph yetenegi. Donen deger = bir sonraki kullanima kadar bekleme (tick).
+function morphAct(p, act) {
+  const dim = p.dimension;
+  if (act === "explode") {                    // creeper: comel -> patla (blok kirmaz)
+    const l = p.location;
+    dim.createExplosion({ x: l.x, y: l.y + 0.5, z: l.z }, 3, { breaksBlocks: false, causesFire: false });
+    spray(dim, l, "minecraft:large_explosion", 1, 0);
+    return 80;
+  }
+  if (act === "teleport") {                   // enderman: comel -> baktigin yere isinlan
+    const hit = p.getBlockFromViewDirection({ maxDistance: 48 });
+    if (hit) {
+      p.teleport({ x: hit.block.location.x + 0.5, y: hit.block.location.y + 1, z: hit.block.location.z + 0.5 });
+      spray(dim, p.location, "minecraft:portal_particle", 20, 1);
+    }
+    return 30;
+  }
+  if (act === "fireball") {                   // ghast/blaze: comel -> baktigin yere ates topu
+    const hit = p.getBlockFromViewDirection({ maxDistance: 40 });
+    const v = p.getViewDirection(), s = p.getHeadLocation();
+    const t = hit ? hit.block.location : { x: s.x + v.x * 20, y: s.y + v.y * 20, z: s.z + v.z * 20 };
+    dim.createExplosion({ x: t.x + 0.5, y: t.y + 0.5, z: t.z + 0.5 }, 3, { breaksBlocks: false, causesFire: true });
+    return 60;
+  }
+  if (act === "sonic") {                      // warden: comel -> ses saldirisi
+    sonicBoom(p, { range: 24, damage: 14, knock: 1.8 });
+    return 100;
+  }
+  if (act === "float") {                      // ucan mob'lar: comel -> yukari suzul
+    p.applyKnockback(0, 0, 0, 1.0);
+    return 20;
+  }
+  return 20;
+}
+
 
 // KRITIK: world.beforeEvents.entityHurt @minecraft/server 1.x'te YOKTUR (2.x'te
 // eklendi). Manifest 1.14.0'a bagli oldugundan eski hali (beforeEvents...cancel)

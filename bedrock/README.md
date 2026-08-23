@@ -65,6 +65,22 @@ TNT'ler 2–10 tick gecikmeyle ateşleniyor (kademeli, hepsi aynı anda değil),
 TNT'ler listeden çıkarılıp ateşleniyor — yani vanilla TNT veya creeper da
 zinciri başlatabiliyor.
 
+**Dönüşüm (morph).** Oyuncu vanilla Bedrock'un 83 mob'undan birinin
+**görünümüne** girer: `player.json`'a mob başına `geometry`/`texture`/`material`
+kaydı ve `st:morph` özelliğine bağlı render controller eklenir. Vanilla dosyalar
+pakete konmaz — Minecraft kendi kaynağından verir, biz yalnız **adlarını**
+yazarız. Ad bir harf yanlışsa model sessizce görünmez olur; bu yüzden tablo elle
+yazılmıyor:
+
+```bash
+python3 bedrock/tools/gen_morphs.py --write   # MORPHS'u bedrock-samples'tan üret
+```
+
+Betik Mojang/bedrock-samples deposundaki `resource_pack/entity/*.entity.json`
+dosyalarını okur; seçilen anahtar o mob'un tanımında yoksa durur ve mevcut
+anahtarları yazar. Çarpışma kutusu morph'tan değil `st:size`'dan gelir, yani
+küçülme/büyütme ile çakışmaz.
+
 ## Bilinen farklar (Java sürümüne göre)
 
 **F1, F2, F3 — çözüldü (v1.1.0).** Fırlayan TNT varlığı, redstone ateşleme

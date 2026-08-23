@@ -3,7 +3,49 @@
 Son sürüm: **v1.29.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
 olacak şekilde geliştiriliyor (MorphX / mutant paketine bağımlılık yok).
 
-## v1.29.0 — Can Artırıcı ve Ses Saldırısı
+## v1.29.0 — 83 mob'a dönüşüm, Can Artırıcı, Ses Saldırısı
+
+### Her mob'a dönüşülebiliyor (15 → 83)
+
+Dönüşüm Asası artık vanilla Bedrock'un **83 mob'unun** hepsini kapsıyor.
+Önceki 15'lik liste elle yazılmıştı ve sadece "tek katmanda temiz render eden"
+moblar alınmıştı; warden, koyun, köylü, axolotl gibi çok dokulu olanlar bilerek
+dışarıda bırakılmıştı. Bu, oyunda "bu yaratığa dönüşülemiyor" olarak görünüyordu.
+
+**Tablo artık elle yazılmıyor.** `bedrock/tools/gen_morphs.py`,
+Mojang/bedrock-samples deposundaki `resource_pack/entity/*.entity.json`
+dosyalarını okuyup `build.py`'deki `MORPHS` bloğunu üretiyor. Morph, oyuncuyu
+vanilla `geometry`/`texture`/`material` **adlarına** bağlar (dosyalar pakete
+konmaz, Minecraft kendi kaynağından verir); tek harf yanlışsa model görünmez
+olur ve hata da vermez. Betik seçilen anahtar mob'un tanımında yoksa durur.
+
+Aynı taramada iki eski hata çıktı: **ghast** dokusu `textures/entity/ghast`
+yazılmıştı (doğrusu `textures/entity/ghast/ghast`), **domuz** materyali `pig`
+yazılmıştı (doğrusu `pig_v3`).
+
+**Çok katmanlı moblar.** Bir morph artık ek `layers` tanımlayabiliyor: her
+katman ayrı bir render controller. Bataklık/Buz iskeletinin giysisi, Gıcırdak'ın
+gözleri, Bakır Golem'in gözleri, köylünün meslek dokusu böyle geliyor. Blaze'in
+kafası ve Kardan Adam'ın bal kabağı için de kemik başına materyal (`mat_parts`)
+var. Vanilla animasyon değişkeni isteyen katmanlar (warden'ın nabız gibi yanıp
+sönen lekeleri, bakır golemin çiçeği) **alınmadı** — o Molang değişkenlerini
+oyuncu varlığı hesaplamaz, katman sabit takılırdı.
+
+**Dönüşüm menüsü.** 83 mob'un hepsine dokunarak ulaşmak imkânsız (ender ejderha,
+wither, deniz mobları). Asayı boşluğa sağ tıklayınca kategorili liste açılıyor:
+Hayvanlar (32) · Su (12) · Canavarlar (35) · Devler (4). "İnsana dön" listenin
+ilk maddesi. Form bazen "UserBusy" ile geri döner (parmak hâlâ basılı) —
+o durumda kısa aralıklarla tekrar deneniyor.
+
+**Yetenekler artık sayıya değil mob'a bağlı.** Eskiden `m === 15` gibi sabit
+`st:morph` sayıları JS'e elle yazılmıştı; liste büyüyünce o sayılar kayar ve
+yanlış mob yanlış gücü alırdı. Yetenek tablosu artık `MORPHS`'tan üretiliyor.
+Su mobları su altında nefes alıyor, ateş mobları yanmıyor, uçanlar süzülüyor;
+çömelince creeper patlıyor, enderman ışınlanıyor, ghast/blaze ateş topu atıyor,
+warden **ses saldırısı** yapıyor.
+
+Eski 15 mob'un `st:morph` sayıları **korundu** — güncellemeden sonra kayıtlı
+oyuncu başka bir yaratığa dönüşmesin diye.
 
 ### Can Artırıcı — 300 can, 30 dakika
 
@@ -19,6 +61,7 @@ hasar alırdı. Parçacık `minecraft:sonic_explosion`, sesler
 `mob.warden.sonic_charge` + `mob.warden.sonic_boom`. Hasar nedeni `sonicBoom`
 bazı sürümlerde bulunmayabilir — o durumda düz hasara düşüyor.
 
+Aynı saldırı, Warden'a dönüşünce çömelme ile de kullanılabiliyor.
 
 ## v1.28.0 — Sağlık İksiri (Bedrock'a özel, Java'da yok)
 
@@ -46,13 +89,8 @@ ortada beyaz kalp.
 ## v1.17 – v1.19.1 — mobil odak, kalite ve içerik
 
 **Morph modülü (kendi, v1.19.0-1.19.1).** Dönüşüm Asası: bir mob'a dokun → o
-mob olursun (15 mob: creeper, zombi, iskelet, enderman, demir golem, kurt,
-domuz, inek, tavuk, örümcek, piglin, allay, wither iskeleti, ghast, slime).
-Boşluğa sağ tık → insana dön. Asset id'leri bedrock-samples'tan doğrulandı;
-sadece temiz render eden moblar (warden/sheep/villager/axolotl bilinçli dışlandı).
-Küçülme (st:size) korundu. **Morph yetenekleri:** çömelme ile creeper patlar,
-enderman ışınlanır, ghast ateş topu atar, allay süzülür; slime/örümcek zıplar,
-tavuk/allay yavaş düşer, golem dayanıklı, kurt hızlı.
+mob olursun. O sürümde 15 mob vardı ve liste elle yazılmıştı; v1.29.0'da 83'e
+çıkarıldı ve üretilir hâle geldi (yukarı bak). Küçülme (st:size) korundu.
 
 **Canavar modelleri (v1.17-1.18).** Mutant Warden özgün custom model + kendi
 animasyonu (artık hareket ediyor, donuk değil). Ender Send özgün **3 kafalı**
