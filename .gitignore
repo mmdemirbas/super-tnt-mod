@@ -43,3 +43,7 @@ replay_*.log
 bedrock/super_tnt_BP/
 bedrock/super_tnt_RP/
 bedrock/out/
+
+# temp / scratch
+
+tmp/
