@@ -156,5 +156,33 @@ python3 bedrock/build.py
 Tabletin ekranı açık ve kilidi açık olmalı.
 
 Tur başına bir dokunuş gerektiği için değişiklikleri topla, tek seferde gönder.
-Göndermeden önce `build.py` çıktısındaki doğrulamalara güven: JSON parse, JS
-sözdizimi, doku referanslarının çözülmesi.
+
+## Göndermeden önce
+
+```bash
+python3 bedrock/build.py
+python3 bedrock/tools/check_pack.py      # ~2500 denetim
+```
+
+Bedrock hataların çoğunu **sessizce yutar**: olmayan bir doku adı görünmez
+model verir, olmayan bir parçacık/ses hiçbir şey yapmaz, olmayan bir blok id'si
+`setType`'ta hata fırlatıp `try` içinde kaybolur, eksik bir dil satırı ekranda
+ham anahtar gösterir. Hiçbiri hata mesajı üretmez; hepsi ancak oyunda fark
+edilir — yani tablete gidip geldikten sonra.
+
+`check_pack.py` bunları build zamanında yakalar: her item'ın ikonu/dokusu/iki
+dildeki adı ve ipucu, her eylem türünün karşılığı olan bir kod dalı, her
+morph'un vanilla'da gerçekten var olan geometry/texture/material adı, her
+render controller referansının çözülmesi, menünün her mob'u tam bir kez
+içermesi, betikte geçen her parçacık/ses/etki/blok/varlık kimliği ve ipucundaki
+sayıların davranışla aynı olması. Vanilla kimlikleri
+`bedrock/tools/vanilla_ids.json`'dan okunur:
+
+```bash
+python3 bedrock/tools/fetch_vanilla_ids.py   # yeni MC sürümünde listeyi yenile
+bash bedrock/tools/mutation_test.sh          # denetim gerçekten yakalıyor mu
+python3 bedrock/tools/tree_check.py          # dev ağacın blok sayısı ve süresi
+```
+
+`mutation_test.sh` paketi kasten yedi ayrı şekilde bozup her birinin
+yakalandığını doğrular — hep geçen bir denetim, geçmesi anlamsız bir denetimdir.
