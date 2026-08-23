@@ -1,7 +1,44 @@
 # Super TNT — Bedrock Port Durumu
 
-Son sürüm: **v1.29.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
+Son sürüm: **v1.30.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
 olacak şekilde geliştiriliyor (MorphX / mutant paketine bağımlılık yok).
+
+## v1.30.0 — Mega Gübre (100 blokluk dev ağaç)
+
+Bir fidana sağ tıkla: gövdesi **100 blok**, yapraklarıyla **113 blok**
+yüksekliğinde, tepesi **45 blok geniş** bir ağaç büyüyor. Fidanın türü ağacın
+türünü belirliyor (meşe, huş, ladin, jungle, akasya, kara meşe, kiraz, soluk
+meşe, kavak, mangrov); düz toprağa tıklanırsa meşe.
+
+**Neden blok blok kuruluyor.** Vanilla ağaç üretimi bu ölçeğe çıkmaz, o yüzden
+ağaç betikten örülüyor: gövde konikleşen bir silindir, dört katta 4-5 dal,
+tepesi sinüs profilli bir kabuk. Ölçülen toplam **20 732 blok** (gövde 3 924,
+dal 373, yaprak 16 435) — sayılar `bedrock/tools/tree_check.py` çıktısından;
+o betik aynı geometriyi kurup blok sayısını, en yoğun katmanı ve süreyi yazar.
+
+**Tek tick'te konmuyor.** 20 bin blok tek karede konsa tablet donardı; iş
+aşağıdan yukarı, katman katman, tick başına 400 blok bütçesiyle ilerliyor
+(TNT'lerin `transform`/`place` işleriyle aynı desen) — yaklaşık **52 tick,
+2,6 saniye**. Yan fayda: çocuk ağacın büyüdüğünü görüyor. Aynı oyuncu ikinci
+kez tıklarsa yeni iş başlamıyor.
+
+**Yapraklar kalıcı.** Betikten konan yaprak varsayılan olarak `persistent_bit`
+yanlış gelir ve gövdeye 4 bloktan uzaksa **çürür**. Tepe yarıçapı 22 olduğu
+için tepenin neredeyse tamamı kaybolurdu; bu yüzden yaprak `setType` ile değil,
+`persistent_bit=true` permutation'ı ile konuyor. Gövde blokları da `pillar_axis`
+ile yönlendiriliyor — dallar yatay duruyor.
+
+**Tepe havayı eziyor, gövde araziyi.** Yaprak yalnız havanın (ve yaprağın)
+yerine konuyor, yani ağacın tepesi araziyi yemiyor; gövde ve dallar ise kaya
+dışında her şeyi eziyor, yoksa yamaçta büyüyen ağaç delik deşik kalırdı.
+
+**Tavan kontrolü.** 113 blok boş yer yoksa ağaç **büyümüyor** ve kaç blok
+aşağıda denemesi gerektiği yazılıyor. Budayıp yarım ağaç dikmek tooltip'teki
+sözü tutmazdı; Nether'de (tavan 127) çoğu yerde zaten sığmaz.
+
+Blok id'leri (fidan → gövde/yaprak) Mojang/bedrock-samples'ın
+`metadata/vanilladata_modules/mojang-blocks.json` dosyasından doğrulandı.
+Kavağın düz `poplar_leaves`'i yok, `yellow_poplar_leaves` kullanılıyor.
 
 ## v1.29.0 — 83 mob'a dönüşüm, Can Artırıcı, Ses Saldırısı
 
@@ -235,7 +272,7 @@ Lazer Kılıcı, Kanca, Dondurucu, Koku Bombası, Among Us Rapor, Delici,
 Lav Kristali, Kanlı Kılıç, Kalp Baltası, Gökkuşağı Botları, End/Nether İncisi, TNT Frizbi, Craft Baltası, + ganimet item'ları (Kuruş, 200 TL, Lego tuğlaları).
 
 **Bedrock'a özel (Java'da karşılığı yok):** Sağlık İksiri, Can Artırıcı,
-Ses Saldırısı.
+Ses Saldırısı, Mega Gübre.
 
 ## Portlanmadı — teknik sebeple
 

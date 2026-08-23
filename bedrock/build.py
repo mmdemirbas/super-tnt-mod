@@ -78,7 +78,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 29, 0]
+VERSION = [1, 30, 0]
 MIN_ENGINE = [1, 21, 0]
 # Surum etiketi paket ADINA yazilir. UUID + klasor adlari sabit oldugu icin
 # Minecraft ayni UUID'li paketi yerinde GUNCELLER; ama cihazda eski surum
@@ -965,6 +965,25 @@ BOOST_HP = 300
 BOOST_SECONDS = 1800         # 30 dk
 BOOST_AMP = heal_amp(BOOST_HP)
 
+# Mega Gubre'nin agac turu tablosu: fidan -> (govde, yaprak). Blok id'leri
+# Mojang/bedrock-samples metadata/vanilladata_modules/mojang-blocks.json'dan
+# dogrulandi. Kavak (poplar) icin duz "poplar_leaves" YOK, renkli uc cesit var.
+# Listede olmayan bir seye tiklanirsa mese kullanilir.
+TREE_WOOD = {f"minecraft:{k}_sapling": [f"minecraft:{k}_log", f"minecraft:{k}_leaves"]
+             for k in ("oak", "birch", "spruce", "jungle", "acacia", "dark_oak",
+                       "cherry", "pale_oak")}
+TREE_WOOD["minecraft:poplar_sapling"] = ["minecraft:poplar_log",
+                                         "minecraft:yellow_poplar_leaves"]
+TREE_WOOD["minecraft:mangrove_propagule"] = ["minecraft:mangrove_log",
+                                             "minecraft:mangrove_leaves"]
+
+# Mega Gubre olculeri. Govde TREE_H blok, tepe yarıcapi TREE_CROWN -> tepe
+# genisligi 2*TREE_CROWN + 1. Ipucu metni bu sayilardan yaziliyor.
+TREE_H = 100
+TREE_TRUNK = 5               # taban govde yaricapi (tepeye dogru incelir)
+TREE_CROWN = 22              # tepe (yaprak) yaricapi
+TREE_TOP = TREE_H + round(TREE_CROWN * 0.6)   # en ust yaprak katmani
+
 ITEMS = [
     dict(id="spicy_chips", tr="Acılı Cips", en="Spicy Chips", kind="food",
          trtip="Ye ve 20 sn Hız III kazan!", entip="Eat for Speed III for 20s!",
@@ -985,6 +1004,19 @@ ITEMS = [
          color=(240, 180, 40),
          action=dict(type="heal_boost", hp=BOOST_HP,
                      seconds=BOOST_SECONDS, amp=BOOST_AMP)),
+    dict(id="mega_gubre", tr="Mega Gübre", en="Mega Fertilizer", kind="raycast",
+         trtip=f"Bir fidana sağ tıkla — gövdesi {TREE_H} blok, yapraklarıyla "
+               f"{TREE_TOP} blok yüksekliğinde DEV bir ağaç büyür! Tepesi "
+               f"{2 * TREE_CROWN + 1} blok geniş. Gözünün önünde, aşağıdan yukarı "
+               f"büyür. Toprağa tıklarsan meşe olur; üstünde {TREE_TOP} blok boş "
+               f"yer yoksa büyümez.",
+         entip=f"Right-click a sapling - grows a GIANT tree: a {TREE_H}-block trunk, "
+               f"{TREE_TOP} blocks tall with its leaves, crown {2 * TREE_CROWN + 1} "
+               f"blocks wide. It grows bottom-up before your eyes. Click plain ground "
+               f"and you get an oak; it needs {TREE_TOP} blocks of headroom.",
+         color=(120, 200, 70),
+         action=dict(type="mega_tree", height=TREE_H, trunk=TREE_TRUNK,
+                     crown=TREE_CROWN, perTick=400)),
     dict(id="ses_saldirisi", tr="Ses Saldırısı", en="Sonic Attack", kind="raycast",
          trtip="Sağ tıkla — Warden gibi ses dalgası fırlatır! 24 blok gider, "
                "duvarlardan geçer, önüne çıkan herkesi vurup savurur.",
@@ -1221,6 +1253,7 @@ def symbol_texture(path, item_id):
         "rainbow_boots": (120, 180, 220), "kurus": (60, 52, 38),
         "iki_yuz_tl": (65, 120, 85), "saglik_iksiri": (58, 18, 30),
         "can_artirici": (60, 30, 12), "ses_saldirisi": (12, 32, 40),
+        "mega_gubre": (22, 48, 26),
     }
     if item_id not in SPECS:
         return False
@@ -1315,6 +1348,17 @@ def symbol_texture(path, item_id):
             hline(hy, hx0, hx1, (255, 240, 245))    # ortadaki kalp
         hline(8, 9, 10, (255, 240, 245))            # kalbin ikinci tumsegi
         vline(3, 9, 11, (250, 250, 255))            # camin sol parlamasi
+    elif iid == "mega_gubre":
+        # cuval + tepesinden firlayan yesil filiz -> "gubre" ilk bakista okunur
+        vline(8, 0, 4, (60, 150, 55))                 # filizin sapi
+        hline(2, 5, 7, (95, 200, 80)); hline(1, 6, 7, (95, 200, 80))    # sol yaprak
+        hline(2, 9, 11, (95, 200, 80)); hline(1, 9, 10, (95, 200, 80))  # sag yaprak
+        rect(6, 4, 9, 5, (140, 108, 62))              # cuvalin agiz bagi
+        rect(4, 6, 11, 6, (206, 190, 150))            # omuz
+        rect(3, 7, 12, 14, (206, 190, 150))           # cuval govdesi
+        hline(15, 4, 11, (150, 135, 100))             # taban golgesi
+        for (yy, x0, x1) in ((9, 6, 9), (10, 5, 10), (11, 6, 9), (12, 7, 8)):
+            hline(yy, x0, x1, (70, 165, 60))          # cuvalin uzerindeki yaprak
     elif iid == "can_artirici":
         # buyuk kirmizi kalp + ustunde altin arti: "daha fazla can"
         for (hy, hx0, hx1) in ((4, 3, 5), (4, 10, 12), (5, 2, 13), (6, 2, 13),
@@ -2148,6 +2192,7 @@ def build():
                                                       for mo in MORPHS if mo['cat'] == c]}
                                  for c in MORPH_CATS],
                                 ensure_ascii=False)) \
+                            .replace("__TREE_WOOD__", json.dumps(TREE_WOOD)) \
                             .replace("__MORPH_ABIL__", json.dumps(
                                 {mo['n']: {k: mo[k] for k in ("pas", "act") if k in mo}
                                  for mo in MORPHS if 'pas' in mo or 'act' in mo},
@@ -2195,13 +2240,14 @@ def build():
 
 SCRIPT_TEMPLATE = r'''// Super TNT Mod - Bedrock
 // Uretilmis dosya. Kaynak: bedrock/build.py  (elle duzenleme, yeniden uretilir)
-import { world, system, ItemStack, EquipmentSlot } from "@minecraft/server";
+import { world, system, BlockPermutation, ItemStack, EquipmentSlot } from "@minecraft/server";
 import { ActionFormData, ModalFormData } from "@minecraft/server-ui";
 
 const SPEC = __SPEC__;
 const NAMES = __NAMES__;
 const TIPS = __TIPS__;
 const ITEM_ACTIONS = __ITEM_ACTIONS__;
+const TREE_WOOD = __TREE_WOOD__;       // fidan -> [govde blogu, yaprak blogu]
 const MORPH_FORMS = __MORPH_FORMS__;   // donusum menusu: kategori -> mob listesi
 const MORPH_ABIL = __MORPH_ABIL__;     // st:morph -> {pas:[etki,seviye], act:"..."}
 const MORPH_MAP = __MORPH_MAP__;   // mob typeId -> st:morph_<key> olayi
@@ -2275,6 +2321,154 @@ function sonicBoom(player, a) {
   return n;
 }
 
+// ---- Mega Gubre: TREE_H blok boyunda dev agac.
+// Vanilla agac uretimi bu olcege cikmaz, agac blok blok kuruluyor: ~20 bin
+// blok. Hepsi tek tick'te konursa tablet donar -> asagidan yukari, KATMAN
+// KATMAN, tick basina butceyle ilerliyor (TNT'lerin "transform"/"place"
+// isleriyle ayni desen). Yan fayda: cocuk agacin buyudugunu goruyor.
+// Blok sayisi / sure olcumu: bedrock/tools/tree_check.py — o betik bu
+// fonksiyonun aynasidir, buradaki formulleri degistirirsen orayi da degistir.
+//
+// YAPRAK KALICILIGI. Betikten konan yaprak varsayilan olarak persistent_bit
+// yanlis gelir ve govdeye 4 bloktan uzaksa CURUR. Tepe yaricapi 22 oldugundan
+// tepenin nerdeyse tamami curuyup yok olurdu; bu yuzden yaprak setType ile
+// degil, persistent_bit=true permutation'i ile konuyor.
+const treeBusy = new Set();          // ayni oyuncuda ikinci agac baslamasin
+const DIM_CEIL = { "minecraft:nether": 127, "minecraft:the_end": 255 };
+
+function megaTree(player, a) {
+  const dim = player.dimension;
+  if (treeBusy.has(player.id)) {
+    try { player.onScreenDisplay.setActionBar("§7Ağaç zaten büyüyor…"); } catch (e) {}
+    return;
+  }
+  const hit = player.getBlockFromViewDirection({ maxDistance: 12 });
+  if (!hit) {
+    try { player.onScreenDisplay.setActionBar("§7Bir fidana ya da toprağa bak"); } catch (e) {}
+    return;
+  }
+  const wood = TREE_WOOD[hit.block.typeId];
+  const logId = wood ? wood[0] : "minecraft:oak_log";
+  const leafId = wood ? wood[1] : "minecraft:oak_leaves";
+  const bl = hit.block.location;
+  // Fidana tiklandiysa agac FIDANIN yerine, kati bloga tiklandiysa USTUNE.
+  const base = { x: bl.x, y: wood ? bl.y : bl.y + 1, z: bl.z };
+
+  const H = a.height, R0 = a.trunk, CR = a.crown;
+  const cy0 = Math.round(H * 0.55);                 // tepenin baslangici
+  const cy1 = H + Math.round(CR * 0.6);             // en ust yaprak katmani
+  // Tavana sigmiyorsa BUDAMAK yerine reddet: ipucu "100 blok" diyor, yarim
+  // agac o sozu tutmaz. Nether'de zaten hic sigmaz, oyuncu bunu bilmeli.
+  let maxY = DIM_CEIL[dim.id] !== undefined ? DIM_CEIL[dim.id] : 319;
+  try { const hr = dim.heightRange; if (hr && typeof hr.max === "number") maxY = hr.max - 1; } catch (e) {}
+  if (base.y + cy1 > maxY) {
+    try {
+      player.onScreenDisplay.setActionBar(
+        `§cBurada yer yok — ağaç ${cy1} blok yüksek. ${base.y + cy1 - maxY} blok aşağıda dene.`);
+    } catch (e) {}
+    return;
+  }
+
+  // Blok cesitleri bir kez cozulur (her blokta resolve etmek pahali).
+  let leafPerm = null, logY = null, logX = null, logZ = null;
+  try {
+    leafPerm = BlockPermutation.resolve(leafId, { persistent_bit: true, update_bit: false });
+    logY = BlockPermutation.resolve(logId, { pillar_axis: "y" });
+    logX = BlockPermutation.resolve(logId, { pillar_axis: "x" });
+    logZ = BlockPermutation.resolve(logId, { pillar_axis: "z" });
+  } catch (e) {}
+
+  let total = 0, budget = 0;
+  // onlyAir: yaprak yalniz havanin/yapragin yerine konur — agac tepesi araziyi
+  // ya da govdeyi yemesin. Govde ve dallar ise kayanin disinda her seyi ezer,
+  // yoksa yamacta buyuyen agac delik desik kalir.
+  const put = (x, y, z, perm, id, onlyAir) => {
+    try {
+      const b = dim.getBlock({ x, y, z });
+      if (!b) return;
+      const cur = b.typeId;
+      if (cur === "minecraft:bedrock") return;
+      if (onlyAir && cur !== "minecraft:air" && !cur.endsWith("_leaves")) return;
+      if (perm) b.setPermutation(perm); else b.setType(id);
+      total++; budget++;
+    } catch (e) {}
+  };
+
+  // Dallar once hesaplanir: y -> [[dx, dz, eksen], ...]. Katman taramasi
+  // yukari ciktikca o yukseklige dusen dal parcalarini birlikte koyar.
+  const branches = new Map();
+  const addBranch = (y, cell) => {
+    const l = branches.get(y);
+    if (l) l.push(cell); else branches.set(y, [cell]);
+  };
+  for (let i = 0; i < 4; i++) {
+    const y0 = Math.round(H * (0.60 + i * 0.09));
+    const n = 4 + (i % 2);                          // katta 4-5 dal
+    const len = Math.round(CR * (0.75 - i * 0.12));
+    for (let k = 0; k < n; k++) {
+      const ang = (k / n) * Math.PI * 2 + i * 0.7;  // her kat kaydirilmis
+      const ux = Math.cos(ang), uz = Math.sin(ang);
+      const axis = Math.abs(ux) >= Math.abs(uz) ? "x" : "z";
+      for (let d = 1; d <= len; d++) {
+        const x = Math.round(ux * d), z = Math.round(uz * d);
+        const y = y0 + Math.round(d * 0.45);        // dallar yukari dogru
+        addBranch(y, [x, z, axis]);
+        if (d > 2) addBranch(y - 1, [x, z, axis]);  // iki blok kalinlik
+      }
+    }
+  }
+
+  const trunkR = (y) => Math.max(1, R0 * (1 - 0.72 * Math.min(1, y / H)));
+  // Tepe silueti: alttan ve ustten sifir, ortada en genis (sin egrisi).
+  const crownR = (y) => {
+    if (y < cy0 || y > cy1) return 0;
+    return CR * Math.pow(Math.sin(Math.PI * (y - cy0) / (cy1 - cy0)), 0.55);
+  };
+
+  treeBusy.add(player.id);
+  let y = -3;                                       // kok: uc katman toprak alti
+  const job = system.runInterval(() => {
+    budget = 0;
+    while (y <= cy1 && budget < a.perTick) {
+      if (y <= H) {                                 // govde + kok
+        const r = y < 0 ? R0 + 1 : trunkR(y), ri = Math.ceil(r);
+        for (let dx = -ri; dx <= ri; dx++) {
+          for (let dz = -ri; dz <= ri; dz++) {
+            if (dx * dx + dz * dz > r * r) continue;
+            put(base.x + dx, base.y + y, base.z + dz, logY, logId, false);
+          }
+        }
+      }
+      const bs = branches.get(y);                   // dallar
+      if (bs) {
+        for (const c of bs) {
+          put(base.x + c[0], base.y + y, base.z + c[1], c[2] === "x" ? logX : logZ, logId, false);
+        }
+      }
+      const cr = crownR(y);                         // tepe
+      if (cr >= 1) {
+        const ri = Math.ceil(cr), inner = cr - 2.2;
+        for (let dx = -ri; dx <= ri; dx++) {
+          for (let dz = -ri; dz <= ri; dz++) {
+            const dd = Math.sqrt(dx * dx + dz * dz);
+            if (dd > cr) continue;
+            // Kabuk dolu, ici seyrek: hem dogal gorunur hem ~3 kat az blok.
+            if (dd < inner && Math.random() > 0.1) continue;
+            put(base.x + dx, base.y + y, base.z + dz, leafPerm, leafId, true);
+          }
+        }
+      }
+      y++;
+    }
+    if (y > cy1) {
+      system.clearRun(job);
+      treeBusy.delete(player.id);
+      try { player.onScreenDisplay.setActionBar(`§aDev ağaç büyüdü! §f${total}§a blok`); } catch (e) {}
+    }
+  }, 1);
+  spray(dim, base, "minecraft:crop_growth_emitter", 40, 3);
+}
+
 function itemAction(player, a) {
   const dim = player.dimension;
   try {
@@ -2288,6 +2482,10 @@ function itemAction(player, a) {
           if (hs.length && MORPH_MAP[hs[0].entity && hs[0].entity.typeId]) break;
           morphMenu(player);
         } catch (e) {}
+        break;
+      }
+      case "mega_tree": {
+        megaTree(player, a);
         break;
       }
       case "sonic": {
