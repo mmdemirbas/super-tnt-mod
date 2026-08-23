@@ -72,7 +72,7 @@ cp "$BAK/main.bak" "$BP/scripts/main.js"
 # 5) morph tablosunda yanlis doku adi -> gorunmez oyuncu (yasanmis ghast hatasi)
 cp bedrock/build.py "$BAK/build.bak"
 sed 's|tex="textures/entity/ghast/ghast"|tex="textures/entity/ghast"|' "$BAK/build.bak" > bedrock/build.py
-run "morph dokusu vanilla'da yok (eski ghast hatasi)" "vanilla'da yok"
+run "morph dokusu vanilla'da yok (eski ghast hatasi)" "doku 'textures/entity/ghast' yok"
 cp "$BAK/build.bak" bedrock/build.py
 
 # 6) ipucu ile davranis ayrisirsa -> tooltip sozlesmesi bozulur
@@ -95,6 +95,17 @@ cp "$BAK/main2.bak" "$BP/scripts/main.js"
 # 9) veri tablosundaki parcacik kimligi bozulursa -> TNT efektsiz patlar
 sed 's/particle="minecraft:mob_portal"/particle="minecraft:yok_boyle"/' "$BAK/build.bak" > bedrock/build.py
 run "TNT tablosunda olmayan parcacik" "diye bir parcacik yok"
+cp "$BAK/build.bak" bedrock/build.py
+
+# 10) paketin kendi morph modeli RP'ye konmazsa -> gorunmez oyuncu
+mv "$RP/models/entity/ender_send.geo.json" "$BAK/geo.bak"
+run "kendi modelimiz ship edilmiyor" "ship edilmiyor"
+mv "$BAK/geo.bak" "$RP/models/entity/ender_send.geo.json"
+
+# 11) donusum ipucu yetenegi yazmazsa -> cocuk gucunu ogrenemez
+sed 's/    return " · ".join(parts)/    return ""/' "$BAK/build.bak" > bedrock/build.py
+python3 bedrock/build.py > /dev/null 2>&1
+run "ipucu yetenegi yazmiyor" "ipucu"
 cp "$BAK/build.bak" bedrock/build.py
 
 echo

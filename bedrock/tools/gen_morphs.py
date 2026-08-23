@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""build.py'deki MORPHS tablosunu Mojang/bedrock-samples deposundan uretir.
+"""build.py'deki MORPHS_VANILLA tablosunu Mojang/bedrock-samples'tan uretir.
 
     python3 bedrock/tools/gen_morphs.py            # tabloyu stdout'a yazar
     python3 bedrock/tools/gen_morphs.py --write    # build.py icindeki blogu degistirir
@@ -11,9 +11,13 @@ yanlissa model GORUNMEZ olur ve hata da vermez. Bu yuzden adlar elle yazilmaz:
 tek dogru kaynak Mojang'in yayinladigi resource_pack/entity/*.entity.json
 dosyalaridir, betik onlari okur.
 
-Yeni mob eklemek: asagidaki R listesine bir satir ekle, betigi --write ile
-calistir, build.py'yi kur. Secilen texture/material/geometry anahtari o mob'un
-tanimda yoksa betik durur ve mevcut anahtarlari yazar.
+Yeni VANILLA mob eklemek: asagidaki R listesine bir satir ekle, betigi --write
+ile calistir. Secilen texture/material/geometry anahtari o mob'un tanimda yoksa
+betik durur ve mevcut anahtarlari yazar.
+
+Paketin KENDI mob'lari (Dev Creeper, Mutant Warden, Ender Send...) burada
+uretilmez; build.py icindeki MORPHS_OWN listesinde elle durur — kaynaklari
+bedrock-samples degil, bu paketin kendi RP'si.
 """
 import json
 import os
@@ -221,11 +225,11 @@ def lit(r):
     out.append(line.rstrip().rstrip(",") + "),")
     return "\n".join(out)
 
-block = "MORPHS = [\n" + "\n".join(lit(r) for r in order) + "\n]\n"
+block = "MORPHS_VANILLA = [\n" + "\n".join(lit(r) for r in order) + "\n]\n"
 
 if "--write" in sys.argv:
     src = open(BUILD_PY, encoding="utf-8").read()
-    start = src.index("MORPHS = [\n")
+    start = src.index("MORPHS_VANILLA = [\n")
     end = src.index("\n]\n", start) + len("\n]\n")
     open(BUILD_PY, "w", encoding="utf-8").write(src[:start] + block + src[end:])
     print(f"build.py guncellendi: {len(order)} morph", file=sys.stderr)

@@ -78,7 +78,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 30, 1]
+VERSION = [1, 31, 0]
 MIN_ENGINE = [1, 21, 0]
 # Surum etiketi paket ADINA yazilir. UUID + klasor adlari sabit oldugu icin
 # Minecraft ayni UUID'li paketi yerinde GUNCELLER; ama cihazda eski surum
@@ -157,11 +157,11 @@ PLAYER_BASE = {
 # morph sadece gorunumu degistirir, boylece st:size ile cakisma olmaz.
 # DIKKAT: geometry tek basina animate ETMEZ — mob statik bind-pose'da gorunur.
 #
-# TABLO ELLE YAZILMAZ. bedrock/tools/gen_morphs.py, Mojang/bedrock-samples
+# VANILLA TABLOSU ELLE YAZILMAZ. bedrock/tools/gen_morphs.py, bedrock-samples
 # deposundaki resource_pack/entity/*.entity.json dosyalarindan geometry/texture/
 # material adlarini okuyup bu blogu uretir; yanlis ad = gorunmez model oldugu
 # icin adlarin tek dogru kaynagi odur. Yeni mob eklerken o betige satir ekle
-# ve `--write` ile calistir.
+# ve `--write` ile calistir. Paketin kendi mob'lari asagida, MORPHS_OWN'da.
 #
 # Alanlar:
 #   key  mob'un typeId son eki (minecraft:<key>) — MORPH_MAP bununla eslesir
@@ -177,7 +177,7 @@ PLAYER_BASE = {
 # Vanilla animasyon/degisken gerektiren katmanlar (warden'in nabiz gibi yanip
 # sonen lekeleri, bakir golemin cicegi) ALINMADI: o Molang degiskenlerini
 # oyuncu varligi hesaplamaz, katman sabit/parlak takilir.
-MORPHS = [
+MORPHS_VANILLA = [
     dict(key="creeper", n=1, tr="Creeper", cat="Canavarlar", geo="geometry.creeper.v1.8",
          tex="textures/entity/creeper/creeper", mat="creeper", act="explode"),
     dict(key="zombie", n=2, tr="Zombi", cat="Canavarlar", geo="geometry.zombie.v1.8",
@@ -377,11 +377,81 @@ MORPHS = [
          pas=["fire_resistance", 0], act="float"),
 ]
 
+# Paketin KENDI mob'lari (MONSTERS). Cocuk cagirdigi boss'a da donusebilsin —
+# vanilla listesi bunlari kapsamaz. Bunlar bedrock-samples'tan uretilemez,
+# elle yazilir; gorsel varliklar ya vanilla'nin (dev creeper = creeper dokusu)
+# ya da bu paketin RP'sinde SHIP EDILEN kendi modelimizdir (ender_send).
+# ns: typeId onEki. Vanilla morph'larda "minecraft", burada "stnt".
+# OLCEK: cagrilan boss'un kendi olceginden (2.0-3.2) KUCUK secildi. Morph saf
+# gorsel; ucuncu sahis kamerasi oyuncuya sabit uzaklikta durdugundan 3x model
+# kamerayi govdenin ICINDE birakip ekrani kapatiyor. Bu degerlerde cocuk
+# belirgin sekilde dev ama etrafini goruyor; daha buyugunu isterse Buyutme
+# Topu (st:size) zaten var.
+MORPHS_OWN = [
+    dict(key="dev_creeper", n=84, tr="Dev Creeper", cat="Süper TNT", ns="stnt",
+         geo="geometry.creeper.v1.8", tex="textures/entity/creeper/creeper",
+         mat="creeper", scale=2.0, act="explode",
+         pow=dict(r=6, breaks=True, cd=140)),
+    dict(key="dev_zombi", n=85, tr="Dev Zombi", cat="Süper TNT", ns="stnt",
+         geo="geometry.zombie.v1.8", tex="textures/entity/zombie/zombie",
+         mat="zombie", scale=2.0, pas=["resistance", 1], act="smash",
+         pow=dict(r=7, dmg=10, knock=1.6, cd=100)),
+    dict(key="mutant_warden", n=86, tr="Mutant Warden", cat="Süper TNT", ns="stnt",
+         geo="geometry.warden", tex="textures/entity/warden/warden",
+         mat="warden", scale=1.5, pas=["resistance", 1], act="sonic",
+         pow=dict(range=34, damage=22, knock=2.6, cd=120)),
+    dict(key="ender_send", n=87, tr="Ender Send", cat="Süper TNT", ns="stnt",
+         geo="geometry.ender_send", tex="textures/entity/ender_send",
+         mat="entity_emissive_alpha", scale=1.4, pas=["resistance", 1], act="teleport",
+         pow=dict(range=96, cd=30)),
+]
+MORPHS = MORPHS_VANILLA + MORPHS_OWN
+
+# Donusunce eylem cubugunda yazan ipucu. Yetenek tablosundan URETILIR: yeni bir
+# morph eklendiginde ipucu kendiliginden dogru olur, elle yazilmaz.
+ACT_TIP = {
+    "explode": "çömel → patla",
+    "teleport": "çömel → baktığın yere ışınlan",
+    "fireball": "çömel → ateş topu at",
+    "sonic": "çömel → ses saldırısı",
+    "smash": "çömel → yer sarsıntısı",
+    "float": "çömel → havaya süzül",
+}
+PAS_TIP = {
+    "resistance": "dayanıklılık",
+    "speed": "hız",
+    "jump_boost": "zıplama",
+    "slow_falling": "yavaş düşüş",
+    "fire_resistance": "ateşe dayanıklı",
+    "water_breathing": "suda nefes",
+}
+
+
+def morph_hint(mo):
+    """Tek satirlik yetenek ozeti; yeteneksiz morph icin bos."""
+    parts = []
+    if "pas" in mo:
+        parts.append(PAS_TIP[mo["pas"][0]])
+    if "act" in mo:
+        act = ACT_TIP[mo["act"]]
+        # Ipucu sozlesmesi: blok kiran bir guc bunu SOYLEMEK zorunda, yoksa
+        # cocuk kendi evini havaya ucurur.
+        if mo.get("pow", {}).get("breaks"):
+            act += " (blok kırar!)"
+        parts.append(act)
+    return " · ".join(parts)
+
+
+MORPH_HINT = {}
+for _mo in MORPHS:
+    _h = morph_hint(_mo)
+    MORPH_HINT[f"st:morph_{_mo['key']}"] = (
+        f"{_mo['tr']} oldun!" + (f" §7{_h}" if _h else " §7yalnız görünüş"))
 # mob typeId -> morph olayi (script tiklanan mob'u buradan bulur)
-MORPH_MAP = {f"minecraft:{m['key']}": f"st:morph_{m['key']}" for m in MORPHS}
+MORPH_MAP = {f"{m.get('ns', 'minecraft')}:{m['key']}": f"st:morph_{m['key']}" for m in MORPHS}
 
 # Donusum menusundeki grup sirasi (cocuk once dost yaratiklari gorsun).
-MORPH_CATS = ["Hayvanlar", "Su", "Canavarlar", "Devler"]
+MORPH_CATS = ["Hayvanlar", "Su", "Canavarlar", "Devler", "Süper TNT"]
 
 
 def morph_passes(mo):
@@ -2193,8 +2263,9 @@ def build():
                                  for c in MORPH_CATS],
                                 ensure_ascii=False)) \
                             .replace("__TREE_WOOD__", json.dumps(TREE_WOOD)) \
+                            .replace("__MORPH_HINT__", json.dumps(MORPH_HINT, ensure_ascii=False)) \
                             .replace("__MORPH_ABIL__", json.dumps(
-                                {mo['n']: {k: mo[k] for k in ("pas", "act") if k in mo}
+                                {mo['n']: {k: mo[k] for k in ("pas", "act", "pow") if k in mo}
                                  for mo in MORPHS if 'pas' in mo or 'act' in mo},
                                 ensure_ascii=False)) \
                             .replace("__FUSE__", str(FUSE_TICKS)) \
@@ -2249,7 +2320,8 @@ const TIPS = __TIPS__;
 const ITEM_ACTIONS = __ITEM_ACTIONS__;
 const TREE_WOOD = __TREE_WOOD__;       // fidan -> [govde blogu, yaprak blogu]
 const MORPH_FORMS = __MORPH_FORMS__;   // donusum menusu: kategori -> mob listesi
-const MORPH_ABIL = __MORPH_ABIL__;     // st:morph -> {pas:[etki,seviye], act:"..."}
+const MORPH_ABIL = __MORPH_ABIL__;     // st:morph -> {pas:[etki,seviye], act:"...", pow:{...}}
+const MORPH_HINT = __MORPH_HINT__;     // st:morph_<mob> olayi -> eylem cubugu metni
 const MORPH_MAP = __MORPH_MAP__;   // mob typeId -> st:morph_<key> olayi
 const SIZE_SCALES = __SIZE_SCALES__;   // st:size kademe -> gorsel olcek
 const FUSE = __FUSE__;
@@ -2895,7 +2967,7 @@ world.afterEvents.entityHitEntity.subscribe((ev) => {
 function morphTo(pl, evName, msg) {
   try {
     pl.triggerEvent(evName);
-    pl.onScreenDisplay.setActionBar("§a" + msg);
+    pl.onScreenDisplay.setActionBar("§a" + (MORPH_HINT[evName] || msg));
     spray(pl.dimension, pl.location, "minecraft:mob_portal", 20, 1.5);
   } catch (e) {}
 }
@@ -2979,42 +3051,64 @@ system.runInterval(() => {
       try { p.addEffect(ab.pas[0], 20, { amplifier: ab.pas[1], showParticles: false }); } catch (e) {}
     }
     if (ab.act && p.isSneaking && (morphCd.get(p.id) || 0) <= now) {
-      try { morphCd.set(p.id, now + morphAct(p, ab.act)); } catch (e) {}
+      try { morphCd.set(p.id, now + morphAct(p, ab.act, ab.pow || {})); } catch (e) {}
     }
   }
 }, 5);
 
 // Aktif morph yetenegi. Donen deger = bir sonraki kullanima kadar bekleme (tick).
-function morphAct(p, act) {
+// pw = MORPH_ABIL[n].pow — paketin KENDI boss'lari vanilla esinden daha sert
+// vurur (Dev Creeper blok kirar, Mutant Warden 34 blok tarar). Vanilla morph'lar
+// pw'yi bos gecer, asagidaki varsayilanlara duser: eski denge aynen korunur.
+function morphAct(p, act, pw) {
   const dim = p.dimension;
-  if (act === "explode") {                    // creeper: comel -> patla (blok kirmaz)
+  if (act === "explode") {                    // creeper: comel -> patla
     const l = p.location;
-    dim.createExplosion({ x: l.x, y: l.y + 0.5, z: l.z }, 3, { breaksBlocks: false, causesFire: false });
+    dim.createExplosion({ x: l.x, y: l.y + 0.5, z: l.z }, pw.r || 3,
+                        { breaksBlocks: !!pw.breaks, causesFire: false });
     spray(dim, l, "minecraft:large_explosion", 1, 0);
-    return 80;
+    return pw.cd || 80;
   }
   if (act === "teleport") {                   // enderman: comel -> baktigin yere isinlan
-    const hit = p.getBlockFromViewDirection({ maxDistance: 48 });
+    const hit = p.getBlockFromViewDirection({ maxDistance: pw.range || 48 });
     if (hit) {
       p.teleport({ x: hit.block.location.x + 0.5, y: hit.block.location.y + 1, z: hit.block.location.z + 0.5 });
       spray(dim, p.location, "minecraft:mob_portal", 20, 1);
     }
-    return 30;
+    return pw.cd || 30;
   }
   if (act === "fireball") {                   // ghast/blaze: comel -> baktigin yere ates topu
     const hit = p.getBlockFromViewDirection({ maxDistance: 40 });
     const v = p.getViewDirection(), s = p.getHeadLocation();
     const t = hit ? hit.block.location : { x: s.x + v.x * 20, y: s.y + v.y * 20, z: s.z + v.z * 20 };
     dim.createExplosion({ x: t.x + 0.5, y: t.y + 0.5, z: t.z + 0.5 }, 3, { breaksBlocks: false, causesFire: true });
-    return 60;
+    return pw.cd || 60;
   }
   if (act === "sonic") {                      // warden: comel -> ses saldirisi
-    sonicBoom(p, { range: 24, damage: 14, knock: 1.8 });
-    return 100;
+    sonicBoom(p, { range: pw.range || 24, damage: pw.damage || 14, knock: pw.knock || 1.8 });
+    return pw.cd || 100;
+  }
+  if (act === "smash") {                      // Dev Zombi: comel -> yer sarsintisi
+    const l = p.location, r = pw.r || 6;
+    try { dim.playSound("mob.ravager.stun", l, { volume: 1.2 }); } catch (e) {}
+    spray(dim, l, "minecraft:smash_ground_particle", 40, r * 0.6);
+    let ents = [];
+    try { ents = dim.getEntities({ location: l, maxDistance: r }); } catch (e) {}
+    for (const e of ents) {
+      if (e.id === p.id || SONIC_SKIP[e.typeId]) continue;   // esya/tecrube savrulmasin
+      const q = e.location;
+      const ax = q.x - l.x, az = q.z - l.z;
+      const len = Math.sqrt(ax * ax + az * az) || 1;
+      try { e.applyDamage(pw.dmg || 8, { cause: "entityAttack", damagingEntity: p }); }
+      catch (err) { try { e.applyDamage(pw.dmg || 8); } catch (err2) {} }
+      try { e.applyKnockback(ax / len, az / len, pw.knock || 1.4, 0.7); }
+      catch (err) { try { e.applyImpulse({ x: ax / len, y: 0.4, z: az / len }); } catch (err2) {} }
+    }
+    return pw.cd || 100;
   }
   if (act === "float") {                      // ucan mob'lar: comel -> yukari suzul
     p.applyKnockback(0, 0, 0, 1.0);
-    return 20;
+    return pw.cd || 20;
   }
   return 20;
 }

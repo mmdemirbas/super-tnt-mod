@@ -65,8 +65,8 @@ TNT'ler 2–10 tick gecikmeyle ateşleniyor (kademeli, hepsi aynı anda değil),
 TNT'ler listeden çıkarılıp ateşleniyor — yani vanilla TNT veya creeper da
 zinciri başlatabiliyor.
 
-**Dönüşüm (morph).** Oyuncu vanilla Bedrock'un 83 mob'undan birinin
-**görünümüne** girer: `player.json`'a mob başına `geometry`/`texture`/`material`
+**Dönüşüm (morph).** Oyuncu 87 mob'dan birinin — vanilla Bedrock'un 83'ü artı
+paketin kendi dört boss'u — **görünümüne** girer: `player.json`'a mob başına `geometry`/`texture`/`material`
 kaydı ve `st:morph` özelliğine bağlı render controller eklenir. Vanilla dosyalar
 pakete konmaz — Minecraft kendi kaynağından verir, biz yalnız **adlarını**
 yazarız. Ad bir harf yanlışsa model sessizce görünmez olur; bu yüzden tablo elle
@@ -80,6 +80,12 @@ Betik Mojang/bedrock-samples deposundaki `resource_pack/entity/*.entity.json`
 dosyalarını okur; seçilen anahtar o mob'un tanımında yoksa durur ve mevcut
 anahtarları yazar. Çarpışma kutusu morph'tan değil `st:size`'dan gelir, yani
 küçülme/büyütme ile çakışmaz.
+
+Üretilen tablo `MORPHS_VANILLA`; paketin kendi mob'ları (Dev Creeper, Dev Zombi,
+Mutant Warden, Ender Send) `MORPHS_OWN` içinde **elle** yazılır — üreteç onlara
+dokunmaz. Yetenekler `MORPH_ABIL`'e `st:morph` sayısıyla değil mob tanımından
+bağlanır; sayı elle yazılsa liste büyüdükçe kayar ve yanlış moba yanlış güç
+bağlanırdı. Dönüşünce eylem çubuğunda yazan ipucu da aynı tablodan üretilir.
 
 ## Bilinen farklar (Java sürümüne göre)
 

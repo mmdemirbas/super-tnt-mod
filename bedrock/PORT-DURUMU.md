@@ -1,7 +1,48 @@
 # Super TNT — Bedrock Port Durumu
 
-Son sürüm: **v1.30.1** · Mobil sürüm ana odak; Super TNT tek başına yeterli
+Son sürüm: **v1.31.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
 olacak şekilde geliştiriliyor (MorphX / mutant paketine bağımlılık yok).
+
+## v1.31.0 — paketin kendi boss'larına dönüşüm
+
+Dönüşüm listesi 83 vanilla mob'u kapsıyordu ama paketin **kendi** mob'larını
+kapsamıyordu: çocuk Dev Creeper'ı çağırıp asayı ona dokundurduğunda "Bu
+yaratığa dönüşülemiyor" yazıyordu. Kendi çağırdığı boss'a dönüşememek, listenin
+en çok denenecek dört girdisinin eksik olması demekti. Menüye beşinci bir sekme
+geldi — **Süper TNT**: Dev Creeper, Dev Zombi, Mutant Warden, Ender Send.
+
+**Boyutlar bilerek küçültüldü.** Çağrılan boss'ların kendi ölçekleri 2,0-3,2;
+morph'ta 1,4-2,0 kullanıldı. Üçüncü şahıs kamerası oyuncuya sabit uzaklıkta
+durur, ölçek büyüdükçe kamera modelin *içinde* kalır ve çocuk kendi karnına
+bakar. Dev Creeper morph'u yine de vanilla creeper morph'unun iki katı.
+
+**Güçler vanilla eşinden sert.** Yetenek tablosu artık mob başına parametre
+taşıyor (`pow`); vanilla morph'lar bu alanı boş geçtiği için eski dengeleri
+aynen korunuyor.
+
+| Morph | Çömelince | Pasif |
+|---|---|---|
+| Dev Creeper | 6 yarıçapında patlama, **blok kırar** (vanilla creeper: 3, kırmaz) | — |
+| Dev Zombi | yer sarsıntısı: 7 blokta 10 hasar + savurma | dayanıklılık II |
+| Mutant Warden | ses saldırısı 34 blok / 22 hasar (vanilla warden: 24 / 14) | dayanıklılık II |
+| Ender Send | 96 bloka ışınlanma (vanilla enderman: 48) | dayanıklılık II |
+
+**Dönüşünce yetenek eylem çubuğunda yazıyor.** Önceden yalnız "Dönüştün!"
+yazıyordu; 87 mob'un hangisinin ne yaptığını çocuğun denemeyle bulması
+gerekiyordu. Artık "Mutant Warden oldun! çömel → ses saldırısı" gibi. Metin
+yetenek tablosundan **üretiliyor**, elle yazılmıyor — yeni morph eklendiğinde
+ipucu kendiliğinden doğru olur. Blok kıran güçler bunu ayrıca söylüyor
+("blok kırar!"), çünkü çocuk kendi evini havaya uçurmadan önce bilmeli.
+
+**Yan bulgu — on görsel efekt hiç görünmüyormuş.** Ayrı commit'te düzeltildi:
+`minecraft:portal_particle` ve `minecraft:end_rod` diye parçacık yok (doğruları
+`mob_portal` ve `endrod`), dolayısıyla Yerçekimi/Zaman TNT, Portal Tabancası,
+Kara Delik, Yer Değiştirme, küçültme/büyütme ve dönüşüm efektleri sessizce boş
+dönüyordu. Denetim bunları göremiyordu çünkü kimlikler `spray()` yardımcısına
+parametre ve TNT tablosuna `particle=` alanı olarak gidiyor; ikisi de düz
+`spawnParticle("...")` desenine uymuyor.
+
+Denetim bu sürümle 2908 kontrole, mutasyon testi 11 mutasyona çıktı.
 
 ## v1.30.1 — gözden geçirme düzeltmeleri
 

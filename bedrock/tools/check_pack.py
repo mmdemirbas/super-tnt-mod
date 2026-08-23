@@ -43,6 +43,15 @@ GEOS = set(VAN["entity_geometry"])
 TEXS = set(VAN["entity_textures"])
 MATS = set(VAN["entity_materials"])
 
+# Paketin KENDI varliklari ve modelleri: morph tablosunda bunlar da gecebilir,
+# vanilla listelerinde aranmamali.
+OWN_ENTITIES = {f"stnt:{m['id']}" for m in build.MONSTERS}
+OWN_GEOS = {f"geometry.{m['id']}" for m in build.MONSTERS}
+OWN_TEXS = {f"textures/entity/{m['id']}" for m in build.MONSTERS}
+# Vanilla'da tanimli ama hicbir vanilla varligin kullanmadigi materyaller —
+# vanilla entity tanimlarindan toplanan listede gorunmezler.
+EXTRA_MATS = {"entity_emissive_alpha"}
+
 # Switch'te case'i olmayan, esya id'sine bakan pasif eylem turleri.
 PASSIVE_ACTIONS = {"held_fireproof", "bleed", "heavy", "worn_wool"}
 # itemCompleteUse'da (switch disinda) uygulanan yenen/icilen turler.
@@ -174,10 +183,23 @@ def check_morphs(js):
     # 3a. mob typeId'leri ve gorsel varliklarin vanilla'da olmasi
     for m in morphs:
         k = m["key"]
-        check(f"minecraft:{k}" in ENTITIES, f"morph {k}: minecraft:{k} diye bir vanilla varlik yok")
-        check(m["geo"] in GEOS, f"morph {k}: geometry '{m['geo']}' vanilla'da yok")
-        check(m["tex"] in TEXS, f"morph {k}: doku '{m['tex']}' vanilla'da yok")
-        check(m["mat"] in MATS, f"morph {k}: materyal '{m['mat']}' vanilla'da yok")
+        tid = f"{m.get('ns', 'minecraft')}:{k}"
+        check(tid in ENTITIES or tid in OWN_ENTITIES, f"morph {k}: '{tid}' diye bir varlik yok")
+        if tid in OWN_ENTITIES:
+            check(os.path.exists(os.path.join(BP, "entities", f"{k}.json")),
+                  f"morph {k}: paketin kendi mob'u ama BP/entities/{k}.json yok")
+        check(m["geo"] in GEOS or m["geo"] in OWN_GEOS, f"morph {k}: geometry '{m['geo']}' yok")
+        if m["geo"] in OWN_GEOS:
+            # Kendi modelimizse RP'de GERCEKTEN ship edilmis olmali; edilmezse
+            # oyuncu gorunmez olur ve hicbir hata cikmaz.
+            gid = m["geo"].split(".", 1)[1]
+            check(os.path.exists(os.path.join(RP, "models", "entity", f"{gid}.geo.json")),
+                  f"morph {k}: '{m['geo']}' modeli RP'de ship edilmiyor")
+        check(m["tex"] in TEXS or m["tex"] in OWN_TEXS, f"morph {k}: doku '{m['tex']}' yok")
+        if m["tex"] in OWN_TEXS:
+            check(os.path.exists(os.path.join(RP, m["tex"] + ".png")),
+                  f"morph {k}: '{m['tex']}.png' RP'de yok")
+        check(m["mat"] in MATS or m["mat"] in EXTRA_MATS, f"morph {k}: materyal '{m['mat']}' yok")
         for i, lay in enumerate(m.get("layers", [])):
             for t in lay["tex"]:
                 check(t in TEXS, f"morph {k} katman {i}: doku '{t}' vanilla'da yok")
@@ -237,6 +259,19 @@ def check_morphs(js):
             check(ab["pas"][0] in EFFECTS, f"MORPH_ABIL {n}: '{ab['pas'][0]}' diye bir etki yok")
         if "act" in ab:
             check(ab["act"] in acts, f"MORPH_ABIL {n}: '{ab['act']}' yetenegini karsilayan dal morphAct'te yok")
+        check("pow" not in ab or "act" in ab, f"MORPH_ABIL {n}: 'pow' var ama 'act' yok — guc bir yere baglanmiyor")
+
+    # Donusum ipucu: cocuk hangi gucu aldigini eylem cubugunda gorur.
+    hint = js_const(js, "MORPH_HINT")
+    for m in morphs:
+        ev = f"st:morph_{m['key']}"
+        check(ev in hint, f"morph {m['key']}: MORPH_HINT girdisi yok")
+        t = hint.get(ev, "")
+        check(m["tr"] in t, f"morph {m['key']}: ipucunda adi gecmiyor ({t!r})")
+        if "act" in m:
+            check(build.ACT_TIP[m["act"]] in t, f"morph {m['key']}: ipucu '{m['act']}' yetenegini yazmiyor")
+        if "pas" in m:
+            check(build.PAS_TIP[m["pas"][0]] in t, f"morph {m['key']}: ipucu pasif etkiyi yazmiyor")
 
 
 # ---------------------------------------------------------------- 4. kimlikler
