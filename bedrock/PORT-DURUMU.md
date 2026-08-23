@@ -1,7 +1,24 @@
 # Super TNT — Bedrock Port Durumu
 
-Son sürüm: **v1.28.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
+Son sürüm: **v1.29.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
 olacak şekilde geliştiriliyor (MorphX / mutant paketine bağımlılık yok).
+
+## v1.29.0 — Can Artırıcı ve Ses Saldırısı
+
+### Can Artırıcı — 300 can, 30 dakika
+
+Sağlık İksiri'nin (200 can, 10 dk) büyüğü. Aynı `health_boost` mekaniği,
+`heal_amp()` ile türetilen amplifier: (300 - 20) / 4 - 1 = 69.
+
+### Ses Saldırısı — Warden'ın sonic boom'u
+
+Sağ tıkla bakılan yöne ses dalgası: 24 blok, **bloklardan geçer** (vanilla
+Warden'da da öyle), önüne çıkan her varlığa 14 hasar verir ve savurur. Her
+varlık yalnız bir kez vurulur; yoksa dalganın 24 adımının her birinde tekrar
+hasar alırdı. Parçacık `minecraft:sonic_explosion`, sesler
+`mob.warden.sonic_charge` + `mob.warden.sonic_boom`. Hasar nedeni `sonicBoom`
+bazı sürümlerde bulunmayabilir — o durumda düz hasara düşüyor.
+
 
 ## v1.28.0 — Sağlık İksiri (Bedrock'a özel, Java'da yok)
 
@@ -179,7 +196,8 @@ Acılı Cips, Hız Eşyası, Yıldırım Büyüsü, Kara Delik, Enerji Kristali,
 Lazer Kılıcı, Kanca, Dondurucu, Koku Bombası, Among Us Rapor, Delici,
 Lav Kristali, Kanlı Kılıç, Kalp Baltası, Gökkuşağı Botları, End/Nether İncisi, TNT Frizbi, Craft Baltası, + ganimet item'ları (Kuruş, 200 TL, Lego tuğlaları).
 
-**Bedrock'a özel (Java'da karşılığı yok):** Sağlık İksiri.
+**Bedrock'a özel (Java'da karşılığı yok):** Sağlık İksiri, Can Artırıcı,
+Ses Saldırısı.
 
 ## Portlanmadı — teknik sebeple
 

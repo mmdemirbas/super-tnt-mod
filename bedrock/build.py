@@ -78,7 +78,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 28, 0]
+VERSION = [1, 29, 0]
 MIN_ENGINE = [1, 21, 0]
 # Surum etiketi paket ADINA yazilir. UUID + klasor adlari sabit oldugu icin
 # Minecraft ayni UUID'li paketi yerinde GUNCELLER; ama cihazda eski surum
@@ -753,10 +753,23 @@ for _i, (_pn, _pc) in enumerate(PORTAL_COLORS):
 # SEVIYE basina +4 can ekler, seviye = amplifier + 1. 200 can icin +180 can
 # gerekir -> 45 seviye -> amplifier 44. Etki sadece azami cani buyutur,
 # doldurmaz; betik icildikten sonra cani tepeye cekiyor (bkz. heal_boost).
-POTION_HP = 200
 POTION_BASE_HP = 20          # oyuncunun etkisiz taban azami cani
+
+
+def heal_amp(hp):
+    """Istenen azami can -> health_boost amplifier. Etki SEVIYE basina +4 can
+    verir ve seviye = amplifier + 1."""
+    assert (hp - POTION_BASE_HP) % 4 == 0, f"{hp} can 4'un kati degil"
+    return (hp - POTION_BASE_HP) // 4 - 1
+
+
+POTION_HP = 200
 POTION_SECONDS = 600         # 10 dk; bitince azami can 20'ye doner
-POTION_AMP = (POTION_HP - POTION_BASE_HP) // 4 - 1
+POTION_AMP = heal_amp(POTION_HP)
+# Can Artirici: iksirin buyugu. Dev boss'lara karsi daha uzun sureli koz.
+BOOST_HP = 300
+BOOST_SECONDS = 1800         # 30 dk
+BOOST_AMP = heal_amp(BOOST_HP)
 
 ITEMS = [
     dict(id="spicy_chips", tr="Acılı Cips", en="Spicy Chips", kind="food",
@@ -770,6 +783,21 @@ ITEMS = [
          color=(215, 40, 65),
          action=dict(type="heal_boost", hp=POTION_HP,
                      seconds=POTION_SECONDS, amp=POTION_AMP)),
+    dict(id="can_artirici", tr="Can Artırıcı", en="Health Booster", kind="drink",
+         trtip=f"İç — canın {BOOST_HP} olur ve tamamen dolar! "
+               f"{BOOST_SECONDS // 60} dakika sürer, sonra normale döner.",
+         entip=f"Drink - your health becomes {BOOST_HP} and refills! "
+               f"Lasts {BOOST_SECONDS // 60} minutes, then back to normal.",
+         color=(240, 180, 40),
+         action=dict(type="heal_boost", hp=BOOST_HP,
+                     seconds=BOOST_SECONDS, amp=BOOST_AMP)),
+    dict(id="ses_saldirisi", tr="Ses Saldırısı", en="Sonic Attack", kind="raycast",
+         trtip="Sağ tıkla — Warden gibi ses dalgası fırlatır! 24 blok gider, "
+               "duvarlardan geçer, önüne çıkan herkesi vurup savurur.",
+         entip="Right-click - fires a Warden-style sonic boom! Travels 24 blocks, "
+               "passes through walls, damages and throws everything in its path.",
+         color=(45, 130, 155),
+         action=dict(type="sonic", range=24, damage=14, knock=1.8)),
     dict(id="lightning_spell", tr="Yıldırım Büyüsü", en="Lightning Spell", kind="raycast",
          trtip="Sağ tıkla — baktığın yere GERÇEK yıldırım çakar! Yakar ve öldürür.",
          entip="Right-click - strikes REAL lightning where you look!",
@@ -998,6 +1026,7 @@ def symbol_texture(path, item_id):
         "takim_asasi": (65, 38, 105), "esya_calmaca": (55, 42, 80),
         "rainbow_boots": (120, 180, 220), "kurus": (60, 52, 38),
         "iki_yuz_tl": (65, 120, 85), "saglik_iksiri": (58, 18, 30),
+        "can_artirici": (60, 30, 12), "ses_saldirisi": (12, 32, 40),
     }
     if item_id not in SPECS:
         return False
@@ -1092,6 +1121,24 @@ def symbol_texture(path, item_id):
             hline(hy, hx0, hx1, (255, 240, 245))    # ortadaki kalp
         hline(8, 9, 10, (255, 240, 245))            # kalbin ikinci tumsegi
         vline(3, 9, 11, (250, 250, 255))            # camin sol parlamasi
+    elif iid == "can_artirici":
+        # buyuk kirmizi kalp + ustunde altin arti: "daha fazla can"
+        for (hy, hx0, hx1) in ((4, 3, 5), (4, 10, 12), (5, 2, 13), (6, 2, 13),
+                               (7, 2, 13), (8, 3, 12), (9, 4, 11), (10, 5, 10),
+                               (11, 6, 9), (12, 7, 8)):
+            hline(hy, hx0, hx1, (220, 45, 60))
+        hline(5, 4, 5, (255, 150, 165)); hline(6, 3, 4, (255, 150, 165))
+        rect(7, 4, 8, 9, (250, 205, 60))     # artinin dikey kolu
+        rect(5, 6, 10, 7, (250, 205, 60))    # artinin yatay kolu
+    elif iid == "ses_saldirisi":
+        # ic ice acilan uc ses dalgasi + kaynaktaki warden mavisi cekirdek
+        disc(3, 8, 2, (120, 235, 245))
+        for (r, c) in ((5, (60, 190, 210)), (8, (40, 150, 175)), (11, (28, 110, 135))):
+            for y in range(16):
+                for x in range(16):
+                    d2 = (x - 3) ** 2 + (y - 8) ** 2
+                    if r * r - 5 <= d2 <= r * r + 5 and x >= 3:
+                        px(x, y, c)
     elif iid == "iki_yuz_tl":
         rect(2, 5, 13, 11, (210, 225, 200))
         for x in range(2, 14):
@@ -1990,6 +2037,37 @@ function healBoost(player, a) {
   }, 1);
 }
 
+// ---- Ses Saldirisi (Warden'in sonic boom'u). Bakilan yonde 1 blokluk adimlarla
+// ilerleyen bir ses dalgasi. BLOKLARDAN GECER — vanilla Warden'da da oyle; bu
+// yuzden hedefi gorup gormedigimize bakmadan yol boyunca varlik tariyoruz.
+// Her varlik yalniz BIR KEZ vurulur (hit kumesi), yoksa 24 adimin her birinde
+// tekrar hasar alip aninda olurdu.
+function sonicBoom(player, a) {
+  const dim = player.dimension, v = player.getViewDirection(), s = player.getHeadLocation();
+  try { dim.playSound("mob.warden.sonic_charge", s, { volume: 1.2 }); } catch (e) {}
+  const hit = new Set();
+  let n = 0;
+  for (let i = 1; i <= a.range; i++) {
+    const c = { x: s.x + v.x * i, y: s.y + v.y * i, z: s.z + v.z * i };
+    try { dim.spawnParticle("minecraft:sonic_explosion", c); } catch (e) {}
+    let ents = [];
+    try { ents = dim.getEntities({ location: c, maxDistance: 2 }); } catch (e) {}
+    for (const e of ents) {
+      if (e.id === player.id || hit.has(e.id)) continue;
+      hit.add(e.id);
+      n++;
+      // "sonicBoom" hasar nedeni bazi surumlerde yok -> duz hasara dus.
+      try { e.applyDamage(a.damage, { cause: "sonicBoom", damagingEntity: player }); }
+      catch (err) { try { e.applyDamage(a.damage); } catch (err2) {} }
+      // applyKnockback yalniz oyuncu/mob'da var; esya/mermide hata verir.
+      try { e.applyKnockback(v.x, v.z, a.knock, 0.45); }
+      catch (err) { try { e.applyImpulse({ x: v.x * 0.8, y: 0.35, z: v.z * 0.8 }); } catch (err2) {} }
+    }
+  }
+  try { dim.playSound("mob.warden.sonic_boom", s, { volume: 1.4 }); } catch (e) {}
+  return n;
+}
+
 function itemAction(player, a) {
   const dim = player.dimension;
   try {
@@ -2004,6 +2082,14 @@ function itemAction(player, a) {
           player.triggerEvent("st:morph_human");
           player.onScreenDisplay.setActionBar("§aİnsana geri döndün");
           spray(dim, player.location, "minecraft:portal_particle", 20, 1.5);
+        } catch (e) {}
+        break;
+      }
+      case "sonic": {
+        const n = sonicBoom(player, a);
+        try {
+          player.onScreenDisplay.setActionBar(
+            n ? `§bSes dalgası §f${n}§b hedefi vurdu!` : "§bSes dalgası gönderildi");
         } catch (e) {}
         break;
       }
