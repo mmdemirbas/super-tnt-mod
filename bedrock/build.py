@@ -78,7 +78,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 30, 0]
+VERSION = [1, 30, 1]
 MIN_ENGINE = [1, 21, 0]
 # Surum etiketi paket ADINA yazilir. UUID + klasor adlari sabit oldugu icin
 # Minecraft ayni UUID'li paketi yerinde GUNCELLER; ama cihazda eski surum
@@ -2295,9 +2295,13 @@ function healBoost(player, a) {
 // yuzden hedefi gorup gormedigimize bakmadan yol boyunca varlik tariyoruz.
 // Her varlik yalniz BIR KEZ vurulur (hit kumesi), yoksa 24 adimin her birinde
 // tekrar hasar alip aninda olurdu.
+// Dalganin savurmamasi gerekenler: yerdeki esya ve tecrube kuresi. Yoksa
+// cocuk kendi ganimetini 20 blok oteye ucuruyor.
+const sonicCd = new Map();
+const SONIC_SKIP = { "minecraft:item": 1, "minecraft:xp_orb": 1, "minecraft:xp_bottle": 1 };
+
 function sonicBoom(player, a) {
   const dim = player.dimension, v = player.getViewDirection(), s = player.getHeadLocation();
-  try { dim.playSound("mob.warden.sonic_charge", s, { volume: 1.2 }); } catch (e) {}
   const hit = new Set();
   let n = 0;
   for (let i = 1; i <= a.range; i++) {
@@ -2306,7 +2310,7 @@ function sonicBoom(player, a) {
     let ents = [];
     try { ents = dim.getEntities({ location: c, maxDistance: 2 }); } catch (e) {}
     for (const e of ents) {
-      if (e.id === player.id || hit.has(e.id)) continue;
+      if (e.id === player.id || hit.has(e.id) || SONIC_SKIP[e.typeId]) continue;
       hit.add(e.id);
       n++;
       // "sonicBoom" hasar nedeni bazi surumlerde yok -> duz hasara dus.
@@ -2317,6 +2321,8 @@ function sonicBoom(player, a) {
       catch (err) { try { e.applyImpulse({ x: v.x * 0.8, y: 0.35, z: v.z * 0.8 }); } catch (err2) {} }
     }
   }
+  // Tek ses. "sonic_charge" ~1,4 sn suren bir yukselis; boom ile ayni tick'te
+  // calinca patlamadan SONRA vinlemeye devam ediyordu.
   try { dim.playSound("mob.warden.sonic_boom", s, { volume: 1.4 }); } catch (e) {}
   return n;
 }
@@ -2334,6 +2340,8 @@ function sonicBoom(player, a) {
 // tepenin nerdeyse tamami curuyup yok olurdu; bu yuzden yaprak setType ile
 // degil, persistent_bit=true permutation'i ile konuyor.
 const treeBusy = new Set();          // ayni oyuncuda ikinci agac baslamasin
+// Fidan arama sirasi: once tam ortasi, sonra yanlar, en son koseler.
+const TREE_NEAR = [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]];
 const DIM_CEIL = { "minecraft:nether": 127, "minecraft:the_end": 255 };
 
 function megaTree(player, a) {
@@ -2347,12 +2355,22 @@ function megaTree(player, a) {
     try { player.onScreenDisplay.setActionBar("§7Bir fidana ya da toprağa bak"); } catch (e) {}
     return;
   }
-  const wood = TREE_WOOD[hit.block.typeId];
+  // getBlockFromViewDirection GECILEBILIR bloklari atlar — isin fidanin
+  // icinden gecip altindaki topraga carpar. Yani carpilan blok her zaman
+  // ZEMIN; agac onun bir ustune dikilir. Fidan da o katmanda aranir, hem de
+  // 3x3'te: cocuk kucucuk fidana tam nisan alamayabilir, isin bir blok yandan
+  // gecebilir. Bulunamazsa mese.
+  const g = hit.block.location;
+  let base = { x: g.x, y: g.y + 1, z: g.z };
+  let wood = null;
+  for (const d of TREE_NEAR) {
+    let b = null;
+    try { b = dim.getBlock({ x: g.x + d[0], y: g.y + 1, z: g.z + d[1] }); } catch (e) {}
+    const w = b && TREE_WOOD[b.typeId];
+    if (w) { wood = w; base = { x: g.x + d[0], y: g.y + 1, z: g.z + d[1] }; break; }
+  }
   const logId = wood ? wood[0] : "minecraft:oak_log";
   const leafId = wood ? wood[1] : "minecraft:oak_leaves";
-  const bl = hit.block.location;
-  // Fidana tiklandiysa agac FIDANIN yerine, kati bloga tiklandiysa USTUNE.
-  const base = { x: bl.x, y: wood ? bl.y : bl.y + 1, z: bl.z };
 
   const H = a.height, R0 = a.trunk, CR = a.crown;
   const cy0 = Math.round(H * 0.55);                 // tepenin baslangici
@@ -2370,13 +2388,16 @@ function megaTree(player, a) {
   }
 
   // Blok cesitleri bir kez cozulur (her blokta resolve etmek pahali).
-  let leafPerm = null, logY = null, logX = null, logZ = null;
-  try {
-    leafPerm = BlockPermutation.resolve(leafId, { persistent_bit: true, update_bit: false });
-    logY = BlockPermutation.resolve(logId, { pillar_axis: "y" });
-    logX = BlockPermutation.resolve(logId, { pillar_axis: "x" });
-    logZ = BlockPermutation.resolve(logId, { pillar_axis: "z" });
-  } catch (e) {}
+  // AYRI try'lar: tek blokta cozumleme hata verirse otekiler null kalmasin.
+  // (Hepsi tek try'dayken yaprak cozumlemesi patlarsa govde de duz setType'a
+  // dusuyordu; yaprak icin duz setType = tepe curur.)
+  const resolvePerm = (id, states) => {
+    try { return BlockPermutation.resolve(id, states); } catch (e) { return null; }
+  };
+  const leafPerm = resolvePerm(leafId, { persistent_bit: true, update_bit: false });
+  const logY = resolvePerm(logId, { pillar_axis: "y" });
+  const logX = resolvePerm(logId, { pillar_axis: "x" });
+  const logZ = resolvePerm(logId, { pillar_axis: "z" });
 
   let total = 0, budget = 0;
   // onlyAir: yaprak yalniz havanin/yapragin yerine konur — agac tepesi araziyi
@@ -2424,6 +2445,51 @@ function megaTree(player, a) {
     if (y < cy0 || y > cy1) return 0;
     return CR * Math.pow(Math.sin(Math.PI * (y - cy0) / (cy1 - cy0)), 0.55);
   };
+
+  // Oyuncu neredeyse her zaman govdenin icinde kalir: taban yaricapi 5, cocuk
+  // fidana 1-2 blok mesafeden tikliyor. Ilk tick'te govde onu diri diri
+  // gomerdi. Buyume baslamadan kenara cekiyoruz — govdede delik birakmak
+  // yerine, cunku delik de oyuncuyu 1x1 bir cukura hapsediyordu.
+  // Tehlike YALNIZ govde/dal (log) icin var: yaprak bogmaz, ustelik yaprak
+  // sadece havanin yerine konuyor. Bu yuzden yalniz govdenin yukseklik
+  // araligindaki oyuncu cekilir — yukarida ucan cocuk yerinden edilmez.
+  const safeR = R0 + 3;
+  const pl = player.location;
+  const yRel = pl.y - base.y;
+  let ox = pl.x - (base.x + 0.5), oz = pl.z - (base.z + 0.5);
+  let olen = Math.hypot(ox, oz);
+  if (olen < 0.001) {                               // tam merkezdeyse arkasina
+    const v = player.getViewDirection();
+    ox = -v.x; oz = -v.z; olen = Math.hypot(ox, oz) || 1;
+  }
+  if (olen < safeR && yRel >= -3 && yRel <= H) {
+    const tx = Math.floor(base.x + 0.5 + (ox / olen) * safeR);
+    const tz = Math.floor(base.z + 0.5 + (oz / olen) * safeR);
+    let moved = false;
+    // Once ayaginin altinda zemin OLAN bir yer ara (dusme hasari olmasin),
+    // asagidan yukari; bulunamazsa vazgec ve oyuncuyu uyar.
+    for (let dy = -3; dy <= 6 && !moved; dy++) {
+      const ty = Math.floor(pl.y) + dy;
+      try {
+        const a1 = dim.getBlock({ x: tx, y: ty, z: tz });
+        const a2 = dim.getBlock({ x: tx, y: ty + 1, z: tz });
+        const gr = dim.getBlock({ x: tx, y: ty - 1, z: tz });
+        if (a1 && a2 && gr && a1.typeId === "minecraft:air" && a2.typeId === "minecraft:air"
+            && gr.typeId !== "minecraft:air") {
+          player.teleport({ x: tx + 0.5, y: ty, z: tz + 0.5 });
+          moved = true;
+        }
+      } catch (e) {}
+    }
+    if (!moved) {
+      try {
+        player.onScreenDisplay.setActionBar(
+          `§cÇok yakınsın — ağaç seni ezer. ${Math.ceil(safeR)} blok geri çekil.`);
+      } catch (e) {}
+      return;
+    }
+    try { player.onScreenDisplay.setActionBar("§eAğaç büyüyor — kenara çekildin!"); } catch (e) {}
+  }
 
   treeBusy.add(player.id);
   let y = -3;                                       // kok: uc katman toprak alti
@@ -2474,12 +2540,16 @@ function itemAction(player, a) {
   try {
     switch (a.type) {
       case "morph_reset": {
-        // Donusum Asasi bosluga sag tik -> donusum menusu (insana donmek de
-        // menunun ilk maddesi). Mob'a dokunma (morph) playerInteractWithEntity
-        // handler'inda; bir moba BAKIYORSAN menuyu atla ki dokunma devralsin.
+        // Bir moba BAKIYORSAN dogrudan ona donus, yoksa menuyu ac (insana
+        // donmek menunun ilk maddesi). Eskiden bu dal moba bakarken hicbir sey
+        // yapmiyor, "dokunma olayi devralir" diye birakiliyordu; ama dusman
+        // mob'larda interact olayi HIC tetiklenmez ve sag tik bir vurus da
+        // degildir -> tik olu kaliyordu. 83 mob'la neredeyse her mob morph
+        // edilebilir oldugundan bu her yerde olur hale gelmisti.
         try {
           const hs = player.getEntitiesFromViewDirection({ maxDistance: 4 });
-          if (hs.length && MORPH_MAP[hs[0].entity && hs[0].entity.typeId]) break;
+          const tgt = hs.length ? hs[0].entity : null;
+          if (tgt && MORPH_MAP[tgt.typeId]) { tryMorph(player, tgt); break; }
           morphMenu(player);
         } catch (e) {}
         break;
@@ -2489,6 +2559,14 @@ function itemAction(player, a) {
         break;
       }
       case "sonic": {
+        // Kisa bekleme: her tik 24 adim + 24 varlik taramasi demek, hizli
+        // tiklama tableti yorar. 10 tick fark edilmeyecek kadar kisa.
+        const now = system.currentTick;
+        if ((sonicCd.get(player.id) || 0) > now) {
+          try { player.onScreenDisplay.setActionBar("§7Ses dalgası hazırlanıyor…"); } catch (e) {}
+          break;
+        }
+        sonicCd.set(player.id, now + 10);
         const n = sonicBoom(player, a);
         try {
           player.onScreenDisplay.setActionBar(

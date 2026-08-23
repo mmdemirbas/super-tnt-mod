@@ -1,7 +1,51 @@
 # Super TNT — Bedrock Port Durumu
 
-Son sürüm: **v1.30.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
+Son sürüm: **v1.30.1** · Mobil sürüm ana odak; Super TNT tek başına yeterli
 olacak şekilde geliştiriliyor (MorphX / mutant paketine bağımlılık yok).
+
+## v1.30.1 — gözden geçirme düzeltmeleri
+
+Son üç sürümün (83 morph, Can Artırıcı/Ses Saldırısı, Mega Gübre) gözden
+geçirilmesinde çıkan altı sorun. Hiçbiri tablette denenmeden bulundu; ikisi
+oyunu doğrudan bozuyordu.
+
+**Dev ağaç oyuncuyu diri diri gömüyordu.** Gövde taban yarıçapı 5, çocuk fidana
+1-2 blok mesafeden tıklıyor — yani neredeyse her seferinde gövdenin içinde
+kalıyordu ve ilk tick'te logların arasında boğuluyordu. Artık büyüme başlamadan
+kenara çekiliyor (gövde + 3 blok, ayağının altında zemin olan en yakın
+yükseklik); güvenli yer bulunamazsa ağaç hiç büyümüyor ve kaç blok geri
+çekilmesi gerektiği yazılıyor. Gövdede delik bırakma seçeneği denenmedi: o da
+oyuncuyu 1×1'lik bir cukura hapsediyordu. Yukarıda uçan oyuncu yerinden
+edilmiyor — yaprak boğmaz, tehlike yalnız gövde yüksekliğinde.
+
+**Fidan türü hep yok sayılıyordu.** `getBlockFromViewDirection` geçilebilir
+blokları atlar; ışın fidanın içinden geçip altındaki toprağa çarpıyordu, bu
+yüzden `TREE_WOOD` araması hiçbir zaman tutmuyor ve her ağaç meşe oluyordu.
+Artık çarpılan blok zemin kabul edilip fidan bir üst katmanda, üstelik 3×3
+içinde aranıyor — çocuk minik fidana tam nişan alamayabilir.
+
+**Dönüşüm Asası boşa tıklıyordu.** Bir mob'a bakarken boşluğa sağ tık hiçbir şey
+yapmıyordu; "dokunma olayı devralır" varsayılmıştı ama düşman mob'larda interact
+olayı hiç tetiklenmez ve sağ tık bir vuruş da değildir. 15 mob'la nadir olan bu
+durum 83 mob'la neredeyse her yerde oluyordu. Artık bakılan mob'a doğrudan
+dönüşülüyor.
+
+**Ses Saldırısı yerdeki eşyayı ve tecrübeyi savuruyordu** — çocuk kendi
+ganimetini 20 blok öteye uçuruyordu. Artık atlanıyor.
+
+**Ses Saldırısı'nda iki ses üst üste biniyordu.** `mob.warden.sonic_charge`
+~1,4 saniyelik bir yükseliş; boom ile aynı tick'te çalınca patlamadan *sonra*
+vınlamaya devam ediyordu. Yalnız boom kaldı. Ayrıca 10 tick'lik bekleme
+eklendi: her atış 24 adım + 24 varlık taraması demek, hızlı tıklama tableti
+yorardı.
+
+**Ağaç blok çeşitleri tek `try` içindeydi.** Yaprak çözümlemesi hata verirse
+gövde de düz `setType`'a düşüyordu — ve yaprak için düz `setType` demek
+`persistent_bit` olmaması, yani tepenin çürümesi demek. Her biri ayrı `try`.
+
+Ayrıca `bedrock/tools/check_pack.py` eklendi (~2500 denetim) ve
+`mutation_test.sh` ile denetimin gerçekten yakaladığı doğrulandı — ayrıntı
+`bedrock/README.md` → "Göndermeden önce".
 
 ## v1.30.0 — Mega Gübre (100 blokluk dev ağaç)
 
