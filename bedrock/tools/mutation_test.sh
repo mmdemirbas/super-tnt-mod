@@ -86,6 +86,17 @@ python3 bedrock/build.py > /dev/null 2>&1
 run "menude eksik kategori" "menude"
 cp "$BAK/build.bak" bedrock/build.py
 
+# 8) spray() yardimcisina olmayan parcacik -> hicbir gorsel efekt yok
+cp "$BP/scripts/main.js" "$BAK/main2.bak"
+sed 's/minecraft:mob_portal/minecraft:mob_portal_yok/' "$BAK/main2.bak" > "$BP/scripts/main.js"
+run "spray() parcacigi yok (yasanmis portal_particle hatasi)" "diye bir parcacik yok"
+cp "$BAK/main2.bak" "$BP/scripts/main.js"
+
+# 9) veri tablosundaki parcacik kimligi bozulursa -> TNT efektsiz patlar
+sed 's/particle="minecraft:mob_portal"/particle="minecraft:yok_boyle"/' "$BAK/build.bak" > bedrock/build.py
+run "TNT tablosunda olmayan parcacik" "diye bir parcacik yok"
+cp "$BAK/build.bak" bedrock/build.py
+
 echo
 python3 bedrock/build.py > /dev/null && echo "paket yeniden uretildi"
 echo "yakalanan $pass / kacirilan $fail"

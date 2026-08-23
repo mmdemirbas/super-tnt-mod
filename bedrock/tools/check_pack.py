@@ -244,7 +244,10 @@ def check_ids(js):
     def used(pattern):
         return set(re.findall(pattern, js))
 
-    for pid in used(r'spawnParticle\(\s*"([^"]+)"'):
+    # spawnParticle'a dogrudan verilenler VE spray() yardimcisina gecirilenler.
+    # spray'e gecirilenler bir sure denetlenmiyordu: minecraft:portal_particle ve
+    # minecraft:end_rod diye parcacik yok, dokuz cagri sessizce bos donuyordu.
+    for pid in used(r'spawnParticle\(\s*"([^"]+)"') | used(r'spray\([^;]*?"(minecraft:[a-z_0-9]+)"'):
         check(pid in PARTICLES, f"main.js: '{pid}' diye bir parcacik yok")
     for sid in used(r'playSound\(\s*"([^"]+)"'):
         check(sid in SOUNDS, f"main.js: '{sid}' diye bir ses yok")
@@ -254,6 +257,18 @@ def check_ids(js):
         check(bid in BLOCKS, f"main.js: '{bid}' diye bir blok yok")
     for eid in used(r'spawnEntity\(\s*"(minecraft:[a-z_0-9]+)"'):
         check(eid in ENTITIES, f"main.js: '{eid}' diye bir varlik yok")
+
+    # Veri tablolarindaki kimlikler. main.js'e duz metin olarak degil, JSON
+    # tablosu icinde gomulu gidiyorlar; cagri desenine bakan denetim gormez.
+    for row in build.TNTS + build.ITEMS:
+        for val in row.values():
+            if not isinstance(val, dict):
+                continue
+            if isinstance(val.get("particle"), str):
+                check(val["particle"] in PARTICLES,
+                      f"{row.get('id')}: '{val['particle']}' diye bir parcacik yok")
+            if isinstance(val.get("sound"), str):
+                check(val["sound"] in SOUNDS, f"{row.get('id')}: '{val['sound']}' diye bir ses yok")
 
     # kaynak tablolar
     for logid, leafid in build.TREE_WOOD.values():

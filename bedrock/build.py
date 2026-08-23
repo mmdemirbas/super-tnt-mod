@@ -785,7 +785,7 @@ TNTS = [
          trtip="Yakındaki canlıları 10 sn havaya kaldırır — inerken dikkat!",
          entip="Lifts nearby creatures for 10s - mind the landing!",
          color=((120, 90, 200), (146, 116, 220), (96, 72, 168)), mat="minecraft:feather",
-         effect=dict(kind="status", target="all", radius=12, particle="minecraft:portal_particle",
+         effect=dict(kind="status", target="all", radius=12, particle="minecraft:mob_portal",
                      effects=[{"id": "levitation", "seconds": 10, "amp": 2}])),
     dict(id="command_tnt", tr="Komut TNT", en="Command TNT",
          trtip="20 blok yarıçapındaki her şeyi yok eder.",
@@ -2588,7 +2588,7 @@ function itemAction(player, a) {
           sz = a.reset ? 2 : Math.max(0, Math.min(4, sz + a.delta));
           player.triggerEvent("st:size_" + sz);
           spray(dim, player.location,
-                (a.reset || a.delta > 0) ? "minecraft:totem_particle" : "minecraft:portal_particle", 24, 2);
+                (a.reset || a.delta > 0) ? "minecraft:totem_particle" : "minecraft:mob_portal", 24, 2);
         } catch (e) {}
         break;
       }
@@ -2650,7 +2650,7 @@ function itemAction(player, a) {
         try { player.onScreenDisplay.setActionBar(total >= 2
           ? `§a${PC[c]} portal bağlandı! Üstüne bas, eşine ışınlan.`
           : `§b${PC[c]} portal kondu — ikinci ${PC[c]} kapı için tekrar tıkla`); } catch (e) {}
-        spray(dim, above, "minecraft:portal_particle", 30, 1.5);
+        spray(dim, above, "minecraft:mob_portal", 30, 1.5);
         break;
       }
       case "lightning": {
@@ -2670,7 +2670,7 @@ function itemAction(player, a) {
             e.applyDamage(4);
           } catch (err) {}
         }
-        spray(dim, player.location, "minecraft:portal_particle", 40, 3);
+        spray(dim, player.location, "minecraft:mob_portal", 40, 3);
         break;
       }
       case "break_any": {
@@ -2896,7 +2896,7 @@ function morphTo(pl, evName, msg) {
   try {
     pl.triggerEvent(evName);
     pl.onScreenDisplay.setActionBar("§a" + msg);
-    spray(pl.dimension, pl.location, "minecraft:portal_particle", 20, 1.5);
+    spray(pl.dimension, pl.location, "minecraft:mob_portal", 20, 1.5);
   } catch (e) {}
 }
 function tryMorph(pl, target) {
@@ -2997,7 +2997,7 @@ function morphAct(p, act) {
     const hit = p.getBlockFromViewDirection({ maxDistance: 48 });
     if (hit) {
       p.teleport({ x: hit.block.location.x + 0.5, y: hit.block.location.y + 1, z: hit.block.location.z + 0.5 });
-      spray(dim, p.location, "minecraft:portal_particle", 20, 1);
+      spray(dim, p.location, "minecraft:mob_portal", 20, 1);
     }
     return 30;
   }
@@ -3295,7 +3295,7 @@ function detonate(dim, c, short, igniterId) {
             p.triggerEvent("st:size_" + sz);
           } catch (e) {}
         }
-        spray(dim, c, s.delta < 0 ? "minecraft:portal_particle" : "minecraft:totem_particle", 40, 3);
+        spray(dim, c, s.delta < 0 ? "minecraft:mob_portal" : "minecraft:totem_particle", 40, 3);
         break;
       }
 
@@ -3350,7 +3350,7 @@ function detonate(dim, c, short, igniterId) {
         } catch (e) {
           try { world.setTimeOfDay(s.time); } catch (e2) {}
         }
-        spray(dim, c, "minecraft:end_rod", 60, 4);
+        spray(dim, c, "minecraft:endrod", 60, 4);
         break;
 
       case "heal": {
@@ -3615,7 +3615,7 @@ function detonate(dim, c, short, igniterId) {
           const t = locs[i]; locs[i] = locs[j]; locs[j] = t;
         }
         ents.forEach((e, i) => { try { if (locs[i]) e.teleport(locs[i]); } catch (err) {} });
-        spray(dim, c, "minecraft:portal_particle", 50, 5);
+        spray(dim, c, "minecraft:mob_portal", 50, 5);
         break;
       }
     }
@@ -3926,7 +3926,7 @@ system.runInterval(() => {
     if (!best) continue;
     try {
       p.teleport({ x: best.x + 0.5, y: best.y + 1, z: best.z + 0.5 }, { dimension: world.getDimension(best.d) });
-      spray(p.dimension, { x: best.x + 0.5, y: best.y + 1, z: best.z + 0.5 }, "minecraft:portal_particle", 20, 1);
+      spray(p.dimension, { x: best.x + 0.5, y: best.y + 1, z: best.z + 0.5 }, "minecraft:mob_portal", 20, 1);
     } catch (e) {}
     portalCd.set(p.id, now + 40);                     // 2 sn - ileri-geri titremeyi onler
   }
