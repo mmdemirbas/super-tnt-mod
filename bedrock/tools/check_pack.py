@@ -27,6 +27,13 @@ BEDROCK = os.path.normpath(os.path.join(HERE, ".."))
 BP = os.path.join(BEDROCK, "super_tnt_BP")
 RP = os.path.join(BEDROCK, "super_tnt_RP")
 
+# .pyc YAZMA. build.py'yi disaridan yukluyoruz ve bedrock/__pycache__/ olusuyor;
+# onbellek gecerliligi (mtime saniyesi + BOYUT) ile kararlastiriliyor. Mutasyon
+# testi build.py'de tek karakter degistirip (boyut ayni) hemen geri aliyor -> ayni
+# saniye icinde ayni boyut -> Python ESKI bytecode'u kullaniyor ve denetim artik
+# diskteki dosyayi degil MUTASYONU dogruluyor. Sessiz ve yapiskan: bir sonraki
+# calistirmada da surer.
+sys.dont_write_bytecode = True
 _spec = importlib.util.spec_from_file_location("stnt_build", os.path.join(BEDROCK, "build.py"))
 build = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(build)          # build() sadece __main__'de calisir

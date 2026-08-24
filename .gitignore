@@ -47,3 +47,6 @@ bedrock/out/
 # temp / scratch
 
 tmp/
+
+# Python
+__pycache__/

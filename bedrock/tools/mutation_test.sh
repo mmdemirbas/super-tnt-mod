@@ -20,6 +20,7 @@ pass=0
 fail=0
 
 run() {   # run <ad> <beklenen metin parcasi>
+  rm -rf bedrock/__pycache__          # bkz. check_pack.py: bayat .pyc tuzagi
   out=$(python3 bedrock/tools/check_pack.py 2>&1)
   if echo "$out" | grep -q "$2"; then
     echo "  YAKALADI  $1"
