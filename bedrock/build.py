@@ -78,7 +78,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 32, 0]
+VERSION = [1, 33, 0]
 MIN_ENGINE = [1, 21, 0]
 # Surum etiketi paket ADINA yazilir. UUID + klasor adlari sabit oldugu icin
 # Minecraft ayni UUID'li paketi yerinde GUNCELLER; ama cihazda eski surum
@@ -396,9 +396,14 @@ MORPHS_OWN = [
          geo="geometry.zombie.v1.8", tex="textures/entity/zombie/zombie",
          mat="zombie", scale=2.0, pas=["resistance", 1], act="smash",
          pow=dict(r=7, dmg=10, knock=1.6, cd=100)),
+    # Boss ile AYNI model. Olcek 1.5 -> 1.15: yeni model vanilla warden'dan uzun
+    # (3,69 blok), 1.5'te oyuncu 5,2 blok olup kamerayi modelin icine aliyordu.
     dict(key="mutant_warden", n=86, tr="Mutant Warden", cat="Süper TNT", ns="stnt",
-         geo="geometry.warden", tex="textures/entity/warden/warden",
-         mat="warden", scale=1.5, pas=["resistance", 1], act="sonic",
+         geo="geometry.stnt_mutant_warden",
+         tex="textures/entity/stnt_mutant_warden/mutant_warden",
+         mat="warden", scale=1.15, pas=["resistance", 1], act="sonic",
+         layers=[dict(tex=["textures/entity/stnt_mutant_warden/bioluminescent_layer"],
+                      mat="warden_bioluminescent_layer")],
          pow=dict(range=34, damage=22, knock=2.6, cd=120)),
     dict(key="ender_send", n=87, tr="Ender Send", cat="Süper TNT", ns="stnt",
          geo="geometry.ender_send", tex="textures/entity/ender_send",
@@ -1287,11 +1292,12 @@ MONSTERS = [
          geo="geometry.creeper.v1.8", hp=180, scale=3.0, dmg=8, cw=1.5, ch=5.5,
          # creeper temasi: yaklasinca sisip DEV patlar
          explode=dict(power=6, fuse=1.5)),
-    # OZGUN model (custom=True): kendi geometry.mutant_warden + dokumuz + kendi
-    # animation.mutant_warden.move'umuz (query.ground_speed ile olcekli uzuv).
-    # Doku emissive: goz/kalp/damar karanlikta parlar. Model zaten iri
-    # modellendi -> scale dusuk (1.6) yeter; ~5 blok dev boss.
-    dict(id="mutant_warden", mirror="warden", hp=500, scale=2.0, dmg=22, cw=1.7, ch=8.5,
+    # OZGUN model: geometry.stnt_mutant_warden (bkz. bedrock/custom/KAYNAKLAR.md)
+    # + kendi 11 animasyonu + alti katmanli doku (govde, biyolumine, iki leke
+    # katmani, tendril, kalp). Render/animasyon KONTROLCULERI vanilla warden'in.
+    # Model zaten iri (3,69 blok) -> scale 1.6 ile ~5,9 blok dev boss; 2.0 olsa
+    # 7,4 bloka cikip kapali alanda tavana girerdi.
+    dict(id="mutant_warden", mirror="mutant_warden", hp=500, scale=1.6, dmg=22, cw=1.7, ch=8.5,
          extra={"minecraft:knockback_resistance": {"value": 0.9}}),
 ]
 
@@ -2070,15 +2076,35 @@ def build():
         w(os.path.join(BP, f"entities/{m['id']}.json"),
           {"format_version": "1.21.0", "minecraft:entity": ent})
         if m.get('mirror'):
-            # GORUNUM = BIREBIR vanilla mob (custom/{id}.mirror.json). Vanilla
-            # geometry/doku/materyal/render-controller/animation ADIYLA referans
-            # alinir (morph deseni — paketleme yok, kopya-id cakismasi olmaz).
-            # Warden icin: pre_animation query.modified_distance_moved ile bacak/
-            # kol degiskenlerini hesaplar, animation.warden.move kemige baglar ->
-            # GERCEK Warden gorunumu + yuruyusu. BP tarafi kendi dusman AI+scale.
+            # GORUNUM custom/{id}.mirror.json'dan gelir. Desen: vanilla adlarini
+            # (controller.render.*, controller.animation.*, materyaller) OLDUGU
+            # GIBI referans al — Minecraft onlari kendi kaynagindan verir — ve
+            # yalniz paketin KENDI parcalarini ship et. Yurumenin sirri
+            # pre_animation: bacak/kol donuslerini query.modified_distance_moved'
+            # dan hesaplar, move animasyonu kemige baglar (vanilla Warden'in
+            # yaptigi). Zamanlayiciyla surulen animasyon "hayalet gibi kayma"
+            # veriyordu.
+            #
+            # Yanindaki {id}.geo.json / {id}.animation.json / {id}_tex/ varsa
+            # onlar da kopyalanir. Kopyalanmazsa mirror.json kimlikleri referans
+            # eder ama dosyalar pakette olmaz -> model SESSIZCE gorunmez olur.
             os.makedirs(os.path.join(RP, "entity"), exist_ok=True)
             shutil.copy(os.path.join(HERE, f"custom/{m['id']}.mirror.json"),
                         os.path.join(RP, f"entity/{m['id']}.json"))
+            geo_src = os.path.join(HERE, f"custom/{m['id']}.geo.json")
+            if os.path.exists(geo_src):
+                os.makedirs(os.path.join(RP, "models/entity"), exist_ok=True)
+                shutil.copy(geo_src, os.path.join(RP, f"models/entity/{m['id']}.geo.json"))
+            anim_src = os.path.join(HERE, f"custom/{m['id']}.animation.json")
+            if os.path.exists(anim_src):
+                os.makedirs(os.path.join(RP, "animations"), exist_ok=True)
+                shutil.copy(anim_src, os.path.join(RP, f"animations/{m['id']}.animation.json"))
+            tex_src = os.path.join(HERE, f"custom/{m['id']}_tex")
+            if os.path.isdir(tex_src):
+                tex_dst = os.path.join(RP, f"textures/entity/stnt_{m['id']}")
+                os.makedirs(tex_dst, exist_ok=True)
+                for tf in sorted(os.listdir(tex_src)):
+                    shutil.copy(os.path.join(tex_src, tf), os.path.join(tex_dst, tf))
         elif m.get('custom'):
             # OZGUN model + OZGUN doku, ama animasyon VANILLA MOB TEKNIGIYLE:
             # scripts.pre_animation query.modified_distance_moved'dan bacak/kol

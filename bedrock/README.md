@@ -83,7 +83,8 @@ küçülme/büyütme ile çakışmaz.
 
 Üretilen tablo `MORPHS_VANILLA`; paketin kendi mob'ları (Dev Creeper, Dev Zombi,
 Mutant Warden, Ender Send) `MORPHS_OWN` içinde **elle** yazılır — üreteç onlara
-dokunmaz. Yetenekler `MORPH_ABIL`'e `st:morph` sayısıyla değil mob tanımından
+dokunmaz. Kendi mob'larımızın modeli/dokusu vanilla'dan değil paketten gelir;
+nereden geldikleri `bedrock/custom/KAYNAKLAR.md` içinde yazılı. Yetenekler `MORPH_ABIL`'e `st:morph` sayısıyla değil mob tanımından
 bağlanır; sayı elle yazılsa liste büyüdükçe kayar ve yanlış moba yanlış güç
 bağlanırdı. Dönüşünce eylem çubuğunda yazan ipucu da aynı tablodan üretilir.
 

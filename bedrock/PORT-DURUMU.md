@@ -1,7 +1,39 @@
 # Super TNT — Bedrock Port Durumu
 
-Son sürüm: **v1.32.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
+Son sürüm: **v1.33.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
 olacak şekilde geliştiriliyor (MorphX / mutant paketine bağımlılık yok).
+
+## v1.33.0 — Mutant Warden'ın kendi modeli
+
+Mutant Warden vanilla Warden'ın 2 kat büyütülmüşüydü: dev ama tanıdık. Artık
+kendi modeli var — 11 kemik, 20 kutu, 11 animasyon (yürüme, saldırı, kükreme,
+ses patlaması, toprağa gömülme, ürperme…) ve altı katmanlı doku: gövde,
+biyolüminesan katman, iki leke katmanı, tendriller, kalp.
+
+Model üçüncü tarafa ait (`ibu_craft:mutant_warden`); kaynağı ve yeniden dağıtım
+koşulu `bedrock/custom/KAYNAKLAR.md` içinde yazılı.
+
+**Kimlikler `stnt_` önekiyle yeniden adlandırıldı.** Özgün paket de aynı
+tablette kuruluysa `geometry.mutant_warden` ve `animation.mutant_warden.*` iki
+kez tanımlanır ve hangisinin kazandığı belirsiz olur. Vanilla adları
+(`controller.render.warden*`, `controller.animation.warden.*`, materyaller)
+değiştirilmedi — onları Minecraft kendi kaynağından verir.
+
+**Ölçekler yeniden hesaplandı.** Yeni model 3,69 blok, vanilla Warden 2,9 —
+yani 1,27 kat uzun. Boss ölçeği 2,0'dan **1,6**'ya indi (aynı görünen boy,
+~5,9 blok; 2,0 kalsaydı 7,4 bloka çıkıp kapalı alanda tavana girerdi). Morph
+ölçeği 1,5'ten **1,15**'e indi: 1,5'te oyuncu 5,2 blok oluyor ve üçüncü şahıs
+kamerası modelin içinde kalıyordu. Dönüşünce artık boss ile aynı model
+görünüyor, biyolüminesan katman da dahil.
+
+**Denetim iki yerde sıkılaştı.** (1) `OWN_GEOS`/`OWN_TEXS` artık ad kalıbından
+değil, RP'de gerçekten duran dosyalardan türetiliyor — eskiden
+`geometry.<mob id>` kalıbına uyan her ad, dosya olmasa bile kabul ediliyordu.
+(2) Yeni `check_client_entities()`: `RP/entity/*.json` içindeki her geometry /
+doku / materyal / animasyon adının çözülmesi ve `scripts.animate` adımlarının
+`animations` tablosunda tanımlı olması kontrol ediliyor. Dışarıdan varlık
+alırken tek bir yerde yeniden adlandırmayı unutmak modeli sessizce görünmez
+yapar; bu denetim tam onu yakalar. Toplam 3189 kontrol.
 
 ## v1.32.0 — Ejderha Nefesi, dönüşünce isim gizleme
 

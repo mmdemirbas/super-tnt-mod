@@ -16,6 +16,7 @@ Vanilla kimlikleri bedrock/tools/vanilla_ids.json'dan okunur
 """
 import importlib.util
 import json
+import glob
 import os
 import re
 import shutil
@@ -53,8 +54,15 @@ MATS = set(VAN["entity_materials"])
 # Paketin KENDI varliklari ve modelleri: morph tablosunda bunlar da gecebilir,
 # vanilla listelerinde aranmamali.
 OWN_ENTITIES = {f"stnt:{m['id']}" for m in build.MONSTERS}
-OWN_GEOS = {f"geometry.{m['id']}" for m in build.MONSTERS}
-OWN_TEXS = {f"textures/entity/{m['id']}" for m in build.MONSTERS}
+# Ad kalibi degil, DOSYA: RP'de gercekten duran geometry kimlikleri ve doku
+# yollari. Eskiden kalip ("geometry.<mob id>") kabul ediliyordu, yani ship
+# edilmeyen bir model de denetimden geciyordu.
+OWN_GEOS = {g["description"]["identifier"]
+            for p in glob.glob(os.path.join(RP, "models", "entity", "*.geo.json"))
+            for g in json.load(open(p, encoding="utf-8"))["minecraft:geometry"]}
+OWN_TEXS = {os.path.relpath(p, RP)[:-4].replace(os.sep, "/")
+            for p in glob.glob(os.path.join(RP, "textures", "entity", "**", "*.png"),
+                               recursive=True)}
 # Vanilla'da tanimli ama hicbir vanilla varligin kullanmadigi materyaller —
 # vanilla entity tanimlarindan toplanan listede gorunmezler.
 EXTRA_MATS = {"entity_emissive_alpha"}
@@ -195,24 +203,22 @@ def check_morphs(js):
         if tid in OWN_ENTITIES:
             check(os.path.exists(os.path.join(BP, "entities", f"{k}.json")),
                   f"morph {k}: paketin kendi mob'u ama BP/entities/{k}.json yok")
-        check(m["geo"] in GEOS or m["geo"] in OWN_GEOS, f"morph {k}: geometry '{m['geo']}' yok")
-        if m["geo"] in OWN_GEOS:
-            # Kendi modelimizse RP'de GERCEKTEN ship edilmis olmali; edilmezse
-            # oyuncu gorunmez olur ve hicbir hata cikmaz.
-            gid = m["geo"].split(".", 1)[1]
-            check(os.path.exists(os.path.join(RP, "models", "entity", f"{gid}.geo.json")),
-                  f"morph {k}: '{m['geo']}' modeli RP'de ship edilmiyor")
-        check(m["tex"] in TEXS or m["tex"] in OWN_TEXS, f"morph {k}: doku '{m['tex']}' yok")
-        if m["tex"] in OWN_TEXS:
-            check(os.path.exists(os.path.join(RP, m["tex"] + ".png")),
-                  f"morph {k}: '{m['tex']}.png' RP'de yok")
+        # Vanilla'da VARSA Minecraft verir; yoksa RP'de ship EDILMIS olmali.
+        # Ikisi de degilse model/doku sessizce gorunmez olur.
+        check(m["geo"] in GEOS or m["geo"] in OWN_GEOS,
+              f"morph {k}: geometry '{m['geo']}' ne vanilla'da var ne RP'de ship ediliyor")
+        check(m["tex"] in TEXS or m["tex"] in OWN_TEXS,
+              f"morph {k}: doku '{m['tex']}' ne vanilla'da var ne RP'de ship ediliyor")
         check(m["mat"] in MATS or m["mat"] in EXTRA_MATS, f"morph {k}: materyal '{m['mat']}' yok")
         for i, lay in enumerate(m.get("layers", [])):
             for t in lay["tex"]:
-                check(t in TEXS, f"morph {k} katman {i}: doku '{t}' vanilla'da yok")
-            check(lay["mat"] in MATS, f"morph {k} katman {i}: materyal '{lay['mat']}' vanilla'da yok")
+                check(t in TEXS or t in OWN_TEXS,
+                      f"morph {k} katman {i}: doku '{t}' ne vanilla'da var ne RP'de ship ediliyor")
+            check(lay["mat"] in MATS or lay["mat"] in EXTRA_MATS,
+                  f"morph {k} katman {i}: materyal '{lay['mat']}' yok")
             if "geo" in lay:
-                check(lay["geo"] in GEOS, f"morph {k} katman {i}: geometry '{lay['geo']}' vanilla'da yok")
+                check(lay["geo"] in GEOS or lay["geo"] in OWN_GEOS,
+                      f"morph {k} katman {i}: geometry '{lay['geo']}' yok")
         for _bone, mat in m.get("mat_parts", []):
             check(mat in MATS, f"morph {k}: parca materyali '{mat}' vanilla'da yok")
         check(m["cat"] in build.MORPH_CATS, f"morph {k}: bilinmeyen kategori '{m['cat']}'")
@@ -331,6 +337,43 @@ def check_ids(js):
             check(a["effect"] in EFFECTS, f"item {it['id']}: '{a['effect']}' diye bir etki yok")
 
 
+# --------------------------------------------------- 4c. RP client entity'leri
+def check_client_entities():
+    """RP/entity/*.json'daki geometry / doku / animasyon adlari cozuluyor mu?
+
+    Paketin kendi mob'lari icin kimlikler stnt_ onekiyle yeniden adlandiriliyor
+    (ozgun paket de kuruluysa ad cakismasin diye). Tek bir yerde degistirmeyi
+    unutmak modeli ya da animasyonu sessizce yok eder.
+    """
+    shipped_anims = set()
+    for p in glob.glob(os.path.join(RP, "animations", "*.json")):
+        shipped_anims |= set(jload(p).get("animations", {}))
+    for p in sorted(glob.glob(os.path.join(RP, "entity", "*.json"))):
+        name = os.path.basename(p)
+        if name == "player.json":
+            continue                      # morph tablosu 3d'de ayrica denetleniyor
+        d = jload(p)["minecraft:client_entity"]["description"]
+        for slot, gid in d.get("geometry", {}).items():
+            check(gid in GEOS or gid in OWN_GEOS,
+                  f"{name} geometry.{slot}: '{gid}' ne vanilla'da var ne RP'de ship ediliyor")
+        for slot, tex in d.get("textures", {}).items():
+            check(tex in TEXS or tex in OWN_TEXS,
+                  f"{name} textures.{slot}: '{tex}' ne vanilla'da var ne RP'de ship ediliyor")
+        for slot, mat in d.get("materials", {}).items():
+            check(mat in MATS or mat in EXTRA_MATS, f"{name} materials.{slot}: '{mat}' yok")
+        for slot, aid in d.get("animations", {}).items():
+            # Vanilla animasyon adlarinin listesi elimizde yok; kendi
+            # onekimizle baslayanlar ship EDILMIS olmali.
+            if aid.startswith("animation.stnt_"):
+                check(aid in shipped_anims,
+                      f"{name} animations.{slot}: '{aid}' RP'de ship edilmiyor")
+        # scripts.animate icindeki her ad animations tablosunda tanimli mi?
+        for step in d.get("scripts", {}).get("animate", []):
+            key = list(step)[0] if isinstance(step, dict) else step
+            check(key in d.get("animations", {}),
+                  f"{name} scripts.animate: '{key}' animations tablosunda yok")
+
+
 # ------------------------------------------------------- 4b. ipucu sozlesmesi
 def check_tooltip_contract():
     """CLAUDE.md: ipucu bir sozlesmedir. Yeni esyalarin ipucundaki sayilar
@@ -386,6 +429,7 @@ def main():
     check_tnts()
     check_morphs(js)
     check_ids(js)
+    check_client_entities()
     check_tooltip_contract()
     check_tree(js)
     if FAILS:

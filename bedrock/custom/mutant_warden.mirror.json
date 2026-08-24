@@ -1,11 +1,5 @@
 {
   "format_version": "1.10.0",
-  "//": "stnt:mutant_warden GORUNUMU = birebir vanilla Warden. Vanilla asset'leri",
-  "//2": "ADIYLA referans alir (geometry.warden, controller.render.warden*,",
-  "//3": "animation.warden.*, warden materyalleri/dokulari) — morph deseninin ayni",
-  "//4": "si, paketleme YOK (kopya-id cakismasi olmaz). pre_animation blogu",
-  "//5": "query.modified_distance_moved ile bacak/kol degiskenlerini hesaplar;",
-  "//6": "animation.warden.move bunlari kemiklere baglar -> gercek Warden yuruyusu.",
   "minecraft:client_entity": {
     "description": {
       "identifier": "stnt:mutant_warden",
@@ -14,14 +8,16 @@
         "bioluminescent_layer": "warden_bioluminescent_layer"
       },
       "textures": {
-        "default": "textures/entity/warden/warden",
-        "bioluminescent_layer": "textures/entity/warden/warden_bioluminescent_layer",
-        "spots_1": "textures/entity/warden/warden_pulsating_spots_1",
-        "spots_2": "textures/entity/warden/warden_pulsating_spots_2",
-        "tendrils": "textures/entity/warden/warden_tendrils",
-        "heart": "textures/entity/warden/warden_heart"
+        "default": "textures/entity/stnt_mutant_warden/mutant_warden",
+        "bioluminescent_layer": "textures/entity/stnt_mutant_warden/bioluminescent_layer",
+        "spots_1": "textures/entity/stnt_mutant_warden/spots_1",
+        "spots_2": "textures/entity/stnt_mutant_warden/spots_2",
+        "tendrils": "textures/entity/stnt_mutant_warden/tendrils",
+        "heart": "textures/entity/stnt_mutant_warden/heart"
       },
-      "geometry": { "default": "geometry.warden" },
+      "geometry": {
+        "default": "geometry.stnt_mutant_warden"
+      },
       "scripts": {
         "pre_animation": [
           "variable.animation_speed = Math.min(0.5, 3.0 * query.modified_move_speed);",
@@ -52,27 +48,50 @@
         ],
         "animate": [
           "base_pose",
-          { "move": "!(query.is_emerging || query.is_digging)" },
+          {
+            "move": "!(query.is_emerging || query.is_digging)"
+          },
           "shiver_controller",
           "bob",
-          { "look_at_target": "!(query.is_emerging || query.is_digging)" },
+          {
+            "emerge": "query.is_emerging"
+          },
+          "sniff_controller",
+          {
+            "dig": "query.is_digging"
+          },
+          "roar_controller",
+          {
+            "look_at_target": "!(query.is_emerging || query.is_digging)"
+          },
           "melee_attack_controller",
-          { "swimming": "query.swim_amount > 0.0" },
-          "hurt_controller"
+          {
+            "swimming": "query.swim_amount > 0.0"
+          },
+          "hurt_controller",
+          "sonic_boom_controller"
         ]
       },
       "animations": {
-        "shiver": "animation.warden.shiver",
+        "emerge": "animation.stnt_mutant_warden.emerge",
+        "sniff": "animation.stnt_mutant_warden.sniff",
+        "sniff_controller": "controller.animation.warden.sniff",
+        "dig": "animation.stnt_mutant_warden.dig",
+        "roar": "animation.stnt_mutant_warden.roar",
+        "roar_controller": "controller.animation.warden.roar",
+        "shiver": "animation.stnt_mutant_warden.shiver",
         "shiver_controller": "controller.animation.warden.shiver",
         "base_pose": "animation.humanoid.base_pose.v1.0",
-        "look_at_target": "animation.warden.look_at_target.default",
-        "move": "animation.warden.move",
-        "melee_attack": "animation.warden.attack",
+        "look_at_target": "animation.stnt_mutant_warden.look_at_target.default",
+        "move": "animation.stnt_mutant_warden.move",
+        "melee_attack": "animation.stnt_mutant_warden.attack",
         "melee_attack_controller": "controller.animation.warden.melee_attacking",
-        "bob": "animation.warden.bob",
+        "bob": "animation.stnt_mutant_warden.bob",
         "swimming": "animation.humanoid.swimming.v1.0",
-        "hurt": "animation.warden.hurt",
-        "hurt_controller": "controller.animation.warden.hurt"
+        "hurt": "animation.stnt_mutant_warden.hurt",
+        "hurt_controller": "controller.animation.warden.hurt",
+        "sonic_boom": "animation.stnt_mutant_warden.sonic_boom",
+        "sonic_boom_controller": "controller.animation.warden.sonic_boom"
       },
       "render_controllers": [
         "controller.render.warden",
@@ -81,7 +100,18 @@
         "controller.render.warden_spots_2",
         "controller.render.warden_tendrils",
         "controller.render.warden_heart"
-      ]
+      ],
+      "enable_attachables": true,
+      "sound_effects": {
+        "emerge": "mob.warden.emerge",
+        "sniff": "mob.warden.sniff",
+        "dig": "mob.warden.dig",
+        "roar": "mob.warden.roar",
+        "clicking": "mob.warden.clicking"
+      },
+      "particle_effects": {
+        "digging": "minecraft:warden_dig"
+      }
     }
   }
 }

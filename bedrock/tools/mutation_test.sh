@@ -73,7 +73,7 @@ cp "$BAK/main.bak" "$BP/scripts/main.js"
 # 5) morph tablosunda yanlis doku adi -> gorunmez oyuncu (yasanmis ghast hatasi)
 cp bedrock/build.py "$BAK/build.bak"
 sed 's|tex="textures/entity/ghast/ghast"|tex="textures/entity/ghast"|' "$BAK/build.bak" > bedrock/build.py
-run "morph dokusu vanilla'da yok (eski ghast hatasi)" "doku 'textures/entity/ghast' yok"
+run "morph dokusu vanilla'da yok (eski ghast hatasi)" "doku 'textures/entity/ghast' ne vanilla"
 cp "$BAK/build.bak" bedrock/build.py
 
 # 6) ipucu ile davranis ayrisirsa -> tooltip sozlesmesi bozulur
@@ -100,7 +100,7 @@ cp "$BAK/build.bak" bedrock/build.py
 
 # 10) paketin kendi morph modeli RP'ye konmazsa -> gorunmez oyuncu
 mv "$RP/models/entity/ender_send.geo.json" "$BAK/geo.bak"
-run "kendi modelimiz ship edilmiyor" "ship edilmiyor"
+run "kendi modelimiz ship edilmiyor" "ne RP.de ship ediliyor"
 mv "$BAK/geo.bak" "$RP/models/entity/ender_send.geo.json"
 
 # 11) donusum ipucu yetenegi yazmazsa -> cocuk gucunu ogrenemez
