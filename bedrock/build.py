@@ -78,7 +78,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 31, 0]
+VERSION = [1, 32, 0]
 MIN_ENGINE = [1, 21, 0]
 # Surum etiketi paket ADINA yazilir. UUID + klasor adlari sabit oldugu icin
 # Minecraft ayni UUID'li paketi yerinde GUNCELLER; ama cihazda eski surum
@@ -1094,6 +1094,18 @@ ITEMS = [
                "passes through walls, damages and throws everything in its path.",
          color=(45, 130, 155),
          action=dict(type="sonic", range=24, damage=14, knock=1.8)),
+    dict(id="ejderha_nefesi", tr="Ejderha Nefesi", en="Dragon's Breath", kind="raycast",
+         trtip="Sağ tıkla — baktığın yere ejderhanın mor nefesini saçar! "
+               "5 blok yarıçapında bir bulut olur, 12 saniye kalır ve içindeki "
+               "herkesin saniyede 1 kalbini götürür. Kendine de zarar verir — "
+               "bulutun içine girme!",
+         entip="Right-click - sprays the dragon's purple breath where you look! "
+               "A 5-block-radius cloud that lasts 12 seconds and takes 1 full "
+               "heart per second from everything inside. It hurts you too - "
+               "stay out of the cloud!",
+         color=(120, 45, 190),
+         action=dict(type="dragon_breath", radius=5, damage=2, seconds=12,
+                     pulse=20, reach=40, cd=60)),
     dict(id="lightning_spell", tr="Yıldırım Büyüsü", en="Lightning Spell", kind="raycast",
          trtip="Sağ tıkla — baktığın yere GERÇEK yıldırım çakar! Yakar ve öldürür.",
          entip="Right-click - strikes REAL lightning where you look!",
@@ -1323,7 +1335,7 @@ def symbol_texture(path, item_id):
         "rainbow_boots": (120, 180, 220), "kurus": (60, 52, 38),
         "iki_yuz_tl": (65, 120, 85), "saglik_iksiri": (58, 18, 30),
         "can_artirici": (60, 30, 12), "ses_saldirisi": (12, 32, 40),
-        "mega_gubre": (22, 48, 26),
+        "mega_gubre": (22, 48, 26), "ejderha_nefesi": (28, 10, 42),
     }
     if item_id not in SPECS:
         return False
@@ -1447,6 +1459,14 @@ def symbol_texture(path, item_id):
                     d2 = (x - 3) ** 2 + (y - 8) ** 2
                     if r * r - 5 <= d2 <= r * r + 5 and x >= 3:
                         px(x, y, c)
+    elif iid == "ejderha_nefesi":
+        # alttan yukari acilan mor nefes bulutu + yukselen uc duman tutami
+        for (cx, cy, r, c) in ((5, 11, 3, (110, 45, 175)), (11, 11, 3, (110, 45, 175)),
+                               (8, 10, 4, (140, 62, 210)), (8, 10, 2, (196, 132, 255))):
+            disc(cx, cy, r, c)
+        for (x, y0) in ((4, 3), (8, 2), (12, 4)):
+            vline(x, y0, y0 + 2, (170, 95, 235))
+            px(x - 1, y0 + 1, (150, 72, 220)); px(x + 1, y0 + 1, (150, 72, 220))
     elif iid == "iki_yuz_tl":
         rect(2, 5, 13, 11, (210, 225, 200))
         for x in range(2, 14):
@@ -2630,6 +2650,10 @@ function itemAction(player, a) {
         megaTree(player, a);
         break;
       }
+      case "dragon_breath": {
+        dragonBreath(player, a);
+        break;
+      }
       case "sonic": {
         // Kisa bekleme: her tik 24 adim + 24 varlik taramasi demek, hizli
         // tiklama tableti yorar. 10 tick fark edilmeyecek kadar kisa.
@@ -3721,6 +3745,52 @@ function detonate(dim, c, short, igniterId) {
   } catch (e) {
     console.warn(`[SuperTNT] ${short} patlamasi basarisiz: ${e}`);
   }
+}
+
+// EJDERHA NEFESI. Baktigin yere kalici mor bulut. Iki sey onemli:
+//  - Hasar 2, yani TAM bir kalp. Bedrock'ta applyDamage(1) yarim kalp goturur.
+//  - Vurus araligi bir saniye (pulse=20 tick): kalpler tek tek gitsin, tek
+//    seferde erimesin. Suresi bitince interval KENDINI durdurur.
+// Bulut sahibini de yakar (vanilla ejderha nefesi de oyle); ipucu bunu yaziyor.
+const breathCd = new Map();
+function dragonBreath(player, a) {
+  const dim = player.dimension, now = system.currentTick;
+  if ((breathCd.get(player.id) || 0) > now) return;
+  breathCd.set(player.id, now + a.cd);
+  const v = player.getViewDirection(), s = player.getHeadLocation();
+  const hit = player.getBlockFromViewDirection({ maxDistance: a.reach });
+  const c = hit
+    ? { x: hit.block.location.x + 0.5, y: hit.block.location.y + 1.2, z: hit.block.location.z + 0.5 }
+    : { x: s.x + v.x * a.reach, y: s.y + v.y * a.reach, z: s.z + v.z * a.reach };
+  try { dim.playSound("mob.enderdragon.growl", c, { volume: 1.1 }); } catch (e) {}
+  const total = a.seconds * 20;
+  let t = 0;
+  const job = system.runInterval(() => {
+    t += 5;
+    // Daireye ESIT dagilim: sqrt olmadan parcaciklar merkeze yigilir.
+    for (let i = 0; i < 24; i++) {
+      const ang = Math.random() * Math.PI * 2;
+      const rr = Math.sqrt(Math.random()) * a.radius;
+      try {
+        dim.spawnParticle(i % 4 ? "minecraft:dragon_breath_lingering" : "minecraft:dragon_breath_trail",
+                          { x: c.x + Math.cos(ang) * rr, y: c.y + Math.random() * 1.8 - 0.9,
+                            z: c.z + Math.sin(ang) * rr });
+      } catch (e) {}
+    }
+    if (t % a.pulse === 0) {
+      let ents = [];
+      try { ents = dim.getEntities({ location: c, maxDistance: a.radius }); } catch (e) {}
+      for (const e of ents) {
+        if (SONIC_SKIP[e.typeId]) continue;             // esya/tecrube yanmasin
+        // Sahibine kendi kimligiyle hasar veremeyiz -> duz hasara dus.
+        if (e.id === player.id) { try { e.applyDamage(a.damage); } catch (err) {} continue; }
+        try { e.applyDamage(a.damage, { cause: "magic", damagingEntity: player }); }
+        catch (err) { try { e.applyDamage(a.damage); } catch (err2) {} }
+      }
+      try { dim.playSound("random.fizz", c, { volume: 0.5 }); } catch (e) {}
+    }
+    if (t >= total) system.clearRun(job);
+  }, 5);
 }
 
 function spray(dim, c, particle, n, spread) {

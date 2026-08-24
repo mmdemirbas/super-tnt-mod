@@ -1,7 +1,30 @@
 # Super TNT — Bedrock Port Durumu
 
-Son sürüm: **v1.31.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
+Son sürüm: **v1.32.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
 olacak şekilde geliştiriliyor (MorphX / mutant paketine bağımlılık yok).
+
+## v1.32.0 — Ejderha Nefesi, dönüşünce isim gizleme
+
+**Ejderha Nefesi.** Sağ tıkla — baktığın yere ejderhanın mor nefesi saçılır.
+5 blok yarıçapında bir bulut, 12 saniye kalıcı, içindeki her canlının saniyede
+**1 tam kalbini** götürür. Bedrock'ta `applyDamage(1)` yarım kalp götürür, o
+yüzden hasar 2 ve vuruş aralığı tam bir saniye; denetim hasarın çift sayı
+olmasını ve ipucundaki kalp sayısıyla uyuşmasını kontrol ediyor. Bulut sahibini
+de yakar — vanilla ejderha nefesi de öyle — ve ipucu bunu yazıyor. Eşya ve
+tecrübe küreleri etkilenmez. Oyuncu başına 3 saniye bekleme var, yoksa çocuk
+tabletin üzerine yirmi bulut yığar.
+
+**Dönüşünce isim etiketi gizleniyor.** Creeper gibi görünüp tepende adın
+yazarsa dönüşümün anlamı kalmıyordu. Dönüşünce etiket boşaltılıyor, insana
+dönünce geri konuyor. Karşılaştırmalı yazılıyor (her turda `nameTag !== hedef`
+ise yazılır), yani oyuncu dönüşmüşken çıkıp girse de kendini toparlıyor.
+
+**Diğer oyuncuların dönüşümü görmesi zaten çalışıyor.** `st:morph` özelliği
+`client_sync: true` ile tanımlı, yani değeri tüm istemcilere gidiyor; dönüşüm
+render controller'ları da `!variable.is_first_person` koşuluyla, yani başka
+birinin ekranında senin bedenini çizen dal. Kod tarafında eksik yok. *Bu
+doğrudan gözlemle değil paket tanımından okundu; iki tablette karşılıklı
+denenmedi.*
 
 ## v1.31.0 — paketin kendi boss'larına dönüşüm
 

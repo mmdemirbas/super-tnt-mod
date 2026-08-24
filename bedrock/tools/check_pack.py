@@ -342,6 +342,16 @@ def check_tooltip_contract():
             check(str(a["range"]) in tip, f"item {it['id']}: ipucu {a['range']} blok menzili yazmiyor")
         if a.get("type") == "mega_tree":
             check(str(a["height"]) in tip, f"item {it['id']}: ipucu govde boyunu yazmiyor")
+        if a.get("type") == "dragon_breath":
+            # Bedrock'ta 1 kalp = 2 hasar. "bir bir gitsin" -> hasar CIFT olmali,
+            # yoksa yarim kalpler gider ve ipucu yalan soyler.
+            check(a["damage"] % 2 == 0,
+                  f"item {it['id']}: hasar {a['damage']} tek sayi -> yarim kalp goturur")
+            check(f"{a['damage'] // 2} kalb" in tip,
+                  f"item {it['id']}: ipucu {a['damage'] // 2} kalbi yazmiyor")
+            check(str(a["radius"]) in tip, f"item {it['id']}: ipucu {a['radius']} blok yaricapi yazmiyor")
+            check(str(a["seconds"]) in tip, f"item {it['id']}: ipucu {a['seconds']} saniyeyi yazmiyor")
+            check(a["pulse"] % 20 == 0, f"item {it['id']}: pulse {a['pulse']} tam saniye degil")
 
 
 # ---------------------------------------------------------------- 5. mega agac

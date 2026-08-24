@@ -108,6 +108,11 @@ python3 bedrock/build.py > /dev/null 2>&1
 run "ipucu yetenegi yazmiyor" "ipucu"
 cp "$BAK/build.bak" bedrock/build.py
 
+# 12) tek sayili hasar -> yarim kalp gider, ipucu "1 kalp" diyor: sozlesme kirilir
+sed 's/type="dragon_breath", radius=5, damage=2/type="dragon_breath", radius=5, damage=3/' "$BAK/build.bak" > bedrock/build.py
+run "tek sayili hasar (yarim kalp)" "yarim kalp goturur"
+cp "$BAK/build.bak" bedrock/build.py
+
 echo
 python3 bedrock/build.py > /dev/null && echo "paket yeniden uretildi"
 echo "yakalanan $pass / kacirilan $fail"
