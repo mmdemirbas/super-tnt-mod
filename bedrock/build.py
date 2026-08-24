@@ -3044,6 +3044,11 @@ system.runInterval(() => {
   for (const p of world.getPlayers()) {
     let m;
     try { m = p.getProperty("st:morph"); } catch (e) { continue; }
+    // Kendini gizlemenin yarisi isim etiketi: mob gibi gorunup tepende adin
+    // yazarsa oyun biter. Donunce geri konur; her turda karsilastirilir, yani
+    // oyuncu donusmusken cikip girse de kendini toparlar.
+    const wantTag = (typeof m === "number" && m !== 0) ? "" : p.name;
+    try { if (p.nameTag !== wantTag) p.nameTag = wantTag; } catch (e) {}
     if (typeof m !== "number" || m === 0) continue;
     const ab = MORPH_ABIL[m];
     if (!ab) continue;
