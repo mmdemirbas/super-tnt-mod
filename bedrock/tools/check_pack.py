@@ -402,6 +402,13 @@ def check_tooltip_contract():
                   f"{build.POTION_BASE_HP + 4 * (a['amp'] + 1)} can, ipucu {a['hp']} diyor")
             check(str(a["hp"]) in tip, f"item {it['id']}: ipucu {a['hp']} canini yazmiyor")
             check(str(a["seconds"] // 60) in tip, f"item {it['id']}: ipucu sureyi yazmiyor")
+        if a.get("type") == "heal_boost":
+            # Bedrock'ta efekt amplifier tavani 255. Ustune cikan bir can
+            # hedefi sessizce hic uygulanmaz — esya bosa tiklanir.
+            check(a["amp"] <= 255,
+                  f"item {it['id']}: amplifier {a['amp']} > 255, efekt uygulanmaz")
+        if a.get("type") == "rename":
+            check(str(a["maxLen"]) in tip, f"item {it['id']}: ipucu {a['maxLen']} harf sinirini yazmiyor")
         if a.get("type") == "sonic":
             check(str(a["range"]) in tip, f"item {it['id']}: ipucu {a['range']} blok menzili yazmiyor")
         if a.get("type") == "mega_tree":

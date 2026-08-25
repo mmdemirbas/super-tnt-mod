@@ -1,7 +1,31 @@
 # Super TNT — Bedrock Port Durumu
 
-Son sürüm: **v1.35.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
+Son sürüm: **v1.36.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
 olacak şekilde geliştiriliyor (MorphX / mutant paketine bağımlılık yok).
+
+## v1.36.0 — İsim Değiştirme, Can Artırıcı 1000
+
+**Can Artırıcı artık 1000 can veriyor** (300'dü). Efekt amplifier'ı 244 —
+Bedrock'un 255 tavanının altında. Denetime kural eklendi: tavanı aşan bir can
+hedefi sessizce hiç uygulanmaz, yani eşya boşa tıklanırdı.
+
+*Not: 1000 can 500 kalp demek. Bedrock'un can çubuğunun bu kadar kalbi nasıl
+çizdiği tablette görülmeli — ekranı kaplarsa sayıyı düşürmek gerekebilir.*
+
+**İsim Değiştirme.** Basılı tut, çıkan kutuya yeni ismini yaz, sekiz renkten
+birini seç. Diğer oyuncular tepende o ismi görür. Kutuyu boş bırakıp
+onaylarsan gerçek ismine dönersin. En fazla 20 harf; satır sonu ve fazla
+boşluk temizleniyor.
+
+Takma ad oyuncunun kendi kalıcı özelliğinde tutuluyor ve dönüşüm döngüsü her
+turda oradan okuyor. Aksi hâlde döngü beş tick sonra gerçek ismi geri yazar ve
+takma ad bir anda kaybolurdu — aynı döngü dönüşünce ismi gizleyen döngü.
+Dönüşmüşken isim zaten gizli; insana dönünce yeni isim görünür.
+
+*Sınır: `nameTag` yalnızca kafanın üstündeki yazıdır. Sohbetteki ad ve oyuncu
+listesi değişmez — onları betik değiştiremez.*
+
+Denetim 3223 kontrol, 15 mutasyon.
 
 ## v1.35.0 — tablet öncesi denetim: on bir hata
 

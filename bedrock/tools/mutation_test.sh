@@ -78,7 +78,7 @@ cp "$BAK/build.bak" bedrock/build.py
 
 # 6) ipucu ile davranis ayrisirsa -> tooltip sozlesmesi bozulur
 sed 's/^BOOST_AMP = heal_amp(BOOST_HP)$/BOOST_AMP = 40/' "$BAK/build.bak" > bedrock/build.py
-run "can matematigi ipucu ile uyusmuyor" "ipucu 300 diyor"
+run "can matematigi ipucu ile uyusmuyor" "can, ipucu"   # BOOST_HP degisse de tutar
 cp "$BAK/build.bak" bedrock/build.py
 
 # 7) menuden bir kategori duserse -> o mob'lara ulasilamaz
@@ -117,6 +117,16 @@ cp "$BAK/build.bak" bedrock/build.py
 # 13) ipucundaki yaricap koddan ayrilirsa -> cocuk yanlis mesafeye gore kacar
 sed 's/radius=14, onlyAir=False, tempSeconds=30/radius=9, onlyAir=False, tempSeconds=30/' "$BAK/build.bak" > bedrock/build.py
 run "ipucu yaricapi koddan farkli" "blok yaricap diyor"
+cp "$BAK/build.bak" bedrock/build.py
+
+# 14) can hedefi Bedrock'un amplifier tavanini asarsa -> esya sessizce bos tiklar
+sed 's/^BOOST_HP = 1000$/BOOST_HP = 2000/' "$BAK/build.bak" > bedrock/build.py
+run "amplifier 255 tavanini asiyor" "efekt uygulanmaz"
+cp "$BAK/build.bak" bedrock/build.py
+
+# 15) isim sinirini ipucu yazmazsa -> cocuk kesilen ismi hata sanir
+sed 's/type="rename", maxLen=20/type="rename", maxLen=32/' "$BAK/build.bak" > bedrock/build.py
+run "isim siniri ipucunda yok" "harf sinirini yazmiyor"
 cp "$BAK/build.bak" bedrock/build.py
 
 echo

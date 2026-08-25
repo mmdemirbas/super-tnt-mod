@@ -78,7 +78,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 35, 0]
+VERSION = [1, 36, 0]
 MIN_ENGINE = [1, 21, 0]
 # Surum etiketi paket ADINA yazilir. UUID + klasor adlari sabit oldugu icin
 # Minecraft ayni UUID'li paketi yerinde GUNCELLER; ama cihazda eski surum
@@ -1036,7 +1036,7 @@ POTION_HP = 200
 POTION_SECONDS = 600         # 10 dk; bitince azami can 20'ye doner
 POTION_AMP = heal_amp(POTION_HP)
 # Can Artirici: iksirin buyugu. Dev boss'lara karsi daha uzun sureli koz.
-BOOST_HP = 300
+BOOST_HP = 1000
 BOOST_SECONDS = 1800         # 30 dk
 BOOST_AMP = heal_amp(BOOST_HP)
 
@@ -1079,6 +1079,17 @@ ITEMS = [
          color=(240, 180, 40),
          action=dict(type="heal_boost", hp=BOOST_HP,
                      seconds=BOOST_SECONDS, amp=BOOST_AMP)),
+    dict(id="isim_degistirici", tr="İsim Değiştirme", en="Name Changer", kind="raycast",
+         trtip="Basılı tut — çıkan kutuya yeni ismini yaz, rengini seç. Diğer "
+               "oyuncular tepende o ismi görür. En fazla 20 harf. Kutuyu boş "
+               "bırakıp onaylarsan gerçek ismine dönersin. Dönüşmüşken isim "
+               "zaten gizlidir; insana dönünce yeni ismin görünür.",
+         entip="Hold - type your new name in the box and pick a colour. Other "
+               "players see that name above your head. Up to 20 letters. Leave "
+               "it empty to go back to your real name. While morphed the name "
+               "stays hidden; it shows again when you turn back.",
+         color=(190, 160, 80),
+         action=dict(type="rename", maxLen=20)),
     dict(id="mega_gubre", tr="Mega Gübre", en="Mega Fertilizer", kind="raycast",
          trtip=f"Bir fidana sağ tıkla — gövdesi {TREE_H} blok, yapraklarıyla "
                f"{TREE_TOP} blok yüksekliğinde DEV bir ağaç büyür! Tepesi "
@@ -1342,6 +1353,7 @@ def symbol_texture(path, item_id):
         "iki_yuz_tl": (65, 120, 85), "saglik_iksiri": (58, 18, 30),
         "can_artirici": (60, 30, 12), "ses_saldirisi": (12, 32, 40),
         "mega_gubre": (22, 48, 26), "ejderha_nefesi": (28, 10, 42),
+        "isim_degistirici": (58, 46, 24),
     }
     if item_id not in SPECS:
         return False
@@ -1465,6 +1477,14 @@ def symbol_texture(path, item_id):
                     d2 = (x - 3) ** 2 + (y - 8) ** 2
                     if r * r - 5 <= d2 <= r * r + 5 and x >= 3:
                         px(x, y, c)
+    elif iid == "isim_degistirici":
+        # asili duran isim etiketi: ip, delik, kagit, uzerinde iki yazi satiri
+        vline(8, 1, 3, (150, 130, 90))               # ip
+        rect(3, 4, 13, 12, (226, 208, 160))          # kagit
+        rect(3, 4, 13, 4, (176, 158, 116))           # ust kenar golgesi
+        px(5, 6, (120, 104, 72)); px(6, 6, (120, 104, 72))   # delik
+        hline(8, 5, 11, (96, 80, 52))                # yazi satiri 1
+        hline(10, 5, 9, (96, 80, 52))                # yazi satiri 2
     elif iid == "ejderha_nefesi":
         # alttan yukari acilan mor nefes bulutu + yukselen uc duman tutami
         for (cx, cy, r, c) in ((5, 11, 3, (110, 45, 175)), (11, 11, 3, (110, 45, 175)),
@@ -2685,6 +2705,10 @@ function itemAction(player, a) {
         dragonBreath(player, a);
         break;
       }
+      case "rename": {
+        renamePrompt(player, a, 20);
+        break;
+      }
       case "sonic": {
         // Kisa bekleme: her tik 24 adim + 24 varlik taramasi demek, hizli
         // tiklama tableti yorar. 10 tick fark edilmeyecek kadar kisa.
@@ -3030,6 +3054,61 @@ world.afterEvents.entityHitEntity.subscribe((ev) => {
 });
 // Donusum Asasi: bir moba dokun -> o mob'un gorunumune don. before-event'te
 // triggerEvent calismaz (read-only), system.run ile ertele.
+// ---- Takma ad. nameTag DIGER oyuncularin tepende gordugu yazidir; sohbetteki
+// ad ile oyuncu listesi degismez, onlari betik degistiremez.
+// Kayit oyuncunun kendi dinamik ozelliginde: kalicidir ve donusum dongusu her
+// turda buradan okur (bkz. asagidaki wantTag) — yoksa dongu bes tick sonra
+// gercek ismi geri yazar ve takma ad bir anda kaybolurdu.
+const NICK_PROP = "stnt:nick";
+const NICK_COLORS = [
+  ["Beyaz", "§f"], ["Sarı", "§e"], ["Turuncu", "§6"], ["Kırmızı", "§c"],
+  ["Yeşil", "§a"], ["Camgöbeği", "§b"], ["Mor", "§d"], ["Gri", "§7"],
+];
+function nickOf(pl) {
+  try {
+    const v = pl.getDynamicProperty(NICK_PROP);
+    return typeof v === "string" && v ? v : null;
+  } catch (e) { return null; }
+}
+function renamePrompt(pl, a, tries) {
+  const form = new ModalFormData()
+    .title("İsim Değiştirme")
+    .textField("Yeni ismin (boş bırak = gerçek ismin):", pl.name)
+    .dropdown("Renk:", NICK_COLORS.map((c) => c[0]), 0);
+  form.show(pl).then((r) => {
+    if (r.canceled) {
+      // Parmak hala ekrandayken form "UserBusy" doner — kisa araliklarla tekrar
+      // dene, yoksa esya ilk dokunusta olu gorunur (menu asasindaki ayni tuzak).
+      if (r.cancelationReason === "UserBusy" && tries > 0) {
+        system.runTimeout(() => renamePrompt(pl, a, tries - 1), 10);
+      }
+      return;
+    }
+    if (!r.formValues) return;
+    // Satir sonu ve bosluk temizligi: cok satirli bir ad etiketi bozar.
+    let raw = String(r.formValues[0] || "").replace(/[\r\n\t]/g, " ").trim();
+    if (raw.length > a.maxLen) raw = raw.slice(0, a.maxLen);
+    try {
+      if (!raw) {
+        pl.setDynamicProperty(NICK_PROP, undefined);
+        pl.nameTag = pl.name;
+        pl.onScreenDisplay.setActionBar("§7Gerçek ismine döndün: §f" + pl.name);
+        return;
+      }
+      const ci = Number(r.formValues[1]) || 0;
+      const col = (NICK_COLORS[ci] || NICK_COLORS[0])[1];
+      const nick = col + raw;
+      pl.setDynamicProperty(NICK_PROP, nick);
+      // Donusmusken etiket gizli kalir; dongu insana donunce yeni adi yazar.
+      let m = 0;
+      try { m = pl.getProperty("st:morph") || 0; } catch (e) {}
+      if (!m) pl.nameTag = nick;
+      pl.onScreenDisplay.setActionBar(
+        m ? "§aİsmin ayarlandı: " + nick + " §7(dönüşükken gizli)" : "§aArtık ismin: " + nick);
+    } catch (e) {}
+  }).catch(() => {});
+}
+
 function morphTo(pl, evName, msg) {
   try {
     pl.triggerEvent(evName);
@@ -3113,7 +3192,7 @@ system.runInterval(() => {
     // Kendini gizlemenin yarisi isim etiketi: mob gibi gorunup tepende adin
     // yazarsa oyun biter. Donunce geri konur; her turda karsilastirilir, yani
     // oyuncu donusmusken cikip girse de kendini toparlar.
-    const wantTag = (typeof m === "number" && m !== 0) ? "" : p.name;
+    const wantTag = (typeof m === "number" && m !== 0) ? "" : (nickOf(p) || p.name);
     try { if (p.nameTag !== wantTag) p.nameTag = wantTag; } catch (e) {}
     if (typeof m !== "number" || m === 0) continue;
     const ab = MORPH_ABIL[m];
