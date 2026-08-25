@@ -3293,6 +3293,14 @@ function track(dimId, loc, owner) {
   if (tracked.size > TRACK_MAX) tracked = new Set([...tracked].slice(-TRACK_MAX));
   saveTracked();
 }
+function ownerOf(dimId, loc) {
+  // Blogu KIM koydu? tracked anahtari "dim|x,y,z|owner" bicimindedir. ignite'a
+  // igniterId gecmeyen yollar (redstone, zincir, baska patlama) icin tek
+  // dogru kaynak burasi. untrack SILMEDEN once cagrilmali.
+  const pre = `${dimId}|${Math.floor(loc.x)},${Math.floor(loc.y)},${Math.floor(loc.z)}|`;
+  for (const k of tracked) if (k.startsWith(pre)) return k.slice(pre.length) || undefined;
+  return undefined;
+}
 function untrack(dimId, loc) {
   const pre = `${dimId}|${Math.floor(loc.x)},${Math.floor(loc.y)},${Math.floor(loc.z)}`;
   for (const k of [...tracked]) if (k === pre || k.startsWith(pre + "|")) tracked.delete(k);
@@ -3380,6 +3388,8 @@ function fireOnce(id) {
 }
 
 function ignite(dim, loc, short, igniterId) {
+  // Cagiran bilmiyorsa kaydindan bul (redstone / zincir / baska patlama).
+  if (!igniterId) igniterId = ownerOf(dim.id, loc);
   try {
     const b = dim.getBlock(loc);
     if (!b || b.typeId !== `stnt:${short}`) return;   // zaten ateslenmis
@@ -3723,10 +3733,19 @@ function detonate(dim, c, short, igniterId) {
         let px = -r;
         const job = system.runInterval(() => {
           let d = 0;
+          const skip = new Set();
+          try {
+            for (const pl of dim.getPlayers({ location: c, maxDistance: r + 2 })) {
+              const q = pl.location, qx = Math.floor(q.x), qy = Math.floor(q.y), qz = Math.floor(q.z);
+              skip.add(`${qx},${qy},${qz}`); skip.add(`${qx},${qy + 1},${qz}`);
+            }
+          } catch (e) {}
           while (px <= r && d < per) {
             for (let py = -r; py <= r; py++) for (let pz = -r; pz <= r; pz++) {
               if (px * px + py * py + pz * pz > r * r) continue;
               d++;                                  // bkz. transform: is sayilir
+              // Oyuncunun durdugu iki blok doldurulmaz — yoksa bogulur.
+              if (skip.has(`${cx + px},${cy + py},${cz + pz}`)) continue;
               try {
                 const b = dim.getBlock({ x: cx + px, y: cy + py, z: cz + pz }); if (!b) continue;
                 const t = b.typeId;
@@ -3911,7 +3930,31 @@ system.runInterval(() => {
       if (below.typeId === "stnt:wrong_golden_plate") p.applyDamage(1000);
       else if (below.typeId === "stnt:zehir_toprak") p.addEffect("poison", 100, { amplifier: 2 });
       else if (below.typeId === "stnt:end_gate") {
-        try { p.teleport({ x: 100, y: 70, z: 0 }, { dimension: world.getDimension("minecraft:the_end") }); } catch (e) {}
+        // Duz (100, 70, 0) isinlamasi ya 18 hasarlik dusus (obsidyen platform
+        // y~49) ya da bosluga dusme demekti: (100, 0) ana adanin kenari.
+        // Once oraya git (chunk yuklensin), 10 tick sonra zemini bul ve
+        // uzerine kon; zemin yoksa kendi platformumuzu kur.
+        try {
+          const end = world.getDimension("minecraft:the_end");
+          p.teleport({ x: 100.5, y: 70, z: 0.5 }, { dimension: end });
+          system.runTimeout(() => {
+            try {
+              let gy = null;
+              for (let y = 70; y >= 30; y--) {
+                const b = end.getBlock({ x: 100, y, z: 0 });
+                if (b && b.typeId !== "minecraft:air") { gy = y; break; }
+              }
+              if (gy === null) {
+                for (let ax = -2; ax <= 2; ax++) for (let az = -2; az <= 2; az++) {
+                  try { end.getBlock({ x: 100 + ax, y: 48, z: az }).setType("minecraft:obsidian"); } catch (e) {}
+                }
+                gy = 48;
+              }
+              p.teleport({ x: 100.5, y: gy + 1, z: 0.5 }, { dimension: end });
+              spray(end, { x: 100.5, y: gy + 1, z: 0.5 }, "minecraft:mob_portal", 20, 1);
+            } catch (e) {}
+          }, 10);
+        } catch (e) {}
       }
     } catch (e) {}
   }
@@ -4134,6 +4177,7 @@ system.runInterval(() => {
 // ozelliginde (herkes icin gecerli); portal blogu KONUNCA eklenir, KIRILINCA
 // silinir. Boylece hem Portal Silahi hem elle konan bloklar calisir.
 const portalCd = new Map();
+const portalArrival = new Map();     // oyuncu -> az once konduğu portal
 const portalGunCount = new Map();
 function getPortals() {
   try { const r = world.getDynamicProperty("stnt:portals"); return typeof r === "string" ? JSON.parse(r) : []; }
@@ -4173,7 +4217,11 @@ system.runInterval(() => {
     for (const P of all) {
       if (P.d === d && Math.abs(l.x - (P.x + 0.5)) < 1 && Math.abs(l.y - P.y) < 1.6 && Math.abs(l.z - (P.z + 0.5)) < 1) { on = P; break; }
     }
-    if (!on) continue;
+    if (!on) { portalArrival.delete(p.id); continue; }
+    // Az once BU portala kondu: uzerinden cekilene kadar tekrar isinlama.
+    const arr = portalArrival.get(p.id);
+    if (arr && arr.d === on.d && arr.x === on.x && arr.y === on.y && arr.z === on.z) continue;
+    portalArrival.delete(p.id);
     let best = null, bestDist = Infinity;             // ayni renk EN YAKIN es
     for (const Q of all) {
       if (Q === on || Q.c !== on.c) continue;
@@ -4185,6 +4233,7 @@ system.runInterval(() => {
       p.teleport({ x: best.x + 0.5, y: best.y + 1, z: best.z + 0.5 }, { dimension: world.getDimension(best.d) });
       spray(p.dimension, { x: best.x + 0.5, y: best.y + 1, z: best.z + 0.5 }, "minecraft:mob_portal", 20, 1);
     } catch (e) {}
+    portalArrival.set(p.id, best);
     portalCd.set(p.id, now + 40);                     // 2 sn - ileri-geri titremeyi onler
   }
 }, 8);
