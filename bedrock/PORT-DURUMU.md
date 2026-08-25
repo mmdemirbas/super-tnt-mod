@@ -1,7 +1,35 @@
 # Super TNT — Bedrock Port Durumu
 
-Son sürüm: **v1.33.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
+Son sürüm: **v1.34.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
 olacak şekilde geliştiriliyor (MorphX / mutant paketine bağımlılık yok).
+
+## v1.34.0 — tablete gitmeden önceki düzeltmeler
+
+Üçü de "yeteneği kullananı cezalandıran" sınıfından; hiçbiri tablette
+denenmeden bulundu.
+
+**Creeper dönüşümü kendi patlamasında öldürüyordu.** Patlama oyuncunun ayağının
+dibinde oluşuyor. Vanilla TNT gücü 4 ve sıfır mesafede zırhsız oyuncuyu
+öldürür; buradaki güç creeper'da 3, Dev Creeper'da 6. Yani yeteneği her
+kullanan ölüyordu — çocuk bir daha kullanmaz. İki katman kondu: patlamadan önce
+Direnç V (sürümler arasında %80 mi %100 mü kestiğine güvenmiyoruz) ve iki tick
+sonra patlama öncesi canın geri konması. Tek başına can geri koyma yetmez;
+oyuncu o tick'te ölürse geri koyacak can kalmaz.
+
+**Ender Send'in ışınlanması gökyüzüne bakınca sessizce hiçbir şey
+yapmıyordu** — üstelik beklemeyi de yakıyordu, yani çocuk yeteneğin bozuk
+olduğunu sanıyordu. Artık "Işınlanmak için bir yere bak" yazıyor ve bekleme
+yanmıyor. Havaya ışınlamak çözüm değil: düşme hasarı verir.
+
+**Ejderha Nefesi'ne eş zamanlı bulut tavanı (6).** Kişi başı 3 saniye bekleme
+vardı ama bulut 12 saniye yaşıyor: tek çocuk 4, dört çocuk 16 bulut açabiliyordu.
+Her bulut 5 tick'te 24 parçacık demek — 16 bulut tick başına ~77 parçacık,
+tablette takılma. Tavan dolunca "Çok fazla bulut var, biraz bekle" yazıyor.
+
+Denetim de genişledi: RP client entity'lerindeki ses ve parçacık kimlikleri de
+kontrol ediliyor (3196 kontrol). Dışarıdan alınan Mutant Warden beş warden sesi
+ve bir parçacık referansı taşıyor; biri yanlış yazılsa sessizce hiçbir şey
+olmazdı.
 
 ## v1.33.0 — Mutant Warden'ın kendi modeli
 

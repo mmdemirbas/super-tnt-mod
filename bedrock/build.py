@@ -78,7 +78,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 33, 0]
+VERSION = [1, 34, 0]
 MIN_ENGINE = [1, 21, 0]
 # Surum etiketi paket ADINA yazilir. UUID + klasor adlari sabit oldugu icin
 # Minecraft ayni UUID'li paketi yerinde GUNCELLER; ama cihazda eski surum
@@ -3119,17 +3119,42 @@ function morphAct(p, act, pw) {
   const dim = p.dimension;
   if (act === "explode") {                    // creeper: comel -> patla
     const l = p.location;
+    // KENDI patlamandan olme. Patlama ayagin dibinde olusuyor: vanilla TNT gucu
+    // 4 ve sifir mesafede zirhsiz oyuncuyu oldururken burada guc 3 ile 6. Iki
+    // katman, cunku tek basina hicbiri kesin degil:
+    //   1) Direnc V (amplifier 4) hasari buyuk olcude keser — ama surumler
+    //      arasinda %80 mi %100 mu kestigine guvenmiyoruz.
+    //   2) Patlamadan onceki can iki tick sonra geri konur. Direnc oldurmeyecek
+    //      kadar kesmisse bu ikinci katman kalani tamamlar.
+    // Tek basina (2) yetmez: oyuncu O TICK'te olurse geri koyacak can kalmaz.
+    try { p.addEffect("resistance", 60, { amplifier: 4, showParticles: false }); } catch (e) {}
+    let hp = null;
+    try { const h = p.getComponent("minecraft:health"); hp = h ? h.currentValue : null; } catch (e) {}
     dim.createExplosion({ x: l.x, y: l.y + 0.5, z: l.z }, pw.r || 3,
                         { breaksBlocks: !!pw.breaks, causesFire: false });
+    if (hp !== null) {
+      system.runTimeout(() => {
+        try {
+          const h = p.getComponent("minecraft:health");
+          if (h && h.currentValue < hp) h.setCurrentValue(hp);
+        } catch (e) {}
+      }, 2);
+    }
     spray(dim, l, "minecraft:large_explosion", 1, 0);
     return pw.cd || 80;
   }
   if (act === "teleport") {                   // enderman: comel -> baktigin yere isinlan
     const hit = p.getBlockFromViewDirection({ maxDistance: pw.range || 48 });
-    if (hit) {
-      p.teleport({ x: hit.block.location.x + 0.5, y: hit.block.location.y + 1, z: hit.block.location.z + 0.5 });
-      spray(dim, p.location, "minecraft:mob_portal", 20, 1);
+    if (!hit) {
+      // Gokyuzune ya da menzilden uzaga bakinca isin hicbir seye carpmiyor.
+      // Eskiden sessizce hicbir sey olmuyor ve bekleme de yaniyordu: cocuk
+      // yetenegin bozuk oldugunu saniyordu. Havaya isinlanmak da COZUM DEGIL,
+      // dusme hasari verir. Soyle ve beklemeyi yakma.
+      try { p.onScreenDisplay.setActionBar("§7Işınlanmak için bir yere bak"); } catch (e) {}
+      return 10;
     }
+    p.teleport({ x: hit.block.location.x + 0.5, y: hit.block.location.y + 1, z: hit.block.location.z + 0.5 });
+    spray(dim, p.location, "minecraft:mob_portal", 20, 1);
     return pw.cd || 30;
   }
   if (act === "fireball") {                   // ghast/blaze: comel -> baktigin yere ates topu
@@ -3779,10 +3804,17 @@ function detonate(dim, c, short, igniterId) {
 //    seferde erimesin. Suresi bitince interval KENDINI durdurur.
 // Bulut sahibini de yakar (vanilla ejderha nefesi de oyle); ipucu bunu yaziyor.
 const breathCd = new Map();
+const BREATH_MAX = 6;                    // es zamanli bulut tavani (bkz. asagi)
+let breathLive = 0;
 function dragonBreath(player, a) {
   const dim = player.dimension, now = system.currentTick;
   if ((breathCd.get(player.id) || 0) > now) return;
+  if (breathLive >= BREATH_MAX) {
+    try { player.onScreenDisplay.setActionBar("§7Çok fazla bulut var, biraz bekle"); } catch (e) {}
+    return;
+  }
   breathCd.set(player.id, now + a.cd);
+  breathLive++;
   const v = player.getViewDirection(), s = player.getHeadLocation();
   const hit = player.getBlockFromViewDirection({ maxDistance: a.reach });
   const c = hit
@@ -3815,7 +3847,7 @@ function dragonBreath(player, a) {
       }
       try { dim.playSound("random.fizz", c, { volume: 0.5 }); } catch (e) {}
     }
-    if (t >= total) system.clearRun(job);
+    if (t >= total) { system.clearRun(job); breathLive--; }
   }, 5);
 }
 

@@ -367,6 +367,10 @@ def check_client_entities():
             if aid.startswith("animation.stnt_"):
                 check(aid in shipped_anims,
                       f"{name} animations.{slot}: '{aid}' RP'de ship edilmiyor")
+        for slot, sid in d.get("sound_effects", {}).items():
+            check(sid in SOUNDS, f"{name} sound_effects.{slot}: '{sid}' diye bir ses yok")
+        for slot, pid in d.get("particle_effects", {}).items():
+            check(pid in PARTICLES, f"{name} particle_effects.{slot}: '{pid}' diye bir parcacik yok")
         # scripts.animate icindeki her ad animations tablosunda tanimli mi?
         for step in d.get("scripts", {}).get("animate", []):
             key = list(step)[0] if isinstance(step, dict) else step
