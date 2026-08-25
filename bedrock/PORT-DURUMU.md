@@ -1,7 +1,32 @@
 # Super TNT — Bedrock Port Durumu
 
-Son sürüm: **v1.38.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
+Son sürüm: **v1.39.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
 olacak şekilde geliştiriliyor (MorphX / mutant paketine bağımlılık yok).
+
+## v1.39.0 — Sınırsız can, kırılmaz Kalp Baltası
+
+**Can Artırıcı artık süresiz.** Eskiden 1000 can veriyor ve 30 dakika sonra
+bitiyordu; çocuk oyunun ortasında normale dönüyordu. Şimdi:
+
+- Can **1044** oluyor. Bu bir tercih değil, Bedrock'un tavanı: `health_boost`
+  efektinin `amplifier` alanı en fazla 255, her kademe 4 can ekliyor, taban can
+  20 → `20 + 4 × 256 = 1044`. 255'in üstüne çıkan bir değer verildiğinde efekt
+  **hiç** uygulanmaz, yani "daha büyük sayı yaz" sessiz bir hataya dönerdi.
+  `check_pack.py` bu tavanı denetliyor.
+- **Süre yok.** Bedrock'ta sonsuz süreli efekt yoktur, en fazla uzun süreli
+  vardır. Onun yerine oyuncuya kalıcı bir işaret (`stnt:hpforever` dinamik
+  özelliği) konuyor; 2 saniyede bir çalışan bir döngü işareti görüp efekti 60
+  saniyelik olarak tazeliyor ve canı tepeye çekiyor. Tazeleme aralığının
+  süreden çok kısa olması bilerek: çocuk tam tazeleme anında oyundan çıkıp
+  girse bile efekt üstünde kalıyor.
+- İşaret kalıcı olduğu için **çıkıp girince de duruyor**.
+- Vazgeçmek için **Temizleyici TNT** (ve Kalp TNT) işareti de siliyor. Silmese
+  döngü bir sonraki turda efekti geri koyardı ve "tüm efektleri temizler" sözü
+  yalan olurdu.
+
+**Kalp Baltası artık eskimiyor** — hayatta kalma modunda bile. Bedrock'ta
+"sonsuz dayanıklılık" diye bir değer yok; doğru yol `minecraft:durability`
+bileşenini hiç koymamak. Bileşeni olmayan eşya hasar almaz.
 
 ## v1.38.0 — Blok Kılığı (saklambaç)
 

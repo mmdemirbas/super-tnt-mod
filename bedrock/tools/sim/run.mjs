@@ -230,6 +230,13 @@ for (const [n, label] of [[1, "creeper"], [84, "Dev Creeper"]]) {
   ok(rec && rec.armed < mc.world.getAbsoluteTime(), "kurulma zamani KALICI saate gore gecmiste",
     rec ? `armed ${rec.armed}, saat ${mc.world.getAbsoluteTime()}, tick ${mc.system.currentTick}` : "");
   ok(rec && rec.armed > mc.system.currentTick + 1000, "kayitli deger tick sayacinin cok ilerisinde (eski hata bu yuzden olusuyordu)");
+  // Reload'dan sonra KALICI dongulerin hala kostugunu burada dogrula. Bir kere
+  // taklit reload'da butun isleri silmisti ve bu noktadan sonraki her senaryo
+  // sessizce bos gecmisti — testin kendisi testi devre disi birakmisti.
+  const canary = newPlayer("Kanarya", { x: 0, y: 64, z: 200 });
+  canary.props.set("st:morph", 5);                  // dayaniklilik pasifi olan bir morph
+  __sim.tick(20);
+  ok(canary.effects.size > 0, "reload sonrasi kalici dongular hala kosuyor");
 }
 
 // ------------------------------- 8. tick butcesi: bos alanda TNT donduruyor mu
@@ -320,7 +327,45 @@ function detonateTnt(short, p, at) {
      `zirve ${__sim.state.counters.maxGetBlockPerTick}`);
 }
 
-// -------------------------------------------------- 12. Blok Kiligi
+// ------------------------------------ 12. Sinirsiz can gercekten sinirsiz mi
+{
+  settle();
+  const p = fresh();
+  const a = ITEM_ACTIONS["can_artirici"];
+  ok(a.forever === true, "Can Artirici suresiz isaretli");
+  __sim.fire("after", "itemCompleteUse", { itemStack: { typeId: "stnt:can_artirici" }, source: p });
+  __sim.tick(5);
+  eq(p.maxHealth, a.hp, "azami can yukseliyor");
+  eq(Math.round(p.health), a.hp, "can tepeye cekiliyor");
+
+  // (a) sure dolsa bile bitmemeli: efekti elle sil, dongu geri koymali
+  p.effects.delete("health_boost");
+  p.health = 5;
+  __sim.tick(60);
+  ok(p.effects.has("health_boost"), "dongu efekti tazeliyor (sure dolsa da biter degil)");
+  eq(Math.round(p.health), a.hp, "dongu cani tepede tutuyor");
+
+  // (b) cikip girmek bozmamali: isaret KALICI ozellikte
+  ok(p.getDynamicProperty("stnt:hpforever") === 1, "isaret kalici ozellige yazildi");
+
+  // (c) hasar alsa bile bir saniye icinde geri doluyor
+  p.applyDamage(500);
+  ok(p.health < a.hp, "hasar aninda can dusuyor");
+  __sim.tick(60);
+  eq(Math.round(p.health), a.hp, "hasardan sonra can geri doluyor");
+
+  // (d) Temizleyici TNT geri alabiliyor — ipucunun sozu bu
+  detonateTnt("cleanse_tnt", p, { x: 0, y: 64, z: 3 });
+  __sim.tick(200);
+  ok(!p.getDynamicProperty("stnt:hpforever"), "Temizleyici TNT suresiz cani geri aliyor");
+  p.effects.delete("health_boost");
+  p.health = 5;
+  __sim.tick(120);
+  ok(!p.effects.has("health_boost"), "geri alindiktan sonra dongu efekti KOYMUYOR");
+  eq(p.health, 5, "geri alindiktan sonra can doldurulmuyor");
+}
+
+// -------------------------------------------------- 13. Blok Kiligi
 // Uc hareket birbirine karismamali: KIRMAK kiliga sokar, BASILI TUTMAK
 // yerlestirir, GOKYUZUNE bakip basili tutmak insana dondurur.
 {
@@ -393,7 +438,7 @@ function detonateTnt(short, p, at) {
   eq(p.location.x, where.x, "mob kiligindayken isinlanma yok");
 }
 
-// ------------------------------ 13. YETMIS TNT'nin HEPSI patliyor mu
+// ------------------------------ 14. YETMIS TNT'nin HEPSI patliyor mu
 // Simdiye kadar dort TNT denendi. Bir TNT'nin spec'i bozuksa (olmayan blok,
 // eksik alan, yanlis palet) hata try icinde kaybolur ve TNT oyunda "patladi
 // ama hicbir sey olmadi" gorunur. Hepsini tek tek atesle.
@@ -479,7 +524,7 @@ function detonateTnt(short, p, at) {
      `once ${baseJobs}, sonra ${__sim.jobCount()}`);
 }
 
-// ---------------- 15. Temizleyici TNT ipucunun ikinci yarisini da yapiyor mu
+// ---------------- 16. Temizleyici TNT ipucunun ikinci yarisini da yapiyor mu
 // "Tum efektleri VE BOYUT degisikliklerini temizler" — boyut kismi uzun sure
 // yapilmiyordu: kucultulmus cocuk temizleyiciyi patlatip kucuk kaliyordu.
 {
@@ -494,7 +539,7 @@ function detonateTnt(short, p, at) {
   eq(near.getProperty("st:size"), 2, "Temizleyici TNT boyutu normale donduruyor");
 }
 
-// ------------------------------------------ 14. hicbir gecici is asili kalmiyor
+// ------------------------------------------ 15. hicbir gecici is asili kalmiyor
 {
   const before = __sim.jobCount();
   settle(); settle();

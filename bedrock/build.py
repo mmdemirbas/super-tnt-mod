@@ -78,7 +78,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 38, 0]
+VERSION = [1, 39, 0]
 MIN_ENGINE = [1, 21, 0]
 # Surum etiketi paket ADINA yazilir. UUID + klasor adlari sabit oldugu icin
 # Minecraft ayni UUID'li paketi yerinde GUNCELLER; ama cihazda eski surum
@@ -1115,9 +1115,13 @@ POTION_HP = 200
 POTION_SECONDS = 600         # 10 dk; bitince azami can 20'ye doner
 POTION_AMP = heal_amp(POTION_HP)
 # Can Artirici: iksirin buyugu. Dev boss'lara karsi daha uzun sureli koz.
-BOOST_HP = 1000
-BOOST_SECONDS = 1800         # 30 dk
-BOOST_AMP = heal_amp(BOOST_HP)
+BOOST_AMP = 255              # Bedrock tavani; ustune cikan efekt HIC uygulanmaz
+BOOST_HP = POTION_BASE_HP + 4 * (BOOST_AMP + 1)      # 1044
+BOOST_SECONDS = 0            # 0 = sonsuz (dongu tazeler, bkz. FOREVER_TICKS)
+# Tazeleme araligi ve efekte verilen sure. Sure araliktan COK daha uzun olmali:
+# oyuncu tam tazeleme aninda cikip girse bile efekt ustunde kalsin.
+FOREVER_EVERY = 40           # 2 sn'de bir tazele + cani tepeye cek
+FOREVER_TICKS = 1200         # efekte verilen sure (60 sn)
 
 # Mega Gubre'nin agac turu tablosu: fidan -> (govde, yaprak). Blok id'leri
 # Mojang/bedrock-samples metadata/vanilladata_modules/mojang-blocks.json'dan
@@ -1151,12 +1155,14 @@ ITEMS = [
          action=dict(type="heal_boost", hp=POTION_HP,
                      seconds=POTION_SECONDS, amp=POTION_AMP)),
     dict(id="can_artirici", tr="Can Artırıcı", en="Health Booster", kind="drink",
-         trtip=f"İç — canın {BOOST_HP} olur ve tamamen dolar! "
-               f"{BOOST_SECONDS // 60} dakika sürer, sonra normale döner.",
-         entip=f"Drink - your health becomes {BOOST_HP} and refills! "
-               f"Lasts {BOOST_SECONDS // 60} minutes, then back to normal.",
+         trtip=f"İç — canın {BOOST_HP} olur ve SÜREKLİ dolu kalır. Süresi yok, "
+               f"hiç bitmez; çıkıp girsen de durur. Vazgeçersen Temizleyici "
+               f"TNT ile normale dönersin.",
+         entip=f"Drink - your health becomes {BOOST_HP} and stays full FOREVER. "
+               f"No timer, and it survives a relog. Use the Cleanse TNT to go "
+               f"back to normal.",
          color=(240, 180, 40),
-         action=dict(type="heal_boost", hp=BOOST_HP,
+         action=dict(type="heal_boost", hp=BOOST_HP, forever=True,
                      seconds=BOOST_SECONDS, amp=BOOST_AMP)),
     dict(id="blok_kiligi", tr="Blok Kılığı", en="Block Disguise", kind="raycast",
          trtip="Bu elindeyken bir blok KIR — o bloğa dönüşürsün. Blokken bir "
@@ -1259,9 +1265,12 @@ ITEMS = [
          entip="Hit creatures to spray red droplets!",
          color=(160, 20, 20), damage=8, action=dict(type="bleed")),
     dict(id="heart_axe", tr="Kalp Baltası", en="Heart Axe", kind="weapon",
-         trtip="Tek vuruşta mob öldürür; oyunculara ağır hasar!",
-         entip="One-shots mobs; heavy damage to players!",
-         color=(200, 40, 90), damage=20, action=dict(type="heavy")),
+         trtip="Tek vuruşta mob öldürür; oyunculara ağır hasar! "
+               "Hiç eskimez — hayatta kalma modunda bile kırılmaz.",
+         entip="One-shots mobs; heavy damage to players! It never wears out - "
+               "unbreakable even in survival.",
+         color=(200, 40, 90), damage=20, unbreakable=True,
+         action=dict(type="heavy")),
     dict(id="rainbow_boots", tr="Gökkuşağı Botları", en="Rainbow Boots", kind="boots",
          trtip="Giy — adım attığın yerde renkli yün izi bırakırsın!",
          entip="Wear them - leave a colored wool trail where you step!",
@@ -2038,7 +2047,11 @@ def build():
                 icomps["minecraft:max_stack_size"] = 16
         elif it['kind'] == "weapon":
             icomps["minecraft:damage"] = it.get('damage', 6)
-            icomps["minecraft:durability"] = {"max_durability": 800}
+            # unbreakable: dayaniklilik bileseni HIC konmaz. Bedrock'ta
+            # bileseni olmayan esya hasar almaz — "sonsuz dayaniklilik" diye bir
+            # deger yok, dogru yol bileseni atlamak.
+            if not it.get("unbreakable"):
+                icomps["minecraft:durability"] = {"max_durability": 800}
             icomps["minecraft:hand_equipped"] = True
         elif it['kind'] == "boots":
             icomps["minecraft:wearable"] = {"slot": "slot.armor.feet", "protection": 2}
@@ -2440,6 +2453,10 @@ def build():
                             .replace("__SIZE_DEFAULT__", str(SIZE_DEFAULT)) \
                             .replace("__MORPH_HINT__", json.dumps(MORPH_HINT, ensure_ascii=False)) \
                             .replace("__BLOCK_MORPH_MAP__", json.dumps(BLOCK_MORPH_MAP, ensure_ascii=False)) \
+                            .replace("__FOREVER_TICKS__", str(FOREVER_TICKS)) \
+                            .replace("__FOREVER_EVERY__", str(FOREVER_EVERY)) \
+                            .replace("__BOOST_AMP__", str(BOOST_AMP)) \
+                            .replace("__BOOST_HP__", str(BOOST_HP)) \
                             .replace("__MORPH_ABIL__", json.dumps(
                                 {mo['n']: {k: mo[k] for k in ("pas", "act", "pow") if k in mo}
                                  for mo in MORPHS if 'pas' in mo or 'act' in mo},
@@ -2525,20 +2542,41 @@ world.afterEvents.itemCompleteUse.subscribe((ev) => {
 // Saglik Iksiri. health_boost AZAMI cani buyutur ama mevcut cani doldurmaz;
 // ayrica yeni azami deger ayni tick'te okunamiyor. Bu yuzden efekti verip bir
 // tick sonra cani tepeye cekiyoruz.
+// Sinirsiz can isareti oyuncunun kendi dinamik ozelliginde: kalicidir, yani
+// cocuk cikip girince de surer. Dongu (asagida) bunu gorup efekti tazeler.
+const FOREVER_PROP = "stnt:hpforever";
 function healBoost(player, a) {
   try {
-    player.addEffect("health_boost", a.seconds * 20, { amplifier: a.amp, showParticles: true });
+    if (a.forever) player.setDynamicProperty(FOREVER_PROP, 1);
+    player.addEffect("health_boost", a.forever ? __FOREVER_TICKS__ : a.seconds * 20,
+                     { amplifier: a.amp, showParticles: true });
   } catch (e) { return; }
   system.runTimeout(() => {
     try {
       const hp = player.getComponent("minecraft:health");
       if (hp) hp.resetToMaxValue();
       spray(player.dimension, player.location, "minecraft:heart_particle", 12, 1.0);
-      player.onScreenDisplay.setActionBar(
-        `§aCanın §c${hp ? Math.round(hp.currentValue) : a.hp}§a oldu! §7${a.seconds / 60} dakika sürer`);
+      player.onScreenDisplay.setActionBar(a.forever
+        ? `§aCanın §c${hp ? Math.round(hp.currentValue) : a.hp}§a oldu! §7Süresiz — Temizleyici TNT ile geri alırsın`
+        : `§aCanın §c${hp ? Math.round(hp.currentValue) : a.hp}§a oldu! §7${a.seconds / 60} dakika sürer`);
     } catch (e) {}
   }, 1);
 }
+
+// Sinirsiz can: isareti duran oyuncuda efekti tazele ve cani tepeye cek.
+// Tazeleme olmadan "sinirsiz" sozu tutulmaz — Bedrock'ta efekt suresi sonsuz
+// olamaz, en fazla uzun olur. Cani da doldurmak sart: azami can 1044 olsa bile
+// dolu olmayan can bir sure sonra biter.
+system.runInterval(() => {
+  for (const p of world.getPlayers()) {
+    try {
+      if (!p.getDynamicProperty(FOREVER_PROP)) continue;
+      p.addEffect("health_boost", __FOREVER_TICKS__, { amplifier: __BOOST_AMP__, showParticles: false });
+      const hp = p.getComponent("minecraft:health");
+      if (hp && hp.currentValue < __BOOST_HP__) hp.resetToMaxValue();
+    } catch (e) {}
+  }
+}, __FOREVER_EVERY__);
 
 // ---- Ses Saldirisi (Warden'in sonic boom'u). Bakilan yonde 1 blokluk adimlarla
 // ilerleyen bir ses dalgasi. BLOKLARDAN GECER — vanilla Warden'da da oyle; bu
@@ -3840,6 +3878,7 @@ function detonate(dim, c, short, igniterId) {
             for (const eff of p.getEffects()) {
               try { p.removeEffect(eff.typeId); } catch (err) {}
             }
+            try { p.setDynamicProperty(FOREVER_PROP, undefined); } catch (err) {}
             // Java gibi boyutu da normale (2) dondurur — Kucultme/Buyutme
             // TNT'sinin veya boyut toplarinin etkisini temizler.
             try { p.triggerEvent("st:size_2"); } catch (e) {}
@@ -3922,6 +3961,9 @@ function detonate(dim, c, short, igniterId) {
             if (s.exceptIgniter && igniterId && e.id === igniterId) continue;
             if (s.clear) {
               for (const ef of e.getEffects()) { try { e.removeEffect(ef.typeId); } catch (x) {} }
+              // Sinirsiz can isareti de gitmeli: kalmazsa dongu bir sonraki
+              // turda efekti geri koyar ve "tum efektleri temizler" yalan olur.
+              try { e.setDynamicProperty(FOREVER_PROP, undefined); } catch (x) {}
               // Temizleyici TNT'nin ipucu "efektleri VE BOYUT degisikliklerini
               // temizler" diyordu ama boyutu hic sifirlamiyordu: kucultulmus
               // cocuk temizleyiciyi patlatip kucuk kaliyor ve esyayi bozuk

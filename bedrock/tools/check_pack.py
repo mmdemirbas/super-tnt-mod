@@ -529,7 +529,7 @@ def check_pack_integrity():
 
 
 # ------------------------------------------------------- 4b. ipucu sozlesmesi
-def check_tooltip_contract():
+def check_tooltip_contract(js):
     """CLAUDE.md: ipucu bir sozlesmedir. Yeni esyalarin ipucundaki sayilar
     davranistan turetilmis olmali, elle yazilmis olmamali."""
     # "N blok yaricap" yazan her ipucu gercek yaricapi yazmali. Dort TNT'de
@@ -546,17 +546,37 @@ def check_tooltip_contract():
         a = it.get("action") or {}
         tip = it["trtip"]
         if a.get("type") == "heal_boost":
-            # amplifier -> can matematigi: seviye basina +4, seviye = amp + 1
-            check(build.POTION_BASE_HP + 4 * (a["amp"] + 1) == a["hp"],
-                  f"item {it['id']}: amp {a['amp']} -> "
-                  f"{build.POTION_BASE_HP + 4 * (a['amp'] + 1)} can, ipucu {a['hp']} diyor")
             check(str(a["hp"]) in tip, f"item {it['id']}: ipucu {a['hp']} canini yazmiyor")
-            check(str(a["seconds"] // 60) in tip, f"item {it['id']}: ipucu sureyi yazmiyor")
+            if not a.get("forever"):
+                check(str(a["seconds"] // 60) in tip, f"item {it['id']}: ipucu sureyi yazmiyor")
         if a.get("type") == "heal_boost":
             # Bedrock'ta efekt amplifier tavani 255. Ustune cikan bir can
             # hedefi sessizce hic uygulanmaz — esya bosa tiklanir.
             check(a["amp"] <= 255,
                   f"item {it['id']}: amplifier {a['amp']} > 255, efekt uygulanmaz")
+            check(build.POTION_BASE_HP + 4 * (a["amp"] + 1) == a["hp"],
+                  f"item {it['id']}: amp {a['amp']} -> "
+                  f"{build.POTION_BASE_HP + 4 * (a['amp'] + 1)} can, ipucu {a['hp']} diyor")
+            if a.get("forever"):
+                # "Suresiz" bir SOZ: efektin kendisi sonsuz olamaz, tazeleyen
+                # bir dongu olmali. Yoksa ipucu yalan soyler.
+                check(a["seconds"] == 0, f"item {it['id']}: forever ama seconds {a['seconds']}")
+                check("Süresi yok" in tip or "hiç bitmez" in tip,
+                      f"item {it['id']}: ipucu suresiz oldugunu yazmiyor")
+                check("stnt:hpforever" in js and "FOREVER_PROP" in js,
+                      f"item {it['id']}: suresiz isareti betikte yok")
+                check(js.count("getDynamicProperty(FOREVER_PROP)") >= 1,
+                      f"item {it['id']}: suresiz can tazeleme dongusu yok")
+                # Geri alma yolu ipucunda yazmali ve kodda GERCEKTEN olmali.
+                check("Temizleyici" in tip, f"item {it['id']}: ipucu geri alma yolunu yazmiyor")
+                check(js.count("setDynamicProperty(FOREVER_PROP, undefined)") >= 1,
+                      f"item {it['id']}: isareti silen hicbir yol yok — geri alinamaz")
+        if it.get("unbreakable"):
+            comps = jload(os.path.join(BP, "items", f"{it['id']}.json"))["minecraft:item"]["components"]
+            check("minecraft:durability" not in comps,
+                  f"item {it['id']}: kirilmaz denmis ama dayaniklilik bileseni duruyor")
+            check("kırılmaz" in tip or "eskimez" in tip,
+                  f"item {it['id']}: ipucu kirilmaz oldugunu yazmiyor")
         if a.get("type") == "rename":
             check(str(a["maxLen"]) in tip, f"item {it['id']}: ipucu {a['maxLen']} harf sinirini yazmiyor")
         if a.get("type") == "sonic":
@@ -602,7 +622,7 @@ def main():
     check_ids(js)
     check_client_entities()
     check_pack_integrity()
-    check_tooltip_contract()
+    check_tooltip_contract(js)
     check_tree(js)
     if FAILS:
         print(f"HATA — {CHECKS[0]} denetimden {len(FAILS)} tanesi gecmedi:")

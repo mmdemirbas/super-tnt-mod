@@ -77,7 +77,7 @@ run "morph dokusu vanilla'da yok (eski ghast hatasi)" "doku 'textures/entity/gha
 cp "$BAK/build.bak" bedrock/build.py
 
 # 6) ipucu ile davranis ayrisirsa -> tooltip sozlesmesi bozulur
-sed 's/^BOOST_AMP = heal_amp(BOOST_HP)$/BOOST_AMP = 40/' "$BAK/build.bak" > bedrock/build.py
+sed 's/^BOOST_HP = POTION_BASE_HP + 4 \* (BOOST_AMP + 1).*$/BOOST_HP = POTION_BASE_HP + 8 * (BOOST_AMP + 1)/' "$BAK/build.bak" > bedrock/build.py
 run "can matematigi ipucu ile uyusmuyor" "can, ipucu"   # BOOST_HP degisse de tutar
 cp "$BAK/build.bak" bedrock/build.py
 
@@ -120,7 +120,7 @@ run "ipucu yaricapi koddan farkli" "blok yaricap diyor"
 cp "$BAK/build.bak" bedrock/build.py
 
 # 14) can hedefi Bedrock'un amplifier tavanini asarsa -> esya sessizce bos tiklar
-sed 's/^BOOST_HP = 1000$/BOOST_HP = 2000/' "$BAK/build.bak" > bedrock/build.py
+sed 's/^BOOST_AMP = 255 .*$/BOOST_AMP = 400/' "$BAK/build.bak" > bedrock/build.py
 run "amplifier 255 tavanini asiyor" "efekt uygulanmaz"
 cp "$BAK/build.bak" bedrock/build.py
 
@@ -174,6 +174,13 @@ json.dump(d, open(p, "w"))
 PYX
 run "esya yaratici menude yok" "menude gorunmez"
 cp "$BAK/it.bak" "$BP/items/ejderha_nefesi.json"
+
+# 21) Kalp Baltasi'na dayaniklilik geri konsun -> hayatta kalmada kirilir
+sed 's/^            if not it.get("unbreakable"):$/            if True:/' "$BAK/build.bak" > bedrock/build.py
+python3 bedrock/build.py > /dev/null 2>&1
+run "Kalp Baltasi yine kiriliyor" "dayaniklilik bileseni duruyor"
+cp "$BAK/build.bak" bedrock/build.py
+python3 bedrock/build.py > /dev/null 2>&1
 
 echo
 python3 bedrock/build.py > /dev/null && echo "paket yeniden uretildi"

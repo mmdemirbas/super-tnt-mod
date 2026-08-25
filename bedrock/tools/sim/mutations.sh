@@ -157,6 +157,28 @@ PYX
 run "blok kiligindan cikis yolu yok" "insana donuluyor"
 cp "$BAK/build.bak" bedrock/build.py
 
+# 11) sinirsiz can tazeleme dongusu kalksin -> "hic bitmez" sozu tutulmaz
+python3 - "$BAK" <<'PYX'
+import io, sys, re
+s = io.open(sys.argv[1] + "/build.bak", encoding="utf-8").read()
+old = 'p.addEffect("health_boost", __FOREVER_TICKS__, { amplifier: __BOOST_AMP__, showParticles: false });'
+assert s.count(old) == 1
+io.open("bedrock/build.py", "w", encoding="utf-8").write(s.replace(old, 'void 0;', 1))
+PYX
+run "sinirsiz can tazelenmiyor" "dongu efekti tazeliyor"
+cp "$BAK/build.bak" bedrock/build.py
+
+# 12) geri alma yolu kapansin -> cocuk sinirsiz candan bir daha cikamaz
+python3 - "$BAK" <<'PYX'
+import io, sys
+s = io.open(sys.argv[1] + "/build.bak", encoding="utf-8").read()
+old = '              try { e.setDynamicProperty(FOREVER_PROP, undefined); } catch (x) {}\n'
+assert s.count(old) == 1
+io.open("bedrock/build.py", "w", encoding="utf-8").write(s.replace(old, '', 1))
+PYX
+run "Temizleyici sinirsiz cani geri alamiyor" "suresiz cani geri aliyor"
+cp "$BAK/build.bak" bedrock/build.py
+
 echo
 echo "yakalanan $pass / kacirilan $fail"
 [ "$fail" -eq 0 ]
