@@ -78,7 +78,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 37, 0]
+VERSION = [1, 38, 0]
 MIN_ENGINE = [1, 21, 0]
 # Surum etiketi paket ADINA yazilir. UUID + klasor adlari sabit oldugu icin
 # Minecraft ayni UUID'li paketi yerinde GUNCELLER; ama cihazda eski surum
@@ -410,7 +410,85 @@ MORPHS_OWN = [
          mat="entity_emissive_alpha", scale=1.4, pas=["resistance", 1], act="teleport",
          pow=dict(range=96, cd=30)),
 ]
-MORPHS = MORPHS_VANILLA + MORPHS_OWN
+# ------------------------------------------------------------- BLOK KILIGI
+# Oyuncuyu bir BLOGA benzetir. Mob morph'lariyla ayni makine: tek fark geometry
+# (16x16x16 kup, her yuzu ayni 16x16 dokuyu ornekler) ve dokunun bir mob degil
+# BLOK dokusu olmasi. Vanilla blok dokulari da tipki mob dokulari gibi ADIYLA
+# referans alinir, pakete konmaz.
+#
+# blocks: hangi blogu kirinca bu kiliga girilir. Birden fazla olabilir —
+# cocuk cimeni de kirsa toprak blogunu da kirsa dogru seye donussun diye
+# takma adlar aynı girdiye baglanir.
+BLOCK_GEO = "geometry.stnt_block_morph"
+BLOCK_MAT = "entity_alphatest"
+BLOCK_MORPHS_RAW = [
+    ("tas", "Taş", "stone", ["minecraft:stone", "minecraft:stone_bricks", "minecraft:andesite"]),
+    ("kaldirim", "Kaldırım Taşı", "cobblestone", ["minecraft:cobblestone", "minecraft:mossy_cobblestone"]),
+    ("toprak", "Toprak", "dirt", ["minecraft:dirt", "minecraft:coarse_dirt", "minecraft:dirt_with_roots"]),
+    ("cim", "Çim", "grass_side_carried", ["minecraft:grass_block", "minecraft:grass_path", "minecraft:podzol"]),
+    ("kum", "Kum", "sand", ["minecraft:sand", "minecraft:red_sand", "minecraft:sandstone"]),
+    ("cakil", "Çakıl", "gravel", ["minecraft:gravel"]),
+    ("tahta", "Meşe Tahtası", "planks_oak", ["minecraft:oak_planks", "minecraft:birch_planks", "minecraft:spruce_planks"]),
+    ("kutuk", "Meşe Kütüğü", "log_oak", ["minecraft:oak_log", "minecraft:dark_oak_log", "minecraft:stripped_oak_log"]),
+    ("yaprak", "Yaprak", "leaves_oak_opaque", ["minecraft:oak_leaves", "minecraft:birch_leaves", "minecraft:dark_oak_leaves"]),
+    ("cam", "Cam", "glass", ["minecraft:glass", "minecraft:glass_pane"]),
+    ("tugla", "Tuğla", "brick", ["minecraft:brick_block", "minecraft:nether_brick"]),
+    ("obsidyen", "Obsidyen", "obsidian", ["minecraft:obsidian", "minecraft:crying_obsidian"]),
+    ("elmas", "Elmas Bloku", "diamond_block", ["minecraft:diamond_block"]),
+    ("altin", "Altın Bloku", "gold_block", ["minecraft:gold_block"]),
+    ("demir", "Demir Bloku", "iron_block", ["minecraft:iron_block"]),
+    ("zumrut", "Zümrüt Bloku", "emerald_block", ["minecraft:emerald_block"]),
+    ("lapis", "Lapis Bloku", "lapis_block", ["minecraft:lapis_block"]),
+    ("komur", "Kömür Bloku", "coal_block", ["minecraft:coal_block"]),
+    ("redstone_blok", "Redstone Bloku", "redstone_block", ["minecraft:redstone_block"]),
+    ("ametist", "Ametist", "amethyst_block", ["minecraft:amethyst_block"]),
+    ("netherrack", "Netherrack", "netherrack", ["minecraft:netherrack"]),
+    ("buz_blok", "Buz", "ice", ["minecraft:ice", "minecraft:packed_ice", "minecraft:blue_ice"]),
+    ("kar", "Kar", "snow", ["minecraft:snow", "minecraft:snow_layer"]),
+    ("balkabagi", "Balkabağı", "pumpkin_side", ["minecraft:pumpkin", "minecraft:carved_pumpkin"]),
+    ("fener", "Kabak Feneri", "pumpkin_face_on", ["minecraft:lit_pumpkin"]),
+    ("karpuz", "Karpuz", "melon_side", ["minecraft:melon_block"]),
+    ("kitaplik", "Kitaplık", "bookshelf", ["minecraft:bookshelf"]),
+    ("tezgah", "Çalışma Tezgahı", "crafting_table_side", ["minecraft:crafting_table"]),
+    ("firin", "Fırın", "furnace_side", ["minecraft:furnace", "minecraft:lit_furnace", "minecraft:blast_furnace"]),
+    ("vanilla_tnt", "TNT", "tnt_side", ["minecraft:tnt"]),
+    ("saman", "Saman Balyası", "hay_block_side", ["minecraft:hay_block"]),
+    ("sunger", "Sünger", "sponge", ["minecraft:sponge"]),
+    ("kil", "Kil", "clay", ["minecraft:clay"]),
+    ("kuvars", "Kuvars Bloku", "quartz_block_side", ["minecraft:quartz_block"]),
+    ("sakiz", "Sakız Bloku", "slime", ["minecraft:slime"]),
+    ("bal", "Bal Bloku", "honey_top", ["minecraft:honey_block"]),
+    ("mercan", "Mercan", "coral_blue", ["minecraft:tube_coral_block", "minecraft:brain_coral_block", "minecraft:bubble_coral_block"]),
+    ("sculk", "Sculk", "sculk", ["minecraft:sculk"]),
+    ("kayakat", "Kaya Katmanı", "bedrock", ["minecraft:bedrock"]),
+    ("yun_beyaz", "Beyaz Yün", "wool_colored_white", ["minecraft:white_wool"]),
+    ("yun_kirmizi", "Kırmızı Yün", "wool_colored_red", ["minecraft:red_wool"]),
+    ("yun_mavi", "Mavi Yün", "wool_colored_blue", ["minecraft:blue_wool"]),
+    ("yun_sari", "Sarı Yün", "wool_colored_yellow", ["minecraft:yellow_wool"]),
+    ("yun_yesil", "Yeşil Yün", "wool_colored_green", ["minecraft:green_wool"]),
+]
+# Paketin KENDI bloklari: doku RP'de ship ediliyor, adi stnt_ ile basliyor.
+BLOCK_MORPHS_OWN = [
+    ("zeynep_tnt_blok", "Zeynep TNT", "stnt_zeynep_tnt_side", ["stnt:zeynep_tnt"]),
+    ("elmas_tnt_blok", "Elmas TNT", "stnt_diamond_tnt_side", ["stnt:diamond_tnt"]),
+    ("kalp_tnt_blok", "Kalp TNT", "stnt_kalp_tnt_side", ["stnt:kalp_tnt"]),
+    ("nuclear_tnt_blok", "Nükleer TNT", "stnt_nuclear_tnt_side", ["stnt:nuclear_tnt"]),
+]
+BLOCK_MORPHS = [
+    dict(key=f"blok_{k}", tr=tr, cat="Bloklar", geo=BLOCK_GEO,
+         tex=f"textures/blocks/{tex}", mat=BLOCK_MAT, scale=1.0, blocks=blocks)
+    for k, tr, tex, blocks in BLOCK_MORPHS_RAW + BLOCK_MORPHS_OWN
+]
+for _i, _m in enumerate(BLOCK_MORPHS):
+    _m["n"] = len(MORPHS_VANILLA) + len(MORPHS_OWN) + 1 + _i
+
+MORPHS = MORPHS_VANILLA + MORPHS_OWN + BLOCK_MORPHS
+# Kirilan blok -> kilik olayi. Ayni bloga birden fazla girdi bakmasin.
+BLOCK_MORPH_MAP = {}
+for _m in BLOCK_MORPHS:
+    for _b in _m["blocks"]:
+        assert _b not in BLOCK_MORPH_MAP, f"{_b} iki blok kiligina bagli"
+        BLOCK_MORPH_MAP[_b] = f"st:morph_{_m['key']}"
 
 # Donusunce eylem cubugunda yazan ipucu. Yetenek tablosundan URETILIR: yeni bir
 # morph eklendiginde ipucu kendiliginden dogru olur, elle yazilmaz.
@@ -453,10 +531,11 @@ for _mo in MORPHS:
     MORPH_HINT[f"st:morph_{_mo['key']}"] = (
         f"{_mo['tr']} oldun!" + (f" §7{_h}" if _h else " §7yalnız görünüş"))
 # mob typeId -> morph olayi (script tiklanan mob'u buradan bulur)
-MORPH_MAP = {f"{m.get('ns', 'minecraft')}:{m['key']}": f"st:morph_{m['key']}" for m in MORPHS}
+MORPH_MAP = {f"{m.get('ns', 'minecraft')}:{m['key']}": f"st:morph_{m['key']}"
+             for m in MORPHS if "blocks" not in m}
 
 # Donusum menusundeki grup sirasi (cocuk once dost yaratiklari gorsun).
-MORPH_CATS = ["Hayvanlar", "Su", "Canavarlar", "Devler", "Süper TNT"]
+MORPH_CATS = ["Hayvanlar", "Su", "Canavarlar", "Devler", "Süper TNT", "Bloklar"]
 
 
 def morph_passes(mo):
@@ -1079,6 +1158,16 @@ ITEMS = [
          color=(240, 180, 40),
          action=dict(type="heal_boost", hp=BOOST_HP,
                      seconds=BOOST_SECONDS, amp=BOOST_AMP)),
+    dict(id="blok_kiligi", tr="Blok Kılığı", en="Block Disguise", kind="raycast",
+         trtip="Bu elindeyken bir blok KIR — o bloğa dönüşürsün. Blokken bir "
+               "yere basılı tut, oraya blok gibi yerleşirsin. Gökyüzüne bakıp "
+               "basılı tut, insana dönersin. Saklambaç için birebir!",
+         entip="Break a block while holding this - you become that block. As a "
+               "block, hold on a spot to settle there like a placed block. Look "
+               "at the sky and hold to turn back into a human. Perfect for "
+               "hide-and-seek!",
+         color=(120, 120, 130),
+         action=dict(type="block_morph")),
     dict(id="isim_degistirici", tr="İsim Değiştirme", en="Name Changer", kind="raycast",
          trtip="Basılı tut — çıkan kutuya yeni ismini yaz, rengini seç. Diğer "
                "oyuncular tepende o ismi görür. En fazla 20 harf. Kutuyu boş "
@@ -1357,7 +1446,7 @@ def symbol_texture(path, item_id):
         "iki_yuz_tl": (65, 120, 85), "saglik_iksiri": (58, 18, 30),
         "can_artirici": (60, 30, 12), "ses_saldirisi": (12, 32, 40),
         "mega_gubre": (22, 48, 26), "ejderha_nefesi": (28, 10, 42),
-        "isim_degistirici": (58, 46, 24),
+        "isim_degistirici": (58, 46, 24), "blok_kiligi": (58, 60, 68),
     }
     if item_id not in SPECS:
         return False
@@ -1481,6 +1570,15 @@ def symbol_texture(path, item_id):
                     d2 = (x - 3) ** 2 + (y - 8) ** 2
                     if r * r - 5 <= d2 <= r * r + 5 and x >= 3:
                         px(x, y, c)
+    elif iid == "blok_kiligi":
+        # yariya kadar bloga donusmus adam: ustu insan, alti tas kup
+        rect(6, 2, 9, 5, (226, 190, 150))            # kafa
+        px(7, 3, (40, 34, 30)); px(8, 3, (40, 34, 30))
+        rect(5, 6, 10, 7, (90, 120, 190))            # omuz/govde
+        rect(3, 8, 12, 13, (128, 128, 132))          # tas kup
+        for (bx, by) in ((5, 9), (9, 10), (6, 12), (10, 12), (8, 9)):
+            px(bx, by, (104, 104, 108))              # tas benegi
+        hline(8, 3, 12, (150, 150, 154))             # kup ust kenar isigi
     elif iid == "isim_degistirici":
         # asili duran isim etiketi: ip, delik, kagit, uzerinde iki yazi satiri
         vline(8, 1, 3, (150, 130, 90))               # ip
@@ -2036,6 +2134,12 @@ def build():
         })
         compose_entity_texture(t, os.path.join(RP, f"textures/entity/stnt/{t['id']}.png"))
 
+    # Blok kiligi modeli: 16x16x16 kup, her yuzu ayni 16x16 dokuyu ornekler.
+    # Vanilla blok dokulari ADIYLA referans alinir (mob morph'larindaki desen).
+    os.makedirs(os.path.join(RP, "models/entity"), exist_ok=True)
+    shutil.copy(os.path.join(HERE, "custom/block_morph.geo.json"),
+                os.path.join(RP, "models/entity/block_morph.geo.json"))
+
     # ---------- canavarlar (dev boss'lar, spawn egg ile cagrilir)
     # scale ~3 dev boyut; vanilla mob gorseli olceklenir. 20 blok yapmiyoruz
     # (chunk/tavan sorunu). is_spawnable:false -> dokusuz otomatik egg bastirilir.
@@ -2335,6 +2439,7 @@ def build():
                             .replace("__TREE_WOOD__", json.dumps(TREE_WOOD)) \
                             .replace("__SIZE_DEFAULT__", str(SIZE_DEFAULT)) \
                             .replace("__MORPH_HINT__", json.dumps(MORPH_HINT, ensure_ascii=False)) \
+                            .replace("__BLOCK_MORPH_MAP__", json.dumps(BLOCK_MORPH_MAP, ensure_ascii=False)) \
                             .replace("__MORPH_ABIL__", json.dumps(
                                 {mo['n']: {k: mo[k] for k in ("pas", "act", "pow") if k in mo}
                                  for mo in MORPHS if 'pas' in mo or 'act' in mo},
@@ -2393,6 +2498,8 @@ const TREE_WOOD = __TREE_WOOD__;       // fidan -> [govde blogu, yaprak blogu]
 const MORPH_FORMS = __MORPH_FORMS__;   // donusum menusu: kategori -> mob listesi
 const MORPH_ABIL = __MORPH_ABIL__;     // st:morph -> {pas:[etki,seviye], act:"...", pow:{...}}
 const MORPH_HINT = __MORPH_HINT__;     // st:morph_<mob> olayi -> eylem cubugu metni
+const BLOCK_MORPH_MAP = __BLOCK_MORPH_MAP__;   // kirilan blok -> blok kiligi olayi
+const BLOCK_MORPH_EVENTS = new Set(Object.values(BLOCK_MORPH_MAP));
 const MORPH_MAP = __MORPH_MAP__;   // mob typeId -> st:morph_<key> olayi
 const SIZE_SCALES = __SIZE_SCALES__;   // st:size kademe -> gorsel olcek
 const FUSE = __FUSE__;
@@ -2712,6 +2819,10 @@ function itemAction(player, a) {
       }
       case "rename": {
         renamePrompt(player, a, 20);
+        break;
+      }
+      case "block_morph": {
+        blockMorphUse(player);
         break;
       }
       case "sonic": {
@@ -3114,8 +3225,75 @@ function renamePrompt(pl, a, tries) {
   }).catch(() => {});
 }
 
+// ---- BLOK KILIGI. Blok KIRINCA o bloga donusulur (asagidaki playerBreakBlock
+// kancasi); blokken BASILI TUTUNCA bakilan yere "yerlesilir"; GOKYUZUNE bakip
+// basili tutunca insana donulur. Uc hareket de ayri, ikisi karismiyor.
+const blockNick = new Map();          // oyuncu -> hangi blok kiligindasin (olay adi)
+function isBlockMorph(pl) {
+  const ev = blockNick.get(pl.id);
+  if (!ev) return null;
+  let m = 0;
+  try { m = pl.getProperty("st:morph") || 0; } catch (e) {}
+  if (!m) { blockNick.delete(pl.id); return null; }   // baska bir sey oldu
+  return ev;
+}
+function blockMorphUse(pl) {
+  if (!isBlockMorph(pl)) {
+    try { pl.onScreenDisplay.setActionBar("§7Bir blok kır — o bloğa dönüşürsün"); } catch (e) {}
+    return;
+  }
+  const hit = pl.getBlockFromViewDirection({ maxDistance: 8 });
+  if (!hit) {
+    // Gokyuzune / bosluga bakiyor: insana don. Cikis yolunun HER ZAMAN
+    // ulasilabilir olmasi sart — kapali bir odada bile tavana bakip cikabilsin
+    // diye "blok yok" kosulu secildi, comelme degil (comelme morph yeteneklerini
+    // tetikliyor).
+    blockNick.delete(pl.id);
+    morphTo(pl, "st:morph_human", "İnsana geri döndün");
+    return;
+  }
+  // Bakilan blogun USTUNE, kare ortasina otur: blok izgarasiyla hizalaninca
+  // gercekten konmus bir blok gibi gorunur.
+  const b = hit.block.location;
+  try {
+    pl.teleport({ x: Math.floor(b.x) + 0.5, y: Math.floor(b.y) + 1, z: Math.floor(b.z) + 0.5 });
+    pl.onScreenDisplay.setActionBar("§aYerleştin! §7Gökyüzüne bakıp basılı tut → insan");
+    spray(pl.dimension, pl.location, "minecraft:basic_smoke_particle", 12, 0.4);
+  } catch (e) {}
+}
+
+// Blok KIRINCA o bloga donus. Elde Blok Kiligi olmali; olay ustundeki esya
+// alani surumler arasinda oynadigi icin once o, olmazsa ANA ELDEKI esya.
+world.afterEvents.playerBreakBlock.subscribe((ev) => {
+  try {
+    const pl = ev.player;
+    if (!pl) return;
+    let held = ev.itemStackBeforeBreak && ev.itemStackBeforeBreak.typeId;
+    if (!held) {
+      const eq = pl.getComponent("minecraft:equippable");
+      const it = eq && eq.getEquipment(EquipmentSlot.Mainhand);
+      held = it && it.typeId;
+    }
+    if (held !== "stnt:blok_kiligi") return;
+    const bid = (ev.brokenBlockPermutation && ev.brokenBlockPermutation.type &&
+                 ev.brokenBlockPermutation.type.id) || null;
+    const evName = bid && BLOCK_MORPH_MAP[bid];
+    if (!evName) {
+      system.run(() => {
+        try { pl.onScreenDisplay.setActionBar(
+          `§7Bu bloğun kılığı yok: §f${(bid || "?").replace("minecraft:", "")}`); } catch (e) {}
+      });
+      return;
+    }
+    // Kirma olayi sirasinda triggerEvent salt-okunur baglamda kalabilir.
+    system.run(() => morphTo(pl, evName, "Bloğa dönüştün!"));
+  } catch (e) {}
+});
+
 function morphTo(pl, evName, msg) {
   try {
+    if (BLOCK_MORPH_EVENTS.has(evName)) blockNick.set(pl.id, evName);
+    else blockNick.delete(pl.id);
     pl.triggerEvent(evName);
     pl.onScreenDisplay.setActionBar("§a" + (MORPH_HINT[evName] || msg));
     spray(pl.dimension, pl.location, "minecraft:mob_portal", 20, 1.5);

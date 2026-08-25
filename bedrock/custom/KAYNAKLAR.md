@@ -7,6 +7,7 @@ bir varlığın kaynağını bilmeden ne güncellenebilir ne de paylaşılabilir
 | Dosya | Kaynak |
 |---|---|
 | `ender_send.geo.json`, `ender_send.animation.json` | Bu proje için elle yazıldı (üç kafalı özgün model). |
+| `block_morph.geo.json` | Bu proje için elle yazıldı. 16×16×16 küp; her yüzü aynı 16×16 dokuyu örnekler, böylece herhangi bir blok dokusu doğrudan kullanılabilir. |
 | `mutant_warden.geo.json`, `mutant_warden.animation.json`, `mutant_warden.mirror.json`, `mutant_warden_tex/` | **Üçüncü taraf.** `ibu_craft:mutant_warden` — indirilen paketten (`.mcwork/dl/luzaluza_mutant_warden_INSPECT`) alındı, kimlikleri `stnt_` önekiyle yeniden adlandırıldı. |
 
 ## Mutant Warden hakkında

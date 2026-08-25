@@ -71,8 +71,17 @@ def main():
             texs |= t
             mats |= m
 
+    # Blok dokulari: oyuncuyu bir BLOGA donusturen morph'lar bunlari kullaniyor
+    # (geometry.stnt_block_morph + tek doku). entity_textures'ta yoklar.
+    block_texs = sorted(
+        p[len("resource_pack/"):-len(".png")]
+        for p in paths
+        if p.startswith("resource_pack/textures/blocks/") and p.endswith(".png")
+    )
+
     data = {
         "//": "Mojang/bedrock-samples main dalindan uretildi; fetch_vanilla_ids.py",
+        "block_textures": block_texs,
         "blocks": blocks,
         "entities": entities,
         "effects": effects,
@@ -84,7 +93,8 @@ def main():
     }
     with open(OUT, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=0, sort_keys=True)
-    print(f"{OUT}: blok {len(blocks)}, varlik {len(entities)}, etki {len(effects)}, "
+    print(f"{OUT}: blok {len(blocks)}, blok dokusu {len(block_texs)}, "
+          f"varlik {len(entities)}, etki {len(effects)}, "
           f"ses {len(sounds)}, parcacik {len(particles)}, "
           f"geometry {len(geos)}, doku {len(texs)}, materyal {len(mats)}")
 

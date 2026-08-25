@@ -1,7 +1,45 @@
 # Super TNT — Bedrock Port Durumu
 
-Son sürüm: **v1.37.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
+Son sürüm: **v1.38.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
 olacak şekilde geliştiriliyor (MorphX / mutant paketine bağımlılık yok).
+
+## v1.38.0 — Blok Kılığı (saklambaç)
+
+Elinde **Blok Kılığı** varken bir blok kır — o bloğa dönüşürsün. Üç hareket,
+üçü de birbirinden ayrı:
+
+| Hareket | Ne olur |
+|---|---|
+| Blok **kır** (eşya elde) | O bloğun kılığına girersin |
+| Blokken bir yere **basılı tut** | Oraya blok gibi yerleşirsin (ızgaraya hizalı) |
+| **Gökyüzüne** bakıp basılı tut | İnsana dönersin |
+
+**48 blok kılığı**, 74 blok kimliği: taş, toprak, çim, kum, çakıl, tahta,
+kütük, yaprak, cam, tuğla, obsidyen, altı maden bloğu, netherrack, buz, kar,
+balkabağı, kabak feneri, karpuz, kitaplık, tezgah, fırın, TNT, saman, sünger,
+kil, kuvars, sakız, bal, mercan, sculk, kaya katmanı, beş yün rengi — artı
+paketin kendi dört TNT'si. Aynı kılığa birden fazla blok bağlı: meşe kütüğü de
+koyu meşe kütüğü de aynı kılığa sokar.
+
+**Neden mob dönüşümüyle aynı makine.** Kılık, `st:morph` özelliğine bağlı bir
+render controller — mob morph'larıyla birebir aynı yol. Tek farkı geometry
+(16×16×16 küp, her yüzü aynı 16×16 dokuyu örnekler) ve dokunun bir mob değil
+**blok** dokusu olması. Vanilla blok dokuları da tıpkı mob dokuları gibi
+**adıyla** referans alınır, pakete konmaz. Bunun getirisi: dönüşüm menüsüne
+"Bloklar" sekmesi kendiliğinden geldi, isim gizleme ve ölçek zinciri de
+kendiliğinden çalışıyor.
+
+**Çıkış yolu bilerek "boşluğa bak".** Çömelme seçilmedi: çömelme morph
+yeteneklerini tetikliyor. Kapalı bir odada bile tavana bakıp çıkılabilsin diye
+"bakılan blok yok" koşulu seçildi. Mutasyon testi bu çıkış yolunun kapanmasını
+ayrıca yakalıyor — çocuğun blok kılığında mahsur kalması, oyunu en çok bozacak
+şey olurdu.
+
+`vanilla_ids.json` artık **1227 blok dokusunu** da taşıyor; denetim her kılığın
+dokusunu ve her blok kimliğini doğruluyor (5410 kontrol). Sim tarafında sekiz
+yeni senaryo: eşya elde değilken kırmak dönüştürmemeli, farklı blok farklı
+kılığa sokmalı, kılığı olmayan blok söylenmeli, yerleşme ızgaraya hizalanmalı,
+gökyüzü çıkışı çalışmalı, mob kılığındayken yerleşme çalışmamalı.
 
 ## v1.37.0 — git-gel önleme turu
 

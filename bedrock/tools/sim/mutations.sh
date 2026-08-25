@@ -123,6 +123,40 @@ PYX
 run "Temizleyici TNT boyutu birakiyor" "boyutu normale donduruyor"
 cp "$BAK/build.bak" bedrock/build.py
 
+# 8) blok kirinca kiliga girme kancasi elde esya aramasin -> her kirmada donusur
+python3 - "$BAK" <<'PYX'
+import io, sys
+s = io.open(sys.argv[1] + "/build.bak", encoding="utf-8").read()
+old = '    if (held !== "stnt:blok_kiligi") return;'
+assert s.count(old) == 1
+io.open("bedrock/build.py", "w", encoding="utf-8").write(s.replace(old, "", 1))
+PYX
+run "blok kiligi elde olmadan da donusturuyor" "esya elde degilken blok kirmak donusturmuyor"
+cp "$BAK/build.bak" bedrock/build.py
+
+# 9) yerlesme izgaraya hizalanmasin -> blok gibi durmaz, yarim karede kalir
+python3 - "$BAK" <<'PYX'
+import io, sys
+s = io.open(sys.argv[1] + "/build.bak", encoding="utf-8").read()
+old = '    pl.teleport({ x: Math.floor(b.x) + 0.5, y: Math.floor(b.y) + 1, z: Math.floor(b.z) + 0.5 });'
+new = '    pl.teleport({ x: b.x, y: b.y + 1, z: b.z });'
+assert s.count(old) == 1
+io.open("bedrock/build.py", "w", encoding="utf-8").write(s.replace(old, new, 1))
+PYX
+run "yerlesme kare ortasina hizalamiyor" "kare ortasina hizalaniyor"
+cp "$BAK/build.bak" bedrock/build.py
+
+# 10) cikis yolu kapansin -> cocuk blok kiliginda MAHSUR kalir
+python3 - "$BAK" <<'PYX'
+import io, sys
+s = io.open(sys.argv[1] + "/build.bak", encoding="utf-8").read()
+old = '''    blockNick.delete(pl.id);\n    morphTo(pl, "st:morph_human", "İnsana geri döndün");\n    return;'''
+assert s.count(old) == 1
+io.open("bedrock/build.py", "w", encoding="utf-8").write(s.replace(old, '    return;', 1))
+PYX
+run "blok kiligindan cikis yolu yok" "insana donuluyor"
+cp "$BAK/build.bak" bedrock/build.py
+
 echo
 echo "yakalanan $pass / kacirilan $fail"
 [ "$fail" -eq 0 ]

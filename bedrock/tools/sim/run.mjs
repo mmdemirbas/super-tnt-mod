@@ -320,7 +320,80 @@ function detonateTnt(short, p, at) {
      `zirve ${__sim.state.counters.maxGetBlockPerTick}`);
 }
 
-// ------------------------------ 12. YETMIS TNT'nin HEPSI patliyor mu
+// -------------------------------------------------- 12. Blok Kiligi
+// Uc hareket birbirine karismamali: KIRMAK kiliga sokar, BASILI TUTMAK
+// yerlestirir, GOKYUZUNE bakip basili tutmak insana dondurur.
+{
+  settle();
+  const BLOCK_MORPH_MAP = constOf("BLOCK_MORPH_MAP");
+  const p = fresh();
+  const breakBlock = (id, holding) => {
+    p.mainhand = holding;
+    __sim.fire("after", "playerBreakBlock", {
+      player: p, dimension: p.dimension,
+      block: { typeId: "minecraft:air", location: { x: 0, y: 63, z: 2 }, dimension: p.dimension },
+      brokenBlockPermutation: { type: { id } },
+      itemStackBeforeBreak: holding ? { typeId: holding } : undefined,
+    });
+    __sim.tick(2);
+  };
+  const use = () => {
+    __sim.fire("after", "itemUse", { itemStack: { typeId: "stnt:blok_kiligi" }, source: p });
+    __sim.tick(2);
+  };
+
+  // (a) esya elde DEGILKEN kirmak hicbir sey yapmamali
+  breakBlock("minecraft:stone", "minecraft:diamond_pickaxe");
+  eq(p.getProperty("st:morph"), 0, "esya elde degilken blok kirmak donusturmuyor");
+
+  // (b) esya eldeyken kirmak o bloga donusturur
+  breakBlock("minecraft:stone", "stnt:blok_kiligi");
+  ok(p.getProperty("st:morph") > 0, "blok kirinca o bloga donusuluyor",
+     `st:morph ${p.getProperty("st:morph")}`);
+  const stoneN = p.getProperty("st:morph");
+
+  // (c) baska bir blok baska bir kiliga sokmali
+  breakBlock("minecraft:gold_block", "stnt:blok_kiligi");
+  ok(p.getProperty("st:morph") !== stoneN, "farkli blok farkli kiliga sokuyor");
+
+  // (d) kiligi olmayan blok: uyari, kilik degismez
+  const before = p.getProperty("st:morph");
+  __sim.state.log.actionBars.length = 0;
+  breakBlock("minecraft:beacon", "stnt:blok_kiligi");
+  eq(p.getProperty("st:morph"), before, "kiligi olmayan blok kiligi degistirmiyor");
+  ok(bars().some((m) => m.includes("kılığı yok")), "kiligi olmayan blok soyleniyor", bars().join("|"));
+
+  // (e) BLOKKEN bir yere basili tutmak oraya yerlestirir (izgaraya hizali)
+  breakBlock("minecraft:stone", "stnt:blok_kiligi");
+  __sim.state.viewBlock = { block: { typeId: "minecraft:stone", location: { x: 7, y: 63, z: 9 }, dimension: p.dimension } };
+  use();
+  eq(p.location.x, 7.5, "yerlesince X kare ortasina hizalaniyor");
+  eq(p.location.y, 64, "yerlesince blogun USTUNE oturuyor");
+  eq(p.location.z, 9.5, "yerlesince Z kare ortasina hizalaniyor");
+  ok(p.getProperty("st:morph") > 0, "yerlesmek kiligi bozmuyor");
+
+  // (f) GOKYUZUNE bakip basili tutmak insana donduruyor
+  __sim.state.viewBlock = null;
+  use();
+  eq(p.getProperty("st:morph"), 0, "gokyuzune bakip basili tutunca insana donuluyor");
+
+  // (g) blok kiliginda DEGILKEN kullanmak yol gosteriyor
+  __sim.state.log.actionBars.length = 0;
+  use();
+  ok(bars().some((m) => m.includes("Bir blok kır")), "kilikta degilken ne yapacagi yaziliyor");
+
+  // (h) baska bir morph'a gecince blok kiligi hafizasi temizlenir: mob'ken
+  //     "yerlesme" calismamali, yol gosterme yazisi cikmali
+  p.triggerEvent("st:morph_creeper");
+  __sim.state.viewBlock = { block: { typeId: "minecraft:stone", location: { x: 3, y: 63, z: 3 }, dimension: p.dimension } };
+  __sim.state.log.actionBars.length = 0;
+  const where = { ...p.location };
+  use();
+  ok(bars().some((m) => m.includes("Bir blok kır")), "mob kiligindayken yerlesme calismiyor");
+  eq(p.location.x, where.x, "mob kiligindayken isinlanma yok");
+}
+
+// ------------------------------ 13. YETMIS TNT'nin HEPSI patliyor mu
 // Simdiye kadar dort TNT denendi. Bir TNT'nin spec'i bozuksa (olmayan blok,
 // eksik alan, yanlis palet) hata try icinde kaybolur ve TNT oyunda "patladi
 // ama hicbir sey olmadi" gorunur. Hepsini tek tek atesle.
@@ -406,7 +479,7 @@ function detonateTnt(short, p, at) {
      `once ${baseJobs}, sonra ${__sim.jobCount()}`);
 }
 
-// ---------------- 13. Temizleyici TNT ipucunun ikinci yarisini da yapiyor mu
+// ---------------- 15. Temizleyici TNT ipucunun ikinci yarisini da yapiyor mu
 // "Tum efektleri VE BOYUT degisikliklerini temizler" — boyut kismi uzun sure
 // yapilmiyordu: kucultulmus cocuk temizleyiciyi patlatip kucuk kaliyordu.
 {

@@ -50,10 +50,14 @@ PARTICLES = set(VAN["particles"])
 GEOS = set(VAN["entity_geometry"])
 TEXS = set(VAN["entity_textures"])
 MATS = set(VAN["entity_materials"])
+# Blok kiligi morph'lari mob dokusu degil BLOK dokusu kullanir.
+BLOCK_TEXS = set(VAN["block_textures"])
 
 # Paketin KENDI varliklari ve modelleri: morph tablosunda bunlar da gecebilir,
 # vanilla listelerinde aranmamali.
 OWN_ENTITIES = {f"stnt:{m['id']}" for m in build.MONSTERS}
+OWN_BLOCKS = {"stnt:" + os.path.basename(p)[:-5]
+              for p in glob.glob(os.path.join(BP, "blocks", "*.json"))}
 # Ad kalibi degil, DOSYA: RP'de gercekten duran geometry kimlikleri ve doku
 # yollari. Eskiden kalip ("geometry.<mob id>") kabul ediliyordu, yani ship
 # edilmeyen bir model de denetimden geciyordu.
@@ -198,17 +202,27 @@ def check_morphs(js):
     # 3a. mob typeId'leri ve gorsel varliklarin vanilla'da olmasi
     for m in morphs:
         k = m["key"]
-        tid = f"{m.get('ns', 'minecraft')}:{k}"
-        check(tid in ENTITIES or tid in OWN_ENTITIES, f"morph {k}: '{tid}' diye bir varlik yok")
-        if tid in OWN_ENTITIES:
-            check(os.path.exists(os.path.join(BP, "entities", f"{k}.json")),
-                  f"morph {k}: paketin kendi mob'u ama BP/entities/{k}.json yok")
+        block_morph = "blocks" in m
+        if block_morph:
+            # Blok kiligi: arkasinda bir mob yok, KIRILAN BLOK var.
+            for bid in m["blocks"]:
+                check(bid in BLOCKS or bid in OWN_BLOCKS,
+                      f"morph {k}: '{bid}' diye bir blok yok")
+            check(m["cat"] == "Bloklar", f"morph {k}: blok kiligi 'Bloklar' kategorisinde olmali")
+        else:
+            tid = f"{m.get('ns', 'minecraft')}:{k}"
+            check(tid in ENTITIES or tid in OWN_ENTITIES, f"morph {k}: '{tid}' diye bir varlik yok")
+            if tid in OWN_ENTITIES:
+                check(os.path.exists(os.path.join(BP, "entities", f"{k}.json")),
+                      f"morph {k}: paketin kendi mob'u ama BP/entities/{k}.json yok")
         # Vanilla'da VARSA Minecraft verir; yoksa RP'de ship EDILMIS olmali.
         # Ikisi de degilse model/doku sessizce gorunmez olur.
         check(m["geo"] in GEOS or m["geo"] in OWN_GEOS,
               f"morph {k}: geometry '{m['geo']}' ne vanilla'da var ne RP'de ship ediliyor")
-        check(m["tex"] in TEXS or m["tex"] in OWN_TEXS,
-              f"morph {k}: doku '{m['tex']}' ne vanilla'da var ne RP'de ship ediliyor")
+        ok_tex = m["tex"] in TEXS or m["tex"] in OWN_TEXS or \
+                 (block_morph and (m["tex"] in BLOCK_TEXS or
+                                   os.path.exists(os.path.join(RP, m["tex"] + ".png"))))
+        check(ok_tex, f"morph {k}: doku '{m['tex']}' ne vanilla'da var ne RP'de ship ediliyor")
         check(m["mat"] in MATS or m["mat"] in EXTRA_MATS, f"morph {k}: materyal '{m['mat']}' yok")
         for i, lay in enumerate(m.get("layers", [])):
             for t in lay["tex"]:
@@ -256,7 +270,18 @@ def check_morphs(js):
 
     # 3d. betikteki tablolar
     mm = js_const(js, "MORPH_MAP")
-    check(len(mm) == len(morphs), f"MORPH_MAP {len(mm)} girdi, morph sayisi {len(morphs)}")
+    mobs = [m for m in morphs if "blocks" not in m]
+    blockms = [m for m in morphs if "blocks" in m]
+    check(len(mm) == len(mobs), f"MORPH_MAP {len(mm)} girdi, mob morph sayisi {len(mobs)}")
+
+    # Blok kiligi tablosu: her kiligin en az bir blogu, her blogun tek kiligi.
+    bmm = js_const(js, "BLOCK_MORPH_MAP")
+    check(set(bmm.values()) == {f"st:morph_{m['key']}" for m in blockms},
+          "BLOCK_MORPH_MAP ile blok kiliklari ayni kumeyi vermiyor")
+    check(len(bmm) == sum(len(m["blocks"]) for m in blockms),
+          "BLOCK_MORPH_MAP'te blok sayisi tutmuyor (ayni blok iki kiliga mi bagli?)")
+    check(os.path.exists(os.path.join(RP, "models", "entity", "block_morph.geo.json")),
+          "blok kiligi modeli RP'de ship edilmiyor")
     forms = js_const(js, "MORPH_FORMS")
     menu = [i["ev"] for g in forms for i in g["items"]]
     check(len(menu) == len(morphs), f"menude {len(menu)} mob var, {len(morphs)} olmali")
