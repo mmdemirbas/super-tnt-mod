@@ -2416,6 +2416,7 @@ function healBoost(player, a) {
 // Dalganin savurmamasi gerekenler: yerdeki esya ve tecrube kuresi. Yoksa
 // cocuk kendi ganimetini 20 blok oteye ucuruyor.
 const sonicCd = new Map();
+const CRAFT_AXE_MAX = 20000;   // ~27x27x27; tek tick'te taranabilecek ust sinir
 const SONIC_SKIP = { "minecraft:item": 1, "minecraft:xp_orb": 1, "minecraft:xp_bottle": 1 };
 
 function sonicBoom(player, a) {
@@ -2522,6 +2523,10 @@ function megaTree(player, a) {
   // ya da govdeyi yemesin. Govde ve dallar ise kayanin disinda her seyi ezer,
   // yoksa yamacta buyuyen agac delik desik kalir.
   const put = (x, y, z, perm, id, onlyAir) => {
+    // budget INCELENEN pozisyonu sayar. Erken return'lerin altinda olsaydi
+    // (ve oyleydi) yamacta buyuyen agacta tepe katmanlari onlyAir'e takilip
+    // geri doner, budget sifirda kalir ve kalan ~58 katman tek tick'te inerdi.
+    budget++;
     try {
       const b = dim.getBlock({ x, y, z });
       if (!b) return;
@@ -2529,7 +2534,7 @@ function megaTree(player, a) {
       if (cur === "minecraft:bedrock") return;
       if (onlyAir && cur !== "minecraft:air" && !cur.endsWith("_leaves")) return;
       if (perm) b.setPermutation(perm); else b.setType(id);
-      total++; budget++;
+      total++;
     } catch (e) {}
   };
 
@@ -2911,6 +2916,12 @@ function itemAction(player, a) {
           const x1 = Number(parts[0]), y1 = Number(parts[1]), z1 = Number(parts[2]);
           const fill = parts[3] || "minecraft:stone";   // ilk noktadaki blok tipi
           const x2 = Math.floor(l.x), y2 = Math.floor(l.y), z2 = Math.floor(l.z);
+          const vol = (Math.abs(x1 - x2) + 1) * (Math.abs(y1 - y2) + 1) * (Math.abs(z1 - z2) + 1);
+          if (vol > CRAFT_AXE_MAX) {
+            try { player.onScreenDisplay.setActionBar(
+              `§cAlan çok büyük: §f${vol}§c blok. En fazla §f${CRAFT_AXE_MAX}§c (yaklaşık 27×27×27).`); } catch (e) {}
+            break;
+          }
           let placed = 0;
           // iki nokta arasi kutu doldurulur; noktalar farkli yukseklikteyse
           // dikey de dolar -> otomatik DUVAR (aralarindaki yuksekligi orer).
@@ -3411,7 +3422,16 @@ system.runInterval(() => {
 // R=6'da 2197; 10'lu bir zincirde 22 bin sorgu ve tablette gorunur donma.
 // Bu yuzden yaricap 5'e cekildi ve tarama dx dilimlerine bolunup tick'lere
 // yayildi: tick basina 2 dilim = ~242 sorgu.
+// Es zamanli zincir isi tavani. Her patlama bir 1-tick interval aciyor ve o
+// interval 30 TNT daha atesleyebiliyor, her biri yine chain cagiriyor. 30
+// TNT'lik bir yigin — cocuklarin normal kullanimi — ~30 es zamanli is demek,
+// tick basina ~7000 getBlock. Tavan dolunca zincir o dalda durur; TNT'ler
+// kendi fitilleriyle zaten patlar.
+const CHAIN_MAX = 8;
+let chainJobs = 0;
 function chain(dim, c) {
+  if (chainJobs >= CHAIN_MAX) return;
+  chainJobs++;
   const R = 5;
   const cx = Math.floor(c.x), cy = Math.floor(c.y), cz = Math.floor(c.z);
   let dx = -R, found = 0;
@@ -3419,7 +3439,7 @@ function chain(dim, c) {
     for (let slice = 0; slice < 2 && dx <= R; slice++, dx++) {
       for (let dy = -R; dy <= R; dy++) {
         for (let dz = -R; dz <= R; dz++) {
-          if (found >= 30) { system.clearRun(job); return; }
+          if (found >= 30) { system.clearRun(job); chainJobs--; return; }
           try {
             const p = { x: cx + dx, y: cy + dy, z: cz + dz };
             const b = dim.getBlock(p);
@@ -3435,7 +3455,7 @@ function chain(dim, c) {
         }
       }
     }
-    if (dx > R) system.clearRun(job);
+    if (dx > R) { system.clearRun(job); chainJobs--; }
   }, 1);
 }
 
@@ -3667,6 +3687,13 @@ function detonate(dim, c, short, igniterId) {
           while (bx <= r && d < per) {
             for (let by = -r; by <= r; by++) for (let bz = -r; bz <= r; bz++) {
               if (bx * bx + by * by + bz * bz > r * r) continue;
+              // d, DEGISTIRILEN degil INCELENEN pozisyonu sayar. Eskiden
+              // yalnizca setType'in yanindaydi: filtreye uyan blok yoksa d sifirda
+              // kaliyor, while kosulu hic yanlislanmiyor ve TUM kure tek tick'te
+              // taraniyordu. Cam TNT (r=30) camsiz arazide 226 981 pozisyon,
+              // Kiyamet (r=35) havada patlayinca ~180 000 getBlock -> saniyelerce
+              // donma. Isi sayinca en kotu durum bir x-dilimi kadar olur.
+              d++;
               try {
                 const b = dim.getBlock({ x: cx + bx, y: cy + by, z: cz + bz }); if (!b) continue;
                 const t = b.typeId;
@@ -3676,7 +3703,7 @@ function detonate(dim, c, short, igniterId) {
                   const ok = Array.isArray(s.filter) ? s.filter.some(f => t.includes(f)) : t.includes(s.filter);
                   if (!ok) continue;
                 }
-                b.setType("minecraft:air"); d++;
+                b.setType("minecraft:air");
               } catch (e) {}
             }
             bx++;
@@ -3699,13 +3726,14 @@ function detonate(dim, c, short, igniterId) {
           while (px <= r && d < per) {
             for (let py = -r; py <= r; py++) for (let pz = -r; pz <= r; pz++) {
               if (px * px + py * py + pz * pz > r * r) continue;
+              d++;                                  // bkz. transform: is sayilir
               try {
                 const b = dim.getBlock({ x: cx + px, y: cy + py, z: cz + pz }); if (!b) continue;
                 const t = b.typeId;
                 if (s.onlyAir && t !== "minecraft:air") continue;
                 if (!s.onlyAir && t === "minecraft:air") continue;
                 if (t === "minecraft:bedrock") continue;
-                b.setType(s.block); d++;
+                b.setType(s.block);
               } catch (e) {}
             }
             px++;
@@ -3720,9 +3748,10 @@ function detonate(dim, c, short, igniterId) {
               while (ux <= r && d < per) {
                 for (let uy = -r; uy <= r; uy++) for (let uz = -r; uz <= r; uz++) {
                   if (ux * ux + uy * uy + uz * uz > r * r) continue;
+                  d++;                              // bkz. transform: is sayilir
                   try {
                     const b = dim.getBlock({ x: cx + ux, y: cy + uy, z: cz + uz });
-                    if (b && b.typeId === s.block) { b.setType("minecraft:air"); d++; }
+                    if (b && b.typeId === s.block) b.setType("minecraft:air");
                   } catch (e) {}
                 }
                 ux++;
@@ -3745,11 +3774,12 @@ function detonate(dim, c, short, igniterId) {
           while (tx <= r && d < per) {
             for (let ty = -r; ty <= r; ty++) for (let tz = -r; tz <= r; tz++) {
               if (tx * tx + ty * ty + tz * tz > r * r) continue;
+              d++;                                  // bkz. transform: is sayilir
               try {
                 const b = dim.getBlock({ x: cx + tx, y: cy + ty, z: cz + tz }); if (!b) continue;
                 const t = b.typeId;
                 if (t === "minecraft:air" || t === "minecraft:bedrock") continue;
-                b.setType(pal[Math.abs(tx * 7 + ty * 13 + tz * 17) % pal.length]); d++;
+                b.setType(pal[Math.abs(tx * 7 + ty * 13 + tz * 17) % pal.length]);
               } catch (e) {}
             }
             tx++;
