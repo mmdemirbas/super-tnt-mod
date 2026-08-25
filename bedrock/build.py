@@ -78,7 +78,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 34, 0]
+VERSION = [1, 35, 0]
 MIN_ENGINE = [1, 21, 0]
 # Surum etiketi paket ADINA yazilir. UUID + klasor adlari sabit oldugu icin
 # Minecraft ayni UUID'li paketi yerinde GUNCELLER; ama cihazda eski surum
@@ -753,8 +753,8 @@ TNTS = [
          color=((30, 70, 150), (44, 92, 180), (24, 56, 120)), mat="minecraft:water_bucket",
          effect=dict(kind="place", block="minecraft:water", radius=15, onlyAir=True, tempSeconds=30, perTick=700)),
     dict(id="mob_freeze_tnt", tr="Mob Dondurucu TNT", en="Mob Freeze TNT",
-         trtip="30 blok yarıçapını geçici buza çevirir.",
-         entip="Turns a 30 block radius into temporary ice.",
+         trtip="14 blok yarıçapını geçici buza çevirir.",
+         entip="Turns a 14 block radius into temporary ice.",
          color=((160, 210, 235), (186, 226, 246), (150, 200, 232)), mat="minecraft:blue_ice",
          effect=dict(kind="place", block="minecraft:ice", radius=14, onlyAir=False, tempSeconds=30, perTick=700)),
     dict(id="nether_tnt", tr="Nether TNT", en="Nether TNT",
@@ -770,8 +770,8 @@ TNTS = [
          effect=dict(kind="place", block="minecraft:end_stone", radius=10, onlyAir=False, perTick=700,
                      particle="minecraft:endrod")),
     dict(id="rainbow_tnt", tr="Gökkuşağı Yün TNT", en="Rainbow Wool TNT",
-         trtip="Blokları renkli yüne dönüştürür (30 blok yarıçap).",
-         entip="Turns blocks into colored wool (30 block radius).",
+         trtip="Blokları renkli yüne dönüştürür (20 blok yarıçap).",
+         entip="Turns blocks into colored wool (20 block radius).",
          color=((220, 60, 60), (90, 190, 90), (70, 110, 210)), mat="minecraft:white_wool",
          effect=dict(kind="transform", radius=20, perTick=1000, palette=[
              f"minecraft:{c}_wool" for c in ["red", "orange", "yellow", "lime", "green", "cyan",
@@ -802,8 +802,8 @@ TNTS = [
          effect=dict(kind="transform", radius=18, perTick=600, palette=[
              "minecraft:black_concrete", "minecraft:brown_concrete", "minecraft:gray_concrete"])),
     dict(id="elmas_diyari_tnt", tr="Elmas Diyarı TNT", en="Diamond Land TNT",
-         trtip="30 blok yarıçapındaki dünyayı elmas blokuna çevirir.",
-         entip="Turns a 30 block radius into diamond blocks.",
+         trtip="18 blok yarıçapındaki dünyayı elmas blokuna çevirir.",
+         entip="Turns an 18 block radius into diamond blocks.",
          color=((100, 220, 220), (130, 236, 236), (80, 190, 190)), mat="minecraft:diamond_block",
          effect=dict(kind="transform", radius=18, perTick=800, palette=["minecraft:diamond_block"])),
     dict(id="magnet_tnt", tr="Mıknatıs TNT", en="Magnet TNT",
@@ -874,8 +874,8 @@ TNTS = [
          effect=dict(kind="place", block="minecraft:stone", radius=8, onlyAir=True, perTick=800,
                      particle="minecraft:basic_smoke_particle")),
     dict(id="elmas_zirh_tnt", tr="Elmas Zırh TNT", en="Diamond Armor TNT",
-         trtip="50 blok yarıçapındaki TÜM canlıları yok eder — dev patlama!",
-         entip="Destroys ALL creatures within 50 blocks - massive blast!",
+         trtip="40 blok yarıçapındaki TÜM canlıları yok eder — dev patlama!",
+         entip="Destroys ALL creatures within 40 blocks - massive blast!",
          color=((80, 220, 220), (110, 236, 236), (60, 190, 190)), mat="minecraft:diamond_block",
          effect=dict(kind="instakill", radius=40, exceptIgniter=False, power=18)),
     dict(id="ureyen_tnt", tr="Üreyen TNT", en="Breeding TNT",
@@ -2792,7 +2792,12 @@ function itemAction(player, a) {
           try {
             const l = e.location, pl = player.location;
             const dx = pl.x - l.x, dy = pl.y - l.y, dz = pl.z - l.z, len = Math.hypot(dx, dy, dz) || 1;
-            e.applyImpulse({ x: dx / len * 0.5, y: 0.1, z: dz / len * 0.5 });
+            // Cekme AYRI try: applyImpulse oyuncuda hata verir ve eskiden bu
+            // satir try'in ilkiydi -> korluk ve hasar oyunculara HIC islemiyordu.
+            try {
+              if (e.typeId === "minecraft:player") e.applyKnockback(dx / len, dz / len, 0.5, 0.1);
+              else e.applyImpulse({ x: dx / len * 0.5, y: 0.1, z: dz / len * 0.5 });
+            } catch (e2) {}
             e.addEffect("blindness", 100, { amplifier: 0 });
             e.applyDamage(4);
           } catch (err) {}
@@ -2840,7 +2845,7 @@ function itemAction(player, a) {
       }
       case "kill_target": {
         // "tek kullanim" hissi + kardes spam'ini onlemek icin 3 sn bekleme.
-        const now = system.currentTick;
+        const now = wclock();           // dinamik ozellige yazilir -> kalici saat
         const cd = player.getDynamicProperty("stnt:au_cd") || 0;
         if (now < cd) { try { player.onScreenDisplay.setActionBar("§7Rapor hazırlanıyor... birazdan"); } catch (e) {} break; }
         const hs = player.getEntitiesFromViewDirection({ maxDistance: 30 });
@@ -3469,6 +3474,12 @@ function chain(dim, c) {
   }, 1);
 }
 
+// Kalici zaman. system.currentTick her dunya yuklemesinde sifirlanir, bu yuzden
+// DISKE yazilan hicbir zaman damgasinda kullanilamaz.
+function wclock() {
+  try { return world.getAbsoluteTime(); } catch (e) { return system.currentTick; }
+}
+
 function rnd(n) { return (Math.random() - 0.5) * n; }
 
 function detonate(dim, c, short, igniterId) {
@@ -3508,7 +3519,8 @@ function detonate(dim, c, short, igniterId) {
         for (const e of dim.getEntities({ location: c, maxDistance: s.radius })) {
           try {
             if (e.typeId === "minecraft:player") {
-              e.applyKnockback({ x: rnd(0.6), z: rnd(0.6) }, s.force * 1.2);
+              try { e.applyKnockback(rnd(0.6), rnd(0.6), 0.9, s.force * 1.2); }
+              catch (e2) { e.applyKnockback({ x: rnd(0.6), z: rnd(0.6) }, s.force * 1.2); }
             } else {
               e.applyImpulse({ x: rnd(0.4), y: s.force, z: rnd(0.4) });
             }
@@ -3818,7 +3830,8 @@ function detonate(dim, c, short, igniterId) {
               const l = e.location;
               const dx = c.x - l.x, dy = c.y - l.y, dz = c.z - l.z;
               const len = Math.hypot(dx, dy, dz) || 1;
-              e.applyKnockback({ x: dx / len * 0.6, z: dz / len * 0.6 }, 0.5);
+              try { e.applyKnockback(dx / len, dz / len, 0.6, 0.5); }
+              catch (e2) { e.applyKnockback({ x: dx / len * 0.6, z: dz / len * 0.6 }, 0.5); }
             } catch (err) {}
           }
           if (++pulls >= (s.pullTicks || 60)) {
@@ -4281,7 +4294,7 @@ loadMines();   // modul degerlendirmesinde bir kez; worldLoad reload icin yedek
 world.afterEvents.playerPlaceBlock.subscribe((ev) => {
   const b = ev.block;
   if (!b || b.typeId !== "stnt:yakinlik_mayini") return;
-  mines[pkey(b.dimension.id, b.location)] = { dim: b.dimension.id, x: Math.floor(b.location.x), y: Math.floor(b.location.y), z: Math.floor(b.location.z), armed: system.currentTick + 40 };
+  mines[pkey(b.dimension.id, b.location)] = { dim: b.dimension.id, x: Math.floor(b.location.x), y: Math.floor(b.location.y), z: Math.floor(b.location.z), armed: wclock() + 40 };
   saveMines();
   try { ev.player.onScreenDisplay.setActionBar("§cMayın kuruluyor — 2 saniye içinde kaç!"); } catch (e) {}
 });
@@ -4290,7 +4303,7 @@ world.afterEvents.playerBreakBlock.subscribe((ev) => {
   if (mines[k]) { delete mines[k]; saveMines(); }
 });
 system.runInterval(() => {
-  const now = system.currentTick;
+  const now = wclock();                 // diske yazilan armed ile ayni saat
   let changed = false;
   for (const k of Object.keys(mines)) {
     const m = mines[k];

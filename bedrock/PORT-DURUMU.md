@@ -1,7 +1,70 @@
 # Super TNT — Bedrock Port Durumu
 
-Son sürüm: **v1.34.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
+Son sürüm: **v1.35.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
 olacak şekilde geliştiriliyor (MorphX / mutant paketine bağımlılık yok).
+
+## v1.35.0 — tablet öncesi denetim: on bir hata
+
+Bağımsız bir inceleme paketin tamamını taradı. Bulunanların hiçbiri yeni
+eklemelerden değil; bir kısmı sürümlerdir duruyordu. Üç gruba ayrıldı.
+
+### Oyun süresinden yiyenler
+
+**Tick bütçesi yapılan işi değil sonucu sayıyordu.** Blok işleyen döngülerde
+sayaç yalnızca `setType`'ın yanındaydı, yani *değiştirilen* bloğu sayıyordu.
+Filtreye uyan blok yoksa sayaç sıfırda kalıyor, `while` koşulu hiçbir zaman
+yanlışlanmıyor ve tüm hacim **tek tick'te** taranıyordu. Cam TNT (r=30) camsız
+arazide 226 981 pozisyon (~113 000 `getBlock`), Kıyamet TNT (r=35) havada
+patlarsa ~180 000. Bu takılma değil, saniyelerce donma. Mega ağaçta da aynısı:
+yamaçta büyüyen ağacın tepe katmanları `onlyAir`'e takılıp geri dönüyor, bütçe
+sıfırda kalıyor ve kalan ~58 katman tek tick'te iniyordu.
+
+**Craft Axe'ın hacim tavanı yoktu** — köşe koyup 500 blok yürüyünce 25 milyon
+pozisyon tek tick'te taranıyordu. Artık 20 000 (yaklaşık 27×27×27) üstü hiç
+başlamıyor.
+
+**Zincir işlerine tavan (8).** 30 TNT'lik bir yığın — çocukların normal
+kullanımı — ~30 eş zamanlı iş, tick başına ~7000 `getBlock` demekti.
+
+### Öldüren / tuzağa düşürenler
+
+**"Patlatanı esirger" kuralı çoğu yolda uygulanmıyordu.** `igniterId` yalnızca
+çakmak ve kumanda yollarından geliyordu; redstone, zincir ve başka bir
+patlamanın tetiklemesi onu boş bırakıyor ve kural sessizce düşüyordu. Zeynep
+Redstone TNT anlık ölüm / 30 blok ve ipucu "patlatan hariç" diyor — kola basan
+çocuk her seferinde ölüyordu. Artık bloğu kimin koyduğu kayıttan bulunuyor
+(kayıt zaten sahibi tutuyordu, sadece okunmuyordu).
+
+**Dağ TNT oyuncuyu diri diri gömüyordu** — tek kalıcı `onlyAir` doldurma o.
+Artık oyuncunun durduğu iki blok atlanıyor.
+
+**End Gate sabit koordinata, zemin kontrolü olmadan ışınlıyordu.** (100, 70, 0)
+serbest düşüş: platform y≈49'da, yani en iyi ihtimalle 9 kalp; (100, 0) ana
+adanın kenarı olduğundan ıskalarsa boşluk ve tüm envanter. Artık zemin
+aranıyor, yoksa obsidyen platform kuruluyor.
+
+**Portal ping-pong.** İniş karesinin kendisi portal sayıldığı için oyuncu iki
+saniyede bir geri çekiliyordu — yerinden kımıldamadıkça sonsuza kadar.
+
+### Sessizce hiçbir şey yapmayanlar
+
+**Zıplatan TNT oyuncuyu hiç fırlatmıyor, Mıknatıs TNT hiçbir şeyi
+çekmiyordu.** `applyKnockback`'in nesne biçimi `@minecraft/server` 2.x'te
+geldi; manifest 1.14.0'a bağlı, orada imza dört sayı. İki çağrı yalnızca nesne
+biçimini kullanıyor, hata fırlatıp çevredeki `catch`'te kayboluyordu.
+
+**Kara Delik diğer oyunculara hiçbir şey yapmıyordu.** `applyImpulse` oyuncuda
+hata veriyor ve `try`'ın ilk satırıydı; körlük ve hasar hiç çalışmıyordu.
+
+**Mayınlar dünya yeniden yüklenince kalıcı olarak etkisiz kalıyordu.**
+`system.currentTick` diske yazılmıştı; sayaç her yüklemede sıfırlanıyor, kayıtlı
+değer büyük kalıyor. Among Us raporu da aynı sebeple "hazırlanıyor" deyip
+duruyordu. İkisi de kalıcı dünya saatine geçti.
+
+**Dört TNT'nin ipucu koddan büyük yazıyordu** (30/50 yazan, 14/18/20/40 yapan).
+Çocuk ipucuna göre konumlandığı için bu bir sayı hatası değil güven hatası.
+Denetime kural eklendi: "N blok yarıçap" yazan her ipucu gerçek yarıçapı
+yazmalı — 3211 kontrol, 13 mutasyon.
 
 ## v1.34.0 — tablete gitmeden önceki düzeltmeler
 

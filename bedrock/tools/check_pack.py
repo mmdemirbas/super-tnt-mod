@@ -382,6 +382,16 @@ def check_client_entities():
 def check_tooltip_contract():
     """CLAUDE.md: ipucu bir sozlesmedir. Yeni esyalarin ipucundaki sayilar
     davranistan turetilmis olmali, elle yazilmis olmamali."""
+    # "N blok yaricap" yazan her ipucu gercek yaricapi yazmali. Dort TNT'de
+    # metin kodun ilerisindeydi (30 yaziyordu, kod 14/18/20 yapiyordu) — cocuk
+    # ipucuna gore konumlaniyor, bu yuzden sayi sozlesmenin parcasi.
+    rad = re.compile(r"(\d+)\s*blok\s*yarıçap", re.I)
+    for row in build.TNTS + build.ITEMS:
+        spec = row.get("effect") or row.get("action") or {}
+        for m in rad.finditer(row.get("trtip", "")):
+            check(int(m.group(1)) == spec.get("radius"),
+                  f"{row['id']}: ipucu {m.group(1)} blok yaricap diyor, kod {spec.get('radius')}")
+
     for it in build.ITEMS:
         a = it.get("action") or {}
         tip = it["trtip"]

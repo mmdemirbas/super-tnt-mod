@@ -114,6 +114,11 @@ sed 's/type="dragon_breath", radius=5, damage=2/type="dragon_breath", radius=5, 
 run "tek sayili hasar (yarim kalp)" "yarim kalp goturur"
 cp "$BAK/build.bak" bedrock/build.py
 
+# 13) ipucundaki yaricap koddan ayrilirsa -> cocuk yanlis mesafeye gore kacar
+sed 's/radius=14, onlyAir=False, tempSeconds=30/radius=9, onlyAir=False, tempSeconds=30/' "$BAK/build.bak" > bedrock/build.py
+run "ipucu yaricapi koddan farkli" "blok yaricap diyor"
+cp "$BAK/build.bak" bedrock/build.py
+
 echo
 python3 bedrock/build.py > /dev/null && echo "paket yeniden uretildi"
 echo "yakalanan $pass / kacirilan $fail"
