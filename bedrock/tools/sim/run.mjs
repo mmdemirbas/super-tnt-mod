@@ -320,7 +320,108 @@ function detonateTnt(short, p, at) {
      `zirve ${__sim.state.counters.maxGetBlockPerTick}`);
 }
 
-// ------------------------------------------ 12. hicbir gecici is asili kalmiyor
+// ------------------------------ 12. YETMIS TNT'nin HEPSI patliyor mu
+// Simdiye kadar dort TNT denendi. Bir TNT'nin spec'i bozuksa (olmayan blok,
+// eksik alan, yanlis palet) hata try icinde kaybolur ve TNT oyunda "patladi
+// ama hicbir sey olmadi" gorunur. Hepsini tek tek atesle.
+{
+  const baseJobs = (settle(), __sim.jobCount());
+  const broken = [];
+  const heavy = [];
+  const silent = [];
+  // "Patladi ama hicbir sey olmadi" hatasini yakalamak icin TURE GORE bekle:
+  // blok isleyen TNT blok degistirmeli, sacan TNT esya birakmali, etki veren
+  // TNT yakindaki cana etki islemeli. Yoksa test yalnizca "hata firlatmadi"
+  // der ki bunu bos bir fonksiyon da saglar.
+  const seedFor = (f) => {
+    const first = Array.isArray(f) ? f[0] : f;
+    if (!first) return "minecraft:stone";
+    if (first === "log" || first === "wood") return "minecraft:oak_log";
+    if (first === "leaves") return "minecraft:oak_leaves";
+    return `minecraft:${first}`;
+  };
+  const EXPECTS = { place: "blok", transform: "blok", break: "blok", paint: "blok",
+                    scatter: "esya", spawn: "varlik", status: "etki", instakill: "hasar" };
+  const at = { x: 0, y: 64, z: 40 };
+  for (const short of Object.keys(SPEC)) {
+    const spec = SPEC[short];
+    __sim.reset(); __ui.reset();
+    const p = newPlayer("Zeynep", { x: 0, y: 70, z: -60 });   // patlamalarin disinda
+    // Hedef canli: status / instakill / spawn olculebilsin.
+    const target = __sim.addMob("minecraft:cow", { x: at.x, y: at.y, z: at.z + 1 });
+    target.health = 400;
+    // Patlamanin MENZILINDE ikinci bir oyuncu: "players" hedefli TNT'ler
+    // (Zeynep Komut TNT) ve boyut/temizleme etkileri ancak boyle olculur.
+    const near = newPlayer("Efe", { x: at.x + 1, y: at.y, z: at.z });
+    near.health = 400;
+    target.addEffect("poison", 200, { amplifier: 0 });        // temizleyici icin
+    near.addEffect("poison", 200, { amplifier: 0 });
+    near.props.set("st:size", 0);                             // kucultulmus oyuncu
+    if (spec.kind === "break") {                              // filtreye uyan arazi ser
+      const seed = seedFor(spec.filter), R = Math.min(spec.radius || 8, 12);
+      for (let x = -R; x <= R; x++) for (let y = -R; y <= R; y++) for (let z = -R; z <= R; z++) {
+        __sim.setBlock(p.dimension.id, at.x + x, at.y + y, at.z + z, seed);
+      }
+    }
+    const seededBlocks = __sim.state.blocks.size;
+    const seededEnts = __sim.state.entities.length;
+    __sim.state.counters.maxGetBlockPerTick = 0;
+    const before = __sim.state.log;
+    try {
+      detonateTnt(short, p, at);
+      __sim.tick(700);
+    } catch (e) { broken.push(`${short}: ${e && e.message}`); continue; }
+    if (__sim.errors.length) { broken.push(`${short}: ${__sim.errors[0].split("\n")[0]}`); __sim.errors.length = 0; continue; }
+    const peak = __sim.state.counters.maxGetBlockPerTick;
+    if (peak > 20000) heavy.push(`${short} ${peak}`);
+    const want = EXPECTS[spec.kind];
+    const got = {
+      blok: __sim.state.blocks.size !== seededBlocks ||
+            [...__sim.state.blocks.values()].some((v) => v === "minecraft:air"),
+      esya: before.items.length > 0,
+      varlik: __sim.state.entities.length > seededEnts,
+      etki: target.effects.size !== 1 || near.effects.size !== 1 ||
+            near.getProperty("st:size") !== 0 ||
+            target.damages.length > 0 || near.damages.length > 0 ||
+            before.commands.length > 0 || before.items.length > 0,
+      hasar: target.damages.length > 0 || target.dead,
+    };
+    // Virus TNT bilerek hicbir sey yapmaz — ipucu da oyle diyor ("Aslinda
+    // hicbir sey olmaz"). Sozlesme tutuyor; istisna burada yazili olsun.
+    if (short === "virus_tnt") { /* saka TNT'si: hicbir sey yapmamasi DOGRU */ }
+    else if (want && !got[want]) silent.push(`${short} (${spec.kind}: ${want} yok)`);
+    else if (!want && before.explosions.length + before.particles.length + before.sounds.length === 0) {
+      silent.push(`${short} (${spec.kind}: hicbir iz yok)`);
+    }
+    if (process.env.STNT_DIAG) {
+      console.log(`  ${short.padEnd(24)} zirve ${String(peak).padStart(6)}  patlama ${before.explosions.length}` +
+        `  parcacik ${before.particles.length}  ses ${before.sounds.length}  blok ${__sim.state.blocks.size}`);
+    }
+  }
+  ok(broken.length === 0, `${Object.keys(SPEC).length} TNT'nin hepsi hatasiz patliyor`, broken.slice(0, 4).join(" | "));
+  ok(heavy.length === 0, "hicbir TNT tick basina 20 000 getBlock'u asmiyor", heavy.slice(0, 4).join(" | "));
+  ok(silent.length === 0, "her TNT TURUNE GORE beklenen isi yapiyor", silent.join(", "));
+  settle();
+  ok(__sim.jobCount() <= baseJobs, "70 patlamadan sonra asili is kalmiyor",
+     `once ${baseJobs}, sonra ${__sim.jobCount()}`);
+}
+
+// ---------------- 13. Temizleyici TNT ipucunun ikinci yarisini da yapiyor mu
+// "Tum efektleri VE BOYUT degisikliklerini temizler" — boyut kismi uzun sure
+// yapilmiyordu: kucultulmus cocuk temizleyiciyi patlatip kucuk kaliyordu.
+{
+  settle();
+  const p = fresh();
+  const near = newPlayer("Efe", { x: 1, y: 64, z: 10 });
+  near.addEffect("poison", 200, { amplifier: 0 });
+  near.props.set("st:size", 0);                     // kucultulmus
+  detonateTnt("cleanse_tnt", p, { x: 0, y: 64, z: 10 });
+  __sim.tick(200);
+  ok(!near.effects.has("poison"), "Temizleyici TNT efektleri siliyor");
+  eq(near.getProperty("st:size"), 2, "Temizleyici TNT boyutu normale donduruyor");
+}
+
+// ------------------------------------------ 14. hicbir gecici is asili kalmiyor
 {
   const before = __sim.jobCount();
   settle(); settle();

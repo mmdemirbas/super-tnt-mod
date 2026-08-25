@@ -129,6 +129,52 @@ sed 's/type="rename", maxLen=20/type="rename", maxLen=32/' "$BAK/build.bak" > be
 run "isim siniri ipucunda yok" "harf sinirini yazmiyor"
 cp "$BAK/build.bak" bedrock/build.py
 
+# 16) iki esya ayni ikonu tasirsa -> envanterde ayirt edilemez
+cp "$RP/textures/items/stnt_ejderha_nefesi.png" "$BAK/icon.bak"
+cp "$RP/textures/items/stnt_mega_gubre.png" "$RP/textures/items/stnt_ejderha_nefesi.png"
+run "iki esyanin ikonu ayni" "ikon tekrari"
+cp "$BAK/icon.bak" "$RP/textures/items/stnt_ejderha_nefesi.png"
+
+# 17) BP bagimliligi RP'yi gostermezse -> kaynak paketi HIC yuklenmez
+cp "$BP/manifest.json" "$BAK/bpman.bak"
+python3 - <<'PYX'
+import json
+p = "bedrock/super_tnt_BP/manifest.json"
+d = json.load(open(p))
+for dep in d["dependencies"]:
+    if "uuid" in dep:
+        dep["uuid"] = "00000000-0000-4000-8000-000000000000"
+json.dump(d, open(p, "w"))
+PYX
+run "BP bagimliligi RP'yi gostermiyor" "RP header uuid'ini gostermiyor"
+cp "$BAK/bpman.bak" "$BP/manifest.json"
+
+# 18) iki sey ayni adi tasirsa -> envanterde hangisi oldugu belli olmaz
+sed 's/tr="Pembe Lego Parçası"/tr="Pembe Lego Tuğla"/' "$BAK/build.bak" > bedrock/build.py
+python3 bedrock/build.py > /dev/null 2>&1
+run "iki seyin adi ayni" "adi hem"
+cp "$BAK/build.bak" bedrock/build.py
+python3 bedrock/build.py > /dev/null 2>&1      # paketi geri getir, sonraki mutasyon temiz bassin
+
+# 19) kilik degistirme listesi bosalirsa -> Gizli TNT yakalanmali (liste
+#     gercekten is goruyor mu, yoksa denetim bos mu geciyor?)
+cp bedrock/tools/check_pack.py "$BAK/chk.bak"
+sed 's/^DISGUISES = \[$/DISGUISES = [] and [/' "$BAK/chk.bak" > bedrock/tools/check_pack.py
+run "kilik listesi bos (denetim bos gecmiyor mu)" "yan yuzu ayni"
+cp "$BAK/chk.bak" bedrock/tools/check_pack.py
+
+# 20) esya yaratici menu grubunu kaybederse -> menude HIC gorunmez
+cp "$BP/items/ejderha_nefesi.json" "$BAK/it.bak"
+python3 - <<'PYX'
+import json
+p = "bedrock/super_tnt_BP/items/ejderha_nefesi.json"
+d = json.load(open(p))
+del d["minecraft:item"]["description"]["menu_category"]
+json.dump(d, open(p, "w"))
+PYX
+run "esya yaratici menude yok" "menude gorunmez"
+cp "$BAK/it.bak" "$BP/items/ejderha_nefesi.json"
+
 echo
 python3 bedrock/build.py > /dev/null && echo "paket yeniden uretildi"
 echo "yakalanan $pass / kacirilan $fail"

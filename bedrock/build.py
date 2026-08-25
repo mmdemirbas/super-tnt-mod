@@ -78,7 +78,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 36, 0]
+VERSION = [1, 37, 0]
 MIN_ENGINE = [1, 21, 0]
 # Surum etiketi paket ADINA yazilir. UUID + klasor adlari sabit oldugu icin
 # Minecraft ayni UUID'li paketi yerinde GUNCELLER; ama cihazda eski surum
@@ -1182,10 +1182,14 @@ ITEMS = [
          trtip="1 kuruşluk madeni para.", entip="A 1-kurus coin.", color=(196, 160, 90)),
     dict(id="iki_yuz_tl", tr="200 TL", en="200 Lira", kind="loot",
          trtip="200 TL'lik banknot.", entip="A 200-lira banknote.", color=(110, 150, 120)),
-    dict(id="pink_lego_brick", tr="Pembe Lego Tuğla", en="Pink Lego Brick", kind="loot",
-         trtip="Pembe Lego tuğlası.", entip="A pink Lego brick.", color=(240, 150, 190)),
-    dict(id="green_lego_brick", tr="Yeşil Lego Tuğla", en="Green Lego Brick", kind="loot",
-         trtip="Yeşil Lego tuğlası.", entip="A green Lego brick.", color=(80, 130, 50)),
+    dict(id="pink_lego_brick", tr="Pembe Lego Parçası", en="Pink Lego Piece", kind="loot",
+         trtip="Toplanacak pembe Lego parçası. Konulabilen tuğla ayrı bir bloktur.",
+         entip="A collectible pink Lego piece. The placeable brick is a separate block.",
+         color=(240, 150, 190)),
+    dict(id="green_lego_brick", tr="Yeşil Lego Parçası", en="Green Lego Piece", kind="loot",
+         trtip="Toplanacak yeşil Lego parçası. Konulabilen tuğla ayrı bir bloktur.",
+         entip="A collectible green Lego piece. The placeable brick is a separate block.",
+         color=(80, 130, 50)),
     # atilabilir (mermi varligi yerine: bakilan yone isinla / etki)
     dict(id="end_pearl", tr="End İncisi", en="End Pearl", kind="raycast",
          trtip="Sağ tıkla — baktığın yere ışınlanırsın!",
@@ -2329,6 +2333,7 @@ def build():
                                  for c in MORPH_CATS],
                                 ensure_ascii=False)) \
                             .replace("__TREE_WOOD__", json.dumps(TREE_WOOD)) \
+                            .replace("__SIZE_DEFAULT__", str(SIZE_DEFAULT)) \
                             .replace("__MORPH_HINT__", json.dumps(MORPH_HINT, ensure_ascii=False)) \
                             .replace("__MORPH_ABIL__", json.dumps(
                                 {mo['n']: {k: mo[k] for k in ("pas", "act", "pow") if k in mo}
@@ -3737,7 +3742,14 @@ function detonate(dim, c, short, igniterId) {
         for (const e of targets) {
           try {
             if (s.exceptIgniter && igniterId && e.id === igniterId) continue;
-            if (s.clear) { for (const ef of e.getEffects()) { try { e.removeEffect(ef.typeId); } catch (x) {} } }
+            if (s.clear) {
+              for (const ef of e.getEffects()) { try { e.removeEffect(ef.typeId); } catch (x) {} }
+              // Temizleyici TNT'nin ipucu "efektleri VE BOYUT degisikliklerini
+              // temizler" diyordu ama boyutu hic sifirlamiyordu: kucultulmus
+              // cocuk temizleyiciyi patlatip kucuk kaliyor ve esyayi bozuk
+              // saniyor. Kalp TNT (heal) bunu zaten yapiyor, ayni satir.
+              if (e.typeId === "minecraft:player") { try { e.triggerEvent("st:size___SIZE_DEFAULT__"); } catch (x) {} }
+            }
             for (const ef of (s.effects || [])) {
               e.addEffect(ef.id, ef.seconds * 20, { amplifier: ef.amp || 0, showParticles: true });
             }

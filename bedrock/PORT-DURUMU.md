@@ -1,7 +1,40 @@
 # Super TNT — Bedrock Port Durumu
 
-Son sürüm: **v1.36.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
+Son sürüm: **v1.37.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
 olacak şekilde geliştiriliyor (MorphX / mutant paketine bağımlılık yok).
+
+## v1.37.0 — git-gel önleme turu
+
+Tablete gidip gelmeyi gerektirecek her şeyi yerelde aramaya çalıştım. İki
+gerçek hata, bir isim karışıklığı ve dokuz yeni denetim çıktı.
+
+**Temizleyici TNT ipucunun ikinci yarısını yapmıyordu.** İpucu "Tüm efektleri
+**ve boyut değişikliklerini** temizler" diyor; kod yalnızca efektleri
+siliyordu. Küçültülmüş çocuk temizleyiciyi patlatıp küçük kalıyor ve eşyayı
+bozuk sanıyordu. Kalp TNT bunu zaten yapıyordu — aynı satır eklendi.
+
+**Envanterde iki "Pembe Lego Tuğla" vardı** (aynısı yeşilde de). Biri
+konulabilen blok, diğeri hiçbir şey yapmayan ganimet. Çocuk ganimeti koymaya
+çalışıp eşyayı bozuk sanıyor. Ganimet tarafı "Lego Parçası" oldu ve ipucu
+farkı yazıyor.
+
+**Bilerek aynı görünenler doğrulandı, değiştirilmedi.** Gizli TNT ile Cam TNT
+her yüzden aynı — ipucu "Cam kılığında" diyor, kılık değiştirme bir özellik.
+Doğru/Yanlış Altın Plaka aynı sebeple aynı. İkisi de denetimde adı geçen bir
+istisna listesinde; listede olmayan bir tekrar artık hata.
+
+**Yetmiş TNT'nin hepsi çalıştırıldı** — daha önce dördü denenmişti. Her TNT
+türüne göre beklenen işi yapıyor mu diye bakılıyor: blok işleyen blok
+değiştirmeli, saçan eşya bırakmalı, etki veren yakındaki cana etki işlemeli.
+"Patladı ama hiçbir şey olmadı" sınıfı artık yakalanıyor. (Virüs TNT bilerek
+hiçbir şey yapmaz; ipucu da öyle diyor, istisnası yazılı.)
+
+**Yeni denetimler** (4359 kontrol, 20 + 7 mutasyon): envanter ikonlarının
+benzersizliği, blok yan yüzlerinin çakışmaması, bütün PNG'lerin geçerliliği,
+dil dosyalarında tekrar eden anahtar ve iki dil paritesi, aynı görünen ad,
+manifest çapraz referansları (BP bağımlılığı RP'nin uuid'i mi, sürümler aynı
+mı, uuid'ler benzersiz mi), tarif kimlikleri ve **yaratıcı menü grubu** —
+grubu olmayan bir eşya menüde hiçbir yerde görünmez, çocuk "eklenmemiş" sanır.
 
 ## v1.36.0 — İsim Değiştirme, Can Artırıcı 1000
 

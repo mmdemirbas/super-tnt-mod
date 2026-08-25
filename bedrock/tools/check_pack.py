@@ -378,6 +378,131 @@ def check_client_entities():
                   f"{name} scripts.animate: '{key}' animations tablosunda yok")
 
 
+# ------------------------------------------------ 4d. paket butunlugu
+# Ayni gorunmesi BILEREK istenen dokular. Kilik degistirme bir ozellik:
+# Gizli TNT'nin ipucu "Cam kiliginda" diyor, Yanlis Altin Plaka'nin ipucu
+# "Altin plaka gibi gorunur" diyor. Listede olmayan bir tekrar hatadir.
+DISGUISES = [
+    {"stnt_gizli_tnt", "stnt_cam_tnt"},
+    {"stnt_right_golden_plate", "stnt_wrong_golden_plate"},
+]
+
+
+def check_pack_integrity():
+    import hashlib
+
+    # (a) Envanter ikonlari benzersiz olmali. Ayni ikon iki esyada = cocuk
+    # hangisinin ne oldugunu ayirt edemez (bir kez yasandi: on pastel kare).
+    seen = {}
+    for p in sorted(glob.glob(os.path.join(RP, "textures", "items", "*.png"))):
+        h = hashlib.md5(open(p, "rb").read()).hexdigest()
+        name = os.path.basename(p)[:-4]
+        check(h not in seen, f"ikon tekrari: {name} ile {seen.get(h)} ayni goruntu")
+        seen.setdefault(h, name)
+
+    # (b) Blok dokulari: ayni goruntu yalniz AYNI blogun yuzleri arasinda ya da
+    # bilerek kilik degistirenlerde olabilir.
+    faces = {}
+    for p in sorted(glob.glob(os.path.join(RP, "textures", "blocks", "*.png"))):
+        h = hashlib.md5(open(p, "rb").read()).hexdigest()
+        faces.setdefault(h, []).append(os.path.basename(p)[:-4])
+    for group in faces.values():
+        if len(group) < 2:
+            continue
+        base = {re.sub(r"_(top|bottom|side)$", "", g) for g in group}
+        if len(base) < 2:
+            continue                      # ayni blogun iki yuzu — normal
+        allowed = any(base <= d for d in DISGUISES)
+        # Yalnizca YAN yuz cakismasi ciddidir: envanterde ve dunyada gorulen o.
+        sides = {g for g in group if g.endswith("_side")}
+        check(allowed or len(sides) < 2,
+              f"iki blogun yan yuzu ayni: {sorted(sides)} — envanterde ayirt edilemez")
+
+    # (c) Butun PNG'ler gecerli mi
+    for p in glob.glob(os.path.join(RP, "textures", "**", "*.png"), recursive=True):
+        d = open(p, "rb").read()
+        check(d[:8] == b"\x89PNG\r\n\x1a\x0a"[:8] and d[12:16] == b"IHDR",
+              f"bozuk PNG: {os.path.relpath(p, RP)}")
+
+    # (d) Dil dosyalari: tekrar eden anahtar sessizce sonuncuyu kazandirir;
+    # iki dil arasindaki fark oyunda ham anahtar gosterir.
+    langs = {}
+    for lang in ("tr_TR", "en_US"):
+        ks = []
+        for line in open(os.path.join(RP, "texts", f"{lang}.lang"), encoding="utf-8"):
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                ks.append(line.split("=", 1)[0])
+        for k in {k for k in ks if ks.count(k) > 1}:
+            check(False, f"{lang}.lang: '{k}' anahtari birden fazla")
+        langs[lang] = set(ks)
+    for k in sorted(langs["tr_TR"] - langs["en_US"]):
+        check(False, f"en_US.lang'da eksik anahtar: {k}")
+    for k in sorted(langs["en_US"] - langs["tr_TR"]):
+        check(False, f"tr_TR.lang'da eksik anahtar: {k}")
+
+    # (e) Ayni gorunen ad: envanterde iki farkli sey ayni yaziyi tasimamali.
+    for lang in ("tr_TR", "en_US"):
+        names = {}
+        for line in open(os.path.join(RP, "texts", f"{lang}.lang"), encoding="utf-8"):
+            if line.startswith(("item.", "tile.")) and ".name=" in line:
+                k, v = line.strip().split("=", 1)
+                check(v not in names, f"{lang}: '{v}' adi hem {names.get(v)} hem {k}")
+                names.setdefault(v, k)
+
+    # (f) Manifest capraz referanslari. BP'nin bagimlilik uuid'i RP'nin header
+    # uuid'i degilse Minecraft kaynak paketini HIC yuklemez ve her sey mor-siyah
+    # kare olur; surumler ayrisirsa "bagimlilik bulunamadi" der.
+    bpm = jload(os.path.join(BP, "manifest.json"))
+    rpm = jload(os.path.join(RP, "manifest.json"))
+    deps = [d for d in bpm.get("dependencies", []) if "uuid" in d]
+    check(any(d["uuid"] == rpm["header"]["uuid"] for d in deps),
+          "BP bagimliligi RP header uuid'ini gostermiyor")
+    for d in deps:
+        if d["uuid"] == rpm["header"]["uuid"]:
+            check(d["version"] == rpm["header"]["version"],
+                  f"BP bagimlilik surumu {d['version']} != RP header {rpm['header']['version']}")
+    uuids = [bpm["header"]["uuid"], rpm["header"]["uuid"]] + \
+            [m["uuid"] for m in bpm["modules"] + rpm["modules"]]
+    check(len(uuids) == len(set(uuids)), "manifest uuid'lerinden ikisi ayni")
+
+    # (g) Yaratici menu grubu. Grubu olmayan bir esya menude HICBIR YERDE
+    # gorunmez — cocuk yeni esyayi bulamaz ve "eklenmemis" sanir. Grup adinin
+    # dil karsiligi da olmali, yoksa sekme ham anahtar yazar.
+    groups = set()
+    for p in glob.glob(os.path.join(BP, "items", "*.json")) + glob.glob(os.path.join(BP, "blocks", "*.json")):
+        kind = "minecraft:item" if os.sep + "items" + os.sep in p else "minecraft:block"
+        desc = jload(p)[kind]["description"]
+        mc = desc.get("menu_category")
+        check(bool(mc and mc.get("group")),
+              f"{os.path.basename(p)}: yaratici menu grubu yok, menude gorunmez")
+        if mc and mc.get("group"):
+            groups.add(mc["group"])
+    for lang in ("tr_TR", "en_US"):
+        text = open(os.path.join(RP, "texts", f"{lang}.lang"), encoding="utf-8").read()
+        for g in sorted(groups):
+            check(f"{g}=" in text, f"{lang}.lang: '{g}' grup adinin karsiligi yok")
+
+    # (h) Tarif kimlikleri gercek mi
+    own = {"stnt:" + os.path.basename(p)[:-5]
+           for p in glob.glob(os.path.join(BP, "items", "*.json")) +
+                    glob.glob(os.path.join(BP, "blocks", "*.json"))}
+    for p in sorted(glob.glob(os.path.join(BP, "recipes", "*.json"))):
+        d = jload(p)
+        r = d.get("minecraft:recipe_shaped") or d.get("minecraft:recipe_shapeless") or {}
+        ids = []
+        res = r.get("result")
+        if isinstance(res, dict):
+            ids.append(res.get("id") or res.get("item"))
+        for v in (r.get("key") or {}).values():
+            ids.append(v.get("item") if isinstance(v, dict) else v)
+        for i in ids:
+            if not i:
+                continue
+            check(i in own or i in BLOCKS or i.startswith("minecraft:"),
+                  f"{os.path.basename(p)}: '{i}' diye bir sey yok")
+
+
 # ------------------------------------------------------- 4b. ipucu sozlesmesi
 def check_tooltip_contract():
     """CLAUDE.md: ipucu bir sozlesmedir. Yeni esyalarin ipucundaki sayilar
@@ -451,6 +576,7 @@ def main():
     check_morphs(js)
     check_ids(js)
     check_client_entities()
+    check_pack_integrity()
     check_tooltip_contract()
     check_tree(js)
     if FAILS:

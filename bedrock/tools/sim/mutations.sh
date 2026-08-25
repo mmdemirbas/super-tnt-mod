@@ -111,6 +111,18 @@ PY
 run "Craft Axe hacim tavani yok" "cok buyuk alan reddediliyor"
 cp "$BAK/build.bak" bedrock/build.py
 
+# 7) Temizleyici TNT boyutu sifirlamasin (ipucunun ikinci yarisi:
+#    "efektleri VE BOYUT degisikliklerini temizler")
+python3 - "$BAK" <<'PYX'
+import io, sys
+s = io.open(sys.argv[1] + "/build.bak", encoding="utf-8").read()
+line = '              if (e.typeId === "minecraft:player") { try { e.triggerEvent("st:size___SIZE_DEFAULT__"); } catch (x) {} }\n'
+assert s.count(line) == 1
+io.open("bedrock/build.py", "w", encoding="utf-8").write(s.replace(line, "", 1))
+PYX
+run "Temizleyici TNT boyutu birakiyor" "boyutu normale donduruyor"
+cp "$BAK/build.bak" bedrock/build.py
+
 echo
 echo "yakalanan $pass / kacirilan $fail"
 [ "$fail" -eq 0 ]
