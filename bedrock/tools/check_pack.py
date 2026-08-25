@@ -611,6 +611,60 @@ def check_tree(js):
           f"mega agac: tick basina {it['action']['perTick']} blok — tablette takilir")
 
 
+# ------------------------------------------------------------------ 6. duruslar
+# Kolun nereye dustugu hicbir kimlik/dosya denetiminde gorunmez; ancak modeli
+# GORUNCE anlasilir. mutant_warden'in ozgun bind pozunda iki on kol govdenin
+# orta cizgisinde, bel altinda birlesiyordu — cocuklarin ekraninda edepsiz
+# duruyordu. Omuzlara 15 derece disa aci verildi. Bu denetim onu kilitler:
+# kutu koordinatlari yeniden hesaplanip "edepsiz kutu"ya giren var mi bakilir.
+POSE_MODELS = {
+    # model dosyasi: (kemikler, edepsiz kutu x0,x1,y0,y1,z0,z1)
+    "mutant_warden.geo.json": (("right_arm", "left_arm"), (-6, 6, -4, 20, -16, 6)),
+}
+
+
+def _cube_box(bone, cube, pose):
+    piv = cube.get("pivot", bone.get("pivot", [0, 0, 0]))
+    m = pose.rot_matrix(*cube["rotation"]) if cube.get("rotation") else None
+    faces = pose.cube_faces(cube["origin"], cube["size"], piv, m)
+    if any(bone.get("rotation") or [0, 0, 0]):
+        bm = pose.rot_matrix(*bone["rotation"])
+        bp = bone.get("pivot", [0, 0, 0])
+        faces = [[pose.rot_about(p, bp, bm) for p in f] for f in faces]
+    pts = [p for f in faces for p in f]
+    return tuple(fn(p[i] for p in pts) for i in range(3) for fn in (min, max))
+
+
+def check_poses():
+    spec = importlib.util.spec_from_file_location(
+        "pose_render", os.path.join(HERE, "pose_render.py"))
+    pose = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(pose)
+    for fname, (bone_names, rude) in POSE_MODELS.items():
+        path = os.path.join(BEDROCK, "custom", fname)
+        if not check(os.path.exists(path), f"poz: {fname} yok"):
+            continue
+        geo = json.load(open(path, encoding="utf-8"))["minecraft:geometry"][0]
+        bones = {b["name"]: b for b in geo["bones"]}
+        for bname in bone_names:
+            if not check(bname in bones, f"poz: {fname} icinde {bname} kemigi yok"):
+                continue
+            bone = bones[bname]
+            for i, cube in enumerate(bone.get("cubes", [])):
+                bx = _cube_box(bone, cube, pose)
+                # Kutuya DEGMEK degil, ICINE GIRMEK aranir. Omuz kutusu koseyi
+                # yarim birim siyiriyor; bu bir durus hatasi degil. Esik her
+                # eksende 2 birim (1/8 blok) — gercek hata 6 x 22 x 20 birim
+                # girmisti, iki tarafa da genis pay var.
+                pen = [min(bx[2 * k + 1], rude[2 * k + 1]) - max(bx[2 * k], rude[2 * k])
+                       for k in range(3)]
+                hit = all(p >= 2.0 for p in pen)
+                check(not hit,
+                      f"poz: {fname} {bname}#{i} bacak arasi kutusuna giriyor "
+                      f"— x[{bx[0]:.1f}..{bx[1]:.1f}] y[{bx[2]:.1f}..{bx[3]:.1f}] "
+                      f"z[{bx[4]:.1f}..{bx[5]:.1f}]")
+
+
 # ---------------------------------------------------------------- calistir
 def main():
     js = open(os.path.join(BP, "scripts", "main.js"), encoding="utf-8").read()
@@ -624,6 +678,7 @@ def main():
     check_pack_integrity()
     check_tooltip_contract(js)
     check_tree(js)
+    check_poses()
     if FAILS:
         print(f"HATA — {CHECKS[0]} denetimden {len(FAILS)} tanesi gecmedi:")
         for f in FAILS:

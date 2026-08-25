@@ -175,6 +175,21 @@ PYX
 run "esya yaratici menude yok" "menude gorunmez"
 cp "$BAK/it.bak" "$BP/items/ejderha_nefesi.json"
 
+# 22) Mutant Warden'in omuz acisi geri alinsin -> on kollar bel altinda,
+#     govde orta cizgisinde birlesir; cocuklarin ekraninda edepsiz durur.
+cp bedrock/custom/mutant_warden.geo.json "$BAK/geo.bak"
+python3 - <<'PYX'
+import io
+p = "bedrock/custom/mutant_warden.geo.json"
+s = io.open(p, encoding="utf-8").read()
+for v in ("15", "-15"):
+    s = s.replace('"rotation": [\n            0,\n            0,\n            %s\n          ],' % v,
+                  '"rotation": [\n            0,\n            0,\n            0\n          ],', 1)
+io.open(p, "w", encoding="utf-8").write(s)
+PYX
+run "Warden kollari bacak arasinda" "bacak arasi kutusuna giriyor"
+cp "$BAK/geo.bak" bedrock/custom/mutant_warden.geo.json
+
 # 21) Kalp Baltasi'na dayaniklilik geri konsun -> hayatta kalmada kirilir
 sed 's/^            if not it.get("unbreakable"):$/            if True:/' "$BAK/build.bak" > bedrock/build.py
 python3 bedrock/build.py > /dev/null 2>&1

@@ -16,6 +16,12 @@ Model, 11 animasyon ve altı katmanlı doku üçüncü tarafa ait; bu paket tica
 değil, ev içi kullanım için. Yeniden dağıtılacak olursa **önce yapımcısının
 izni alınmalı** ve adı burada anılmalı.
 
+**Yapılan tek içerik değişikliği:** `right_arm` ve `left_arm` kemiklerine 15°
+dışa açı (`rotation`) eklendi. Özgün bind pozunda iki ön kol gövdenin orta
+çizgisinde, bel altında birleşiyor ve edepsiz duruyordu. Kutular ve dokular
+olduğu gibi bırakıldı. `check_pack.py` → `check_poses()` bu açıyı kilitliyor;
+`pose_render.py` ile görsel olarak doğrulanabilir.
+
 Kimlikler neden yeniden adlandırıldı: özgün paket de aynı tablette kuruluysa
 `geometry.mutant_warden` ve `animation.mutant_warden.*` iki kez tanımlanır,
 hangisinin kazandığı belirsizdir. `stnt_` öneki bu çakışmayı ortadan kaldırır.

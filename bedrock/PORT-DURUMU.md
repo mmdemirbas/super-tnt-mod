@@ -1,7 +1,45 @@
 # Super TNT — Bedrock Port Durumu
 
-Son sürüm: **v1.39.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
+Son sürüm: **v1.40.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
 olacak şekilde geliştiriliyor (MorphX / mutant paketine bağımlılık yok).
+
+## v1.40.0 — Mutant Warden'ın duruşu düzeltildi
+
+Üçüncü taraf modelin özgün bind pozunda iki ön kol gövdenin orta çizgisinde,
+bel altında birleşiyordu. Ekranda edepsiz duruyordu. Omuzlara **15° dışa** açı
+verildi; ön kollar artık bacakların dışında duruyor.
+
+Modelin bir animasyonu yok denecek kadar az iş yapıyor: duruyorken kol
+salınımı `variable.animation_speed` ile çarpılıyor ve o değer hareketsizken 0,
+üstelik 11 animasyonun hepsi kolları `[0,0,0]`'dan başlatıyor. Yani **duruş
+pozu = bind pozu**; düzeltmenin doğru yeri geometrideki `right_arm` /
+`left_arm` kemiklerinin `rotation` alanı. Bedrock animasyonları bind pozuna
+**eklendiği** için animasyonlar bozulmuyor.
+
+### Bunu görebilmek için: `bedrock/tools/pose_render.py`
+
+Bir modelin "nasıl durduğu" hiçbir kimlik/dosya denetiminde görünmez; ancak
+görülerek anlaşılır ve tablete gidip gelmek pahalı. Yeni betik bir
+`.geo.json`'ı ön / yan / üst görünüm olarak PNG'ye çiziyor, her kemiği ayrı
+renkte. `--rot right_arm=0,0,15` ile deneme açısı verilip sonuç anında
+görülebiliyor.
+
+**Dönüş konvansiyonu tahmin değil, ölçüldü.** İlk yazdığım matris yanlıştı ve
+render sessizce yanlış bir şey çiziyordu — uzuvlar gövdeden kopuk havada
+duruyordu, dolayısıyla ondan çıkardığım poz ölçümleri de geçersizdi. Doğrusu
+şöyle bulundu: bir modelde her kutu ya kendi kemiğindeki başka bir kutuya ya
+da gövdeye **değmek** zorundadır. 6 sıra × 8 işaret = 48 kombinasyon denendi;
+yalnızca X ve Z'si ters çevrilmiş olanlar "toplam kopukluk 0.0" veriyor, düz
+`Rz·Ry·Rx` ise 34.8 birim kopukluk. `pose_render.py` bu ölçümü kendi
+docstring'inde taşıyor.
+
+### Denetim
+
+`check_pack.py` → `check_poses()`: kol kemiklerinin kutuları yeniden
+hesaplanıp "bacak arası kutusu"na (x −6..6, y −4..20, z −16..6) giren var mı
+diye bakılıyor. Değmek değil, **girmek** aranıyor — eşik her eksende 2 birim,
+çünkü omuz kutusu köşeyi yarım birim sıyırıyor ve bu bir duruş hatası değil.
+22. mutasyon açıyı geri alıp denetimin gerçekten yakaladığını doğruluyor.
 
 ## v1.39.0 — Sınırsız can, kırılmaz Kalp Baltası
 
