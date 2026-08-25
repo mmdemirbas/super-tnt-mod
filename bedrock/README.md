@@ -167,8 +167,43 @@ Tur başına bir dokunuş gerektiği için değişiklikleri topla, tek seferde g
 ## Göndermeden önce
 
 ```bash
+bash bedrock/tools/test.sh     # tek komut: build + denetim + sim + mutasyonlar
+```
+
+Dört katman, ucuzdan pahalıya; her biri diğerinin **görmediğini** görür.
+
+| Katman | Ne görür | Ne göremez |
+|---|---|---|
+| `build.py` | paket üretiliyor mu | çalışıyor mu |
+| `check_pack.py` | kimlikler, dil satırları, ipucu sözleşmesi | kod çalışıyor mu |
+| `sim/run.mjs` | betik **gerçekten çalışıyor mu** | ekranda nasıl duruyor |
+| mutasyonlar | üstteki ikisi gerçekten bir şey yakalıyor mu | — |
+
+### Betiği çalıştıran katman (`sim/`)
+
+`check_pack.py` kimlikleri, `node --check` sözdizimini doğrular; **ikisi de
+kodu çalıştırmaz**. Paketin 4000 satırlık betiği uzun süre yalnızca oyunda
+koştu — ve modül yüklenirken atılan tek bir `TypeError` bütün paketi sessizce
+öldürür. Bir kez yaşandı: `world.beforeEvents.entityHurt` 1.x'te yok, o
+satırdan sonrası hiç kaydolmadı.
+
+`bedrock/tools/sim/` sahte bir `@minecraft/server` sağlar ve `main.js`'i Node
+altında yükler: olayları tetikler, tick'leri ilerletir, `getBlock` çağrılarını
+sayar. Taklit davranışı temsil edecek kadar gerçek — patlama hasar verir,
+direnç hasarı azaltır, `applyKnockback`'in nesne biçimi 1.14'te olduğu gibi
+**hata fırlatır**. Ölçülen örnek: bütçe bozulduğunda Cam TNT boş alanda tek
+tick'te 113 323 `getBlock` yapıyor.
+
+**Yeni bir eşya ya da yetenek eklerken `sim/run.mjs`'e de bir senaryo ekle.**
+Çalıştığı görülmemiş kod, çalışmayan koddur.
+
+Tek tek çalıştırmak için:
+
+```bash
 python3 bedrock/build.py
-python3 bedrock/tools/check_pack.py      # ~2500 denetim
+python3 bedrock/tools/check_pack.py      # statik denetim
+node    bedrock/tools/sim/run.mjs        # betiği çalıştır
+bash    bedrock/tools/sim/mutations.sh   # sim gerçekten yakalıyor mu
 ```
 
 Bedrock hataların çoğunu **sessizce yutar**: olmayan bir doku adı görünmez

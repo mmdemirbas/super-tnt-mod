@@ -50,3 +50,6 @@ tmp/
 
 # Python
 __pycache__/
+
+# Sim: main.js kopyasi (build ciktisi)
+bedrock/tools/sim/main.copy.mjs
