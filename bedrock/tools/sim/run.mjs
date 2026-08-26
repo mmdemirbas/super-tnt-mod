@@ -995,6 +995,22 @@ const PASIF = new Set(["bleed", "heavy", "worn_wool", "held_fireproof"]);
      "Mega Agac cikan oyuncudan sonra kilitlenmiyor", bars().join(" | ").slice(0, 100));
 }
 
+// ---- 25. gecici bloklar dunya yeniden yuklenince de temizleniyor mu
+{
+  // Cocuk Su TNT'yi atip 10 saniye dolmadan oyundan cikiyor. Geri alma bir
+  // runTimeout idi, yani yalnizca bellekte: su SONSUZA KADAR kaliyordu.
+  settle();
+  const p = fresh();
+  detonateTnt("water_tnt", p, { x: 0, y: 70, z: 0 });
+  __sim.tick(150);                             // fitil bitti, su kondu, 10 sn dolmadi
+  const suVar = [...__sim.state.blocks.values()].filter((v) => v === "minecraft:water").length;
+  ok(suVar > 0, "Su TNT once suyu koyuyor", `${suVar} blok`);
+  __sim.sertReload();                          // bekleyen runTimeout'lar kayboldu
+  __sim.tick(400);
+  const kalan = [...__sim.state.blocks.values()].filter((v) => v === "minecraft:water").length;
+  eq(kalan, 0, "yeniden yuklemeden sonra su geri aliniyor");
+}
+
 report();
 
 function report() {

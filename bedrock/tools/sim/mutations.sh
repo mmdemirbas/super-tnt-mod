@@ -446,6 +446,35 @@ PYX
 run "Mega Agac cikan oyuncudan sonra kilitleniyor" "cikan oyuncudan sonra kilitlenmiyor"
 cp "$BAK/build.bak" bedrock/build.py
 
+# 34) gecici blok kaydi dunyaya yazilmasin -> geri alma yine yalnizca
+#     bellekte kalir: cocuk 10 saniye dolmadan oyundan cikinca su sonsuza
+#     kadar durur (buz TNT'de pencere 30 saniye)
+python3 - "$BAK" <<'PYX'
+import io, sys
+s = io.open(sys.argv[1] + "/build.bak", encoding="utf-8").read()
+old = "          const tid = tempEkle(dim.id, cx, cy, cz, r, s.block, s.tempSeconds);"
+assert s.count(old) == 1
+io.open("bedrock/build.py", "w", encoding="utf-8").write(
+    s.replace(old, '          const tid = "kayitsiz";', 1))
+PYX
+run "gecici blok kaydi dunyaya yazilmiyor" "yeniden yuklemeden sonra su geri aliniyor"
+cp "$BAK/build.bak" bedrock/build.py
+
+# 35) sure dunya saati yerine tick sayacina baglansin -> iki saat farkli
+#     taban kullaniyor: supurge kaydi ANINDA suresi dolmus sayar ve suyu
+#     konar konmaz siler. (Gercekte de ayni sinif: tick sayaci yeniden
+#     yuklemede sifirlanir, dunya saati sifirlanmaz.)
+python3 - "$BAK" <<'PYX'
+import io, sys
+s = io.open(sys.argv[1] + "/build.bak", encoding="utf-8").read()
+old = "  a.push({ i: id, d: dimId, x, y, z, r, b: blok, t: wclock() + saniye * 20 });"
+assert s.count(old) == 1
+io.open("bedrock/build.py", "w", encoding="utf-8").write(
+    s.replace(old, "  a.push({ i: id, d: dimId, x, y, z, r, b: blok, t: system.currentTick + saniye * 20 });", 1))
+PYX
+run "gecici blok suresi tick sayacina bagli" "Su TNT once suyu koyuyor"
+cp "$BAK/build.bak" bedrock/build.py
+
 echo
 echo "yakalanan $pass / kacirilan $fail"
 [ "$fail" -eq 0 ]

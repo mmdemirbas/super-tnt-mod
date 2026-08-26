@@ -1,7 +1,29 @@
 # Super TNT — Bedrock Port Durumu
 
-Son sürüm: **v1.45.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
+Son sürüm: **v1.46.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
 olacak şekilde geliştiriliyor (MorphX / mutant paketine bağımlılık yok).
+
+## v1.46.0 — Geçici su ve buz, oyundan çıkınca da temizleniyor
+
+Su TNT'nin bıraktığı su 10 saniye, Buz TNT'ninki 30 saniye sonra geri
+alınıyordu. Geri alma bir `system.runTimeout` idi — yani **yalnızca
+bellekte**. Çocuk o pencere içinde oyundan çıkarsa su sonsuza kadar
+kalıyordu. Tablette oyundan çıkmak sıradan bir şey, o yüzden bu sık
+yaşanacak bir durum.
+
+Artık her yerleştirme için küçük bir kayıt dünyaya yazılıyor: merkez,
+yarıçap, blok türü ve bitiş anı. Aynı seansta `runTimeout` işi vaktinde
+yapıyor; dünya yeniden yüklenmişse süresi dolmuş kayıtları 5 saniyede bir
+çalışan bir süpürge topluyor. Çevre yüklü değilse kayıt bırakılıyor ve çocuk
+oraya döndüğünde temizleniyor.
+
+Süre **dünya saatiyle** tutuluyor (`world.getAbsoluteTime`, mayınlardaki ile
+aynı gerekçe): `system.currentTick` yeniden yüklemede sıfırlanır, dünya saati
+sıfırlanmaz.
+
+Sahte dünyaya `sertReload` eklendi — gerçek bir yeniden yükleme bekleyen
+`runTimeout`'ları kaybeder, eski `reload()` bunu taklit etmiyordu ve bu soru
+hiç sınanamıyordu. 129 çalışan test, 36 statik ve 35 sim mutasyonu.
 
 ## v1.45.0 — Sessizce ölen döngüler ve bedavaya geçen testler
 
