@@ -78,7 +78,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 43, 0]
+VERSION = [1, 44, 0]
 MIN_ENGINE = [1, 21, 0]
 # Surum etiketi paket ADINA yazilir. UUID + klasor adlari sabit oldugu icin
 # Minecraft ayni UUID'li paketi yerinde GUNCELLER; ama cihazda eski surum
@@ -655,10 +655,10 @@ TNTS = [
          color=((245, 178, 208), (245, 178, 208), (245, 178, 208)), mat="minecraft:emerald",
          effect=dict(kind="villagers", name="Bebek", count=15, spread=6.0, baby=True)),
     dict(id="bulut_tnt", tr="Bulut TNT", en="Cloud TNT",
-         trtip="Yağmur başlatır ve gökyüzünü bulutlandırır.",
-         entip="Starts rain and clouds over the sky.",
+         trtip="1 dakika yağmur başlatır ve gökyüzünü bulutlandırır.",
+         entip="Starts 1 minute of rain and clouds over the sky.",
          color=((236, 240, 244), (150, 200, 232), (236, 240, 244)), mat="minecraft:white_wool",
-         effect=dict(kind="weather", weather="Rain")),
+         effect=dict(kind="weather", weather="Rain", weatherTicks=1200)),
     dict(id="ay_tnt", tr="Ay TNT", en="Moon TNT",
          trtip="Gündüzse güneşi aya dönüştürür — gece olur.",
          entip="Turns the sun into the moon - night falls.",
@@ -670,13 +670,13 @@ TNTS = [
     # tehlikeli hale geliyordu. KalpTntEntity.java'da gozden kacmisti;
     # denetimde bulundu ve her iki tarafta da duzeltildi.
     dict(id="kalp_tnt", tr="Kalp TNT", en="Heart TNT",
-         trtip="Yakındaki herkese can yenileme + kalkan verir, efektleri ve boyutu sıfırlar.",
+         trtip="Yakındaki oyunculara can yenileme + kalkan verir, efektleri ve boyutu sıfırlar.",
          entip="Heals and shields nearby players, clears effects and size changes.",
          color=((140, 40, 46), (196, 48, 54), (92, 48, 52)), mat="minecraft:gold_ingot",
          effect=dict(kind="heal", radius=20)),
     dict(id="buz_tnt", tr="Buz TNT", en="Ice TNT",
-         trtip="14 blok yarıçapı buzla kaplar. O alandaki herkesi (patlatan hariç) 30 sn dondurur. 30 sn kar yağar.",
-         entip="Covers a 14 block radius with ice. Freezes everyone in that area (except the igniter) for 30s. Snows for 30s.",
+         trtip="14 blok yarıçapı buzla kaplar. O alandaki herkesi (patlatan hariç) 30 sn dondurur. 30 sn yağış başlar (soğuk biyomda kar).",
+         entip="Covers a 14 block radius with ice. Freezes everyone in that area (except the igniter) for 30s. Precipitation for 30s (snow in cold biomes).",
          color=((150, 200, 232), (176, 216, 240), (150, 200, 232)), mat="minecraft:packed_ice",
          effect=dict(kind="freeze", radius=14, freeze_seconds=30)),
     dict(id="kucultme_tnt", tr="Küçültme TNT", en="Shrink TNT",
@@ -690,8 +690,8 @@ TNTS = [
          color=((220, 120, 40), (240, 150, 60), (190, 96, 30)), mat="minecraft:pumpkin",
          effect=dict(kind="scale", radius=8, delta=2)),
     dict(id="cizgi_tnt", tr="Çizgi TNT", en="Line TNT",
-         trtip="Her yeri el yazısı defterine çevirir — kağıt, mürekkep ve tüy saçar!",
-         entip="Turns everywhere into a handwriting notebook - scatters paper, ink and feathers!",
+         trtip="Etrafa kağıt, mürekkep ve tüy saçar — kendi defterini topla!",
+         entip="Scatters paper, ink and feathers around - collect your own notebook!",
          color=((235, 232, 224), (210, 205, 195), (180, 176, 168)), mat="minecraft:paper",
          effect=dict(kind="scatter", spread=6.0, power=2, drops=[
              {"item": "minecraft:paper", "count": 30, "stack": 8},
@@ -719,8 +719,10 @@ TNTS = [
              {"item": "minecraft:lapis_lazuli", "count": 12, "stack": 3},
              {"item": "minecraft:diamond", "count": 10}])),
     dict(id="lightning_tnt", tr="Şimşek TNT", en="Lightning TNT",
-         trtip="20 yıldırım fırtınası çağırır.",
-         entip="Summons 20 lightning bolts.",
+         trtip="20 yıldırım çağırır. Yıldırım yakar ve öldürebilir — "
+               "patlattıktan sonra uzaklaş!",
+         entip="Summons 20 lightning bolts. Lightning burns and can kill - "
+               "get away after lighting it!",
          color=((70, 90, 150), (110, 140, 210), (60, 76, 130)), mat="minecraft:lightning_rod",
          effect=dict(kind="spawn", entity="minecraft:lightning_bolt", count=20, spread=6.0, power=3)),
     dict(id="nuclear_tnt", tr="Nükleer TNT", en="Nuclear TNT",
@@ -830,16 +832,18 @@ TNTS = [
          color=((236, 244, 250), (248, 252, 255), (210, 224, 236)), mat="minecraft:milk_bucket",
          effect=dict(kind="status", target="all", radius=20, clear=True, particle="minecraft:snowflake_particle", effects=[])),
     dict(id="yagmur_tnt", tr="Yağmur TNT", en="Rain TNT",
-         trtip="Yağmur başlatır.",
-         entip="Starts rain.",
+         trtip="1 dakika yağmur başlatır.",
+         entip="Starts 1 minute of rain.",
          color=((90, 120, 150), (120, 150, 180), (74, 100, 128)), mat="minecraft:water_bucket",
-         effect=dict(kind="weather", weather="Rain")),
+         effect=dict(kind="weather", weather="Rain", weatherTicks=1200)),
     dict(id="simsek_yagmur_tnt", tr="Şimşek Yağmuru TNT", en="Thunderstorm TNT",
-         trtip="Fırtına başlatır ve 30 yıldırım yağdırır!",
-         entip="Starts a storm and rains 30 lightning bolts!",
+         trtip="Yakına 30 yıldırım yağdırır ve 1 dakika fırtına başlatır. "
+               "Yıldırım yakar ve canlıyı öldürebilir — uzakta dur!",
+         entip="Rains 30 lightning bolts nearby and starts a 1 minute storm. "
+               "Lightning burns and can kill - keep your distance!",
          color=((60, 66, 90), (88, 96, 128), (48, 54, 74)), mat="minecraft:lightning_rod",
          effect=dict(kind="spawn", entity="minecraft:lightning_bolt", count=30, spread=10.0,
-                     weather="Thunder", weatherTicks=24000)),
+                     weather="Thunder", weatherTicks=1200)),
     dict(id="z_gunes_tnt", tr="Güneş TNT", en="Sun TNT",
          trtip="Geceyse ayı güneşe dönüştürür — gündüz olur.",
          entip="Turns the moon into the sun - day breaks.",
@@ -878,7 +882,7 @@ TNTS = [
          entip="Puts out fires and leaves temporary water (10s).",
          color=((50, 110, 200), (70, 140, 230), (40, 90, 170)), mat="minecraft:water_bucket",
          effect=dict(kind="place", block="minecraft:water", radius=10, onlyAir=True, tempSeconds=10,
-                     particle="minecraft:water_splash_particle_manual")),
+                     douses=True, particle="minecraft:water_splash_particle_manual")),
     dict(id="olumcul_su_tnt", tr="Ölümcül Su TNT", en="Deadly Water TNT",
          trtip="15 blok yarıçapını suyla doldurur (30 sn sonra kurur).",
          entip="Fills a 15 block radius with water (dries after 30s).",
@@ -926,7 +930,7 @@ TNTS = [
          trtip="Çıngırak sesiyle dünyayı sarıya boyar! 12 blok yarıçap.",
          entip="Paints the world yellow with a giggle! 12 block radius.",
          color=((248, 220, 60), (255, 232, 90), (228, 196, 40)), mat="minecraft:yellow_dye",
-         effect=dict(kind="transform", radius=12, perTick=800, palette=[
+         effect=dict(kind="transform", radius=12, perTick=800, sound="note.bell", palette=[
              "minecraft:yellow_wool", "minecraft:yellow_concrete", "minecraft:yellow_terracotta", "minecraft:gold_block"])),
     dict(id="karisik_kurusuk_tnt", tr="Karışık Kuruşuk TNT", en="Crumpled TNT",
          trtip="Dünyayı ezik büzük yapar — siyah/kahverengi/gri beton.",
@@ -950,8 +954,8 @@ TNTS = [
          color=((150, 90, 200), (176, 116, 220), (124, 72, 168)), mat="minecraft:ender_pearl",
          effect=dict(kind="swap", radius=15)),
     dict(id="gunes_tnt", tr="Güneş Kristal TNT", en="Sun Crystal TNT",
-         trtip="15 End kristali yaratır.",
-         entip="Spawns 15 End crystals.",
+         trtip="15 End kristali yaratır. DİKKAT: kristale vurursan büyük patlar!",
+         entip="Spawns 15 End crystals. CAREFUL: hitting one makes a big blast!",
          color=((250, 210, 90), (255, 226, 120), (230, 186, 66)), mat="minecraft:end_crystal",
          effect=dict(kind="spawn", entity="minecraft:ender_crystal", count=15, spread=8.0)),
     dict(id="uyku_tnt", tr="Uyku TNT", en="Sleep TNT",
@@ -964,8 +968,8 @@ TNTS = [
                               {"id": "nausea", "seconds": 30, "amp": 0}, {"id": "mining_fatigue", "seconds": 30, "amp": 4},
                               {"id": "weakness", "seconds": 30, "amp": 4}])),
     dict(id="gizli_tnt", tr="Gizli TNT", en="Hidden TNT",
-         trtip="Cam kılığında — 25 blok yarıçapındaki tüm canlıları anında öldürür!",
-         entip="Disguised as glass - instantly kills every creature within 25 blocks!",
+         trtip="Cam kılığında — 25 blok yarıçapında patlatan hariç her canlıyı anında öldürür!",
+         entip="Disguised as glass - instantly kills every creature except the igniter within 25 blocks!",
          color=((190, 220, 230), (210, 236, 244), (170, 200, 212)), mat="minecraft:glass",
          effect=dict(kind="instakill", radius=25)),
     dict(id="magara_tnt", tr="Mağara TNT", en="Cave TNT",
@@ -4064,7 +4068,7 @@ function detonate(dim, c, short, igniterId) {
       }
 
       case "weather":
-        try { dim.setWeather(s.weather, 24000); } catch (e) {}
+        try { dim.setWeather(s.weather, s.weatherTicks || 1200); } catch (e) {}
         spray(dim, c, "minecraft:water_evaporation_actor_emitter", 40, 4);
         break;
 
@@ -4224,7 +4228,7 @@ function detonate(dim, c, short, igniterId) {
           const p = { x: c.x + rnd(s.spread || 6), y: c.y + (s.yoff || 0), z: c.z + rnd(s.spread || 6) };
           try { dim.spawnEntity(s.entity, p); } catch (e) {}
         }
-        if (s.weather) { try { dim.setWeather(s.weather, s.weatherTicks || 12000); } catch (e) {} }
+        if (s.weather) { try { dim.setWeather(s.weather, s.weatherTicks || 1200); } catch (e) {} }
         // s.digs: ipucu "magara oyar" diyen TNT'ler icin patlama BLOK KIRAR.
         // Digerlerinde kirmaz — cocugun evini yikmasin.
         if (s.power) { try { dim.createExplosion(c, s.power, { breaksBlocks: !!s.digs, causesFire: false }); } catch (e) {} }
@@ -4295,7 +4299,11 @@ function detonate(dim, c, short, igniterId) {
               try {
                 const b = dim.getBlock({ x: cx + px, y: cy + py, z: cz + pz }); if (!b) continue;
                 const t = b.typeId;
-                if (s.onlyAir && t !== "minecraft:air") continue;
+                // s.douses: ipucu "atesleri sondurur" diyen TNT ates blogunu
+                // DA suya cevirir. onlyAir tek basina ates blogunu atliyordu,
+                // yani soz veren tek is yapilmiyordu.
+                if (s.onlyAir && t !== "minecraft:air"
+                    && !(s.douses && t === "minecraft:fire")) continue;
                 if (!s.onlyAir && t === "minecraft:air") continue;
                 if (t === "minecraft:bedrock") continue;
                 b.setType(s.block);
@@ -4332,6 +4340,10 @@ function detonate(dim, c, short, igniterId) {
       // ---- blok donusturme, konum-tabanli palet (rainbow, makarna, seker, ...)
       case "transform": {
         const r = s.radius, per = s.perTick || 900, pal = s.palette;
+        // s.sound: ipucu ayri bir ses vaat eden TNT'ler icin. Paket normalde
+        // her TNT'de ayni "random.explode" sesini calar; ipucu baska bir ses
+        // soyluyorsa onu da calmak gerekiyor.
+        if (s.sound) { try { dim.playSound(s.sound, c, { volume: 1.2 }); } catch (e) {} }
         // s.buff: ipucu "hiz ve ziplama" diyen TNT'ler icin yakindaki
         // oyunculara efekt. Eskiden ipucu soz veriyor, kod vermiyordu.
         if (s.buff) {
