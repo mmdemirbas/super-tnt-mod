@@ -925,6 +925,76 @@ const PASIF = new Set(["bleed", "heavy", "worn_wool", "held_fireproof"]);
      "Hicbir TNT 2 dakikadan uzun hava birakmiyor", JSON.stringify(w));
 }
 
+// ---- 24. calisma zamani hata sinirlamasi
+// Bedrock'ta runInterval geri cagirmasindan kacan bir istisna o donguyu
+// KALICI durdurur: ozellik sessizce olur, cocuk ne hata gorur ne ipucu.
+{
+  // Craft Axe: DUZ bir secim. Kup secimde bir x-dilimi 400 konum, butce 700,
+  // o yuzden hata gorunmuyordu. Duvarda tek x-dilimi butun secim demek.
+  settle();
+  const p = fresh();
+  for (let y = 64; y < 114; y++) for (let z = 0; z < 200; z++) {
+    __sim.setBlock(p.dimension.id, 0, y, z, "minecraft:stone");
+  }
+  const tikla = (loc) => {
+    __sim.state.viewBlock = { block: { typeId: "minecraft:stone", location: loc, dimension: p.dimension } };
+    __sim.fire("after", "itemUse", { itemStack: { typeId: "stnt:craft_axe" }, source: p });
+    __sim.tick(1);
+  };
+  tikla({ x: 0, y: 64, z: 0 });
+  __sim.state.counters.maxGetBlockPerTick = 0;
+  tikla({ x: 0, y: 113, z: 199 });              // 1 x 50 x 200 = 10 000 konum
+  __sim.tick(400);
+  ok(__sim.state.counters.maxGetBlockPerTick < 1500,
+     "Craft Axe DUZ secimde de tick'e bolunuyor",
+     `zirve ${__sim.state.counters.maxGetBlockPerTick}`);
+}
+{
+  // Ejderha Nefesi: bulut yasarken cocuk oyundan cikarsa yakalanan `player`
+  // gecersizlesir ve uzerindeki her okuma patlar. Bulut her atisinda 12 kez
+  // istisna atiyordu.
+  //
+  // OLCULDU, VARSAYILMADI: bu istisna donguyu KALICI durdurmuyor. Bitis
+  // kosulu `t >= total`, esitlik degil; atisin oldugu tick'te govde yarida
+  // kesilse de bir sonraki atis-disi tick bitisi calistiriyor ve sayac
+  // duzeliyor. Yani "esya alti kullanimdan sonra kilitlenir" DOGRU DEGIL.
+  // Yine de dongu govdesi istisna atmamali: sinanan sey bu.
+  settle();
+  const a = ITEM_ACTIONS.ejderha_nefesi;
+  __sim.reset(); __ui.reset();
+  const p = newPlayer("Zeynep", { x: 0, y: 64, z: 0 });
+  // Bulutun icinde bir canli OLMALI: kimlik okuyan dal ancak boyle kosar.
+  __sim.state.viewBlock = { block: { typeId: "minecraft:stone", location: { x: 0, y: 64, z: 5 }, dimension: p.dimension } };
+  const inek = __sim.addMob("minecraft:cow", { x: 0.5, y: 65.2, z: 5.5 });
+  inek.maxHealth = 1e9; inek.health = 1e9;
+  __sim.fire("after", "itemUse", { itemStack: { typeId: "stnt:ejderha_nefesi" }, source: p });
+  __sim.tick(10);
+  __sim.gecersizKil(p);                        // cocuk oyundan cikti
+  __sim.errors.length = 0;
+  __sim.tick(a.seconds * 20 + 60);
+  ok(__sim.errors.length === 0,
+     "Ejderha Nefesi bulutu, sahibi oyundan cikinca istisna atmiyor",
+     `${__sim.errors.length} istisna: ${(__sim.errors[0] || "").split("\n")[0]}`);
+}
+{
+  // Mega Agac: agac buyurken cikan cocugun kimligi treeBusy'de kaliyordu.
+  // Bedrock kimligi relog'da ayni kaldigi icin esya bir daha calismiyordu.
+  settle();
+  const p = fresh();
+  __sim.state.viewBlock = { block: { typeId: "minecraft:grass", location: { x: 0, y: 63, z: 0 }, dimension: p.dimension } };
+  __sim.fire("after", "itemUse", { itemStack: { typeId: "stnt:mega_gubre" }, source: p });
+  __sim.tick(5);
+  __sim.gecersizKil(p);
+  __sim.tick(600);
+  __sim.geriGetir(p);                          // ayni kimlikle geri girdi
+  __sim.state.log.actionBars.length = 0;
+  __sim.state.viewBlock = { block: { typeId: "minecraft:grass", location: { x: 0, y: 63, z: 0 }, dimension: p.dimension } };
+  __sim.fire("after", "itemUse", { itemStack: { typeId: "stnt:mega_gubre" }, source: p });
+  __sim.tick(20);
+  ok(!bars().some((m) => m.includes("zaten büyüyor")),
+     "Mega Agac cikan oyuncudan sonra kilitlenmiyor", bars().join(" | ").slice(0, 100));
+}
+
 report();
 
 function report() {

@@ -1,7 +1,60 @@
 # Super TNT — Bedrock Port Durumu
 
-Son sürüm: **v1.44.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
+Son sürüm: **v1.45.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
 olacak şekilde geliştiriliyor (MorphX / mutant paketine bağımlılık yok).
+
+## v1.45.0 — Sessizce ölen döngüler ve bedavaya geçen testler
+
+İki tarama: biri kodun kendisine, biri **test takımının kendisine**.
+
+### Test takımı 24 TNT'yi bedavaya geçiriyormuş
+
+Karşıt denetim, per-TNT davranış testinin üç ayrı sızıntısı olduğunu buldu ve
+beş mutasyonla kanıtladı: **24 TNT tamamen içi boş bırakıldı, bütün katmanlar
+yeşil kaldı.**
+
+| Sızıntı | Kimi kaçırıyordu |
+|---|---|
+| "Blok değişti" ölçümü TNT'nin kendi bloğunu sayıyordu — ölçüm blok konmadan alındığı için fark hep 1 çıkıyordu | 7 transform + 6 place TNT'si tek blok bile değiştirmeden geçiyordu |
+| Bütün TNT'ler aynı merkezde patlıyordu; `reset()` çalışan işleri iptal etmiyor, önceki TNT'nin işi sonrakinin sayacını dolduruyordu | Bedrock, Cam, Kıyamet, Odun, Komut TNT hiçbir blok kırmadan geçiyordu |
+| Sahte `createExplosion` her patlamada hasar veriyor; "etki" ve "hasar" bu hasarla doluyordu | Nükleer, Redstone, Pırt, Uyku TNT hiç efekt uygulamadan; Zeynep Redstone ve Elmas Zırh TNT kimseyi öldürmeden geçiyordu |
+
+Artık: TNT'nin kendi konumu dışındaki gerçek değişiklik, kendi menzili içinde
+sayılıyor; her TNT kendi merkezinde patlıyor; sahte `applyDamage` vuruşun
+sebebini kaydediyor ve ölçüm patlama dışı vuruş arıyor.
+
+### Sessizce ölen döngüler
+
+Bedrock'ta `runInterval` geri çağırmasından kaçan bir istisna o döngüyü
+durdurabiliyor — çocuk ne hata görür ne bir ipucu.
+
+- **Mega Ağaç kalıcı kilitleniyordu.** Ağaç büyürken çıkan çocuğun kimliği
+  `treeBusy`'de kalıyordu. Bedrock kimliği relog'da aynı kaldığı için eşya bir
+  daha çalışmıyordu. Kimlik artık önceden yakalanıyor.
+- **Craft Axe düz seçimde tableti takıyordu.** Bütçe yalnızca `while`
+  başlığında bakılıyordu; 1×100×200 bir duvarda tek x-dilimi bütün seçim
+  demek, yani tek tick'te 20 000 `getBlock`. Mevcut test 20×20×20 bir küp
+  kullandığı için (bir dilim 400 konum, bütçe 700) bunu hiç görmüyordu.
+- **Renkli portallar** oyuncu başına gövdeyi korumasız çalıştırıyordu; kardeş
+  dönguler (tuzak blokları, boyut kamerası) hepsi koruyor.
+- **Bütün sihirli eşyaların hatası tek bir boş `catch`'te yutuluyordu** —
+  "çocuk eşyayı yanlış tutuyor" ile "eşya bozuk" ayırt edilemiyordu. Artık
+  `console.warn` ve ekranda bir satır var.
+- **`mines` ve `owners` hiçbir tavana bağlı değildi** ve kayıt yazımı
+  başarısız olursa sessizce yutuluyordu: dünya yeniden yüklenince bütün
+  sahiplik ve mayınlar izsiz kaybolabilirdi.
+- Eşya ve blok kırma dinleyicileri artık boş olaya karşı korumalı.
+
+### Doğru çıkmayan bir bulgu
+
+Tarama, Ejderha Nefesi'nin sahibi oyundan çıkınca **altı kullanımdan sonra
+kalıcı kilitlendiğini** bildirdi. Ölçüldü: doğru değil. Bitiş koşulu
+`t >= total`, eşitlik değil — atışın olduğu tick'te gövde yarıda kesilse bile
+bir sonraki atış-dışı tick bitişi çalıştırıyor ve sayaç düzeliyor. Yakalanan
+oyuncu kimliği yine de düzeltildi (bulut atış başına 12 istisna atıyordu) ama
+test, ölçülen şeyi sınıyor: döngü gövdesi istisna atmamalı.
+
+Toplam: **127 çalışan test**, 36 statik ve **33 sim mutasyonu**.
 
 ## v1.44.0 — Yetmiş TNT'nin ipucu ile kodu tek tek karşılaştırıldı
 

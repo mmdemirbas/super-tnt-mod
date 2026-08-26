@@ -405,6 +405,47 @@ PYX
 run "blok kiran TNT hicbir blok kirmiyor" "bedrock_tnt (break: blok yok)"
 cp "$BAK/build.bak" bedrock/build.py
 
+# 31) Craft Axe butcesi yine yalnizca while basliginda bakilsin -> duz bir
+#     duvar secildiginde tek tick'te 10 000 getBlock, tablet takilir
+python3 - "$BAK" <<'PYX'
+import io, sys
+s = io.open(sys.argv[1] + "/build.bak", encoding="utf-8").read()
+old = "              for (let y = by0; y <= by1 && placed < 4096 && d < CRAFT_AXE_PER_TICK; y++)\n                for (let z = bz0; z <= bz1 && placed < 4096 && d < CRAFT_AXE_PER_TICK; z++) {"
+assert s.count(old) == 1
+io.open("bedrock/build.py", "w", encoding="utf-8").write(s.replace(
+    old, "              for (let y = by0; y <= by1 && placed < 4096; y++)\n                for (let z = bz0; z <= bz1 && placed < 4096; z++) {", 1))
+PYX
+run "Craft Axe duz secimde tek tick'te kosuyor" "DUZ secimde de tick'e bolunuyor"
+cp "$BAK/build.bak" bedrock/build.py
+
+# 32) Ejderha Nefesi yine yakalanan oyuncudan kimlik okusun -> cocuk cikinca
+#     bulut her atisinda istisna atar. (Dongunun KALICI oldugu iddiasi
+#     olculdu ve dogru cikmadi: bitis kosulu `t >= total` oldugu icin bir
+#     sonraki atis-disi tick bitisi calistiriyor.)
+python3 - "$BAK" <<'PYX'
+import io, sys
+s = io.open(sys.argv[1] + "/build.bak", encoding="utf-8").read()
+old = "        if (e.id === pid) { try { e.applyDamage(a.damage); } catch (err) {} continue; }"
+assert s.count(old) == 1
+io.open("bedrock/build.py", "w", encoding="utf-8").write(s.replace(
+    old, "        if (e.id === player.id) { try { e.applyDamage(a.damage); } catch (err) {} continue; }", 1))
+PYX
+run "Ejderha Nefesi bulutu cikan sahibinde istisna atiyor" "sahibi oyundan cikinca istisna atmiyor"
+cp "$BAK/build.bak" bedrock/build.py
+
+# 33) Mega Agac yine yakalanan oyuncudan kimlik okusun -> cocuk cikinca
+#     treeBusy'de kimlik kalir, ayni kimlikle geri girse de esya calismaz
+python3 - "$BAK" <<'PYX'
+import io, sys
+s = io.open(sys.argv[1] + "/build.bak", encoding="utf-8").read()
+old = "      treeBusy.delete(treePid);"
+assert s.count(old) == 1
+io.open("bedrock/build.py", "w", encoding="utf-8").write(
+    s.replace(old, "      treeBusy.delete(player.id);", 1))
+PYX
+run "Mega Agac cikan oyuncudan sonra kilitleniyor" "cikan oyuncudan sonra kilitlenmiyor"
+cp "$BAK/build.bak" bedrock/build.py
+
 echo
 echo "yakalanan $pass / kacirilan $fail"
 [ "$fail" -eq 0 ]
