@@ -488,9 +488,10 @@ function detonateTnt(short, p, at) {
   };
   const EXPECTS = { place: "blok", transform: "blok", break: "blok", paint: "blok",
                     scatter: "esya", spawn: "varlik", status: "etki", instakill: "hasar" };
-  const at = { x: 0, y: 64, z: 40 };
+  let sira = 0;
   for (const short of Object.keys(SPEC)) {
     const spec = SPEC[short];
+    const at = { x: sira++ * 400, y: 64, z: 40 };   // her TNT kendi merkezinde
     __sim.reset(); __ui.reset();
     const p = newPlayer("Zeynep", { x: 0, y: 70, z: -60 });   // patlamalarin disinda
     // Hedef canli: status / instakill / spawn olculebilsin.
@@ -509,7 +510,21 @@ function detonateTnt(short, p, at) {
         __sim.setBlock(p.dimension.id, at.x + x, at.y + y, at.z + z, seed);
       }
     }
-    const seededBlocks = __sim.state.blocks.size;
+    const tntAnahtar = `${p.dimension.id}|${at.x},${at.y},${at.z}`;
+    const oncekiBlok = new Map(__sim.state.blocks);
+    const menzil = (spec.radius || 16) + 4;
+    const bloklarDegisti = () => {
+      for (const [k, v] of __sim.state.blocks) {
+        if (k === tntAnahtar) continue;              // TNT'nin kendi blogu sayilmaz
+        if (oncekiBlok.get(k) === v) continue;
+        const m = /\|(-?\d+),(-?\d+),(-?\d+)$/.exec(k);
+        if (!m) continue;
+        if (Math.abs(+m[1] - at.x) > menzil || Math.abs(+m[2] - at.y) > menzil
+            || Math.abs(+m[3] - at.z) > menzil) continue;   // baska TNT'nin izi
+        return true;
+      }
+      return false;
+    };
     const seededEnts = __sim.state.entities.length;
     __sim.state.counters.maxGetBlockPerTick = 0;
     const before = __sim.state.log;
@@ -521,16 +536,18 @@ function detonateTnt(short, p, at) {
     const peak = __sim.state.counters.maxGetBlockPerTick;
     if (peak > 20000) heavy.push(`${short} ${peak}`);
     const want = EXPECTS[spec.kind];
+    // Patlamanin kendi hasari sayilmaz — yoksa "TNT patladi" ile "TNT etki
+    // uyguladi" ayni sey olur ve ici bos TNT testi gecer.
+    const patlamaDisi = (e) => e.hits.some((h) => h.cause !== "entityExplosion");
     const got = {
-      blok: __sim.state.blocks.size !== seededBlocks ||
-            [...__sim.state.blocks.values()].some((v) => v === "minecraft:air"),
+      blok: bloklarDegisti(),
       esya: before.items.length > 0,
       varlik: __sim.state.entities.length > seededEnts,
       etki: target.effects.size !== 1 || near.effects.size !== 1 ||
             near.getProperty("st:size") !== 0 ||
-            target.damages.length > 0 || near.damages.length > 0 ||
+            patlamaDisi(target) || patlamaDisi(near) ||
             before.commands.length > 0 || before.items.length > 0,
-      hasar: target.damages.length > 0 || target.dead,
+      hasar: patlamaDisi(target) || target.dead,
     };
     // Virus TNT bilerek hicbir sey yapmaz — ipucu da oyle diyor ("Aslinda
     // hicbir sey olmaz"). Sozlesme tutuyor; istisna burada yazili olsun.

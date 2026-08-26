@@ -341,6 +341,70 @@ PYX
 run "firtina 20 dakika suruyor" "2 dakikadan uzun hava birakmiyor"
 cp "$BAK/build.bak" bedrock/build.py
 
+# 26) transform TNT'leri hicbir blok yazmasin -> Gokkusagi, Makarna, Seker,
+#     Gulen Yuz, Karisik Kurusuk, Elmas Diyari ve Lego TNT ici bos kalir.
+#     Bu yedisi ESKIDEN testi geciyordu: "blok degisti" olcumu TNT'nin KENDI
+#     blogunu sayiyordu, o yuzden her zaman dogruydu.
+python3 - "$BAK" <<'PYX'
+import io, sys
+s = io.open(sys.argv[1] + "/build.bak", encoding="utf-8").read()
+old = "                b.setType(pal[Math.abs(tx * 7 + ty * 13 + tz * 17) % pal.length]);"
+assert s.count(old) == 1
+io.open("bedrock/build.py", "w", encoding="utf-8").write(s.replace(old, "                ;", 1))
+PYX
+run "transform TNT'leri hicbir blok degistirmiyor" "rainbow_tnt (transform: blok yok)"
+cp "$BAK/build.bak" bedrock/build.py
+
+# 27) place TNT'leri hicbir blok koymasin -> Buz, Olumcul Su, Mob Dondurucu,
+#     Nether, End ve Dag TNT bos patlar
+python3 - "$BAK" <<'PYX'
+import io, sys
+s = io.open(sys.argv[1] + "/build.bak", encoding="utf-8").read()
+old = "                b.setType(s.block);"
+assert s.count(old) == 1
+io.open("bedrock/build.py", "w", encoding="utf-8").write(s.replace(old, "                ;", 1))
+PYX
+run "place TNT'leri hicbir blok koymuyor" "freeze_tnt (place: blok yok)"
+cp "$BAK/build.bak" bedrock/build.py
+
+# 28) status TNT'leri hicbir efekt uygulamasin -> Nukleer, Redstone, Pirt ve
+#     Uyku TNT yalnizca patlar. Sahte createExplosion'un hasari bunu
+#     ortuyordu; artik PATLAMA DISI vurus araniyor.
+python3 - "$BAK" <<'PYX'
+import io, sys
+s = io.open(sys.argv[1] + "/build.bak", encoding="utf-8").read()
+old = "              e.addEffect(ef.id, ef.seconds * 20, { amplifier: ef.amp || 0, showParticles: true });"
+assert s.count(old) == 1
+io.open("bedrock/build.py", "w", encoding="utf-8").write(s.replace(old, "              ;", 1))
+PYX
+run "status TNT'leri hicbir efekt uygulamiyor" "nuclear_tnt (status: etki yok)"
+cp "$BAK/build.bak" bedrock/build.py
+
+# 29) anlik olduren TNT kimseyi oldurmesin -> Zeynep Redstone (r=30) ve Elmas
+#     Zirh (r=40) TNT kimseyi olduremeden testi geciyordu
+python3 - "$BAK" <<'PYX'
+import io, sys
+s = io.open(sys.argv[1] + "/build.bak", encoding="utf-8").read()
+old = "            e.applyDamage(1000);"
+assert s.count(old) == 1
+io.open("bedrock/build.py", "w", encoding="utf-8").write(s.replace(old, "            ;", 1))
+PYX
+run "anlik olduren TNT kimseyi oldurmuyor" "elmas_zirh_tnt (instakill: hasar yok)"
+cp "$BAK/build.bak" bedrock/build.py
+
+# 30) blok kiran TNT hicbir blok kirmasin -> Bedrock, Cam, Kiyamet, Odun ve
+#     Komut TNT. Eskiden ONCEKI TNT'nin hala calisan isi bunlarin blok
+#     sayisini degistiriyor ve bes TNT birden bedavaya geciyordu.
+python3 - "$BAK" <<'PYX'
+import io, sys
+s = io.open(sys.argv[1] + "/build.bak", encoding="utf-8").read()
+old = '                b.setType("minecraft:air");'
+assert s.count(old) == 1
+io.open("bedrock/build.py", "w", encoding="utf-8").write(s.replace(old, "                ;", 1))
+PYX
+run "blok kiran TNT hicbir blok kirmiyor" "bedrock_tnt (break: blok yok)"
+cp "$BAK/build.bak" bedrock/build.py
+
 echo
 echo "yakalanan $pass / kacirilan $fail"
 [ "$fail" -eq 0 ]

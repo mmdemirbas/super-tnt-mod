@@ -785,7 +785,7 @@ def check_player_control(js):
               f"{0.25 * olcek:.3f} ile carpisma kutusu {cw / 2:.3f} arasinda degil")
     check(not re.search(r"inputpermission|inputPermissions", kod, re.I),
           "main.js inputpermission kullaniyor — oyuncunun hareketini kilitler")
-    check("camera.clear" in js,
+    check("camera.clear" in kod,
           "kamerayi birakan camera.clear() cagrisi yok — normal boyuta donen "
           "oyuncu scripted kamerada kalir")
     # Kucultmenin GORUNUR karsiligi tek blokluk bosluga girebilmektir. Bunun
