@@ -78,7 +78,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 44, 0]
+VERSION = [1, 45, 0]
 MIN_ENGINE = [1, 21, 0]
 # Surum etiketi paket ADINA yazilir. UUID + klasor adlari sabit oldugu icin
 # Minecraft ayni UUID'li paketi yerinde GUNCELLER; ama cihazda eski surum
@@ -2689,10 +2689,14 @@ function consumeHeld(pl, typeId) {
 // cocuk tiklayip birakiyor ve esya harcanmadan efekt aliyor.
 const CONSUMED = { eat: 1, heal_boost: 1 };
 world.afterEvents.itemUse.subscribe((ev) => {
+  // Dinleyiciden kacan tek bir istisna BUTUN sihirli esyalari o seans
+  // boyunca oldurur; ev.itemStack surume gore bos gelebiliyor.
+  if (!ev || !ev.itemStack || !ev.source) return;
   const a = ITEM_ACTIONS[ev.itemStack.typeId.replace("stnt:", "")];
   if (a && !CONSUMED[a.type]) itemAction(ev.source, a);
 });
 world.afterEvents.itemCompleteUse.subscribe((ev) => {
+  if (!ev || !ev.itemStack || !ev.source) return;
   const a = ITEM_ACTIONS[ev.itemStack.typeId.replace("stnt:", "")];
   if (!a) return;
   if (a.type === "eat") {
@@ -2948,7 +2952,8 @@ function megaTree(player, a) {
     try { player.onScreenDisplay.setActionBar("§eAğaç büyüyor — kenara çekildin!"); } catch (e) {}
   }
 
-  treeBusy.add(player.id);
+  const treePid = player.id;      // yakalanan `player` sonra gecersiz olabilir
+  treeBusy.add(treePid);
   let y = -3;                                       // kok: uc katman toprak alti
   const job = system.runInterval(() => {
     budget = 0;
@@ -2985,7 +2990,7 @@ function megaTree(player, a) {
     }
     if (y > cy1) {
       system.clearRun(job);
-      treeBusy.delete(player.id);
+      treeBusy.delete(treePid);
       try { player.onScreenDisplay.setActionBar(`§aDev ağaç büyüdü! §f${total}§a blok`); } catch (e) {}
     }
   }, 1);
@@ -3303,9 +3308,12 @@ function itemAction(player, a) {
           let fx = bx0, placed = 0;
           const fjob = system.runInterval(() => {
             let d = 0;
+            // Butce her UC seviyede de bakilir. Yalnizca while basliginda
+            // bakmak duz secimlerde ise yaramiyordu: 1 genis bir duvarda tek
+            // x-dilimi butun secim demek, yani 20 000 getBlock tek tick'te.
             while (fx <= bx1 && d < CRAFT_AXE_PER_TICK && placed < 4096) {
-              for (let y = by0; y <= by1 && placed < 4096; y++)
-                for (let z = bz0; z <= bz1 && placed < 4096; z++) {
+              for (let y = by0; y <= by1 && placed < 4096 && d < CRAFT_AXE_PER_TICK; y++)
+                for (let z = bz0; z <= bz1 && placed < 4096 && d < CRAFT_AXE_PER_TICK; z++) {
                   d++;                                  // BAKILAN konum sayilir
                   try {
                     const b = dim.getBlock({ x: fx, y, z });
@@ -3323,7 +3331,12 @@ function itemAction(player, a) {
         break;
       }
     }
-  } catch (e) {}
+  } catch (e) {
+    // Sessiz yutmak, "cocuk esyayi yanlis tutuyor" ile "esya bozuk"u ayirt
+    // edilemez yapiyordu — bu yuzden hicbir zaman bildirilmiyordu.
+    console.warn(`[SuperTNT] esya hatasi ${a && a.type}: ${e}`);
+    try { player.onScreenDisplay.setActionBar("§cBu eşya şu an çalışmadı"); } catch (err) {}
+  }
 }
 
 // Pasif itemlar: elde Lav Kristali -> ates korumasi; ayakta Gokkusagi Botu ->
@@ -4425,7 +4438,11 @@ const BREATH_MAX = 6;                    // es zamanli bulut tavani (bkz. asagi)
 let breathLive = 0;
 function dragonBreath(player, a) {
   const dim = player.dimension, now = system.currentTick;
-  if ((breathCd.get(player.id) || 0) > now) return;
+  // Kimlik SIMDI okunur. Bulut a.seconds boyunca yasiyor; oyuncu o sirada
+  // cikarsa yakalanan `player` uzerindeki her okuma patlar, istisna dongunun
+  // disina kacar ve breathLive bir daha azalmaz -> esya kalici kilitlenir.
+  const pid = player.id;
+  if ((breathCd.get(pid) || 0) > now) return;
   if (breathLive >= BREATH_MAX) {
     try { player.onScreenDisplay.setActionBar("§7Çok fazla bulut var, biraz bekle"); } catch (e) {}
     return;
@@ -4458,7 +4475,7 @@ function dragonBreath(player, a) {
       for (const e of ents) {
         if (SONIC_SKIP[e.typeId]) continue;             // esya/tecrube yanmasin
         // Sahibine kendi kimligiyle hasar veremeyiz -> duz hasara dus.
-        if (e.id === player.id) { try { e.applyDamage(a.damage); } catch (err) {} continue; }
+        if (e.id === pid) { try { e.applyDamage(a.damage); } catch (err) {} continue; }
         try { e.applyDamage(a.damage, { cause: "magic", damagingEntity: player }); }
         catch (err) { try { e.applyDamage(a.damage); } catch (err2) {} }
       }
@@ -4580,7 +4597,14 @@ function loadOwners() {
   try { const raw = world.getDynamicProperty(OWNER_PROP); if (typeof raw === "string") owners = JSON.parse(raw); }
   catch (e) { owners = {}; }
 }
-function saveOwners() { try { world.setDynamicProperty(OWNER_PROP, JSON.stringify(owners)); } catch (e) {} }
+const OWNER_MAX = 400;          // bkz. TRACK_MAX: kalici ozelligin bayt butcesi var
+function saveOwners() {
+  const ks = Object.keys(owners);
+  // Nesne anahtarlari EKLENME sirasinda gelir, yani en eskiler bastadir.
+  if (ks.length > OWNER_MAX) for (const k of ks.slice(0, ks.length - OWNER_MAX)) delete owners[k];
+  try { world.setDynamicProperty(OWNER_PROP, JSON.stringify(owners)); }
+  catch (e) { console.warn(`[SuperTNT] sahiplik yazilamadi (${ks.length} kayit): ${e}`); }
+}
 function pkey(dimId, loc) { return `${dimId}:${Math.floor(loc.x)}:${Math.floor(loc.y)}:${Math.floor(loc.z)}`; }
 function hashStr(s) { let h = 0; for (let i = 0; i < s.length; i++) { h = (h * 31 + s.charCodeAt(i)) | 0; } return h; }
 const OWNER_BLOCKS = new Set(["stnt:sahip_kapi", "stnt:blocker_sandik", "stnt:sifreli_sandik"]);
@@ -4597,6 +4621,7 @@ world.afterEvents.playerPlaceBlock.subscribe((ev) => {
 });
 
 world.afterEvents.playerBreakBlock.subscribe((ev) => {
+  if (!ev || !ev.block || !ev.dimension) return;
   const k = pkey(ev.dimension.id, ev.block.location);
   if (owners[k]) { delete owners[k]; saveOwners(); }
 });
@@ -4823,6 +4848,7 @@ system.runInterval(() => {
   if (!all.length) return;
   for (const p of world.getPlayers()) {
     if ((portalCd.get(p.id) || 0) > now) continue;
+    try {
     const l = p.location, d = p.dimension.id;
     let on = null;                                   // uzerinde durdugun portal
     for (const P of all) {
@@ -4846,6 +4872,7 @@ system.runInterval(() => {
     } catch (e) {}
     portalArrival.set(p.id, best);
     portalCd.set(p.id, now + 40);                     // 2 sn - ileri-geri titremeyi onler
+    } catch (e) { continue; }                         // bir oyuncu portallari komple oldurmesin
   }
 }, 8);
 
@@ -4886,7 +4913,13 @@ world.beforeEvents.playerInteractWithBlock.subscribe((ev) => {
 const MINE_PROP = "stnt:mines";
 let mines = {};
 function loadMines() { try { const r = world.getDynamicProperty(MINE_PROP); if (typeof r === "string") mines = JSON.parse(r); } catch (e) { mines = {}; } }
-function saveMines() { try { world.setDynamicProperty(MINE_PROP, JSON.stringify(mines)); } catch (e) {} }
+const MINE_MAX = 200;           // ayni gerekce; ustelik her kayit 10 tick'te taraniyor
+function saveMines() {
+  const ks = Object.keys(mines);
+  if (ks.length > MINE_MAX) for (const k of ks.slice(0, ks.length - MINE_MAX)) delete mines[k];
+  try { world.setDynamicProperty(MINE_PROP, JSON.stringify(mines)); }
+  catch (e) { console.warn(`[SuperTNT] mayinlar yazilamadi (${ks.length} kayit): ${e}`); }
+}
 try { world.afterEvents.worldLoad.subscribe(() => loadMines()); } catch (e) {}
 loadMines();   // modul degerlendirmesinde bir kez; worldLoad reload icin yedek
 world.afterEvents.playerPlaceBlock.subscribe((ev) => {
@@ -4897,6 +4930,7 @@ world.afterEvents.playerPlaceBlock.subscribe((ev) => {
   try { ev.player.onScreenDisplay.setActionBar("§cMayın kuruluyor — 2 saniye içinde kaç!"); } catch (e) {}
 });
 world.afterEvents.playerBreakBlock.subscribe((ev) => {
+  if (!ev || !ev.block || !ev.dimension) return;
   const k = pkey(ev.dimension.id, ev.block.location);
   if (mines[k]) { delete mines[k]; saveMines(); }
 });
