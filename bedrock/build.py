@@ -78,7 +78,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 45, 0]
+VERSION = [1, 46, 0]
 MIN_ENGINE = [1, 21, 0]
 # Surum etiketi paket ADINA yazilir. UUID + klasor adlari sabit oldugu icin
 # Minecraft ayni UUID'li paketi yerinde GUNCELLER; ama cihazda eski surum
@@ -4000,6 +4000,78 @@ function wclock() {
 
 function rnd(n) { return (Math.random() - 0.5) * n; }
 
+// ---- Gecici bloklar (su, buz) dunyaya KAYDEDILIR.
+// Geri alma bir system.runTimeout idi: yalnizca bellekte durur. Cocuk Su
+// TNT'yi atip 10 saniye dolmadan oyundan cikinca su SONSUZA KADAR kaliyordu;
+// Buz TNT'de pencere 30 saniye. Tablette oyundan cikmak siradan bir sey.
+//
+// Cozum: her yerlestirme icin kucuk bir kayit (merkez + yaricap + blok turu).
+// Bu seansta yaratilan kayitlarla runTimeout zaten ilgileniyor, o yuzden
+// bellekteki kume onlari supurgeden ayirir. Onceki seanstan kalan kayitlar
+// bellekte olmadigi icin, cevre yuklenir yuklenmez suprulur.
+const TEMP_PROP = "stnt:temp";
+const TEMP_MAX = 24;                     // bkz. TRACK_MAX: kalici ozelligin bayt butcesi var
+const tempSupuruluyor = new Set();       // ayni kaydi iki kez supurmemek icin (yalniz bellek)
+function tempOku() {
+  try { const r = world.getDynamicProperty(TEMP_PROP); return typeof r === "string" ? JSON.parse(r) : []; }
+  catch (e) { return []; }
+}
+function tempYaz(a) {
+  try { world.setDynamicProperty(TEMP_PROP, JSON.stringify(a.slice(-TEMP_MAX))); }
+  catch (e) { console.warn(`[SuperTNT] gecici blok kaydi yazilamadi: ${e}`); }
+}
+// Sure DUNYA SAATIYLE tutulur (bkz. wclock ve mayinlar): system.currentTick
+// yeniden yuklemede sifirlanir, dunya saati sifirlanmaz.
+function tempEkle(dimId, x, y, z, r, blok, saniye) {
+  const id = `${dimId}|${x},${y},${z}|${blok}`;
+  const a = tempOku().filter((t) => t.i !== id);
+  a.push({ i: id, d: dimId, x, y, z, r, b: blok, t: wclock() + saniye * 20 });
+  tempYaz(a);
+  return id;
+}
+function tempBitti(id) {
+  tempSupuruluyor.delete(id);
+  tempYaz(tempOku().filter((t) => t.i !== id));
+}
+// Dilim dilim geri alma. Hem runTimeout hem de supurge ayni yolu kullanir;
+// is BAKILAN konumu sayar (bkz. transform).
+function geciciTemizle(dim, cx, cy, cz, r, blok, per, bitince) {
+  let ux = -r;
+  const job = system.runInterval(() => {
+    let d = 0;
+    while (ux <= r && d < per) {
+      for (let uy = -r; uy <= r; uy++) for (let uz = -r; uz <= r; uz++) {
+        if (ux * ux + uy * uy + uz * uz > r * r) continue;
+        d++;
+        try {
+          const b = dim.getBlock({ x: cx + ux, y: cy + uy, z: cz + uz });
+          if (b && b.typeId === blok) b.setType("minecraft:air");
+        } catch (e) {}
+      }
+      ux++;
+    }
+    if (ux > r) { system.clearRun(job); if (bitince) bitince(); }
+  }, 1);
+}
+// Suresi dolmus kayitlar. Normalde runTimeout onlari zaten temizledi ve
+// kaydi sildi; bu supurge yalnizca yeniden yuklemede kalanlar icin. Cevre
+// yuklu degilse getBlock bos doner, kayit BIRAKILIR ve cocuk oraya donunce
+// supurulur.
+system.runInterval(() => {
+  const now = wclock();
+  for (const t of tempOku()) {
+    if (now < t.t || tempSupuruluyor.has(t.i)) continue;
+    let dim = null;
+    try { dim = world.getDimension(t.d); } catch (e) {}
+    if (!dim) { tempBitti(t.i); continue; }
+    let yuklu = false;
+    try { yuklu = !!dim.getBlock({ x: t.x, y: t.y, z: t.z }); } catch (e) {}
+    if (!yuklu) continue;
+    tempSupuruluyor.add(t.i);
+    geciciTemizle(dim, t.x, t.y, t.z, t.r, t.b, 700, () => tempBitti(t.i));
+  }
+}, 100);
+
 function detonate(dim, c, short, igniterId) {
   const s = SPEC[short];
   if (!s) return;
@@ -4327,23 +4399,12 @@ function detonate(dim, c, short, igniterId) {
           if (px > r) system.clearRun(job);
         }, 1);
         if (s.tempSeconds) {
+          // Kayit dunyaya yazilir: cocuk sure dolmadan oyundan cikarsa su/buz
+          // sonsuza kadar kalmasin. Bu seansin kaydiyla asagidaki runTimeout
+          // ilgilenir, supurge ona dokunmaz.
+          const tid = tempEkle(dim.id, cx, cy, cz, r, s.block, s.tempSeconds);
           system.runTimeout(() => {
-            let ux = -r;
-            const ujob = system.runInterval(() => {
-              let d = 0;
-              while (ux <= r && d < per) {
-                for (let uy = -r; uy <= r; uy++) for (let uz = -r; uz <= r; uz++) {
-                  if (ux * ux + uy * uy + uz * uz > r * r) continue;
-                  d++;                              // bkz. transform: is sayilir
-                  try {
-                    const b = dim.getBlock({ x: cx + ux, y: cy + uy, z: cz + uz });
-                    if (b && b.typeId === s.block) b.setType("minecraft:air");
-                  } catch (e) {}
-                }
-                ux++;
-              }
-              if (ux > r) system.clearRun(ujob);
-            }, 1);
+            geciciTemizle(dim, cx, cy, cz, r, s.block, per, () => tempBitti(tid));
           }, s.tempSeconds * 20);
         }
         spray(dim, c, s.particle || "minecraft:crop_growth_emitter", 40, 4);
