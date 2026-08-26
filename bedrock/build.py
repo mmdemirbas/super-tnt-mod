@@ -2738,7 +2738,8 @@ system.runInterval(() => {
 // Dalganin savurmamasi gerekenler: yerdeki esya ve tecrube kuresi. Yoksa
 // cocuk kendi ganimetini 20 blok oteye ucuruyor.
 const sonicCd = new Map();
-const CRAFT_AXE_MAX = 20000;   // ~27x27x27; tek tick'te taranabilecek ust sinir
+const CRAFT_AXE_MAX = 20000;        // ~27x27x27; kabul edilen en buyuk alan
+const CRAFT_AXE_PER_TICK = 700;     // tick basina BAKILAN konum (paketin deseni)
 const SONIC_SKIP = { "minecraft:item": 1, "minecraft:xp_orb": 1, "minecraft:xp_bottle": 1 };
 
 function sonicBoom(player, a) {
@@ -3261,15 +3262,35 @@ function itemAction(player, a) {
               `§cAlan çok büyük: §f${vol}§c blok. En fazla §f${CRAFT_AXE_MAX}§c (yaklaşık 27×27×27).`); } catch (e) {}
             break;
           }
-          let placed = 0;
-          // iki nokta arasi kutu doldurulur; noktalar farkli yukseklikteyse
-          // dikey de dolar -> otomatik DUVAR (aralarindaki yuksekligi orer).
-          for (let x = Math.min(x1, x2); x <= Math.max(x1, x2) && placed < 4096; x++)
-            for (let y = Math.min(y1, y2); y <= Math.max(y1, y2) && placed < 4096; y++)
-              for (let z = Math.min(z1, z2); z <= Math.max(z1, z2) && placed < 4096; z++) {
-                try { const b = dim.getBlock({ x, y, z }); if (b && b.typeId === "minecraft:air") { b.setType(fill); placed++; } } catch (e) {}
-              }
-          try { player.onScreenDisplay.setActionBar(`§a${placed} blok dolduruldu (§b${fill.replace("minecraft:", "")}§a)`); } catch (e) {}
+          // Is TICK'E BOLUNUR. Paketteki butun toplu blok islerinin deseni bu;
+          // Craft Axe tek istisnaydi ve tek callback icinde 20 000 getBlock'a
+          // kadar cikabiliyordu. Tavan yalnizca KONAN blogu sayiyordu, taranan
+          // konumu degil: masif tasin icini doldurmaya calisan cocuk hicbir
+          // blok koymadan 20 000 konum tariyor ve tablet takiliyordu.
+          // (Ayni hata daha once mega agacta ve TNT'lerde de yasandi; oradaki
+          // yorumlar "konan degil, BAKILAN konumu say" diyor.)
+          const bx0 = Math.min(x1, x2), bx1 = Math.max(x1, x2);
+          const by0 = Math.min(y1, y2), by1 = Math.max(y1, y2);
+          const bz0 = Math.min(z1, z2), bz1 = Math.max(z1, z2);
+          let fx = bx0, placed = 0;
+          const fjob = system.runInterval(() => {
+            let d = 0;
+            while (fx <= bx1 && d < CRAFT_AXE_PER_TICK && placed < 4096) {
+              for (let y = by0; y <= by1 && placed < 4096; y++)
+                for (let z = bz0; z <= bz1 && placed < 4096; z++) {
+                  d++;                                  // BAKILAN konum sayilir
+                  try {
+                    const b = dim.getBlock({ x: fx, y, z });
+                    if (b && b.typeId === "minecraft:air") { b.setType(fill); placed++; }
+                  } catch (e) {}
+                }
+              fx++;
+            }
+            if (fx > bx1 || placed >= 4096) {
+              system.clearRun(fjob);
+              try { player.onScreenDisplay.setActionBar(`§a${placed} blok dolduruldu (§b${fill.replace("minecraft:", "")}§a)`); } catch (e) {}
+            }
+          }, 1);
         }
         break;
       }

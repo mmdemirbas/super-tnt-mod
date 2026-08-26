@@ -328,6 +328,32 @@ function detonateTnt(short, p, at) {
   ok(__sim.state.counters.maxGetBlockPerTick < 5000, "reddedilen alan taranmiyor",
      `zirve ${__sim.state.counters.maxGetBlockPerTick}`);
 }
+{
+  // KABUL EDILEN buyuk alan da tek tick'te taranmamali. En kotu durum: kutunun
+  // tamami DOLU, yani hicbir blok konmuyor ama her konuma bakiliyor. Tavan
+  // yalnizca konan blogu sayarken bu 20 000 getBlock'a kadar cikip tableti
+  // takiyordu.
+  settle();
+  const p = fresh();
+  for (let x = 0; x < 20; x++) for (let y = 64; y < 84; y++) for (let z = 0; z < 20; z++) {
+    __sim.setBlock(p.dimension.id, x, y, z, "minecraft:stone");
+  }
+  const tikla = (loc) => {
+    __sim.state.viewBlock = { block: { typeId: "minecraft:stone", location: loc, dimension: p.dimension } };
+    __sim.fire("after", "itemUse", { itemStack: { typeId: "stnt:craft_axe" }, source: p });
+    __sim.tick(1);
+  };
+  tikla({ x: 0, y: 64, z: 0 });
+  __sim.state.log.actionBars.length = 0;
+  __sim.state.counters.maxGetBlockPerTick = 0;
+  tikla({ x: 19, y: 83, z: 19 });               // 20x20x20 = 8000 konum
+  __sim.tick(200);
+  ok(__sim.state.counters.maxGetBlockPerTick < 1500,
+     "kabul edilen alan tick'e bolunerek taraniyor",
+     `zirve ${__sim.state.counters.maxGetBlockPerTick}`);
+  ok(bars().some((m) => m.includes("blok dolduruldu")), "doldurma isi bitiyor ve rapor ediyor",
+     bars().join(" | ").slice(0, 120));
+}
 
 // ------------------------------------ 12. Sinirsiz can gercekten sinirsiz mi
 {

@@ -251,6 +251,20 @@ PYX
 run "Delici sessizce hicbir sey yapmiyor" "sessiz kalan"
 cp "$BAK/build.bak" bedrock/build.py
 
+# 19) Craft Axe'in tick butcesi kalksin -> kabul edilen alanin tamami TEK
+#     tick'te taranir; masif tasin icini doldurmaya calisan cocukta 8000
+#     getBlock tek callback'te ve tablet takilir
+python3 - "$BAK" <<'PYX'
+import io, sys
+s = io.open(sys.argv[1] + "/build.bak", encoding="utf-8").read()
+old = "const CRAFT_AXE_PER_TICK = 700;"
+assert s.count(old) == 1
+io.open("bedrock/build.py", "w", encoding="utf-8").write(
+    s.replace(old, "const CRAFT_AXE_PER_TICK = 999999;", 1))
+PYX
+run "Craft Axe tick butcesi yok" "tick'e bolunerek taraniyor"
+cp "$BAK/build.bak" bedrock/build.py
+
 echo
 echo "yakalanan $pass / kacirilan $fail"
 [ "$fail" -eq 0 ]
