@@ -230,6 +230,21 @@ PYX
 run "Buz TNT butun dunyayi donduruyor" "yaricapla sinirli degil"
 cp "$BAK/main.bak" "$BP/scripts/main.js"
 
+# 25) Ikon arkaplani yine boyansin -> envanterde esya degil renkli kare gorunur
+cp "$BAK/build.bak" bedrock/build.py
+python3 - <<'PYX'
+import io
+p = "bedrock/build.py"
+s = io.open(p, encoding="utf-8").read()
+s = s.replace('    bg = SYMBOL_BG.get(item_id)',
+              '    bg = SYMBOL_BG.get(item_id) or (60, 30, 12)', 1)
+io.open(p, "w", encoding="utf-8").write(s)
+PYX
+python3 bedrock/build.py > /dev/null 2>&1
+run "ikon arkaplani yine boyali" "arkaplani boyali"
+cp "$BAK/build.bak" bedrock/build.py
+python3 bedrock/build.py > /dev/null 2>&1
+
 # 27) Blok kiliginin ust/alt yuz gecisi kaldirilsin -> cim blogunun ustu de
 #     yan dokusuyla cizilir (kutu her yuzde ayni dokuyu ornekler)
 python3 - <<'PYX'
@@ -243,6 +258,19 @@ io.open(p, "w", encoding="utf-8").write(s[:i] + "        )" + s[j:])
 PYX
 python3 bedrock/build.py > /dev/null 2>&1
 run "blok kiliginin ustu yan dokusu" "ust/alt yuz gecisi yok"
+cp "$BAK/build.bak" bedrock/build.py
+python3 bedrock/build.py > /dev/null 2>&1
+
+# 26) Bir ikonun cizimi silinsin -> SYMBOL_IDS'te var ama bos kare uretiliyor
+python3 - <<'PYX'
+import io
+p = "bedrock/build.py"
+s = io.open(p, encoding="utf-8").read()
+s = s.replace('    elif iid == "lightning_spell":', '    elif iid == "__yok__":', 1)
+io.open(p, "w", encoding="utf-8").write(s)
+PYX
+python3 bedrock/build.py > /dev/null 2>&1
+run "ikonun cizimi unutulmus" "neredeyse bos"
 cp "$BAK/build.bak" bedrock/build.py
 python3 bedrock/build.py > /dev/null 2>&1
 

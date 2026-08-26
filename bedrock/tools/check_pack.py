@@ -707,6 +707,36 @@ def check_player_control(js):
           "Buz TNT dondurmasi yaricapla sinirli degil (dunyadaki herkesi donduruyor)")
 
 
+# ------------------------------------------------------------------ 8. ikonlar
+# Bir ikonun arkaplaninin boyali kalmasi ya da hic cizilmemis olmasi baska
+# hicbir denetimde gorunmez — ancak envanterde bakinca anlasilir.
+# Gozle bakmak icin: python3 bedrock/tools/icon_sheet.py
+def check_icons():
+    spec = importlib.util.spec_from_file_location(
+        "icon_sheet", os.path.join(HERE, "icon_sheet.py"))
+    ico = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(ico)
+    for it in build.ITEMS:
+        p = os.path.join(RP, "textures", "items", f"stnt_{it['id']}.png")
+        if not check(os.path.exists(p), f"ikon: {it['id']} dosyasi yok"):
+            continue
+        w, h, px = ico.read_png(p)
+        cizili = sum(1 for row in px for c in row if c[3] > 0)
+        # Bos ikon = SYMBOL_IDS'e id eklenip ciziminin unutulmasi. En seyrek
+        # gercek ikon 27 piksel; 10 esigi ikisini de rahatca ayirir.
+        check(cizili >= 10, f"ikon: {it['id']} neredeyse bos ({cizili} piksel cizili)")
+        if it['id'] in build.SYMBOL_BG:
+            continue                      # arkaplani BILEREK boyali iki ikon
+        kenar = ([px[0][x] for x in range(w)] + [px[h - 1][x] for x in range(w)]
+                 + [px[y][0] for y in range(h)] + [px[y][w - 1] for y in range(h)])
+        opak = sum(1 for c in kenar if c[3] > 0)
+        # Boyali arkaplan kenarin %100'unu doldurur; gercek ikonlarin en
+        # yuksegi %25 (cizmenin tabani). %50 ikisinin ortasinda.
+        check(opak * 2 <= len(kenar),
+              f"ikon: {it['id']} arkaplani boyali "
+              f"(kenar pikselinin {opak * 100 // len(kenar)}%'i opak)")
+
+
 # ---------------------------------------------------------------- calistir
 def main():
     js = open(os.path.join(BP, "scripts", "main.js"), encoding="utf-8").read()
@@ -722,6 +752,7 @@ def main():
     check_tree(js)
     check_poses()
     check_player_control(js)
+    check_icons()
     if FAILS:
         print(f"HATA — {CHECKS[0]} denetimden {len(FAILS)} tanesi gecmedi:")
         for f in FAILS:

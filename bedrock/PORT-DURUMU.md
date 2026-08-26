@@ -39,6 +39,30 @@ artık ayrı geçişte, kübün 0,1 birim dışına konan düz levha olarak çiz
 `tnt_bottom`; tezgâh `crafting_table_top` / `planks_oak` … Bal bloğunun yan
 dokusu da yanlıştı (`honey_top` yazıyordu), `honey_side` oldu.
 
+### 3. İkonlar
+
+`bedrock/tools/icon_sheet.py` eklendi: bütün ikonları tek bir PNG'de dama
+tahtası zemin üzerinde gösterir, böylece "arkaplanı boyalı mı" bir bakışta
+görünür. Bakarak bulunanlar:
+
+- **Arkaplanlar kaldırıldı.** Elle çizilen ikonlar opak RGB yazılıyordu;
+  envanterde eşyanın arkasında renkli bir kare duruyordu. Artık RGBA ve
+  arkaplan saydam. **Ses Saldırısı ve Ejderha Nefesi hariç** — ikisi de bir
+  dalga/ışık etkisi çizer ve saydam zeminde havada asılı duruyordu.
+- **Dönüşüm Asası'nın ikonu yoktu** (düz mor kare), **TNT Frizbi** TNT
+  bloğunun yan yüzünü gösteriyordu, **Among Us Rapor** ve **Şimşek Büyüsü**
+  boyalı arkaplanla geliyordu — dördü de yeniden çizildi.
+- **Kalp Baltası** lolipop gibi okunuyordu (gümüş ağız eklendi), **Gökkuşağı
+  Çizme** üst üste renkli çubuklardı (çizme silueti oldu), **Takım Asası**
+  tek piksel kalınlığındaydı, **Dondurucu**'nun beyaz kar tanesi açık renkli
+  envanter kutusunda kayboluyordu (buz mavisi oldu).
+- İki ikonda gövdenin dışında kalan yüzen piksel vardı (sağlık iksirinin
+  parlaması, warden yumurtasının beneği) — içeri alındı.
+
+`check_icons()` ikonun boş olmadığını ve kenar piksellerinin saydam olduğunu
+denetliyor (boyalı arkaplan kenarın %100'ünü doldurur; gerçek ikonların en
+yükseği %25).
+
 ## v1.40.0 — Mutant Warden'ın duruşu düzeltildi
 
 Üçüncü taraf modelin özgün bind pozunda iki ön kol gövdenin orta çizgisinde,

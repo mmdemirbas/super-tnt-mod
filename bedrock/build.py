@@ -1471,28 +1471,36 @@ SPAWN_EGG_MASK = {2: (7, 8), 3: (6, 9), 4: (5, 10), 5: (5, 11), 6: (4, 11), 7: (
                   13: (6, 9), 14: (7, 8)}
 
 
+# Ikonu ELLE CIZILEN item'lar. Sira onemsiz; asagidaki symbol_texture bir
+# id icin dal bulamazsa saydam bir kare uretir, o yuzden yeni id eklerken
+# ciziminin de eklendigi RESIM DENETIMIYLE dogrulanir (check_pack: ikonlar).
+SYMBOL_IDS = (
+    "dev_zombi_yumurta", "dev_creeper_yumurta", "mutant_warden_yumurta",
+    "blood_sword", "heart_axe", "dondurucu", "hiz_esyasi", "koku_bombasi",
+    "end_pearl", "nether_pearl", "takim_asasi", "esya_calmaca",
+    "rainbow_boots", "kurus", "iki_yuz_tl", "saglik_iksiri", "can_artirici",
+    "ses_saldirisi", "mega_gubre", "ejderha_nefesi", "isim_degistirici",
+    "blok_kiligi", "donusum_asasi", "tnt_frisbee", "among_us_report",
+    "lightning_spell",
+)
+# ARKAPLANI BOYALI kalan tek iki ikon. Ikisi de bir ISIK/DALGA etkisi cizer:
+# saydam zeminde dalgalar havada asili duruyor gibi duruyordu, koyu zemin
+# onlari bir arada tutuyor. Gerisinde arkaplan YOKTUR — envanterde renkli
+# kareler degil esyanin kendisi gorunur.
+SYMBOL_BG = {
+    "ses_saldirisi": (12, 32, 40),
+    "ejderha_nefesi": (28, 10, 42),
+}
+
+
 def symbol_texture(path, item_id):
-    """Duz-renk kalan item'lar icin anlamli 16x16 sembol cizer (opak RGB).
+    """Item icin anlamli 16x16 sembol cizer (RGBA, arkaplani saydam).
     Cocuklar item'lari ikonundan taniyabilsin diye; her biri ayirt edilebilir.
-    Taninmayan id icin False doner (cagiran duz-renge duser)."""
-    SPECS = {
-        # id -> (arka plan). Cizim asagida id'ye gore.
-        "dev_zombi_yumurta": (45, 80, 40), "dev_creeper_yumurta": (40, 110, 45),
-        "mutant_warden_yumurta": (18, 40, 46), "blood_sword": (70, 14, 18),
-        "heart_axe": (120, 40, 70), "dondurucu": (35, 85, 160),
-        "hiz_esyasi": (55, 165, 210), "koku_bombasi": (95, 120, 45),
-        "end_pearl": (24, 20, 40), "nether_pearl": (48, 14, 14),
-        "takim_asasi": (65, 38, 105), "esya_calmaca": (55, 42, 80),
-        "rainbow_boots": (120, 180, 220), "kurus": (60, 52, 38),
-        "iki_yuz_tl": (65, 120, 85), "saglik_iksiri": (58, 18, 30),
-        "can_artirici": (60, 30, 12), "ses_saldirisi": (12, 32, 40),
-        "mega_gubre": (22, 48, 26), "ejderha_nefesi": (28, 10, 42),
-        "isim_degistirici": (58, 46, 24), "blok_kiligi": (58, 60, 68),
-    }
-    if item_id not in SPECS:
+    Taninmayan id icin False doner (cagiran Java kopyasina / duz renge duser)."""
+    if item_id not in SYMBOL_IDS:
         return False
-    bg = SPECS[item_id]
-    g = [[list(bg) for _ in range(16)] for _ in range(16)]
+    bg = SYMBOL_BG.get(item_id)
+    g = [[list(bg) if bg else None for _ in range(16)] for _ in range(16)]
 
     def rect(x0, y0, x1, y1, c):
         for y in range(max(0, y0), min(16, y1 + 1)):
@@ -1507,6 +1515,15 @@ def symbol_texture(path, item_id):
         for y in range(16):
             for x in range(16):
                 if (x - cx) ** 2 + (y - cy) ** 2 <= r * r:
+                    g[y][x] = list(c)
+
+    def oval(cx, cy, rx, ry, c):
+        """Piksel MERKEZINI (x+0.5) baz alan elips. disc() tam sayi merkezli
+        oldugu icin 16x16'da simetrik olamiyor ve kenari tirtikli cikiyor;
+        16'lik bir ikonda gercek merkez 8.0'dir. rx == ry -> duzgun daire."""
+        for y in range(16):
+            for x in range(16):
+                if ((x + 0.5 - cx) / rx) ** 2 + ((y + 0.5 - cy) / ry) ** 2 <= 1:
                     g[y][x] = list(c)
 
     def px(x, y, c):
@@ -1531,19 +1548,68 @@ def symbol_texture(path, item_id):
         egg((30, 60, 70))
         rect(5, 6, 6, 8, (130, 255, 240)); rect(9, 6, 10, 8, (130, 255, 240))
         disc(8, 11, 2, (40, 150, 140)); rect(7, 11, 8, 11, (255, 95, 95))
-        px(6, 4, (28, 115, 125)); px(10, 13, (28, 115, 125))
+        px(6, 4, (28, 115, 125)); px(9, 13, (28, 115, 125))
     elif iid == "blood_sword":
         rect(7, 2, 8, 10, (205, 210, 220)); vline(7, 2, 10, (235, 240, 250))
         hline(11, 5, 10, (120, 120, 130)); rect(7, 12, 8, 14, (110, 70, 40))
         px(7, 11, (200, 20, 20)); disc(8, 13, 1, (200, 20, 20))
     elif iid == "heart_axe":
-        for (hx, hy) in [(5, 14), (6, 13), (7, 11), (8, 9), (9, 7)]:
-            px(hx, hy, (110, 70, 40))
-        disc(9, 5, 2, (235, 45, 80)); disc(12, 5, 2, (235, 45, 80)); rect(10, 7, 11, 9, (235, 45, 80))
+        # ahsap sap (sol alttan sag uste) + kalp bicimli agiz
+        for (hx, hy) in ((4, 14), (5, 13), (5, 12), (6, 11), (6, 10), (7, 9), (7, 8)):
+            px(hx, hy, (104, 68, 38)); px(hx + 1, hy, (140, 96, 56))
+        for (hy, x0, x1) in ((3, 8, 9), (3, 12, 13), (4, 7, 14), (5, 7, 14),
+                             (6, 7, 14), (7, 8, 13), (8, 9, 12), (9, 10, 11)):
+            hline(hy, x0, x1, (226, 40, 72))
+        # dis kenardaki gumus kesici agiz olmadan siluet "lolipop" gibi
+        # okunuyordu; balta oldugu bundan anlasiliyor.
+        for (hy, xx) in ((4, 14), (5, 14), (6, 14), (7, 13), (8, 12), (9, 11)):
+            px(xx, hy, (228, 230, 238)); px(xx - 1, hy, (174, 178, 190))
+        hline(4, 8, 9, (255, 150, 170))       # agzin parlamasi
     elif iid == "dondurucu":
-        vline(8, 2, 13, (235, 245, 255)); hline(8, 2, 13, (235, 245, 255))
+        # Kar tanesi ARTIK BEYAZ DEGIL: saydam zeminde beyaz, acik renkli
+        # envanter kutusunda kayboluyordu. Buz mavisi + beyaz cekirdek.
+        ICE, LITE = (104, 186, 236), (232, 248, 255)
+        vline(8, 2, 13, ICE); hline(8, 2, 13, ICE)
         for i in range(3, 13):
-            px(i, i, (235, 245, 255)); px(i, 16 - i, (235, 245, 255))
+            px(i, i, ICE); px(i, 16 - i, ICE)
+        disc(8, 8, 1, LITE)
+        for (sx, sy) in ((8, 2), (8, 13), (2, 8), (13, 8)):
+            px(sx, sy, LITE)
+    elif iid == "donusum_asasi":
+        # donusum asasi: ahsap sap + ucunda mor kristal (takim asasindan
+        # ayirt edilsin diye onunki sari yildiz, bu mor kristal)
+        for (wx, wy) in ((3, 14), (4, 13), (5, 12), (6, 11), (7, 10), (8, 9)):
+            px(wx, wy, (92, 62, 40)); px(wx + 1, wy, (128, 90, 58))
+        disc(11, 5, 3, (108, 48, 178)); disc(11, 5, 2, (156, 88, 224))
+        disc(11, 5, 1, (214, 168, 255))
+        for (sx, sy) in ((6, 2), (14, 2), (14, 9), (7, 7)):
+            px(sx, sy, (240, 200, 255))       # pirilti
+    elif iid == "tnt_frisbee":
+        # Java ikonu TNT BLOGUNUN yan yuzuydu — envanterde frizbi degil blok
+        # gorunuyordu. Kirmizi disk + TNT'nin beyaz bandi.
+        # Egik bakis -> ELIPS. Daire cizersek top gibi okunuyor.
+        oval(8, 9.5, 7.6, 4.4, (150, 26, 26))    # disk kenari
+        oval(8, 8.5, 7.6, 4.4, (206, 46, 44))    # ust yuz
+        oval(8, 8.5, 6.0, 3.2, (236, 78, 70))
+        rect(1, 8, 14, 9, (240, 236, 224))       # TNT'nin beyaz bandi
+        hline(8, 5, 10, (70, 58, 52))            # bandin uzerindeki yazi izi
+        oval(8, 8.5, 2.2, 1.2, (206, 46, 44))    # ortadaki kabarti
+        px(5, 6, (255, 152, 146)); px(6, 6, (255, 152, 146))
+    elif iid == "among_us_report":
+        # kirmizi rapor rozeti + beyaz unlem (Java ikonu tum kareyi kaplayan
+        # duz kirmizi bir arkaplandi)
+        oval(8, 8, 7.6, 7.6, (132, 18, 22)); oval(8, 8, 6.4, 6.4, (222, 44, 44))
+        oval(8, 6.5, 4.4, 4.4, (238, 78, 78))
+        rect(7, 3, 8, 9, (255, 255, 255)); rect(7, 11, 8, 12, (255, 255, 255))
+    elif iid == "lightning_spell":
+        BOLT = {2: (9, 11), 3: (8, 10), 4: (7, 10), 5: (6, 9), 6: (5, 11),
+                7: (6, 10), 8: (7, 9), 9: (6, 8), 10: (5, 8), 11: (5, 7),
+                12: (4, 6), 13: (4, 5)}
+        for (yy, (x0, x1)) in BOLT.items():   # once koyu kontur
+            for dy in (-1, 0, 1):
+                rect(x0 - 1, yy + dy, x1 + 1, yy + dy, (138, 90, 12))
+        for (yy, (x0, x1)) in BOLT.items():
+            hline(yy, x0, x1, (252, 216, 64)); px(x0, yy, (255, 246, 158))
     elif iid == "hiz_esyasi":
         for base_x in (3, 7):
             for i in range(5):
@@ -1557,19 +1623,30 @@ def symbol_texture(path, item_id):
     elif iid == "nether_pearl":
         disc(8, 8, 5, (120, 30, 20)); disc(8, 8, 3, (220, 90, 30)); disc(8, 8, 1, (250, 215, 90))
     elif iid == "takim_asasi":
-        for (wx, wy) in [(4, 13), (5, 12), (6, 11), (7, 9), (8, 8), (9, 7), (10, 6), (11, 5)]:
-            px(wx, wy, (110, 80, 50))
-        px(12, 4, (255, 235, 90)); px(12, 2, (255, 235, 90)); px(12, 6, (255, 235, 90)); px(10, 4, (255, 235, 90)); px(14, 4, (255, 235, 90))
+        # sap CIFT piksel: tek sirali hali saydam zeminde neredeyse gorunmuyordu
+        for (wx, wy) in ((3, 14), (4, 13), (5, 12), (6, 11), (7, 10), (8, 9), (9, 8)):
+            px(wx, wy, (104, 76, 46)); px(wx + 1, wy, (146, 110, 68))
+        for (yy, x0, x1) in ((2, 11, 11), (3, 10, 12), (4, 9, 13), (5, 10, 12), (6, 11, 11)):
+            hline(yy, x0, x1, (255, 226, 92))     # sari yildiz
+        px(11, 4, (255, 252, 220))
     elif iid == "esya_calmaca":
         vline(5, 5, 9, (220, 185, 145)); vline(8, 4, 9, (220, 185, 145)); vline(11, 5, 9, (220, 185, 145))
         rect(5, 9, 11, 12, (220, 185, 145)); rect(7, 2, 9, 4, (240, 205, 70))
     elif iid == "rainbow_boots":
-        bands = [(3, 4, (220, 40, 40)), (5, 6, (230, 140, 40)), (7, 8, (235, 215, 60)),
-                 (9, 10, (70, 180, 80)), (11, 12, (60, 110, 210)), (13, 14, (150, 70, 190))]
-        for (y0, y1, c) in bands:
-            for y in range(y0, y1 + 1):
-                x0, x1 = (5, 8) if y <= 10 else (5, 12)
-                rect(x0, y, x1, y, c)
+        # Onceki hali sadece ust uste renkli cubuklardi; saydam zeminde
+        # "cizme" oldugu anlasilmiyordu. Simdi konturlu bir cizme silueti:
+        # dik konc + one uzayan ayak + koyu taban.
+        BOOT = {3: (5, 9), 4: (5, 9), 5: (5, 9), 6: (5, 9), 7: (5, 9),
+                8: (5, 9), 9: (5, 10), 10: (5, 11), 11: (5, 13), 12: (4, 14),
+                13: (4, 14)}
+        BANDS = [(220, 40, 40), (230, 140, 40), (235, 215, 60),
+                 (70, 180, 80), (60, 110, 210), (150, 70, 190)]
+        for (yy, (x0, x1)) in BOOT.items():
+            for dy in (-1, 0, 1):
+                rect(x0 - 1, yy + dy, x1 + 1, yy + dy, (48, 40, 56))
+        for (yy, (x0, x1)) in BOOT.items():
+            hline(yy, x0, x1, BANDS[(yy - 3) // 2 % len(BANDS)])
+        rect(3, 14, 14, 15, (48, 40, 56))     # taban
     elif iid == "kurus":
         disc(8, 8, 6, (200, 150, 40)); disc(8, 8, 5, (230, 190, 70)); vline(8, 5, 11, (120, 85, 20)); px(7, 6, (120, 85, 20))
     elif iid == "saglik_iksiri":
@@ -1581,7 +1658,7 @@ def symbol_texture(path, item_id):
         for (hy, hx0, hx1) in ((8, 6, 7), (9, 5, 11), (10, 6, 10), (11, 7, 9), (12, 8, 8)):
             hline(hy, hx0, hx1, (255, 240, 245))    # ortadaki kalp
         hline(8, 9, 10, (255, 240, 245))            # kalbin ikinci tumsegi
-        vline(3, 9, 11, (250, 250, 255))            # camin sol parlamasi
+        vline(4, 9, 11, (250, 250, 255))            # camin sol parlamasi
     elif iid == "mega_gubre":
         # cuval + tepesinden firlayan yesil filiz -> "gubre" ilk bakista okunur
         vline(8, 0, 4, (60, 150, 55))                 # filizin sapi
@@ -1642,10 +1719,14 @@ def symbol_texture(path, item_id):
             px(x, 5, (90, 160, 110)); px(x, 11, (90, 160, 110))
         vline(2, 5, 11, (90, 160, 110)); vline(13, 5, 11, (90, 160, 110))
         disc(5, 8, 1, (150, 180, 150)); hline(7, 9, 12, (90, 160, 110)); hline(9, 9, 12, (90, 160, 110))
-    for i in range(16):                     # 1px cerceve (tum ikonlarla tutarli)
-        g[0][i] = shade(bg, 0.7); g[15][i] = shade(bg, 0.7)
-        g[i][0] = shade(bg, 0.7); g[i][15] = shade(bg, 0.7)
-    png(path, g)
+    if bg:                                  # yalnizca boyali iki ikonda cerceve
+        for i in range(16):
+            g[0][i] = shade(bg, 0.7); g[15][i] = shade(bg, 0.7)
+            g[i][0] = shade(bg, 0.7); g[i][15] = shade(bg, 0.7)
+    # Cizilmeyen piksel = tam saydam. Bedrock item ikonu RGBA bekler; opak RGB
+    # yazilirsa envanterde esyanin arkasinda renkli bir kare kalir.
+    png_rgba(path, [[tuple(c) + (255,) if c else (0, 0, 0, 0) for c in row]
+                    for row in g], 16, 16)
     return True
 
 
@@ -1974,14 +2055,14 @@ def build():
         key = f"stnt_{it['id']}"
         rel = f"textures/items/{key}"
         dst = os.path.join(RP, rel + ".png")
-        # Java'da gercek (sembollu) ikon varsa onu kullan; yoksa duz-renk uret.
+        # Oncelik: ELLE CIZILEN sembol > Java kopyasi > duz renk.
+        # Sembol once gelir cunku Java'dan gelen bazi ikonlar boyali arkaplanla
+        # geliyordu (among_us_report duz kirmizi kare, tnt_frisbee TNT blogunun
+        # yan yuzu, lightning_spell mor zemin) — bunlarin yerine burada cizilen
+        # saydam sembol kullanilir. SYMBOL_IDS disindaki item'lar etkilenmez.
         jtex = ITEM_TEX_MAP.get(it['id'], it['id'])
         src = os.path.join(JAVA_ITEM_TEX, f"{jtex}.png")
-        if os.path.exists(src):
-            os.makedirs(os.path.dirname(dst), exist_ok=True)
-            shutil.copy(src, dst)
-            item_copied += 1
-        elif symbol_texture(dst, it['id']):     # anlamli sembol (spawn egg, silah, vb.)
+        if symbol_texture(dst, it['id']):       # anlamli sembol (spawn egg, silah, vb.)
             item_gen += 1
         elif os.path.exists(src):
             os.makedirs(os.path.dirname(dst), exist_ok=True)
