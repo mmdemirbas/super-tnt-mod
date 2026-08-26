@@ -209,6 +209,12 @@ def check_morphs(js):
                 check(bid in BLOCKS or bid in OWN_BLOCKS,
                       f"morph {k}: '{bid}' diye bir blok yok")
             check(m["cat"] == "Bloklar", f"morph {k}: blok kiligi 'Bloklar' kategorisinde olmali")
+            # Bir kup TEK doku ornekler; ust ve alt yuz ayri gecis ister.
+            # Yoksa cim blogunun ustu yan dokusuyla cizilir (v1.40.0 hatasi).
+            check([lay.get("geo") for lay in m.get("layers", [])]
+                  == [build.BLOCK_GEO_TOP, build.BLOCK_GEO_BOTTOM],
+                  f"morph {k}: blok kiliginin ust/alt yuz gecisi yok "
+                  "— ustu yan dokusuyla cizilir")
         else:
             tid = f"{m.get('ns', 'minecraft')}:{k}"
             check(tid in ENTITIES or tid in OWN_ENTITIES, f"morph {k}: '{tid}' diye bir varlik yok")
@@ -219,14 +225,19 @@ def check_morphs(js):
         # Ikisi de degilse model/doku sessizce gorunmez olur.
         check(m["geo"] in GEOS or m["geo"] in OWN_GEOS,
               f"morph {k}: geometry '{m['geo']}' ne vanilla'da var ne RP'de ship ediliyor")
-        ok_tex = m["tex"] in TEXS or m["tex"] in OWN_TEXS or \
-                 (block_morph and (m["tex"] in BLOCK_TEXS or
-                                   os.path.exists(os.path.join(RP, m["tex"] + ".png"))))
-        check(ok_tex, f"morph {k}: doku '{m['tex']}' ne vanilla'da var ne RP'de ship ediliyor")
+        def tex_var(t):
+            """Doku ya vanilla'da olmali ya pakette ship edilmeli. Blok kiliginda
+            aranan liste FARKLIDIR: mob dokulari entity_textures'ta, blok
+            dokulari block_textures'ta durur."""
+            return (t in TEXS or t in OWN_TEXS
+                    or (block_morph and (t in BLOCK_TEXS
+                                         or os.path.exists(os.path.join(RP, t + ".png")))))
+        check(tex_var(m["tex"]),
+              f"morph {k}: doku '{m['tex']}' ne vanilla'da var ne RP'de ship ediliyor")
         check(m["mat"] in MATS or m["mat"] in EXTRA_MATS, f"morph {k}: materyal '{m['mat']}' yok")
         for i, lay in enumerate(m.get("layers", [])):
             for t in lay["tex"]:
-                check(t in TEXS or t in OWN_TEXS,
+                check(tex_var(t),
                       f"morph {k} katman {i}: doku '{t}' ne vanilla'da var ne RP'de ship ediliyor")
             check(lay["mat"] in MATS or lay["mat"] in EXTRA_MATS,
                   f"morph {k} katman {i}: materyal '{lay['mat']}' yok")

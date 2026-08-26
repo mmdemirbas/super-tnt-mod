@@ -1,5 +1,15 @@
 {
   "format_version": "1.12.0",
+  "_not": "Blok kiligi modeli. UC geometri: govde kupu + UST kapak + ALT kapak.",
+  "_neden": [
+    "Bir kup TEK doku ornekler; oysa cim blogunun ustu yandan farklidir.",
+    "Bedrock'ta bir cizim gecisi tek doku kullanir, o yuzden ust ve alt yuz",
+    "AYRI gecislerde, ayri duz levha olarak cizilir (morph_passes -> layers).",
+    "Levhalar kupun 0.1 birim disina konur: tam ustune konsa iki yuzey ayni",
+    "derinlikte olur ve z-fighting (titreme) yapar. 0.1 birim = blogun",
+    "1/160'i, gozle gorunmez; ayni numara mutant_warden'in kaburgalarinda da",
+    "kullaniliyor."
+  ],
   "minecraft:geometry": [
     {
       "description": {
@@ -23,6 +33,58 @@
                 "south": { "uv": [0, 0], "uv_size": [16, 16] },
                 "east": { "uv": [0, 0], "uv_size": [16, 16] },
                 "west": { "uv": [0, 0], "uv_size": [16, 16] },
+                "up": { "uv": [0, 0], "uv_size": [16, 16] },
+                "down": { "uv": [0, 0], "uv_size": [16, 16] }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "description": {
+        "identifier": "geometry.stnt_block_morph_top",
+        "texture_width": 16,
+        "texture_height": 16,
+        "visible_bounds_width": 2,
+        "visible_bounds_height": 2,
+        "visible_bounds_offset": [0, 0.5, 0]
+      },
+      "bones": [
+        {
+          "name": "root",
+          "pivot": [0, 0, 0],
+          "cubes": [
+            {
+              "origin": [-8, 16.1, -8],
+              "size": [16, 0, 16],
+              "uv": {
+                "up": { "uv": [0, 0], "uv_size": [16, 16] },
+                "down": { "uv": [0, 0], "uv_size": [16, 16] }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "description": {
+        "identifier": "geometry.stnt_block_morph_bottom",
+        "texture_width": 16,
+        "texture_height": 16,
+        "visible_bounds_width": 2,
+        "visible_bounds_height": 2,
+        "visible_bounds_offset": [0, 0.5, 0]
+      },
+      "bones": [
+        {
+          "name": "root",
+          "pivot": [0, 0, 0],
+          "cubes": [
+            {
+              "origin": [-8, -0.1, -8],
+              "size": [16, 0, 16],
+              "uv": {
                 "up": { "uv": [0, 0], "uv_size": [16, 16] },
                 "down": { "uv": [0, 0], "uv_size": [16, 16] }
               }

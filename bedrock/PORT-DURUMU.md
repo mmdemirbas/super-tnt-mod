@@ -29,6 +29,16 @@ Aynı aileden iki hata daha bulundu ve düzeltildi:
 `check_pack.py` → `check_player_control()` bunları kilitliyor: `setCamera`
 yasak, slowness amp ≥ 6 en fazla iki yerde, Buz TNT'nin yarıçapı zorunlu.
 
+### 2. Blok kılığının üst yüzü yan yüzün aynısıydı
+
+Kılık tek bir 16×16×16 küptü ve bir çizim geçişi **tek** doku örnekler; o
+yüzden çim bloğunun üstü de yandan görünüşüyle çiziliyordu. Üst ve alt yüz
+artık ayrı geçişte, kübün 0,1 birim dışına konan düz levha olarak çiziliyor
+(z-fighting olmasın diye). Ayrı dokusu olan 16 blok `BLOCK_FACES` tablosunda:
+çim üstü `grass_carried`, altı `dirt`; kütük `log_oak_top`; TNT `tnt_top` /
+`tnt_bottom`; tezgâh `crafting_table_top` / `planks_oak` … Bal bloğunun yan
+dokusu da yanlıştı (`honey_top` yazıyordu), `honey_side` oldu.
+
 ## v1.40.0 — Mutant Warden'ın duruşu düzeltildi
 
 Üçüncü taraf modelin özgün bind pozunda iki ön kol gövdenin orta çizgisinde,

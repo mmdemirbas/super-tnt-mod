@@ -420,7 +420,33 @@ MORPHS_OWN = [
 # cocuk cimeni de kirsa toprak blogunu da kirsa dogru seye donussun diye
 # takma adlar aynı girdiye baglanir.
 BLOCK_GEO = "geometry.stnt_block_morph"
+BLOCK_GEO_TOP = "geometry.stnt_block_morph_top"
+BLOCK_GEO_BOTTOM = "geometry.stnt_block_morph_bottom"
 BLOCK_MAT = "entity_alphatest"
+# UST ve ALT yuzun dokusu. Cogu blokta uc yuz de aynidir; farkli olanlar
+# burada yazili: key -> (ust, alt). Bir cizim gecisi TEK doku kullanabildigi
+# icin ust ve alt ayri gecislerde (layers) ayri levha olarak cizilir.
+# Ad UYDURULMAZ: check_pack her dokuyu vanilla block_textures listesinde ya da
+# pakette ship edilmis olarak bulmak zorunda, yoksa yuz gorunmez olur.
+BLOCK_FACES = {
+    "cim": ("grass_carried", "dirt"),            # cimin ustu yesil, alti toprak
+    "kutuk": ("log_oak_top", "log_oak_top"),     # kutugun ustu yillik halkalari
+    "balkabagi": ("pumpkin_top", "pumpkin_top"),
+    "fener": ("pumpkin_top", "pumpkin_top"),
+    "karpuz": ("melon_top", "melon_top"),
+    "kitaplik": ("planks_oak", "planks_oak"),
+    "tezgah": ("crafting_table_top", "planks_oak"),
+    "firin": ("furnace_top", "furnace_top"),
+    "vanilla_tnt": ("tnt_top", "tnt_bottom"),
+    "saman": ("hay_block_top", "hay_block_top"),
+    "kuvars": ("quartz_block_top", "quartz_block_bottom"),
+    "bal": ("honey_top", "honey_bottom"),
+    # paketin kendi TNT'leri: ust/alt dokularini zaten kendisi uretiyor
+    "zeynep_tnt_blok": ("stnt_zeynep_tnt_top", "stnt_zeynep_tnt_bottom"),
+    "elmas_tnt_blok": ("stnt_diamond_tnt_top", "stnt_diamond_tnt_bottom"),
+    "kalp_tnt_blok": ("stnt_kalp_tnt_top", "stnt_kalp_tnt_bottom"),
+    "nuclear_tnt_blok": ("stnt_nuclear_tnt_top", "stnt_nuclear_tnt_bottom"),
+}
 BLOCK_MORPHS_RAW = [
     ("tas", "Taş", "stone", ["minecraft:stone", "minecraft:stone_bricks", "minecraft:andesite"]),
     ("kaldirim", "Kaldırım Taşı", "cobblestone", ["minecraft:cobblestone", "minecraft:mossy_cobblestone"]),
@@ -457,7 +483,7 @@ BLOCK_MORPHS_RAW = [
     ("kil", "Kil", "clay", ["minecraft:clay"]),
     ("kuvars", "Kuvars Bloku", "quartz_block_side", ["minecraft:quartz_block"]),
     ("sakiz", "Sakız Bloku", "slime", ["minecraft:slime"]),
-    ("bal", "Bal Bloku", "honey_top", ["minecraft:honey_block"]),
+    ("bal", "Bal Bloku", "honey_side", ["minecraft:honey_block"]),
     ("mercan", "Mercan", "coral_blue", ["minecraft:tube_coral_block", "minecraft:brain_coral_block", "minecraft:bubble_coral_block"]),
     ("sculk", "Sculk", "sculk", ["minecraft:sculk"]),
     ("kayakat", "Kaya Katmanı", "bedrock", ["minecraft:bedrock"]),
@@ -474,11 +500,17 @@ BLOCK_MORPHS_OWN = [
     ("kalp_tnt_blok", "Kalp TNT", "stnt_kalp_tnt_side", ["stnt:kalp_tnt"]),
     ("nuclear_tnt_blok", "Nükleer TNT", "stnt_nuclear_tnt_side", ["stnt:nuclear_tnt"]),
 ]
-BLOCK_MORPHS = [
-    dict(key=f"blok_{k}", tr=tr, cat="Bloklar", geo=BLOCK_GEO,
-         tex=f"textures/blocks/{tex}", mat=BLOCK_MAT, scale=1.0, blocks=blocks)
-    for k, tr, tex, blocks in BLOCK_MORPHS_RAW + BLOCK_MORPHS_OWN
-]
+def _block_morph(k, tr, tex, blocks):
+    top, bot = BLOCK_FACES.get(k, (tex, tex))
+    return dict(
+        key=f"blok_{k}", tr=tr, cat="Bloklar", geo=BLOCK_GEO,
+        tex=f"textures/blocks/{tex}", mat=BLOCK_MAT, scale=1.0, blocks=blocks,
+        layers=[dict(geo=BLOCK_GEO_TOP, tex=[f"textures/blocks/{top}"], mat=BLOCK_MAT),
+                dict(geo=BLOCK_GEO_BOTTOM, tex=[f"textures/blocks/{bot}"], mat=BLOCK_MAT)])
+
+
+BLOCK_MORPHS = [_block_morph(k, tr, tex, blocks)
+                for k, tr, tex, blocks in BLOCK_MORPHS_RAW + BLOCK_MORPHS_OWN]
 for _i, _m in enumerate(BLOCK_MORPHS):
     _m["n"] = len(MORPHS_VANILLA) + len(MORPHS_OWN) + 1 + _i
 

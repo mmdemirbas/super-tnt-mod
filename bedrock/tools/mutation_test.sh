@@ -230,6 +230,22 @@ PYX
 run "Buz TNT butun dunyayi donduruyor" "yaricapla sinirli degil"
 cp "$BAK/main.bak" "$BP/scripts/main.js"
 
+# 27) Blok kiliginin ust/alt yuz gecisi kaldirilsin -> cim blogunun ustu de
+#     yan dokusuyla cizilir (kutu her yuzde ayni dokuyu ornekler)
+python3 - <<'PYX'
+import io
+p = "bedrock/build.py"
+s = io.open(p, encoding="utf-8").read()
+old = "        layers=[dict(geo=BLOCK_GEO_TOP"
+i = s.index(old)
+j = s.index("\n", s.index("mat=BLOCK_MAT)])", i))
+io.open(p, "w", encoding="utf-8").write(s[:i] + "        )" + s[j:])
+PYX
+python3 bedrock/build.py > /dev/null 2>&1
+run "blok kiliginin ustu yan dokusu" "ust/alt yuz gecisi yok"
+cp "$BAK/build.bak" bedrock/build.py
+python3 bedrock/build.py > /dev/null 2>&1
+
 echo
 python3 bedrock/build.py > /dev/null && echo "paket yeniden uretildi"
 echo "yakalanan $pass / kacirilan $fail"
