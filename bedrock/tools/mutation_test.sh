@@ -197,6 +197,39 @@ run "Kalp Baltasi yine kiriliyor" "dayaniklilik bileseni duruyor"
 cp "$BAK/build.bak" bedrock/build.py
 python3 bedrock/build.py > /dev/null 2>&1
 
+# 23) POV kamerasi geri gelsin -> oyuncu kuculunce yerinden kimildayamaz.
+#     Gercekten yasanmis hata: v1.40.0'da cocuk boyut degistirince ilerleyemiyor,
+#     geri gidemiyor, egilemiyordu.
+cp "$BP/scripts/main.js" "$BAK/main.bak"
+python3 - <<'PYX'
+import io
+p = "bedrock/super_tnt_BP/scripts/main.js"
+s = io.open(p, encoding="utf-8").read()
+s = s.replace('function releaseCamera(p) {',
+              'function povCam(p) { p.camera.setCamera("minecraft:free", {}); }\n'
+              'function releaseCamera(p) {', 1)
+io.open(p, "w", encoding="utf-8").write(s)
+PYX
+run "scripted kamera geri geldi" "setCamera cagiriyor"
+cp "$BAK/main.bak" "$BP/scripts/main.js"
+
+# 24) Buz TNT'nin yaricapi kaldirilsin -> dunyanin obur ucundaki kardes de
+#     30 saniye yerinden kimildayamaz (slowness amp 6 = tam felc).
+python3 - <<'PYX'
+import io
+# Ayni cagri metni dosyada bes yerde geciyor; korlemesine ilk esleseni
+# degistirmek baska bir TNT'yi bozar ve mutasyon hedefini isabet ETTIRMEZ.
+# Bu yuzden once "case \"freeze\"" bulunur, sonra ONDAN SONRAKI cagri.
+p = "bedrock/super_tnt_BP/scripts/main.js"
+s = io.open(p, encoding="utf-8").read()
+i = s.index('case "freeze": {')
+j = s.index("dim.getPlayers(", i)
+k = s.index(")", j) + 1
+io.open(p, "w", encoding="utf-8").write(s[:j] + "dim.getPlayers()" + s[k:])
+PYX
+run "Buz TNT butun dunyayi donduruyor" "yaricapla sinirli degil"
+cp "$BAK/main.bak" "$BP/scripts/main.js"
+
 echo
 python3 bedrock/build.py > /dev/null && echo "paket yeniden uretildi"
 echo "yakalanan $pass / kacirilan $fail"

@@ -78,7 +78,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 40, 0]
+VERSION = [1, 41, 0]
 MIN_ENGINE = [1, 21, 0]
 # Surum etiketi paket ADINA yazilir. UUID + klasor adlari sabit oldugu icin
 # Minecraft ayni UUID'li paketi yerinde GUNCELLER; ama cihazda eski surum
@@ -104,20 +104,20 @@ VER_STR = ".".join(str(n) for n in VERSION)
 # oranina hizalandi ki model hitbox'in disina tasmasin (denetimde bulunan
 # kozmetik uyumsuzluk). MorphX dev boyutu 3.6y kullaniyor; ustunu asmadik.
 #
-# ILK SAHIS KAMERASI: render-scale ve collision_box goz yuksekligini
-# DEGISTIRMEZ (Java'nin aksine Bedrock'ta goz ~1.62 blokta sabit). minecraft:
-# scale oyuncuya UYGULANABILIR (MorphX kaniti: component_group+event ile) ama
-# o da model+hitbox'i olcekler, goz yuksekligini DEGIL. POV'u gercekten
-# oynatmanin TEK yolu deneysel Script Kamera sistemi: player.camera.setCamera
-# ("minecraft:free" / attachToEntity) her tick surulur. Bunu yapan calisan
-# ornek: Coco & Vici "True POV Size Changer". BEDELI: dunyada "Beta APIs" +
-# "Experimental Creator Cameras" acik olmali, ve donusum boyunca oyuncu
-# scripted ucuncu-sahis/orbit kameraya KILITLENIR (gercek ilk-sahise gecince
-# yukseklik sifirlanir). POV EKLENDI: script'te camState runInterval'i boyut
-# normalden farkliysa p.camera.setCamera("minecraft:free")'i olcekli goz
-# yuksekligine surer; bayraklar kapaliysa try ile yutulur (mod bozulmaz).
-# Kaynak: learn.microsoft.com Camera Script API; curseforge Coco & Vici
-# True POV Size Changer.
+# ILK SAHIS KAMERASI YOK — ve BIR DAHA EKLENMEYECEK.
+# Bedrock'ta goz yuksekligi ~1.62 blokta sabittir; render-scale de,
+# collision_box da, minecraft:scale de onu degistirmez. POV'u gercekten
+# oynatmanin tek yolu Script Kamera'ydi: her tick p.camera.setCamera(
+# "minecraft:free", ...). v1.40.0'a kadar bu vardi ve OYUNU BOZUYORDU:
+# kucultme/buyutme kullanan oyuncu ilerleyemiyor, geri gidemiyor, eğilemiyordu.
+# "minecraft:free" oyuncudan KOPUK bir kameradir; etkinken oyuncunun hareket
+# girdisi islenmez. Ustelik kamera her tick oyuncunun kendi konumuna
+# surulduugu icin oyuncu yerinden kimildasa bile ekran ayni kalirdi.
+# Boyut degisiminin GORSEL olcegi (render-scale) ve CARPISMA kutusu bundan
+# bagimsiz calisir; ikisi de duruyor. Kaybedilen tek sey goz yuksekliginin
+# boyutla degismesi — bu, oyuncunun yurumesinin yaninda onemsiz.
+# Bu yuzden paket artik hicbir deneysel bayrak (Beta APIs / Creator Cameras)
+# istemez.
 SIZE_TABLE = {
     0: (0.33, 0.35, 0.60),   # minik   (0.6/1.8)
     1: (0.55, 0.50, 1.00),   # kucuk   (1.0/1.8)
@@ -622,8 +622,8 @@ TNTS = [
          color=((140, 40, 46), (196, 48, 54), (92, 48, 52)), mat="minecraft:gold_ingot",
          effect=dict(kind="heal", radius=20)),
     dict(id="buz_tnt", tr="Buz TNT", en="Ice TNT",
-         trtip="14 blok yarıçapı buzla kaplar. Patlatan hariç herkesi 30 sn dondurur. 30 sn kar yağar.",
-         entip="Covers a 14 block radius with ice. Freezes everyone except the igniter for 30s. Snows for 30s.",
+         trtip="14 blok yarıçapı buzla kaplar. O alandaki herkesi (patlatan hariç) 30 sn dondurur. 30 sn kar yağar.",
+         entip="Covers a 14 block radius with ice. Freezes everyone in that area (except the igniter) for 30s. Snows for 30s.",
          color=((150, 200, 232), (176, 216, 240), (150, 200, 232)), mat="minecraft:packed_ice",
          effect=dict(kind="freeze", radius=14, freeze_seconds=30)),
     dict(id="kucultme_tnt", tr="Küçültme TNT", en="Shrink TNT",
@@ -1860,13 +1860,10 @@ def build():
     w(os.path.join(BP, "manifest.json"), {
         "format_version": 2,
         "header": {"name": f"Super TNT Mod v{VER_STR} [BP]",
-                   # Aciklama = "surum notu": Kucultme/Buyutme kamerasi icin
-                   # gereken deneysel ayarlar burada da yazili (paket listesinde
-                   # gorunur), boylece hangi bayragin acilacagi unutulmaz.
+                   # Hicbir deneysel bayrak GEREKMEZ: v1.41.0'da oyuncuyu
+                   # kilitleyen Script Kamera kaldirildi (bkz. SIZE_TABLE ustu).
                    "description": (f"Super TNT Mod v{VER_STR}. "
-                                   "Kucultme/Buyutme KAMERASI icin dunya ayarlarinda "
-                                   "Deneyler > 'Beta APIs' + 'Creator Cameras' acin "
-                                   "(kapaliyken gerisi normal calisir)."),
+                                   "Deneysel ayar gerekmez, oldugu gibi calisir."),
                    "uuid": BP_UUID, "version": VERSION,
                    "min_engine_version": MIN_ENGINE},
         # script modulunde "language": "javascript" ZORUNLU. Onsuz Minecraft
@@ -1954,6 +1951,10 @@ def build():
             item_copied += 1
         elif symbol_texture(dst, it['id']):     # anlamli sembol (spawn egg, silah, vb.)
             item_gen += 1
+        elif os.path.exists(src):
+            os.makedirs(os.path.dirname(dst), exist_ok=True)
+            shutil.copy(src, dst)
+            item_copied += 1
         else:
             decor_texture(dst, it['color'], "plain")
             item_gen += 1
@@ -2464,7 +2465,6 @@ def build():
                             .replace("__FUSE__", str(FUSE_TICKS)) \
                             .replace("__PORTAL_N__", str(len(PORTAL_COLORS))) \
                             .replace("__PORTAL_NAMES__", json.dumps([n for n, _ in PORTAL_COLORS], ensure_ascii=False)) \
-                            .replace("__SIZE_SCALES__", json.dumps({i: SIZE_TABLE[i][0] for i in SIZE_TABLE})) \
                             .replace("__MORPH_MAP__", json.dumps(MORPH_MAP, ensure_ascii=False))
     os.makedirs(os.path.join(BP, "scripts"), exist_ok=True)
     open(os.path.join(BP, "scripts/main.js"), 'w', encoding='utf-8').write(script)
@@ -2518,10 +2518,25 @@ const MORPH_HINT = __MORPH_HINT__;     // st:morph_<mob> olayi -> eylem cubugu m
 const BLOCK_MORPH_MAP = __BLOCK_MORPH_MAP__;   // kirilan blok -> blok kiligi olayi
 const BLOCK_MORPH_EVENTS = new Set(Object.values(BLOCK_MORPH_MAP));
 const MORPH_MAP = __MORPH_MAP__;   // mob typeId -> st:morph_<key> olayi
-const SIZE_SCALES = __SIZE_SCALES__;   // st:size kademe -> gorsel olcek
 const FUSE = __FUSE__;
 
 // ---------------------------------------------------------------- item'lar
+// Elde tutulan esyadan BIR tane eksiltir (yoksa hicbir sey yapmaz).
+// "Tek kullanimlik" diyen bir ipucu varsa esya gercekten harcanmalidir; aksi
+// halde ipucu yalan soyler ve esya sinirsiz kullanilir. Bedrock'ta ItemStack
+// bir KOPYADIR: amount'u degistirip container'a GERI YAZMAK gerekir.
+function consumeHeld(pl, typeId) {
+  try {
+    const inv = pl.getComponent("minecraft:inventory");
+    const con = inv && inv.container;
+    if (!con) return;
+    const slot = pl.selectedSlotIndex;
+    const it = con.getItem(slot);
+    if (!it || it.typeId !== typeId) return;
+    if (it.amount > 1) { it.amount -= 1; con.setItem(slot, it); }
+    else con.setItem(slot, undefined);
+  } catch (e) {}
+}
 // Yiyip-icilen esyalar sag tikta DEGIL, animasyon bitince etki etmeli; yoksa
 // cocuk tiklayip birakiyor ve esya harcanmadan efekt aliyor.
 const CONSUMED = { eat: 1, heal_boost: 1 };
@@ -3022,7 +3037,10 @@ function itemAction(player, a) {
         break;
       }
       case "kill_target": {
-        // "tek kullanim" hissi + kardes spam'ini onlemek icin 3 sn bekleme.
+        // Ipucu "Tek kullanimlik" diyor; o yuzden esya GERCEKTEN harcanir.
+        // Onceden yalnizca 3 sn bekleme vardi -> ayni rapor sonsuza kadar
+        // kullanilabiliyordu ve bir cocuk kardesini 3 saniyede bir olduruyordu.
+        // Bekleme suresi de duruyor (cift tiklamayi yutar).
         const now = wclock();           // dinamik ozellige yazilir -> kalici saat
         const cd = player.getDynamicProperty("stnt:au_cd") || 0;
         if (now < cd) { try { player.onScreenDisplay.setActionBar("§7Rapor hazırlanıyor... birazdan"); } catch (e) {} break; }
@@ -3030,6 +3048,7 @@ function itemAction(player, a) {
         if (hs.length) {
           try { hs[0].entity.applyDamage(1000); } catch (e) {}
           try { player.setDynamicProperty("stnt:au_cd", now + 60); } catch (e) {}
+          consumeHeld(player, "stnt:among_us_report");
         } else { try { player.onScreenDisplay.setActionBar("§7Bir canlıya bak — Among Us raporu onu yener"); } catch (e) {} }
         break;
       }
@@ -3895,12 +3914,17 @@ function detonate(dim, c, short, igniterId) {
         //  - setWeather(0, WEATHER_TICKS, true, false) -> YAGMUR (thunder yok).
         //    Bedrock'ta "Snow" diye bir hava tipi YOK; kar, soguk biyomda
         //    yagmurun gorunumudur. "Snow" gecmek sessizce basarisiz oluyordu.
-        //  - Tum OYUNCULAR (yaricap sinirli degil), patlatan haric
         //  - SLOWNESS amp 6 + MINING_FATIGUE amp 4, 600 tick
         //  - Gorsel patlama: guc 1.0, blok hasari yok
         // Bedrock'ta setFrozenTicks karsiligi yok - gercek donma gorseli eksik.
+        // JAVA'DAN AYRILAN TEK YER — YARICAP. Java surumu dunyadaki BUTUN
+        // oyunculari donduruyor. Slowness amp 6 hareket hizini sifirlar: cocuk
+        // 30 saniye boyunca hic yuruyemez. Iki kardes ayni dunyadayken biri
+        // evde TNT patlatinca digeri 300 blok oteki madende sebepsiz yere
+        // kilitleniyordu — "oyun bozuldu" diye bildirilen sey tam olarak bu.
+        // Artik buzun kapladigi yaricapla ayni: donan, olayi GOREN oyuncudur.
         const ticks = (s.freeze_seconds ?? 30) * 20;
-        for (const p of dim.getPlayers()) {
+        for (const p of dim.getPlayers({ location: c, maxDistance: s.radius })) {
           try {
             if (igniterId && p.id === igniterId) continue;   // patlatan haric
             p.addEffect("slowness", ticks, { amplifier: 6, showParticles: true });
@@ -4323,15 +4347,6 @@ try {
         `\u00A7a[Super TNT] Yuklendi! ${Object.keys(SPEC).length} TNT hazir. ` +
         `\u00A7fYaratici envanterde ara ya da: \u00A7e/give @s stnt:zeynep_tnt`);
     } catch (e) {}
-    // Girises hatirlatmasi: Kucultme/Buyutme KAMERASI icin deneysel ayarlar.
-    // Bu bilgi ucuncu kez burada gorunur (paket aciklamasi + kucululunce anlik
-    // uyari da var) \u2014 kimse hangi bayragi acacagini unutmasin.
-    try {
-      ev.player.sendMessage(
-        "\u00A77Not: \u00A7fKucultme/Buyutme kamerasi icin dunya ayarlarinda " +
-        "\u00A7aBeta APIs\u00A7f + \u00A7aCreator Cameras\u00A7f (Deneyler) acik olmali. " +
-        "\u00A77Kapaliyken gerisi normal calisir.");
-    } catch (e) {}
   });
 } catch (e) {}
 
@@ -4433,69 +4448,35 @@ function promptPassword(player, k, rec, isOwner) {
   } catch (e) {}
 }
 
-// ---- Kucultme/Buyutme POV kamerasi (DENEYSEL — dunyada "Beta APIs" +
-// "Experimental Creator Cameras" acik olmalidir). Boyut normalden (2) farkliysa
-// kamerayi OLCEKLI goz yuksekligine surer: kucukken goz yere yakin -> dunya DEV
-// gorunur; buyukken goz yukarida -> dunya kucuk gorunur. Her tick oyuncunun
-// konumu + bakis acisiyla guncellenir (minecraft:free serbest kamera).
-// GRACEFUL DEGRADATION: bayraklar KAPALIYSA/Kamera API yoksa setCamera hata
-// atar -> try ile YUTULUR; kamera oldugu gibi kalir, mod'un geri kalani ve
-// gorsel olcek (render-scale) calismaya DEVAM eder. Normale (2) donunce kamera
-// bir kez temizlenir -> normal ilk-sahis geri gelir.
-const camState = new Map();   // playerId -> kamera surulen son size (yoksa hic surmedik)
-const camWarned = new Set();  // bayrak uyarisi oyuncu basina bir kez
-// Kucultme/Buyutme kamerasi calismasi icin GEREKEN deneysel ayarlar. Bunu 3
-// yerde hatirlatiriz (bkz. giris mesaji + paket aciklamasi): en onemlisi
-// asagida — oyuncu KUCULUP kamera calismayinca tam o an gosterilir (en isabetli).
-const CAM_FLAGS_HINT =
-  "§e§l[Süper TNT] Küçülme/Büyüme kamerası kapalı!§r\n" +
-  "§fAçmak için: §bDünyayı Düzenle → Ayarlar → Deneyler (Experiments)§f bölümünde\n" +
-  "§a‘Beta APIs’§f ve §a‘Creator Cameras / Yaratıcı Kameralar’§f seçeneklerini aç,\n" +
-  "§7sonra dünyayı yeniden yükle. (Kapalıyken oyunun geri kalanı normal çalışır.)";
-function warnCamFlags(p) {
-  if (camWarned.has(p.id)) return;                   // spam yok — oyuncu basina bir kez
-  camWarned.add(p.id);
-  try { p.sendMessage(CAM_FLAGS_HINT); } catch (e) {}
-}
-function clearCam(p) {         // kamerayi guvenle birak (normal ilk-sahis geri gelir)
-  try { p.camera.clear(); } catch (e) {}
-  camState.set(p.id, 2);
-}
-system.runInterval(() => {
-  for (const p of world.getPlayers()) {
-    let sz;
-    try { sz = p.getProperty("st:size"); } catch (e) { continue; }  // ozellik yoksa dokunma
-    if (typeof sz !== "number") sz = 2;
-    const prev = camState.get(p.id);
-    if (sz === 2) {                                 // normal boyut
-      // SADECE daha once kamera surdukse temizle -> hic kuculmemis oyuncunun
-      // varsayilan kamerasina asla dokunma (gereksiz clear/titreme olmaz).
-      if (prev !== undefined && prev !== 2) clearCam(p);
-      continue;
-    }
-    // Boyut normalden farkli -> kamerayi surmeye CALIS.
-    // (1) Kamera API'si hic yoksa (Beta APIs kapali) -> ROTASYONA gerek yok,
-    //     hemen hatirlat ve gec. Boylece "oyuncu kuculdu ama kamera degismedi"
-    //     durumu her zaman aciklanir.
-    if (!p.camera || typeof p.camera.setCamera !== "function") { warnCamFlags(p); continue; }
-    const scale = SIZE_SCALES[sz] || SIZE_SCALES[String(sz)] || 1;
-    if (typeof scale !== "number" || scale <= 0) continue;
-    const loc = p.location;
-    let rot;
-    try { rot = p.getRotation(); } catch (e) { rot = null; }
-    if (!loc || !rot || typeof rot.x !== "number" || typeof rot.y !== "number") continue;  // gecici
+// ---- Kamerayi SERBEST BIRAK (v1.40.0 kalintisi temizligi).
+// v1.40.0'a kadar kucultme/buyutme her tick "minecraft:free" scripted kamera
+// suruyordu. O kamera oyuncudan kopuktur: etkinken oyuncu ilerleyemiyor, geri
+// gidemiyor, egilemiyordu — yani boyut degistiren cocuk oyunda kilitli kaliyordu.
+// Kamera tamamen kaldirildi (bkz. build.py SIZE_TABLE ustundeki not).
+// Eski surumle oynanmis bir dunyada kamera hala oyuncunun uzerinde kalmis
+// olabilir; burada bir kez birakilir ki guncelleyen cocuk kilitli kalmasin.
+// setCamera artik HICBIR yerde cagrilmaz.
+function releaseCamera(p) { try { p.camera.clear(); } catch (e) {} }
+try { for (const p of world.getPlayers()) releaseCamera(p); } catch (e) {}
+try {
+  world.afterEvents.playerSpawn.subscribe((ev) => {
+    releaseCamera(ev.player);
+    // OLUNCE NORMALE DON. st:size ve st:morph oyuncunun uzerinde KALICIDIR:
+    // minicik ya da blok kilikli olen bir cocuk ayni halde uyaniyordu ve geri
+    // donmenin yolunu (Kalp TNT / Donusum Asasi) her zaman bulamiyor. Olum
+    // artik garantili cikis yolu — potion efektlerinin olumde silinmesiyle
+    // ayni beklenti. initialSpawn = dunyaya ILK giris; orada dokunmayiz,
+    // yoksa dunya her acilista kilik bozulur.
+    if (ev.initialSpawn) return;
+    const p = ev.player;
     try {
-      p.camera.setCamera("minecraft:free", {
-        location: { x: loc.x, y: loc.y + 1.62 * scale, z: loc.z },  // goz ~1.62 blok
-        rotation: { x: rot.x, y: rot.y },
-      });
-      camState.set(p.id, sz);
-    } catch (e) {
-      // (2) API var ama deneysel "Creator Cameras" kapali -> setCamera hata verir
-      warnCamFlags(p);
-    }
-  }
-}, 1);
+      if (p.getProperty("st:size") !== __SIZE_DEFAULT__) p.triggerEvent("st:size___SIZE_DEFAULT__");
+    } catch (e) {}
+    try {
+      if (p.getProperty("st:morph") !== 0) morphTo(p, "st:morph_human", "İnsana geri döndün");
+    } catch (e) {}
+  });
+} catch (e) {}
 
 // ---- Portal: AYNI RENK iki blok birbirine isinlar. Kayit global bir dunya
 // ozelliginde (herkes icin gecerli); portal blogu KONUNCA eklenir, KIRILINCA

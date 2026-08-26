@@ -549,6 +549,86 @@ function detonateTnt(short, p, at) {
   ok(after < 40, "asili kalan is yok", `${after} is`);
 }
 
+// ------------------- 17. Kucultme/Buyutme oyuncunun kontrolunu ELINDEN ALMIYOR
+// v1.40.0'da boyut normalden farkliysa her tick "minecraft:free" scripted
+// kamera suruluyordu; o kamera oyuncudan kopuk oldugu icin cocuk ilerleyemiyor,
+// geri gidemiyor, egilemiyordu. Kamera kaldirildi. Bu bolum tekrar eklenirse
+// duser: sim'de setCamera cagrisi sayilir.
+{
+  settle();
+  const p = fresh();
+  __sim.state.log.cameras = [];
+  p.camera.setCamera = () => { __sim.state.log.cameras.push("set"); };
+  __sim.fire("after", "itemUse", { itemStack: { typeId: "stnt:kucultme_topu" }, source: p });
+  __sim.tick(60);
+  eq(p.getProperty("st:size"), 1, "Kucultme Topu bir kademe kuculttu");
+  ok(__sim.state.log.cameras.length === 0,
+     "kuculunce kamera SURULMUYOR (oyuncu hareket edebilir)",
+     `${__sim.state.log.cameras.length} setCamera cagrisi`);
+  __sim.fire("after", "itemUse", { itemStack: { typeId: "stnt:buyutme_topu" }, source: p });
+  __sim.fire("after", "itemUse", { itemStack: { typeId: "stnt:buyutme_topu" }, source: p });
+  __sim.tick(60);
+  eq(p.getProperty("st:size"), 3, "Buyutme Topu bir kademe buyuttu");
+  ok(__sim.state.log.cameras.length === 0, "buyuyunce de kamera surulmuyor");
+}
+
+// ---------------------- 18. OLUM her zaman cikis yolu: boyut ve kilik sifirlanir
+// Bir cocuk minicikken ya da blok kiligindayken olurse ayni halde uyanmamali;
+// geri donmenin yolunu (Kalp TNT / Donusum Asasi) her zaman bulamiyor.
+{
+  settle();
+  const p = fresh();
+  __sim.fire("after", "itemUse", { itemStack: { typeId: "stnt:kucultme_topu" }, source: p });
+  __sim.tick(5);
+  p.triggerEvent("st:morph_creeper");
+  eq(p.getProperty("st:size"), 1, "olumden once kucuk");
+  eq(p.getProperty("st:morph") > 0, true, "olumden once kilikli");
+  __sim.fire("after", "playerSpawn", { player: p, initialSpawn: false });
+  __sim.tick(5);
+  eq(p.getProperty("st:size"), 2, "olunce boyut normale dondu");
+  eq(p.getProperty("st:morph"), 0, "olunce kilik insana dondu");
+}
+// Dunyaya ILK giriste (dunya yeniden yuklenince) kilik BOZULMAMALI.
+{
+  settle();
+  const p = fresh();
+  p.triggerEvent("st:morph_creeper");
+  const before = p.getProperty("st:morph");
+  __sim.fire("after", "playerSpawn", { player: p, initialSpawn: true });
+  __sim.tick(5);
+  eq(p.getProperty("st:morph"), before, "dunyaya girerken kilik korunuyor");
+}
+
+// ------------------- 19. "Tek kullanimlik" diyen Among Us Rapor GERCEKTEN oyle
+{
+  settle();
+  const p = fresh();
+  const inv = p.getComponent("minecraft:inventory").container;
+  inv.setItem(0, new mc.ItemStack("stnt:among_us_report", 1));
+  const hedef = newPlayer("Efe", { x: 2, y: 64, z: 0 });
+  __sim.state.viewEntities = [{ entity: hedef }];
+  __sim.fire("after", "itemUse", { itemStack: { typeId: "stnt:among_us_report" }, source: p });
+  __sim.tick(5);
+  ok(hedef.damages.length > 0, "Among Us Rapor hedefi vuruyor");
+  ok(!inv.getItem(0), "rapor kullaninca envanterden dusuyor (tek kullanimlik)",
+     `kalan: ${JSON.stringify(inv.getItem(0))}`);
+  __sim.state.viewEntities = [];
+}
+
+// --------------- 20. Buz TNT yalnizca YARICAPTAKI oyuncuyu donduruyor
+// Slowness amp 6 hareket hizini sifirlar. Once dunyadaki HERKESE uygulaniyordu:
+// 300 blok oteki kardes sebepsiz yere 30 saniye kilitleniyordu.
+{
+  settle();
+  const p = fresh();
+  const yakin = newPlayer("Yakin", { x: 3, y: 64, z: 3 });
+  const uzak = newPlayer("Uzak", { x: 400, y: 64, z: 400 });
+  detonateTnt("buz_tnt", p, { x: 0, y: 64, z: 0 });
+  __sim.tick(200);                       // fitil + is dilimleri icin yeterli sure
+  ok(yakin.effects.has("slowness"), "Buz TNT yakindaki oyuncuyu donduruyor");
+  ok(!uzak.effects.has("slowness"), "Buz TNT uzaktaki oyuncuya DOKUNMUYOR");
+}
+
 report();
 
 function report() {

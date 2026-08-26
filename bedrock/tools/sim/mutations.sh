@@ -179,6 +179,41 @@ PYX
 run "Temizleyici sinirsiz cani geri alamiyor" "suresiz cani geri aliyor"
 cp "$BAK/build.bak" bedrock/build.py
 
+# 13) Among Us Rapor yine harcanmasin -> "Tek kullanimlik" diyen ipucu yalan
+#     olur; cocuk kardesini 3 saniyede bir sinirsiz oldurur
+python3 - "$BAK" <<'PYX'
+import io, sys
+s = io.open(sys.argv[1] + "/build.bak", encoding="utf-8").read()
+old = '          consumeHeld(player, "stnt:among_us_report");\n'
+assert s.count(old) == 1
+io.open("bedrock/build.py", "w", encoding="utf-8").write(s.replace(old, '', 1))
+PYX
+run "rapor harcanmiyor" "envanterden dusuyor"
+cp "$BAK/build.bak" bedrock/build.py
+
+# 14) olum boyutu/kiligi sifirlamasin -> minicik olen cocuk minicik uyanir ve
+#     geri donmenin yolunu bulamayabilir
+python3 - "$BAK" <<'PYX'
+import io, sys
+s = io.open(sys.argv[1] + "/build.bak", encoding="utf-8").read()
+old = '      if (p.getProperty("st:size") !== __SIZE_DEFAULT__) p.triggerEvent("st:size___SIZE_DEFAULT__");'
+assert s.count(old) == 1
+io.open("bedrock/build.py", "w", encoding="utf-8").write(s.replace(old, '      void 0;', 1))
+PYX
+run "olunce boyut sifirlanmiyor" "olunce boyut normale dondu"
+cp "$BAK/build.bak" bedrock/build.py
+
+# 15) dunyaya girerken kilik SIFIRLANSIN -> her acilista cocugun kiligi bozulur
+python3 - "$BAK" <<'PYX'
+import io, sys
+s = io.open(sys.argv[1] + "/build.bak", encoding="utf-8").read()
+old = '    if (ev.initialSpawn) return;\n'
+assert s.count(old) == 1
+io.open("bedrock/build.py", "w", encoding="utf-8").write(s.replace(old, '', 1))
+PYX
+run "dunyaya girerken kilik bozuluyor" "dunyaya girerken kilik korunuyor"
+cp "$BAK/build.bak" bedrock/build.py
+
 echo
 echo "yakalanan $pass / kacirilan $fail"
 [ "$fail" -eq 0 ]

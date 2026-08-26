@@ -1,7 +1,33 @@
 # Super TNT — Bedrock Port Durumu
 
-Son sürüm: **v1.40.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
+Son sürüm: **v1.41.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
 olacak şekilde geliştiriliyor (MorphX / mutant paketine bağımlılık yok).
+
+## v1.41.0 — Oyunu kilitleyen hatalar, blok kılığının üst yüzü, ikonlar
+
+Üç ayrı iş. Hepsi tablette görülen bir şikâyetten çıktı.
+
+### 1. Küçültme/Büyütme oyuncuyu kilitliyordu
+
+Boyut normalden farklıyken script her tick `player.camera.setCamera(
+"minecraft:free", …)` sürüyordu. `minecraft:free` oyuncudan **kopuk** bir
+kameradır: etkinken hareket girdisi işlenmez. Çocuk küçüldüğü anda
+ilerleyemiyor, geri gidemiyor, eğilemiyordu — "oyun bozuldu" denen şey buydu.
+Kamera tamamen kaldırıldı; görsel ölçek (render-scale) ve çarpışma kutusu
+bundan bağımsız çalıştığı için ikisi de duruyor. Eski sürümle oynanmış bir
+dünyada kamera oyuncunun üzerinde kalmış olabilir, bu yüzden giriş anında bir
+kez `camera.clear()` çağrılıyor.
+
+Aynı aileden iki hata daha bulundu ve düzeltildi:
+
+| Ne | Neydi | Ne oldu |
+|---|---|---|
+| Buz TNT | Dünyadaki **her** oyuncuyu 30 sn slowness amp 6 ile felç ediyordu (amp ≥ 6 = hız sıfır). 300 blok ötedeki kardeş sebepsiz kilitleniyordu. | Yarıçapla (14 blok) sınırlandı; ipucu da öyle diyor. Java sürümünden bilerek ayrılan tek yer. |
+| Ölüm | `st:size` / `st:morph` oyuncunun üzerinde kalıcı; minicik ya da blok kılığında ölen çocuk aynı halde uyanıyordu ve geri dönüş yolunu (Kalp TNT / asa) her zaman bulamıyor. | Yeniden doğuşta boyut ve kılık normale döner. Dünyaya ilk girişte dokunulmaz. |
+| Among Us Rapor | İpucu "Tek kullanımlık" diyor ama eşya harcanmıyordu; 3 sn'de bir sınırsız öldürme. | Kullanınca envanterden düşüyor. |
+
+`check_pack.py` → `check_player_control()` bunları kilitliyor: `setCamera`
+yasak, slowness amp ≥ 6 en fazla iki yerde, Buz TNT'nin yarıçapı zorunlu.
 
 ## v1.40.0 — Mutant Warden'ın duruşu düzeltildi
 
@@ -623,15 +649,16 @@ blokların kendi dinamik özelliği yoktur.
   özelliği + kademe başına `collision_box`. `minecraft:scale` oyuncuda
   çalışmadığı için (script'ten "event does not exist" hatası) MorphX'in
   kanıtlanmış render-Molang yöntemi kullanıldı.
-  **İlk-şahıs kamerası:** Render-ölçek ve collision_box göz yüksekliğini
-  DEĞİŞTİRMEZ (Bedrock'ta göz ~1.62 blokta sabit). `minecraft:scale` oyuncuya
-  uygulanabilir ama o da model+hitbox'ı ölçekler, gözü değil. POV'u gerçekten
-  oynatmak MÜMKÜN ama deneysel **Script Kamera** sistemi gerekir
-  (`player.camera.setCamera`/`attachToEntity`, her tick). Çalışan örnek: Coco &
-  Vici "True POV Size Changer". Bedeli: dünyada Beta APIs + Experimental
-  Creator Cameras açık olmalı ve dönüşüm boyunca oyuncu scripted üçüncü-şahıs/
-  orbit kameraya kilitlenir. İstenirse ayrı bir özellik olarak eklenebilir;
-  şu an ölçek sadece görsel.
+  **İlk-şahıs kamerası YOK — ve bir daha eklenmeyecek.** Render-ölçek ve
+  collision_box göz yüksekliğini DEĞİŞTİRMEZ (Bedrock'ta göz ~1.62 blokta
+  sabit); POV'u gerçekten oynatmanın tek yolu Script Kamera'ydı
+  (`player.camera.setCamera("minecraft:free")`, her tick). v1.40.0'da eklendi,
+  **v1.41.0'da kaldırıldı**: `minecraft:free` oyuncudan kopuk bir kameradır ve
+  etkinken oyuncunun hareket girdisi işlenmez — boyut değiştiren çocuk
+  ilerleyemiyor, geri gidemiyor, eğilemiyordu. Kaybedilen tek şey göz
+  yüksekliğinin boyutla değişmesi; kazanılan şey oyunun oynanabilir olması.
+  `check_pack.py` → `check_player_control()` `setCamera`'yı yasaklıyor.
+  Paket artık hiçbir deneysel bayrak (Beta APIs / Creator Cameras) istemez.
   **Bilinen kısıt:** `player.json` Bedrock'ta paketler arası birleşmez —
   bu özellik MorphX ile **aynı dünyada** kullanılamaz (üstteki paket
   kazanır). Ayrı dünyalarda ikisi de çalışır.

@@ -665,6 +665,37 @@ def check_poses():
                       f"z[{bx[4]:.1f}..{bx[5]:.1f}]")
 
 
+# ------------------------------------------------------ 7. oyuncunun kontrolu
+def check_player_control(js):
+    """Oyuncunun elinden HAREKET KONTROLUNU alan hicbir sey kalmamali.
+
+    v1.40.0'da kucultme/buyutme her tick 'minecraft:free' scripted kamera
+    suruyordu. O kamera oyuncudan kopuktur: etkinken cocuk ilerleyemiyor, geri
+    gidemiyor, egilemiyordu. Bedrock bunun icin hata vermez, sadece oyun
+    oynanmaz olur — yani ancak tablette fark edilir. Kaldirildi ve burada
+    kilitlendi. Yeniden eklemek gerekirse once bu denetimi silmek gerekir;
+    o da bilincli bir karar demektir."""
+    # ".setCamera" / "setCamera(" aranir, duz kelime DEGIL: dosyada neden
+    # kaldirildigini anlatan bir yorum satiri var ve o bir cagri degil.
+    check(".setCamera" not in js and "setCamera(" not in js,
+          "main.js setCamera cagiriyor — 'minecraft:free' kamera oyuncunun "
+          "hareketini kilitler (v1.40.0 hatasi)")
+    check("camera.clear" in js,
+          "eski surumden kalan kamerayi birakan camera.clear() cagrisi yok")
+    # Slowness amp >= 6 hareket hizini SIFIRLAR. Iki yerde bilerek kullanilir
+    # (Buz TNT, Dondurucu) ve ikisi de ipucunda "dondurur" der. Ucuncusu
+    # cikarsa bilerek eklenmis olmali.
+    donma = re.findall(r'addEffect\("slowness",[^)]*amplifier:\s*(\d+)', js)
+    check(sum(1 for a in donma if int(a) >= 6) <= 2,
+          f"slowness amplifier>=6 (tam felc) {sum(1 for a in donma if int(a) >= 6)} "
+          "yerde — ipucu 'dondurur' demeyen bir yere eklenmis olabilir")
+    # Buz TNT'nin dondurmasi YARICAPLA sinirli olmali; sinirsiz hali dunyanin
+    # obur ucundaki kardesi sebepsiz 30 saniye kilitliyordu.
+    freeze = re.search(r'case "freeze": \{[\s\S]*?getPlayers\(([^)]*)\)', js)
+    check(bool(freeze) and "maxDistance" in freeze.group(1),
+          "Buz TNT dondurmasi yaricapla sinirli degil (dunyadaki herkesi donduruyor)")
+
+
 # ---------------------------------------------------------------- calistir
 def main():
     js = open(os.path.join(BP, "scripts", "main.js"), encoding="utf-8").read()
@@ -679,6 +710,7 @@ def main():
     check_tooltip_contract(js)
     check_tree(js)
     check_poses()
+    check_player_control(js)
     if FAILS:
         print(f"HATA — {CHECKS[0]} denetimden {len(FAILS)} tanesi gecmedi:")
         for f in FAILS:
