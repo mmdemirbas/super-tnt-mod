@@ -874,6 +874,40 @@ const PASIF = new Set(["bleed", "heavy", "worn_wool", "held_fireproof"]);
   eq(b, "minecraft:air", "Kup TNT kupun kosesini de kaziyor (kure degil)");
 }
 
+// ---- 23. ipucu sozlesmesinin DAVRANIS tarafi (2026-08-26 denetimi)
+{
+  // Su TNT "ateşleri söndürür" diyor. onlyAir yuzunden ates blogu hic
+  // ellenmiyordu: cocuk atesin ustune atiyor, ates duruyordu.
+  settle();
+  const p = fresh();
+  __sim.setBlock(p.dimension.id, 3, 65, 0, "minecraft:fire");
+  detonateTnt("water_tnt", p, { x: 0, y: 64, z: 0 });
+  __sim.tick(300);
+  const b = __sim.state.blocks.get("minecraft:overworld|3,65,0");
+  ok(b !== "minecraft:fire", "Su TNT ates blogunu gercekten sonduruyor", String(b));
+}
+{
+  // Gulen Yuz TNT "çıngırak sesiyle" diyor — o sesin calindigini kanitla.
+  settle();
+  const p = fresh();
+  detonateTnt("gulen_yuz_tnt", p, { x: 0, y: 64, z: 0 });
+  __sim.tick(200);
+  ok(__sim.state.log.sounds.includes("note.bell"),
+     "Gulen Yuz TNT cingirak sesini caliyor");
+}
+{
+  // Hava olayi TUM DUNYAYI etkiler. Firtina 20 dakika suruyordu: haritanin
+  // obur ucundeki kardesin basina da yildirim iniyordu.
+  settle();
+  const p = fresh();
+  detonateTnt("simsek_yagmur_tnt", p, { x: 0, y: 64, z: 0 });
+  __sim.tick(200);
+  const w = __sim.state.log.weather;
+  ok(w.length > 0, "Simsek Yagmuru TNT havayi degistiriyor");
+  ok(w.every((x) => x.ticks <= 2400),
+     "Hicbir TNT 2 dakikadan uzun hava birakmiyor", JSON.stringify(w));
+}
+
 report();
 
 function report() {

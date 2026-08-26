@@ -1,7 +1,57 @@
 # Super TNT — Bedrock Port Durumu
 
-Son sürüm: **v1.43.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
+Son sürüm: **v1.44.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
 olacak şekilde geliştiriliyor (MorphX / mutant paketine bağımlılık yok).
+
+## v1.44.0 — Yetmiş TNT'nin ipucu ile kodu tek tek karşılaştırıldı
+
+Son tarama bütün TNT'lerin ipucunu kodunun yaptığı işle yan yana koydu ve
+dokuz yerde ayrıldıklarını buldu. Hepsi aynı sınıftan: **ipucu bir şey söz
+veriyor, kod başka bir şey yapıyor.** İpucu bu paketin sözleşmesi — çocuk ne
+olacağını oradan okuyor.
+
+### Söz verilip yapılmayanlar
+
+| TNT | İpucu ne diyordu | Kod ne yapıyordu | Ne yapıldı |
+|---|---|---|---|
+| Su TNT | "Ateşleri söndürür" | `onlyAir` yüzünden ateş bloğuna hiç dokunmuyordu | `douses` bayrağı: ateş bloğu da suya çevriliyor |
+| Gülen Yüz TNT | "Çıngırak sesiyle" | hiçbir ses çalmıyordu | `note.bell` çalınıyor |
+| Çizgi TNT | "Her yeri el yazısı defterine çevirir" | tek bir blok bile değişmiyordu | ipucu yaptığı işi anlatıyor: kağıt/mürekkep/tüy saçar |
+| Gizli TNT | "tüm canlıları öldürür" | patlatanı ayırıyordu | "patlatan hariç" yazıldı |
+| Kalp TNT | TR "herkese", EN "players" | yalnızca oyunculara | TR de "oyunculara" |
+| Buz TNT | "kar yağar" | Bedrock'ta Snow hava tipi yok, yağmur veriyordu | "yağış başlar (soğuk biyomda kar)" |
+
+### Söylenmeyen zararlar
+
+| TNT | Ne oluyordu | Ne yapıldı |
+|---|---|---|
+| Şimşek Yağmuru TNT | **20 dakika** gerçek fırtına — haritanın öbür ucundaki kardeşin de başına yıldırım iniyordu | süre 1 dakika, ipucunda yazıyor |
+| Yağmur / Bulut TNT | aynı şekilde 20 dakika yağmur, süresi hiç yazmıyordu | 1 dakika, ipucunda yazıyor |
+| Şimşek TNT | 20 yıldırım; yıldırımın yaktığı ipucunda yoktu | "Yıldırım yakar ve öldürebilir" |
+| Güneş Kristal TNT | 15 End kristali; kristale vurulunca büyük patlar, uyarı yoktu | "DİKKAT: kristale vurursan büyük patlar!" |
+
+### Bulgular tek TNT'ye değil, kurala çevrildi
+
+Dokuz düzeltmenin dokuzu da tek satırlık bir yamayla kapatılabilirdi. Bunun
+yerine her biri `check_pack.py` içinde **bütün TNT'lere bakan bir kural** oldu,
+çünkü asıl mesele bu TNT'ler değil, aynı tuzağa düşecek bir sonraki TNT:
+
+- "Söndürür" diyen her TNT ateş bloğunu gerçekten değiştirmeli.
+- Dünya havasını değiştiren her TNT 2 dakikayı aşamaz ve süresini ipucunda
+  yazmalı — hava olayı haritanın tamamını etkiliyor.
+- Yıldırım çağıran her TNT yakma ve ölüm riskini iki dilde de yazmalı.
+- End kristali yaratan her TNT kristalin patladığını yazmalı.
+- Anında öldüren TNT'de "patlatan hariç" iddiası `exceptIgniter` ile aynı olmalı.
+- "Çevirir / boyar / kaplar" diyen ipucu blok yazan bir etkiye bağlı olmalı.
+- Ayrı bir ses vaat eden ipucun `sound` alanı olmalı.
+- Hiçbir ipucu "kar yağar" diyemez — Bedrock'ta öyle bir hava tipi yok.
+- Yalnızca oyunculara etki eden TNT "herkese" diyemez.
+
+Toplam: 7069 → **7165 statik denetim**, 120 → **124 çalışan test**,
+33 → **36 statik mutasyon**, 22 → **25 sim mutasyonu**.
+
+Ayrıca `mutation_test.sh` yarıda kesilirse artık `build.py`'yi mutasyonlu
+bırakmıyor — çıkışta kaynağı geri alıp paketi yeniden üretiyor.
 
 ## v1.43.0 — Hata taraması: ipucu sözleşmesi, sıkışma, tablet yükü
 

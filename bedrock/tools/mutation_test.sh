@@ -15,7 +15,11 @@ cd "$(dirname "$0")/../.." || exit 1
 RP=bedrock/super_tnt_RP
 BP=bedrock/super_tnt_BP
 BAK=$(mktemp -d)
-trap 'rm -rf "$BAK"' EXIT
+cp bedrock/build.py "$BAK/build.bak"
+# Yarida kesilen bir kosu mutasyonlu build.py birakiyordu (sim/mutations.sh
+# bunu zaten yapiyordu). Cikista kaynagi geri al ve paketi yeniden uret.
+trap 'cp "$BAK/build.bak" bedrock/build.py; rm -rf bedrock/__pycache__;
+      python3 bedrock/build.py > /dev/null 2>&1; rm -rf "$BAK"' EXIT
 pass=0
 fail=0
 
@@ -71,7 +75,6 @@ run "olmayan parcacik" "diye bir parcacik yok"
 cp "$BAK/main.bak" "$BP/scripts/main.js"
 
 # 5) morph tablosunda yanlis doku adi -> gorunmez oyuncu (yasanmis ghast hatasi)
-cp bedrock/build.py "$BAK/build.bak"
 sed 's|tex="textures/entity/ghast/ghast"|tex="textures/entity/ghast"|' "$BAK/build.bak" > bedrock/build.py
 run "morph dokusu vanilla'da yok (eski ghast hatasi)" "doku 'textures/entity/ghast' ne vanilla"
 cp "$BAK/build.bak" bedrock/build.py
@@ -315,6 +318,50 @@ io.open(p, "w", encoding="utf-8").write(s.replace(
 PYX
 run "kamera otelemesi kutunun disinda" "arasinda degil"
 cp "$BAK/build.bak" bedrock/build.py
+python3 bedrock/build.py > /dev/null 2>&1
+
+# 34) Su TNT'nin douses bayragi kalksin -> ipucu "atesleri sondurur" der,
+#     kod ates blogunu atlar. Statik denetim ipucu ile spec'i karsilastirmali.
+cp bedrock/build.py "$BAK/b34.bak"
+python3 - <<'PYX'
+import io
+p = "bedrock/build.py"
+s = io.open(p, encoding="utf-8").read()
+old = "onlyAir=True, tempSeconds=10,\n                     douses=True,"
+assert s.count(old) == 1
+io.open(p, "w", encoding="utf-8").write(s.replace(old, "onlyAir=True, tempSeconds=10,\n                     ", 1))
+PYX
+run "ipucu sondurmeyi vaat ediyor, kod atliyor" "kod ates blogunu atliyor"
+cp "$BAK/b34.bak" bedrock/build.py
+
+# 35) Cizgi TNT yine "her yeri deftere cevirir" desin -> hicbir blok
+#     degismiyor, cocuk soz verilen defteri ariyor
+cp bedrock/build.py "$BAK/b35.bak"
+python3 - <<'PYX'
+import io
+p = "bedrock/build.py"
+s = io.open(p, encoding="utf-8").read()
+old = 'trtip="Etrafa kağıt, mürekkep ve tüy saçar — kendi defterini topla!",'
+assert s.count(old) == 1
+io.open(p, "w", encoding="utf-8").write(
+    s.replace(old, 'trtip="Her yeri el yazısı defterine çevirir — kağıt saçar!",', 1))
+PYX
+run "ipucu blok degisimi vaat ediyor, kod sacmakla yetiniyor" "blok yazmiyor"
+cp "$BAK/b35.bak" bedrock/build.py
+
+# 36) Gizli TNT yine "her canliyi" desin -> patlatan aslinda ayriliyor
+cp bedrock/build.py "$BAK/b36.bak"
+python3 - <<'PYX'
+import io
+p = "bedrock/build.py"
+s = io.open(p, encoding="utf-8").read()
+old = "25 blok yarıçapında patlatan hariç her canlıyı anında öldürür!"
+assert s.count(old) == 1
+io.open(p, "w", encoding="utf-8").write(
+    s.replace(old, "25 blok yarıçapındaki tüm canlıları anında öldürür!", 1))
+PYX
+run "ipucu patlatani da olduruyor sanisi veriyor" "ipucu tersini soyluyor"
+cp "$BAK/b36.bak" bedrock/build.py
 python3 bedrock/build.py > /dev/null 2>&1
 
 echo

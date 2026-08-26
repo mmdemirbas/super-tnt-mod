@@ -303,6 +303,44 @@ PYX
 run "Kalp Baltasi oyuncuyu tek vurusta olduruyor" "oyuncuyu tek vurusta oldurmuyor"
 cp "$BAK/build.bak" bedrock/build.py
 
+# 23) Su TNT yine ates blogunu atlasin -> ipucu "atesleri sondurur" diyor ama
+#     cocuk atesin ustune atinca hicbir sey olmuyor
+python3 - "$BAK" <<'PYX'
+import io, sys
+s = io.open(sys.argv[1] + "/build.bak", encoding="utf-8").read()
+old = ('                if (s.onlyAir && t !== "minecraft:air"\n'
+       '                    && !(s.douses && t === "minecraft:fire")) continue;')
+assert s.count(old) == 1
+io.open("bedrock/build.py", "w", encoding="utf-8").write(
+    s.replace(old, '                if (s.onlyAir && t !== "minecraft:air") continue;', 1))
+PYX
+run "Su TNT atesi sondurmuyor" "ates blogunu gercekten sonduruyor"
+cp "$BAK/build.bak" bedrock/build.py
+
+# 24) ipucunun vaat ettigi ses calinmasin -> "cingirak sesiyle" bos bir soz olur
+python3 - "$BAK" <<'PYX'
+import io, sys
+s = io.open(sys.argv[1] + "/build.bak", encoding="utf-8").read()
+old = '        if (s.sound) { try { dim.playSound(s.sound, c, { volume: 1.2 }); } catch (e) {} }'
+assert s.count(old) == 1
+io.open("bedrock/build.py", "w", encoding="utf-8").write(s.replace(old, "", 1))
+PYX
+run "vaat edilen ses calinmiyor" "cingirak sesini caliyor"
+cp "$BAK/build.bak" bedrock/build.py
+
+# 25) firtina yine 20 dakika sursun -> haritanin obur ucundeki kardesin de
+#     basina yildirim iner
+python3 - "$BAK" <<'PYX'
+import io, sys
+s = io.open(sys.argv[1] + "/build.bak", encoding="utf-8").read()
+old = "if (s.weather) { try { dim.setWeather(s.weather, s.weatherTicks || 1200); } catch (e) {} }"
+assert s.count(old) == 1
+io.open("bedrock/build.py", "w", encoding="utf-8").write(
+    s.replace(old, 'if (s.weather) { try { dim.setWeather(s.weather, 24000); } catch (e) {} }', 1))
+PYX
+run "firtina 20 dakika suruyor" "2 dakikadan uzun hava birakmiyor"
+cp "$BAK/build.bak" bedrock/build.py
+
 echo
 echo "yakalanan $pass / kacirilan $fail"
 [ "$fail" -eq 0 ]

@@ -553,6 +553,71 @@ def check_tooltip_contract(js):
             check(int(m.group(1)) == spec.get("radius"),
                   f"{row['id']}: ipucu {m.group(1)} blok yaricap diyor, kod {spec.get('radius')}")
 
+    # --- 2026-08-26 denetimi: 70 TNT'nin ipucu ile kodu karsilastirildi, dokuz
+    #     yerde ayrildilar. Her bulgu tek TNT'ye degil, GENEL bir kurala
+    #     cevrildi ki ayni tuzaga yeni bir TNT dusmesin.
+    BLOK_YAZAN = {"transform", "place", "freeze", "break", "tunnel"}
+    for t in build.TNTS:
+        e = t.get("effect") or {}
+        tr, en, tid = t["trtip"], t["entip"], t["id"]
+
+        # (1) "Söndürür" diyen TNT ates blogunu GERCEKTEN degistirmeli.
+        #     onlyAir tek basina ates blogunu atliyordu: soz verilen tek is
+        #     yapilmiyordu, cocuk atesin uzerine atip hicbir sey olmuyordu.
+        if "söndür" in tr:
+            check(e.get("kind") == "place" and (e.get("douses") or not e.get("onlyAir")),
+                  f"{tid}: ipucu atesi sondurdugunu soyluyor, kod ates blogunu atliyor")
+
+        # (2) Hava olayi TUM DUNYAYI etkiler — haritanin obur ucundeki kardes
+        #     de yagmurda kalir. Sure kisa olmali ve ipucunda yazmali.
+        if e.get("weather"):
+            check(e.get("weatherTicks", 24000) <= 2400,
+                  f"{tid}: {e.get('weatherTicks')} tick hava cok uzun, tum dunyayi etkiliyor")
+            check("dakika" in tr and "minute" in en,
+                  f"{tid}: dunya havasini degistiriyor ama ipucu suresini yazmiyor")
+
+        # (3) Yildirim yakar ve oldurur. Ipucu bunu yazmadan cagiramaz.
+        if e.get("entity") == "minecraft:lightning_bolt" or e.get("weather") == "Thunder":
+            check("yakar" in tr and "öldür" in tr,
+                  f"{tid}: yildirim cagiriyor ama ipucu yakma/olum riskini yazmiyor")
+            check("burns" in en and "kill" in en,
+                  f"{tid}: ingilizce ipucu yildirim riskini yazmiyor")
+
+        # (4) End kristali vurulunca buyuk patlar — ipucu uyarmali.
+        if e.get("entity") == "minecraft:ender_crystal":
+            check("vurursan" in tr, f"{tid}: kristalin patladigi ipucunda yazmiyor")
+            check("hitting" in en, f"{tid}: ingilizce ipucu kristal patlamasini yazmiyor")
+
+        # (5) Aninda olduren TNT'de "patlatan haric" iddiasi kodla ayni olmali.
+        #     Kodda varsayilan patlatani AYIRIR (exceptIgniter !== false).
+        if e.get("kind") == "instakill":
+            ayirir = e.get("exceptIgniter") is not False
+            check(ayirir == ("hariç" in tr),
+                  f"{tid}: kod patlatani {'ayiriyor' if ayirir else 'ayirmiyor'}, ipucu tersini soyluyor")
+            check(ayirir == ("except" in en),
+                  f"{tid}: ingilizce ipucu patlatan istisnasini yanlis yaziyor")
+
+        # (6) "Çevirir / boyar / kaplar" blok yazan bir is vaat eder. Cizgi TNT
+        #     "her yeri deftere cevirir" diyordu ama yalnizca esya sacyordu.
+        if any(w in tr for w in ("çevirir", "boyar", "kaplar")):
+            check(e.get("kind") in BLOK_YAZAN,
+                  f"{tid}: ipucu blok degistirmeyi vaat ediyor ama kind={e.get('kind')} blok yazmiyor")
+
+        # (7) Ipucu ayri bir SES vaat ediyorsa o ses calinmali. Paket her TNT'de
+        #     ayni patlama sesini calar; "cingirak sesiyle" bosa cikiyordu.
+        if "sesiyle" in tr:
+            check(e.get("sound"), f"{tid}: ipucu ayri bir ses vaat ediyor ama spec'te sound yok")
+
+        # (8) Bedrock'ta "Snow" diye bir hava tipi YOK; kar yalnizca soguk
+        #     biyomda yagisin gorunusudur. "Kar yağar" diyen ipucu yalan olur.
+        check("kar yağar" not in tr, f"{tid}: Bedrock'ta Snow hava tipi yok, kar sozu verilemez")
+
+        # (9) Iki dilin kapsami ayni olmali: TR "herkese" derken EN "players"
+        #     diyorsa biri yaniltiyor demektir.
+        if e.get("kind") == "heal":
+            check("herkese" not in tr,
+                  f"{tid}: kod yalnizca oyunculara veriyor, TR ipucu 'herkese' diyor")
+
     for it in build.ITEMS:
         a = it.get("action") or {}
         tip = it["trtip"]
