@@ -707,9 +707,17 @@ def check_player_control(js):
           "— comelince goz inmez")
     check("easeOptions" in blok,
           "POV kamerasi easing'siz suruluyor — kamera saniyede 20 kez zipliyor")
-    check("= camForward(scale)" in blok,
+    check("SIZE_CAM_FWD[sz]" in blok,
           "POV kamerasi one otelenmiyor — kamera oyuncunun kafasinin icinde, "
           "ekran siyah olur")
+    # Oteleme iki sinirin ARASINDA olmali: kafanin on yuzunun ilerisinde
+    # (yoksa kendi modelinin icinde kalir) ve carpisma kutusunun gerisinde
+    # (yoksa duvara dayaninca blogun icinde kalir). Ikisi de ekrani siyah yapar.
+    for i, (olcek, cw, _ch) in build.SIZE_TABLE.items():
+        fwd = build.SIZE_CAM_FWD[i]
+        check(0.25 * olcek < fwd < cw / 2,
+              f"kademe {i}: kamera otelemesi {fwd} — kafa on yuzu "
+              f"{0.25 * olcek:.3f} ile carpisma kutusu {cw / 2:.3f} arasinda degil")
     check(not re.search(r"inputpermission|inputPermissions", kod, re.I),
           "main.js inputpermission kullaniyor — oyuncunun hareketini kilitler")
     check("camera.clear" in js,

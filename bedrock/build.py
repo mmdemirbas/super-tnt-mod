@@ -123,6 +123,24 @@ SIZE_TABLE = {
 }
 SIZE_DEFAULT = 2
 
+# POV kamerasinin BAKIS YONUNDE ne kadar one otelenecegi (blok). Iki sinirin
+# ARASINDA kalmak zorunda:
+#   - oyuncunun KENDI kafasinin on yuzunden ileride olmali. Serbest kamerada
+#     oyuncunun kendi modeli de cizilir; kafanin icinde kalirsa ekran siyah
+#     olur. Vanilla oyuncu kafasi 8x8x8 piksel = yarim blok, yani yari
+#     derinligi olcek x 0.25.
+#   - carpisma kutusunun on yuzunden geride olmali. Disari tasarsa duvara
+#     dayanan cocukta kamera blogun ICINDE kalir ve yine siyah olur.
+# Ikisinin tam ortasi secildi. Once "0.25 * olcek + sabit pay" formulu
+# yazilmisti; hesaplayinca dort kademenin UCUNDE kutunun disina tastigi
+# gorulunce tabloya cevrildi. Asagidaki assert bunu her uretimde dogrular.
+SIZE_CAM_FWD = {i: round((0.25 * s + cw / 2) / 2, 3)
+                for i, (s, cw, _ch) in SIZE_TABLE.items()}
+for _i, (_s, _cw, _ch) in SIZE_TABLE.items():
+    assert 0.25 * _s < SIZE_CAM_FWD[_i] < _cw / 2, (
+        f"kademe {_i}: kamera otelemesi {SIZE_CAM_FWD[_i]} kafa on yuzu "
+        f"{0.25 * _s} ile carpisma kutusu {_cw / 2} arasinda degil")
+
 # MorphX'in (calisan referans) oyuncu taban bilesenleri. Bunlar Mojang'in
 # vanilla oyuncu bilesen degerleri; hareket/kamera/envanter motor tarafinda
 # gomulu oldugu icin player.json'a yazilmaz. Eksik/yanlis deger oyuncuyu
@@ -2582,6 +2600,7 @@ def build():
                             .replace("__PORTAL_N__", str(len(PORTAL_COLORS))) \
                             .replace("__PORTAL_NAMES__", json.dumps([n for n, _ in PORTAL_COLORS], ensure_ascii=False)) \
                             .replace("__SIZE_SCALES__", json.dumps({i: SIZE_TABLE[i][0] for i in SIZE_TABLE})) \
+                            .replace("__SIZE_CAM_FWD__", json.dumps(SIZE_CAM_FWD)) \
                             .replace("__MORPH_MAP__", json.dumps(MORPH_MAP, ensure_ascii=False))
     os.makedirs(os.path.join(BP, "scripts"), exist_ok=True)
     open(os.path.join(BP, "scripts/main.js"), 'w', encoding='utf-8').write(script)
@@ -4604,9 +4623,10 @@ function releaseCamera(p) {      // kamerayi birak: normal ilk-sahis geri gelir
   try { p.camera.clear(); } catch (e) {}
   camState.delete(p.id);
 }
-// Kameranin bakis yonunde ne kadar one otelenecegi (blok). Kafanin yarim
-// derinligi 1 olcekte 0.25 blok; ustune 0.10 pay. Kucukken 0.18, devken 0.60.
-function camForward(scale) { return 0.25 * scale + 0.10; }
+// Kameranin one otelenmesi kademe basina TABLODAN gelir; oyuncunun kendi
+// kafasinin on yuzu ile carpisma kutusunun on yuzu arasinda durur (ikisinin de
+// disi ekrani siyah yapar). Tablonun nasil hesaplandigi build.py SIZE_CAM_FWD.
+const SIZE_CAM_FWD = __SIZE_CAM_FWD__;
 system.runInterval(() => {
   for (const p of world.getPlayers()) {
     let sz;
@@ -4628,7 +4648,7 @@ system.runInterval(() => {
     if (!loc || !head || !rot || !dir) continue;
     // Gozun AYAKTAN yuksekligi olceklenir; comelince head.y zaten duser.
     const eye = loc.y + (head.y - loc.y) * scale;
-    const fwd = camForward(scale);
+    const fwd = SIZE_CAM_FWD[sz] || SIZE_CAM_FWD[String(sz)] || 0.2;
     const hyp = Math.hypot(dir.x, dir.z) || 1;   // yalnizca yatay bilesen
     try {
       p.camera.setCamera("minecraft:free", {

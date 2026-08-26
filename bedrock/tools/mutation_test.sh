@@ -219,7 +219,7 @@ run "POV kamerasi easing'siz" "kamera saniyede 20 kez zipliyor"
 cp "$BAK/main.bak" "$BP/scripts/main.js"
 
 # 29) one oteleme kaldirilsin -> kamera oyuncunun kafasinin icinde, ekran siyah
-mutate_js "const fwd = camForward(scale);" "const fwd = 0;"
+mutate_js "const fwd = SIZE_CAM_FWD[sz] || SIZE_CAM_FWD[String(sz)] || 0.2;" "const fwd = 0;"
 run "POV kamerasi kafanin icinde" "ekran siyah olur"
 cp "$BAK/main.bak" "$BP/scripts/main.js"
 
@@ -298,6 +298,22 @@ io.open(p, "w", encoding="utf-8").write(s)
 PYX
 python3 bedrock/build.py > /dev/null 2>&1
 run "ikonun cizimi unutulmus" "neredeyse bos"
+cp "$BAK/build.bak" bedrock/build.py
+python3 bedrock/build.py > /dev/null 2>&1
+
+# 33) kamera otelemesi eski FORMULE donsun (0.25*olcek + 0.10) -> dort
+#     kademenin ucunde carpisma kutusunun disina tasar, duvara dayaninca ekran
+#     yine siyah olur. Hem build.py'nin assert'i hem check_pack yakalamali.
+python3 - <<'PYX'
+import io
+p = "bedrock/build.py"
+s = io.open(p, encoding="utf-8").read()
+old = "SIZE_CAM_FWD = {i: round((0.25 * s + cw / 2) / 2, 3)\n                for i, (s, cw, _ch) in SIZE_TABLE.items()}"
+assert s.count(old) == 1
+io.open(p, "w", encoding="utf-8").write(s.replace(
+    old, "SIZE_CAM_FWD = {i: round(0.25 * s + 0.10, 3)\n                for i, (s, cw, _ch) in SIZE_TABLE.items()}", 1))
+PYX
+run "kamera otelemesi kutunun disinda" "arasinda degil"
 cp "$BAK/build.bak" bedrock/build.py
 python3 bedrock/build.py > /dev/null 2>&1
 
