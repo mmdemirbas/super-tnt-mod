@@ -1,7 +1,71 @@
 # Super TNT — Bedrock Port Durumu
 
-Son sürüm: **v1.41.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
+Son sürüm: **v1.42.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
 olacak şekilde geliştiriliyor (MorphX / mutant paketine bağımlılık yok).
+
+## v1.42.0 — POV kamerası geri geldi, bu sefer doğru sürülüyor
+
+**v1.41.0'daki teşhis yanlıştı.** "Küçülünce ilerleyemiyorum, geri gidemiyorum,
+eğilemiyorum" şikâyetini `minecraft:free` kameranın oyuncuyu kilitlemesine
+bağlamıştım ve kamerayı tamamen kaldırmıştım. Belge bunun tersini söylüyor:
+hareketi kilitleyen şey `/inputpermission`, serbest kamera değil ([Free Camera
+Preset Tutorial](https://learn.microsoft.com/en-us/minecraft/creator/documents/camerasystem/camerapresetfree)).
+Yani oyuncu hareket edebiliyordu; sorun kameranın **yanlış sürülmesiydi** ve
+kamerayı kaldırınca çocukların sevdiği "küçükken dünya kocaman" etkisi de gitti.
+
+Kamera geri geldi. v1.40.0'daki hali üç şeyi birden yanlış yapıyordu:
+
+| Belirti | Sebep | Düzeltme |
+|---|---|---|
+| Eğilince görüntü inmiyor | Konum `p.location` + **sabit** 1.62 × ölçek idi | `getHeadLocation()` — gerçek göz konumu, çömelme dahil |
+| Kamera arkadan gelip yetişiyor | Her tick tek bir konuma **atlıyordu**; oyun 60 kare çizerken kamera 20 kez zıplıyor | Her set bir tick boyunca lineer `easeOptions` ile sürülüyor |
+| Görüntüde siyahlık | Kamera oyuncunun **kendi kafasının içinde**; serbest kamerada kendi modelin de çizilir | Bakışın yatay bileşeninde kafanın dışına ötelendi (`camForward`) |
+
+**Kalan sınır:** betik saniyede 20 kez çalışır, kamera en iyi ihtimalle bir tick
+geride kalır. Easing bunu *akıcı* yapar, sıfırlamaz. Gerçekten oyuncuya bağlı
+bir kamera için deneysel "Creator Cameras" üçüncü-şahıs ön-ayarları gerekir,
+onlar da dünyada bayrak açmayı zorunlu kılar.
+
+**Neden başka yolu yok.** Bedrock'ta ilk-şahıs göz yüksekliği sabittir;
+`minecraft:scale` belgede "visual size multiplier" olarak tanımlı ve
+[Geyser #5554](https://github.com/GeyserMC/Geyser/issues/5554) ölçeklenen
+oyuncunun ilk-şahıs bakışının değişmediğini bildiriyor. Özel kamera ön-ayarları
+da işe yaramıyor: *"A custom Camera Preset can inherit from other custom Camera
+Presets, or from the `minecraft:free` preset. For now, the other built-in camera
+perspectives can't be specified here."*
+
+### Tek bloklık boşluğa girme
+
+Kademe 1'in çarpışma yüksekliği tam **1.00** idi — bir bloklık boşluk için
+sınırda kalıyor ve çocuk "küçüldüm ama giremiyorum" diyordu. **0.95** oldu, pay
+bırakıyor. Görsel ölçek de hizalandı (0.95/1.8 → 0.53).
+
+### Normal creeper'ın patlaması
+
+Dev Creeper çömelince blok kırıyor, normal creeper ise yalnızca ses çıkarıyordu:
+patlama oyuncunun ayağı dibinde oluşuyor, canı geri konuyor, `breaksBlocks`
+false olduğu için ortada **hiçbir iz kalmıyordu**. Gerçek creeper da blok kırar;
+artık bu da kırıyor (yarıçap 3, Dev Creeper 6 ile daha sert kalıyor). İpucu
+kendiliğinden "(blok kırar!)" yazıyor.
+
+### Bu sınıfı bir daha kaçırmamak için
+
+En sinsi hata türü buydu: **kod çalışır, hata vermez, çocuk hiçbir şey görmez.**
+Hiçbir kimlik/dosya denetimi bunu yakalayamaz. İki yeni tarama eklendi:
+
+- `check_player_control()` — POV kamerası `getHeadLocation()` kullanmak,
+  `easeOptions` ile sürülmek ve öne ötelenmek **zorunda**; `inputpermission`
+  yasak; kademe 1 yüksekliği 1.0'ın altında olmak zorunda; `explode` yeteneği
+  olan her dönüşüm blok kırmak zorunda.
+- Sim'de **her eşya ve her dönüşüm yeteneği** için "görünür bir şey yaptı mı"
+  taraması: parçacık, ses, patlama, düşen eşya, komut, eylem çubuğu yazısı,
+  hasar, savurma, ışınlanma ya da blok değişikliğinden en az biri olmalı.
+  Sağ tıkla değil başka yolla iş gören eşyalar (`bleed`, `heavy`, `worn_wool`,
+  `held_fireproof`) açıkça listelenmiş durumda — sessizce muaf olan yok.
+
+Bir denetim bir kez kendi **yorum satırına** takıldı: blokta "getHeadLocation()
+ile" yazıyor, kod onu kullanmasa da kelime dosyada duruyordu ve denetim boş
+geçiyordu. Denetimler artık koda bakmadan önce `//` yorumlarını atıyor.
 
 ## v1.41.0 — Oyunu kilitleyen hatalar, blok kılığının üst yüzü, ikonlar
 
@@ -10,13 +74,14 @@ olacak şekilde geliştiriliyor (MorphX / mutant paketine bağımlılık yok).
 ### 1. Küçültme/Büyütme oyuncuyu kilitliyordu
 
 Boyut normalden farklıyken script her tick `player.camera.setCamera(
-"minecraft:free", …)` sürüyordu. `minecraft:free` oyuncudan **kopuk** bir
-kameradır: etkinken hareket girdisi işlenmez. Çocuk küçüldüğü anda
-ilerleyemiyor, geri gidemiyor, eğilemiyordu — "oyun bozuldu" denen şey buydu.
-Kamera tamamen kaldırıldı; görsel ölçek (render-scale) ve çarpışma kutusu
-bundan bağımsız çalıştığı için ikisi de duruyor. Eski sürümle oynanmış bir
-dünyada kamera oyuncunun üzerinde kalmış olabilir, bu yüzden giriş anında bir
-kez `camera.clear()` çağrılıyor.
+"minecraft:free", …)` sürüyordu ve çocuk "ilerleyemiyorum, geri gidemiyorum,
+eğilemiyorum" diyordu. O sürümde kamerayı tamamen kaldırdım.
+
+> **Bu teşhis yanlıştı — v1.42.0'da düzeltildi.** Serbest kamera hareketi
+> kilitlemez; kilitleyen `/inputpermission`. Oyuncu hareket edebiliyordu,
+> kamera yanlış sürüldüğü için görüntü takip etmiyordu. Kamerayı kaldırmak
+> belirtiyi geçirdi ama çocukların sevdiği "küçükken dünya kocaman" etkisini
+> de götürdü. Ayrıntı v1.42.0 bölümünde.
 
 Aynı aileden iki hata daha bulundu ve düzeltildi:
 
@@ -683,16 +748,15 @@ blokların kendi dinamik özelliği yoktur.
   özelliği + kademe başına `collision_box`. `minecraft:scale` oyuncuda
   çalışmadığı için (script'ten "event does not exist" hatası) MorphX'in
   kanıtlanmış render-Molang yöntemi kullanıldı.
-  **İlk-şahıs kamerası YOK — ve bir daha eklenmeyecek.** Render-ölçek ve
-  collision_box göz yüksekliğini DEĞİŞTİRMEZ (Bedrock'ta göz ~1.62 blokta
-  sabit); POV'u gerçekten oynatmanın tek yolu Script Kamera'ydı
-  (`player.camera.setCamera("minecraft:free")`, her tick). v1.40.0'da eklendi,
-  **v1.41.0'da kaldırıldı**: `minecraft:free` oyuncudan kopuk bir kameradır ve
-  etkinken oyuncunun hareket girdisi işlenmez — boyut değiştiren çocuk
-  ilerleyemiyor, geri gidemiyor, eğilemiyordu. Kaybedilen tek şey göz
-  yüksekliğinin boyutla değişmesi; kazanılan şey oyunun oynanabilir olması.
-  `check_pack.py` → `check_player_control()` `setCamera`'yı yasaklıyor.
-  Paket artık hiçbir deneysel bayrak (Beta APIs / Creator Cameras) istemez.
+  **İlk-şahıs kamerası:** Bedrock'ta göz yüksekliği sabittir; render-ölçek de,
+  collision_box da, `minecraft:scale` de onu değiştirmez. POV'u oynatmanın tek
+  yolu betikle sürülen `minecraft:free` kamera. v1.40.0'da eklendi, v1.41.0'da
+  yanlış teşhisle kaldırıldı, **v1.42.0'da doğru sürülerek geri geldi**:
+  `getHeadLocation()` (çömelme), bir ticklik lineer easing (zıplamasın), öne
+  öteleme (kendi kafanın içinde kalıp siyah görmeyesin). `check_pack.py` →
+  `check_player_control()` üçünü de kilitliyor ve `inputpermission`'ı
+  yasaklıyor. Paket hiçbir deneysel bayrak (Beta APIs / Creator Cameras)
+  istemez.
   **Bilinen kısıt:** `player.json` Bedrock'ta paketler arası birleşmez —
   bu özellik MorphX ile **aynı dünyada** kullanılamaz (üstteki paket
   kazanır). Ayrı dünyalarda ikisi de çalışır.

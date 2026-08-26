@@ -214,6 +214,30 @@ PYX
 run "dunyaya girerken kilik bozuluyor" "dunyaya girerken kilik korunuyor"
 cp "$BAK/build.bak" bedrock/build.py
 
+# 16) POV kamerasinin goz yuksekligi olceklenmesin -> kucukken dunya buyuk
+#     gorunmez, kamera sadece normal goz hizasinda durur
+python3 - "$BAK" <<'PYX'
+import io, sys
+s = io.open(sys.argv[1] + "/build.bak", encoding="utf-8").read()
+old = "const eye = loc.y + (head.y - loc.y) * scale;"
+assert s.count(old) == 1
+io.open("bedrock/build.py", "w", encoding="utf-8").write(
+    s.replace(old, "const eye = head.y;", 1))
+PYX
+run "POV kamerasi olceklenmiyor" "kucukken goz ALCALIYOR"
+cp "$BAK/build.bak" bedrock/build.py
+
+# 17) normale donunce kamera birakilmasin -> cocuk scripted kamerada mahsur
+python3 - "$BAK" <<'PYX'
+import io, sys
+s = io.open(sys.argv[1] + "/build.bak", encoding="utf-8").read()
+old = "      if (camState.has(p.id)) releaseCamera(p);"
+assert s.count(old) == 1
+io.open("bedrock/build.py", "w", encoding="utf-8").write(s.replace(old, "      void 0;", 1))
+PYX
+run "normale donunce kamera birakilmiyor" "normal boyutta kamera birakiliyor"
+cp "$BAK/build.bak" bedrock/build.py
+
 echo
 echo "yakalanan $pass / kacirilan $fail"
 [ "$fail" -eq 0 ]

@@ -112,7 +112,9 @@ for (const [n, label] of [[1, "creeper"], [84, "Dev Creeper"]]) {
   ok(!p.dead, `${label}: kendi patlamasinda olmuyor`, `can ${p.health.toFixed(1)}`);
   eq(Math.round(p.health), 20, `${label}: cani geri konuyor`);
   if (n === 84) ok(exp[0].opts.breaksBlocks === true, "Dev Creeper blok kiriyor");
-  if (n === 1) ok(exp[0].opts.breaksBlocks === false, "vanilla creeper blok kirmiyor");
+  // Blok kirmayan patlama cocugun ekraninda SESTEN ibaret: patlama ayagin
+  // dibinde olusur, can geri konur, ortada iz kalmaz. Gercek creeper da kirar.
+  if (n === 1) ok(exp[0].opts.breaksBlocks === true, "vanilla creeper da blok kiriyor");
 }
 
 // ---------------------------------------------------- 4. Ejderha Nefesi bulutu
@@ -549,27 +551,64 @@ function detonateTnt(short, p, at) {
   ok(after < 40, "asili kalan is yok", `${after} is`);
 }
 
-// ------------------- 17. Kucultme/Buyutme oyuncunun kontrolunu ELINDEN ALMIYOR
-// v1.40.0'da boyut normalden farkliysa her tick "minecraft:free" scripted
-// kamera suruluyordu; o kamera oyuncudan kopuk oldugu icin cocuk ilerleyemiyor,
-// geri gidemiyor, egilemiyordu. Kamera kaldirildi. Bu bolum tekrar eklenirse
-// duser: sim'de setCamera cagrisi sayilir.
+// ----------------------------- 17. Kucultme/Buyutme POV kamerasi
+// Kucukken dunya BUYUK gorunmeli (goz yere yakin), buyukken KUCUK (goz
+// yukarida). v1.40.0'da kamera vardi ama uc seyi yanlis yapiyordu; bu bolum
+// ucunu de ayri ayri sinar.
+const EYE = 1.62;                                   // taklit: ayaktaki goz
 {
   settle();
   const p = fresh();
-  __sim.state.log.cameras = [];
-  p.camera.setCamera = () => { __sim.state.log.cameras.push("set"); };
+  const cam = () => p.cameraSets[p.cameraSets.length - 1];
+  p.cameraSets.length = 0;
   __sim.fire("after", "itemUse", { itemStack: { typeId: "stnt:kucultme_topu" }, source: p });
-  __sim.tick(60);
+  __sim.tick(5);
   eq(p.getProperty("st:size"), 1, "Kucultme Topu bir kademe kuculttu");
-  ok(__sim.state.log.cameras.length === 0,
-     "kuculunce kamera SURULMUYOR (oyuncu hareket edebilir)",
-     `${__sim.state.log.cameras.length} setCamera cagrisi`);
-  __sim.fire("after", "itemUse", { itemStack: { typeId: "stnt:buyutme_topu" }, source: p });
-  __sim.fire("after", "itemUse", { itemStack: { typeId: "stnt:buyutme_topu" }, source: p });
-  __sim.tick(60);
-  eq(p.getProperty("st:size"), 3, "Buyutme Topu bir kademe buyuttu");
-  ok(__sim.state.log.cameras.length === 0, "buyuyunce de kamera surulmuyor");
+  ok(cam() && cam().preset === "minecraft:free", "kuculunce POV kamerasi suruluyor");
+  const kucuk = cam().opts;
+  ok(kucuk.location.y - p.location.y < EYE,
+     "kucukken goz ALCALIYOR (dunya buyuk gorunur)",
+     `goz +${(kucuk.location.y - p.location.y).toFixed(2)}`);
+  ok(kucuk.easeOptions && kucuk.easeOptions.easeTime > 0,
+     "kamera easing ile suruluyor (saniyede 20 kez ziplamiyor)");
+  // Kamera oyuncunun KENDI kafasinin icinde kalirsa ekran siyah olur.
+  ok(Math.hypot(kucuk.location.x - p.location.x, kucuk.location.z - p.location.z) > 0.1,
+     "kamera kafanin disina otelenmis (ekran siyah olmaz)");
+  // Comelme: goz inmeli, yoksa cocuk "egilemiyorum" der.
+  const ayakta = cam().opts.location.y;
+  p.isSneaking = true;
+  __sim.tick(2);
+  ok(cam().opts.location.y < ayakta, "comelince kamera da aliniyor",
+     `ayakta ${ayakta.toFixed(2)}, comelmis ${cam().opts.location.y.toFixed(2)}`);
+  p.isSneaking = false;
+  __sim.tick(2);
+}
+{
+  settle();
+  const p = fresh();
+  p.cameraSets.length = 0;
+  for (let i = 0; i < 2; i++) {
+    __sim.fire("after", "itemUse", { itemStack: { typeId: "stnt:buyutme_topu" }, source: p });
+    __sim.tick(3);
+  }
+  eq(p.getProperty("st:size"), 4, "Buyutme Topu iki kademe buyuttu");
+  const dev = p.cameraSets[p.cameraSets.length - 1];
+  ok(dev.opts.location.y - p.location.y > EYE,
+     "devken goz YUKSELIYOR (dunya kucuk gorunur)",
+     `goz +${(dev.opts.location.y - p.location.y).toFixed(2)}`);
+  // Normale donunce kamera BIRAKILMALI, yoksa oyuncu scripted kamerada kalir.
+  __sim.fire("after", "itemUse", { itemStack: { typeId: "stnt:normal_boyut_topu" }, source: p });
+  __sim.tick(5);
+  eq(p.getProperty("st:size"), 2, "Normal Boyut Topu normale dondurdu");
+  eq(p.cameraActive, null, "normal boyutta kamera birakiliyor");
+}
+// Hic boyut degistirmemis oyuncunun kamerasina DOKUNULMAZ.
+{
+  settle();
+  const p = fresh();
+  p.cameraSets.length = 0;
+  __sim.tick(40);
+  eq(p.cameraSets.length, 0, "normal boyuttaki oyuncunun kamerasina dokunulmuyor");
 }
 
 // ---------------------- 18. OLUM her zaman cikis yolu: boyut ve kilik sifirlanir

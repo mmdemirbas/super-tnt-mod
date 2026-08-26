@@ -197,21 +197,48 @@ run "Kalp Baltasi yine kiriliyor" "dayaniklilik bileseni duruyor"
 cp "$BAK/build.bak" bedrock/build.py
 python3 bedrock/build.py > /dev/null 2>&1
 
-# 23) POV kamerasi geri gelsin -> oyuncu kuculunce yerinden kimildayamaz.
-#     Gercekten yasanmis hata: v1.40.0'da cocuk boyut degistirince ilerleyemiyor,
-#     geri gidemiyor, egilemiyordu.
+# 23) POV kamerasi yine ayak konumundan surulsun -> comelince goz inmez.
+#     Gercekten yasanmis hata: v1.40.0'da cocuk "egilemiyorum" diyordu.
 cp "$BP/scripts/main.js" "$BAK/main.bak"
-python3 - <<'PYX'
-import io
+mutate_js() {   # mutate_js <eski> <yeni>   (main.js icinde tek yer degistirir)
+  python3 - "$1" "$2" <<'PYX'
+import io, sys
 p = "bedrock/super_tnt_BP/scripts/main.js"
 s = io.open(p, encoding="utf-8").read()
-s = s.replace('function releaseCamera(p) {',
-              'function povCam(p) { p.camera.setCamera("minecraft:free", {}); }\n'
-              'function releaseCamera(p) {', 1)
-io.open(p, "w", encoding="utf-8").write(s)
+assert s.count(sys.argv[1]) == 1, f"beklenen tek eslesme: {sys.argv[1]!r}"
+io.open(p, "w", encoding="utf-8").write(s.replace(sys.argv[1], sys.argv[2], 1))
 PYX
-run "scripted kamera geri geldi" "setCamera cagiriyor"
+}
+mutate_js "head = p.getHeadLocation();" "head = { y: loc.y + 1.62 };"
+run "POV kamerasi comelmeyi izlemiyor" "comelince goz inmez"
 cp "$BAK/main.bak" "$BP/scripts/main.js"
+
+# 28) easing kaldirilsin -> kamera saniyede 20 kez ziplayarak arkadan yetisir
+mutate_js "easeOptions: { easeTime: 0.05" "noEase: { easeTime: 0.05"
+run "POV kamerasi easing'siz" "kamera saniyede 20 kez zipliyor"
+cp "$BAK/main.bak" "$BP/scripts/main.js"
+
+# 29) one oteleme kaldirilsin -> kamera oyuncunun kafasinin icinde, ekran siyah
+mutate_js "const fwd = camForward(scale);" "const fwd = 0;"
+run "POV kamerasi kafanin icinde" "ekran siyah olur"
+cp "$BAK/main.bak" "$BP/scripts/main.js"
+
+# 30) hareketi kilitleyen /inputpermission eklensin
+mutate_js 'const eye = loc.y' 'p.runCommand("inputpermission set @s movement disabled");\n    const eye = loc.y'
+run "oyuncunun hareketi kilitleniyor" "hareketini kilitler"
+cp "$BAK/main.bak" "$BP/scripts/main.js"
+
+# 31) kademe 1 carpisma yuksekligi tam 1.00'e donsun -> tek blokluk bosluga
+#     girilemez (cocuk "kuculdum ama giremiyorum" diyordu)
+sed 's/^    1: (0.53, 0.50, 0.95).*$/    1: (0.53, 0.50, 1.00),/' "$BAK/build.bak" > bedrock/build.py
+run "tek blokluk bosluga girilemiyor" "tek blokluk"
+cp "$BAK/build.bak" bedrock/build.py
+
+# 32) creeper patlamasi yine blok kirmasin -> cocuk yalnizca ses duyar
+sed 's/^         pow=dict(r=3, breaks=True, cd=100)),$/         pow=dict(r=3, breaks=False, cd=100)),/' "$BAK/build.bak" > bedrock/build.py
+run "creeper patlamasi iz birakmiyor" "yalnizca"
+cp "$BAK/build.bak" bedrock/build.py
+python3 bedrock/build.py > /dev/null 2>&1
 
 # 24) Buz TNT'nin yaricapi kaldirilsin -> dunyanin obur ucundaki kardes de
 #     30 saniye yerinden kimildayamaz (slowness amp 6 = tam felc).

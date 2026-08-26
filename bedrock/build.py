@@ -78,7 +78,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 41, 0]
+VERSION = [1, 42, 0]
 MIN_ENGINE = [1, 21, 0]
 # Surum etiketi paket ADINA yazilir. UUID + klasor adlari sabit oldugu icin
 # Minecraft ayni UUID'li paketi yerinde GUNCELLER; ama cihazda eski surum
@@ -104,23 +104,19 @@ VER_STR = ".".join(str(n) for n in VERSION)
 # oranina hizalandi ki model hitbox'in disina tasmasin (denetimde bulunan
 # kozmetik uyumsuzluk). MorphX dev boyutu 3.6y kullaniyor; ustunu asmadik.
 #
-# ILK SAHIS KAMERASI YOK — ve BIR DAHA EKLENMEYECEK.
-# Bedrock'ta goz yuksekligi ~1.62 blokta sabittir; render-scale de,
-# collision_box da, minecraft:scale de onu degistirmez. POV'u gercekten
-# oynatmanin tek yolu Script Kamera'ydi: her tick p.camera.setCamera(
-# "minecraft:free", ...). v1.40.0'a kadar bu vardi ve OYUNU BOZUYORDU:
-# kucultme/buyutme kullanan oyuncu ilerleyemiyor, geri gidemiyor, eğilemiyordu.
-# "minecraft:free" oyuncudan KOPUK bir kameradir; etkinken oyuncunun hareket
-# girdisi islenmez. Ustelik kamera her tick oyuncunun kendi konumuna
-# surulduugu icin oyuncu yerinden kimildasa bile ekran ayni kalirdi.
-# Boyut degisiminin GORSEL olcegi (render-scale) ve CARPISMA kutusu bundan
-# bagimsiz calisir; ikisi de duruyor. Kaybedilen tek sey goz yuksekliginin
-# boyutla degismesi — bu, oyuncunun yurumesinin yaninda onemsiz.
-# Bu yuzden paket artik hicbir deneysel bayrak (Beta APIs / Creator Cameras)
-# istemez.
+# ILK SAHIS KAMERASI: Bedrock'ta goz yuksekligi SABITTIR; render-scale de,
+# collision_box da, minecraft:scale de onu degistirmez. Ozel kamera on-ayarlari
+# da yalnizca "minecraft:free"den turetilebiliyor. Yani kucukken dunyayi buyuk
+# gormenin tek yolu betikle surulen serbest kamera; nasil surulecegi ve
+# v1.40.0'da neyi yanlis yaptigi main.js'teki "POV kamerasi" blogunda yazili.
+#
+# CARPISMA YUKSEKLIKLERI. Tek blokluk bir bosluga girebilmek icin yukseklik
+# 1.0'in ALTINDA olmali; kademe 1 tam 1.00 iken sinirda kaliyordu ve cocuk
+# "kuculdum ama giremiyorum" diyordu. 0.95 pay birakiyor. Gorsel olcek
+# carpisma yuksekligi / 1.8 oranina hizali: model hitbox'in disina tasmasin.
 SIZE_TABLE = {
     0: (0.33, 0.35, 0.60),   # minik   (0.6/1.8)
-    1: (0.55, 0.50, 1.00),   # kucuk   (1.0/1.8)
+    1: (0.53, 0.50, 0.95),   # kucuk   (0.95/1.8) — tek blokluk bosluga girer
     2: (1.00, 0.60, 1.80),   # normal  (vanilla)
     3: (1.65, 0.90, 3.00),   # buyuk   (3.0/1.8)
     4: (2.00, 1.20, 3.60),   # dev     (3.6/1.8)
@@ -178,8 +174,15 @@ PLAYER_BASE = {
 # sonen lekeleri, bakir golemin cicegi) ALINMADI: o Molang degiskenlerini
 # oyuncu varligi hesaplamaz, katman sabit/parlak takilir.
 MORPHS_VANILLA = [
+    # Creeper'in patlamasi BLOK KIRAR. Eskiden breaks varsayilani false'ti:
+    # patlama oluyor, ses cikiyor, ama hicbir sey olmuyordu — cocuk "sadece
+    # patlama sesi cikiyor, bozuk" diyordu. Gercek creeper da blok kirar.
+    # Yaricap 3 (vanilla creeper gucu), Dev Creeper 6 ile daha sert kaliyor.
+    # Ipucu bunu kendiliginden yazar: morph_hint 'breaks' gorunce
+    # "(blok kirar!)" ekler.
     dict(key="creeper", n=1, tr="Creeper", cat="Canavarlar", geo="geometry.creeper.v1.8",
-         tex="textures/entity/creeper/creeper", mat="creeper", act="explode"),
+         tex="textures/entity/creeper/creeper", mat="creeper", act="explode",
+         pow=dict(r=3, breaks=True, cd=100)),
     dict(key="zombie", n=2, tr="Zombi", cat="Canavarlar", geo="geometry.zombie.v1.8",
          tex="textures/entity/zombie/zombie", mat="zombie"),
     dict(key="skeleton", n=3, tr="İskelet", cat="Canavarlar", geo="geometry.skeleton.v1.8",
@@ -2578,6 +2581,7 @@ def build():
                             .replace("__FUSE__", str(FUSE_TICKS)) \
                             .replace("__PORTAL_N__", str(len(PORTAL_COLORS))) \
                             .replace("__PORTAL_NAMES__", json.dumps([n for n, _ in PORTAL_COLORS], ensure_ascii=False)) \
+                            .replace("__SIZE_SCALES__", json.dumps({i: SIZE_TABLE[i][0] for i in SIZE_TABLE})) \
                             .replace("__MORPH_MAP__", json.dumps(MORPH_MAP, ensure_ascii=False))
     os.makedirs(os.path.join(BP, "scripts"), exist_ok=True)
     open(os.path.join(BP, "scripts/main.js"), 'w', encoding='utf-8').write(script)
@@ -2631,6 +2635,7 @@ const MORPH_HINT = __MORPH_HINT__;     // st:morph_<mob> olayi -> eylem cubugu m
 const BLOCK_MORPH_MAP = __BLOCK_MORPH_MAP__;   // kirilan blok -> blok kiligi olayi
 const BLOCK_MORPH_EVENTS = new Set(Object.values(BLOCK_MORPH_MAP));
 const MORPH_MAP = __MORPH_MAP__;   // mob typeId -> st:morph_<key> olayi
+const SIZE_SCALES = __SIZE_SCALES__;   // st:size kademe -> gorsel olcek
 const FUSE = __FUSE__;
 
 // ---------------------------------------------------------------- item'lar
@@ -4561,15 +4566,83 @@ function promptPassword(player, k, rec, isOwner) {
   } catch (e) {}
 }
 
-// ---- Kamerayi SERBEST BIRAK (v1.40.0 kalintisi temizligi).
-// v1.40.0'a kadar kucultme/buyutme her tick "minecraft:free" scripted kamera
-// suruyordu. O kamera oyuncudan kopuktur: etkinken oyuncu ilerleyemiyor, geri
-// gidemiyor, egilemiyordu — yani boyut degistiren cocuk oyunda kilitli kaliyordu.
-// Kamera tamamen kaldirildi (bkz. build.py SIZE_TABLE ustundeki not).
-// Eski surumle oynanmis bir dunyada kamera hala oyuncunun uzerinde kalmis
-// olabilir; burada bir kez birakilir ki guncelleyen cocuk kilitli kalmasin.
-// setCamera artik HICBIR yerde cagrilmaz.
-function releaseCamera(p) { try { p.camera.clear(); } catch (e) {} }
+// ---- Kucultme/Buyutme POV kamerasi
+//
+// NEDEN BETIKLE SURULEN BIR KAMERA. Bedrock'ta ilk-sahis goz yuksekligi
+// SABITTIR; ne render-scale, ne collision_box, ne minecraft:scale onu
+// degistirir (belge minecraft:scale'i "visual size multiplier" diye tanimlar).
+// Ozel kamera on-ayarlari da ise yaramiyor: "A custom Camera Preset can
+// inherit from other custom Camera Presets, or from the 'minecraft:free'
+// preset. For now, the other built-in camera perspectives can't be specified
+// here." (Camera System Introduction). Yani ilk-sahis kamerayi kaydirmanin
+// desteklenen bir yolu YOK. Kucukken dunyayi buyuk gormenin tek yolu
+// "minecraft:free" kamerayi betikle surmek.
+//
+// SERBEST KAMERA HAREKETI KILITLEMEZ. Kilitlemek isteyen ayrica
+// /inputpermission cagirmak zorunda (Free Camera Preset Tutorial). Biz
+// cagirmiyoruz.
+//
+// v1.40.0'daki hali uc seyi yanlis yapiyordu; ucu de burada duzeltildi:
+//   1) Konum p.location + SABIT 1.62*olcek idi. Comelince goz inmiyordu ve
+//      cocuk "egilemiyorum" diyordu. Artik getHeadLocation() ile GERCEK goz
+//      konumu okunuyor, yerden yuksekligi olcekleniyor: comelme de olceklenir.
+//   2) Her tick tek bir konuma ATLIYORDU. Oyun saniyede 60 kare cizerken
+//      kamera 20 kez zipliyor; "kamera arkadan gelip yetisiyor" hissi bu.
+//      Artik her set bir tick boyunca LINEER easing ile suruluyor, kamera
+//      adim adim degil akici gidiyor.
+//   3) Kamera oyuncunun KENDI kafasinin icinde kaliyordu ve ekran SIYAH
+//      oluyordu — serbest kamerada oyuncunun kendi modeli de cizilir. Artik
+//      kamera, bakis yonunun YATAY bileseninde kafanin disina oteleniyor.
+//      Yatay: yukari/asagi bakinca kamera kafanin ustune/altina kacmasin.
+//
+// KALAN SINIR (duzeltilemez): betik saniyede 20 kez calisir, kamera en iyi
+// ihtimalle bir tick geride kalir. Easing bunu AKICI yapar, sifirlamaz.
+// Gercekten oyuncuya bagli bir kamera icin deneysel "Creator Cameras" ucuncu-
+// sahis on-ayarlari gerekir; onlar da dunyada bayrak acmayi zorunlu kilar.
+const camState = new Map();      // playerId -> kamera surulen son boyut
+function releaseCamera(p) {      // kamerayi birak: normal ilk-sahis geri gelir
+  try { p.camera.clear(); } catch (e) {}
+  camState.delete(p.id);
+}
+// Kameranin bakis yonunde ne kadar one otelenecegi (blok). Kafanin yarim
+// derinligi 1 olcekte 0.25 blok; ustune 0.10 pay. Kucukken 0.18, devken 0.60.
+function camForward(scale) { return 0.25 * scale + 0.10; }
+system.runInterval(() => {
+  for (const p of world.getPlayers()) {
+    let sz;
+    try { sz = p.getProperty("st:size"); } catch (e) { continue; }
+    if (typeof sz !== "number") sz = __SIZE_DEFAULT__;
+    if (sz === __SIZE_DEFAULT__) {
+      // Hic kamera surmedigimiz oyuncunun varsayilan kamerasina DOKUNMA.
+      if (camState.has(p.id)) releaseCamera(p);
+      continue;
+    }
+    if (!p.camera || typeof p.camera.setCamera !== "function") continue;
+    const scale = SIZE_SCALES[sz] || SIZE_SCALES[String(sz)] || 1;
+    if (!(scale > 0)) continue;
+    let loc, head, rot, dir;
+    try {
+      loc = p.location; head = p.getHeadLocation();
+      rot = p.getRotation(); dir = p.getViewDirection();
+    } catch (e) { continue; }
+    if (!loc || !head || !rot || !dir) continue;
+    // Gozun AYAKTAN yuksekligi olceklenir; comelince head.y zaten duser.
+    const eye = loc.y + (head.y - loc.y) * scale;
+    const fwd = camForward(scale);
+    const hyp = Math.hypot(dir.x, dir.z) || 1;   // yalnizca yatay bilesen
+    try {
+      p.camera.setCamera("minecraft:free", {
+        location: { x: loc.x + (dir.x / hyp) * fwd, y: eye, z: loc.z + (dir.z / hyp) * fwd },
+        rotation: { x: rot.x, y: rot.y },
+        easeOptions: { easeTime: 0.05, easeType: "Linear" },   // tam bir tick
+      });
+      camState.set(p.id, sz);
+    } catch (e) {
+      // Kamera API'si yoksa sessizce vazgec: gorsel olcek ve carpisma kutusu
+      // zaten calisiyor, oyunun geri kalani etkilenmiyor.
+    }
+  }
+}, 1);
 try { for (const p of world.getPlayers()) releaseCamera(p); } catch (e) {}
 try {
   world.afterEvents.playerSpawn.subscribe((ev) => {

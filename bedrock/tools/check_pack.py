@@ -680,19 +680,54 @@ def check_poses():
 def check_player_control(js):
     """Oyuncunun elinden HAREKET KONTROLUNU alan hicbir sey kalmamali.
 
-    v1.40.0'da kucultme/buyutme her tick 'minecraft:free' scripted kamera
-    suruyordu. O kamera oyuncudan kopuktur: etkinken cocuk ilerleyemiyor, geri
-    gidemiyor, egilemiyordu. Bedrock bunun icin hata vermez, sadece oyun
-    oynanmaz olur — yani ancak tablette fark edilir. Kaldirildi ve burada
-    kilitlendi. Yeniden eklemek gerekirse once bu denetimi silmek gerekir;
-    o da bilincli bir karar demektir."""
-    # ".setCamera" / "setCamera(" aranir, duz kelime DEGIL: dosyada neden
-    # kaldirildigini anlatan bir yorum satiri var ve o bir cagri degil.
-    check(".setCamera" not in js and "setCamera(" not in js,
-          "main.js setCamera cagiriyor — 'minecraft:free' kamera oyuncunun "
-          "hareketini kilitler (v1.40.0 hatasi)")
+    Kucultme/Buyutme POV kamerasi 'minecraft:free' kamerayi her tick surer.
+    Bedrock'ta ilk-sahis goz yuksekligini oynatmanin baska yolu yok. Ama yanlis
+    surulurse oyun oynanmaz hale gelir ve Bedrock bunun icin HATA VERMEZ; ancak
+    tablette fark edilir. v1.40.0'da uc sey birden yanlisti, ucu de burada
+    kilitli:
+      - konum p.location + sabit 1.62 idi -> comelince goz inmiyordu,
+      - easing yoktu -> kamera saniyede 20 kez zipliyordu,
+      - one oteleme yoktu -> kamera oyuncunun kendi kafasinin icinde, ekran
+        siyah.
+    Ayrica hareketi gercekten kilitleyen sey /inputpermission'dir; serbest
+    kamera tek basina kilitlemez. O yuzden inputpermission YASAK."""
+    # YORUMLAR ATILIR. Bu denetimlerin hepsi bir kez yorum satirina takildi:
+    # bloktaki aciklama "getHeadLocation() ile" yaziyor, kod onu kullanmasa da
+    # kelime dosyada duruyor ve denetim bos geciyordu. Denetim KODA bakmali.
+    # (Blokta // iceren metin sabiti yok; olsaydi bu kesme yanlis olurdu.)
+    def kodu(metin):
+        return "\n".join(satir.split("//")[0] for satir in metin.splitlines())
+
+    kod = kodu(js)
+    cam = re.search(r"POV kamerasi[\s\S]*?\}, 1\);", js)
+    check(bool(cam), "POV kamerasi blogu main.js'te bulunamadi")
+    blok = kodu(cam.group(0)) if cam else ""
+    check("p.getHeadLocation()" in blok,
+          "POV kamerasi goz yuksekligini getHeadLocation()'dan almiyor "
+          "— comelince goz inmez")
+    check("easeOptions" in blok,
+          "POV kamerasi easing'siz suruluyor — kamera saniyede 20 kez zipliyor")
+    check("= camForward(scale)" in blok,
+          "POV kamerasi one otelenmiyor — kamera oyuncunun kafasinin icinde, "
+          "ekran siyah olur")
+    check(not re.search(r"inputpermission|inputPermissions", kod, re.I),
+          "main.js inputpermission kullaniyor — oyuncunun hareketini kilitler")
     check("camera.clear" in js,
-          "eski surumden kalan kamerayi birakan camera.clear() cagrisi yok")
+          "kamerayi birakan camera.clear() cagrisi yok — normal boyuta donen "
+          "oyuncu scripted kamerada kalir")
+    # Kucultmenin GORUNUR karsiligi tek blokluk bosluga girebilmektir. Bunun
+    # icin carpisma yuksekligi 1.0'in ALTINDA olmali; tam 1.00 sinirda kalip
+    # calismiyordu.
+    check(build.SIZE_TABLE[1][2] < 1.0,
+          f"kademe 1 carpisma yuksekligi {build.SIZE_TABLE[1][2]} — tek blokluk "
+          "bosluga girilemez")
+    # Blok kirmayan bir patlama cocugun ekraninda SESTEN ibarettir: patlama
+    # oyuncunun ayagi dibinde olusur, hasar geri konur, ortada iz kalmaz.
+    for m in build.MORPHS:
+        if m.get("act") == "explode":
+            check(m.get("pow", {}).get("breaks"),
+                  f"morph {m['key']}: patlamasi blok kirmiyor — cocuk yalnizca "
+                  "patlama sesi duyar, hicbir sey olmaz")
     # Slowness amp >= 6 hareket hizini SIFIRLAR. Iki yerde bilerek kullanilir
     # (Buz TNT, Dondurucu) ve ikisi de ipucunda "dondurur" der. Ucuncusu
     # cikarsa bilerek eklenmis olmali.
