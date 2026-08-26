@@ -78,7 +78,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 42, 0]
+VERSION = [1, 43, 0]
 MIN_ENGINE = [1, 21, 0]
 # Surum etiketi paket ADINA yazilir. UUID + klasor adlari sabit oldugu icin
 # Minecraft ayni UUID'li paketi yerinde GUNCELLER; ama cihazda eski surum
@@ -708,7 +708,7 @@ TNTS = [
          trtip="Merkez patlama + etrafa 5 küçük patlama dalgası saçar.",
          entip="A centre blast plus 5 smaller explosion waves.",
          color=((222, 178, 40), (240, 200, 60), (200, 158, 30)), mat="minecraft:gold_ingot",
-         effect=dict(kind="explode", power=7)),
+         effect=dict(kind="explode", power=7, waves=5, waveDist=6, wavePower=3)),
     dict(id="emerald_tnt", tr="Zümrüt TNT", en="Emerald TNT",
          trtip="Zümrüt, elmas, altın ve lapis yağdırır.",
          entip="Rains emeralds, diamonds, gold and lapis.",
@@ -920,7 +920,8 @@ TNTS = [
          entip="Creates a candy world + speed and jump boost! (Mind the landing.)",
          color=((236, 120, 180), (248, 150, 200), (210, 96, 156)), mat="minecraft:sugar",
          effect=dict(kind="transform", radius=14, perTick=1000, palette=[
-             f"minecraft:{c}_glazed_terracotta" for c in ["pink", "magenta", "purple", "lime", "yellow", "light_blue"]])),
+             f"minecraft:{c}_glazed_terracotta" for c in ["pink", "magenta", "purple", "lime", "yellow", "light_blue"]],
+             buff=[{"id": "speed", "seconds": 30, "amp": 1}, {"id": "jump_boost", "seconds": 30, "amp": 2}])),
     dict(id="gulen_yuz_tnt", tr="Gülen Yüz TNT", en="Smiley TNT",
          trtip="Çıngırak sesiyle dünyayı sarıya boyar! 12 blok yarıçap.",
          entip="Paints the world yellow with a giggle! 12 block radius.",
@@ -954,8 +955,8 @@ TNTS = [
          color=((250, 210, 90), (255, 226, 120), (230, 186, 66)), mat="minecraft:end_crystal",
          effect=dict(kind="spawn", entity="minecraft:ender_crystal", count=15, spread=8.0)),
     dict(id="uyku_tnt", tr="Uyku TNT", en="Sleep TNT",
-         trtip="Patlatan dışındaki herkesi 30 sn 'uyutur': yavaşlama, körlük, bulantı, güçsüzlük.",
-         entip="Puts everyone but the igniter to 'sleep' for 30s.",
+         trtip="Patlatan dışındaki herkesi 30 sn 'uyutur': yavaşlama, körlük, bulantı, güçsüzlük, kazma yorgunluğu.",
+         entip="Puts everyone but the igniter to 'sleep' for 30s: slowness, blindness, nausea, weakness, mining fatigue.",
          color=((150, 120, 200), (176, 148, 220), (124, 96, 168)), mat="minecraft:pink_wool",
          effect=dict(kind="status", target="all", radius=20, exceptIgniter=True, power=0.5,
                      particle="minecraft:mobspell_emitter",
@@ -971,12 +972,13 @@ TNTS = [
          trtip="Yer altında mağara oyar ve korkunç yaratıklar doğurur!",
          entip="Carves a cave underground and spawns scary creatures!",
          color=((70, 66, 60), (92, 86, 78), (54, 50, 46)), mat="minecraft:stone",
-         effect=dict(kind="spawn", entity="minecraft:zombie", count=15, spread=8.0, yoff=-2, power=4)),
+         effect=dict(kind="spawn", entity="minecraft:zombie", count=15, spread=8.0, yoff=-2,
+                     power=4, digs=True)),
     dict(id="kup_tnt", tr="Küp TNT", en="Cube TNT",
          trtip="Yerin içine doğru büyük bir küp şeklinde kazı yapar!",
          entip="Digs a big cube down into the ground!",
          color=((90, 90, 96), (112, 112, 118), (72, 72, 78)), mat="minecraft:stone",
-         effect=dict(kind="break", radius=12, skipBedrock=True, perTick=1000, power=4)),
+         effect=dict(kind="break", radius=12, skipBedrock=True, perTick=1000, power=4, cube=True)),
     dict(id="lego_tnt", tr="Lego TNT", en="Lego TNT",
          trtip="Blokları renkli Lego tuğlalarına dönüştürür!",
          entip="Turns blocks into colored Lego bricks!",
@@ -1272,19 +1274,21 @@ ITEMS = [
                      pulse=20, reach=40, cd=60)),
     dict(id="lightning_spell", tr="Yıldırım Büyüsü", en="Lightning Spell", kind="raycast",
          trtip="Sağ tıkla — baktığın yere GERÇEK yıldırım çakar! Yakar ve öldürür.",
-         entip="Right-click - strikes REAL lightning where you look!",
+         entip="Right-click - strikes REAL lightning where you look! It burns and kills.",
          color=(110, 140, 210), action=dict(type="lightning")),
     dict(id="black_hole", tr="Kara Delik", en="Black Hole", kind="self_area",
          trtip="Sağ tıkla — yakındaki her şeyi çeker, kör eder ve hasar verir.",
          entip="Right-click - pulls, blinds and damages nearby entities.",
          color=(40, 30, 60), action=dict(type="blackhole", radius=12)),
     dict(id="energy_crystal", tr="Enerji Kristali", en="Energy Crystal", kind="raycast",
-         trtip="Sağ tıkla — baktığın bedrock'u kırar!",
+         trtip="Sağ tıkla — baktığın bedrock'u (kaya katmanını) kırar!",
          entip="Right-click - breaks the bedrock you look at!",
-         color=(120, 220, 220), action=dict(type="break_any")),
+         color=(120, 220, 220), action=dict(type="break_bedrock")),
     dict(id="laser_sword", tr="Lazer Kılıcı", en="Laser Sword", kind="raycast",
-         trtip="Sağ tıkla — önündeki bloklarda 9 bloklık lazer açar!",
-         entip="Right-click - carves a 9-block laser ahead!",
+         trtip="Sağ tıkla — önündeki bloklarda 9 bloklık lazer açar! "
+               "Lazerin içinde kalan canlıyı da yakar (15 kalp).",
+         entip="Right-click - carves a 9-block laser ahead! It also burns "
+               "anything caught in the beam (15 hearts).",
          color=(210, 40, 40), action=dict(type="laser", length=9)),
     dict(id="grappling_hook", tr="Kanca", en="Grappling Hook", kind="raycast",
          trtip="Sağ tıkla — baktığın yere doğru fırlarsın!",
@@ -1322,7 +1326,7 @@ ITEMS = [
                "Hiç eskimez — hayatta kalma modunda bile kırılmaz.",
          entip="One-shots mobs; heavy damage to players! It never wears out - "
                "unbreakable even in survival.",
-         color=(200, 40, 90), damage=20, unbreakable=True,
+         color=(200, 40, 90), damage=7, unbreakable=True,
          action=dict(type="heavy")),
     dict(id="rainbow_boots", tr="Gökkuşağı Botları", en="Rainbow Boots", kind="boots",
          trtip="Giy — adım attığın yerde renkli yün izi bırakırsın!",
@@ -1414,8 +1418,8 @@ ITEMS = [
          entip="Wear it - retaliates with a TNT blast against attackers!", color=(196, 48, 54)),
     # Ender Send: dev bir enderman-benzeri boss cagiran yumurta.
     dict(id="ender_send_yumurta", tr="Ender Send Yumurtası", en="Ender Send Egg", kind="spawn_egg",
-         trtip="Sağ tıkla — DEV bir Ender Send çağırır! 300 can, ışınlanır, çok güçlü.",
-         entip="Right-click - summons a GIANT Ender Send! 300 HP, teleports, very strong.",
+         trtip="Sağ tıkla — DEV bir Ender Send çağırır! 300 can, çok güçlü.",
+         entip="Right-click - summons a GIANT Ender Send! 300 HP, very strong.",
          color=(40, 30, 60), spawn="stnt:ender_send"),
     dict(id="dev_zombi_yumurta", tr="Dev Zombi Yumurtası", en="Giant Zombie Egg", kind="spawn_egg",
          trtip="Sağ tıkla — DEV bir zombi çağırır! 250 can, ağır yumruk.",
@@ -2601,6 +2605,9 @@ def build():
                             .replace("__PORTAL_NAMES__", json.dumps([n for n, _ in PORTAL_COLORS], ensure_ascii=False)) \
                             .replace("__SIZE_SCALES__", json.dumps({i: SIZE_TABLE[i][0] for i in SIZE_TABLE})) \
                             .replace("__SIZE_CAM_FWD__", json.dumps(SIZE_CAM_FWD)) \
+                            .replace("__SIZE_H__", json.dumps({i: SIZE_TABLE[i][2] for i in SIZE_TABLE})) \
+                            .replace("__BLOCK_MORPH_BY_N__", json.dumps(
+                                {m["n"]: f"st:morph_{m['key']}" for m in BLOCK_MORPHS}, ensure_ascii=False)) \
                             .replace("__MORPH_MAP__", json.dumps(MORPH_MAP, ensure_ascii=False))
     os.makedirs(os.path.join(BP, "scripts"), exist_ok=True)
     open(os.path.join(BP, "scripts/main.js"), 'w', encoding='utf-8').write(script)
@@ -3042,8 +3049,17 @@ function itemAction(player, a) {
         // KENDINI kademe kucult/buyut ya da normale don (a.reset).
         try {
           let sz = player.getProperty("st:size");
-          if (typeof sz !== "number") sz = 2;
-          sz = a.reset ? 2 : Math.max(0, Math.min(4, sz + a.delta));
+          if (typeof sz !== "number") sz = __SIZE_DEFAULT__;
+          const hedef = a.reset ? __SIZE_DEFAULT__ : Math.max(0, Math.min(4, sz + a.delta));
+          // BUYURKEN tavan var mi? Kucukken girilen bir bloklik bosluktan
+          // sonra buyumek oyuncuyu bloklarin ICINDE birakir; Minecraft ya
+          // disari itiyor ya da sikisip kaliyor. Kucultmede kontrol yok:
+          // kucuk kutu her zaman sigar.
+          if (SIZE_H[hedef] > SIZE_H[sz] && !tavanVarMi(player, SIZE_H[hedef])) {
+            try { player.onScreenDisplay.setActionBar("§cBurada büyüyecek yer yok — açık bir yere geç"); } catch (e) {}
+            break;
+          }
+          sz = hedef;
           player.triggerEvent("st:size_" + sz);
           spray(dim, player.location,
                 (a.reset || a.delta > 0) ? "minecraft:totem_particle" : "minecraft:mob_portal", 24, 2);
@@ -3136,10 +3152,18 @@ function itemAction(player, a) {
         spray(dim, player.location, "minecraft:mob_portal", 40, 3);
         break;
       }
-      case "break_any": {
+      case "break_bedrock": {
+        // YALNIZCA bedrock. Eskiden baktigin HER blogu siliyordu; ipucu
+        // "bedrock'u kirar" dedigi icin cocuk guvenli saniyor, oysa setType
+        // normal kirma yolunu atladigindan sandiga tiklayinca ICINDEKILER de
+        // yok oluyordu. Simdi ipucu ne diyorsa o.
         const hit = player.getBlockFromViewDirection({ maxDistance: 8 });
-        if (hit) { try { hit.block.setType("minecraft:air"); } catch (e) {} }
-        else { try { player.onScreenDisplay.setActionBar("§7Kırmak için bir bloğa bak"); } catch (e) {} }
+        if (!hit) { try { player.onScreenDisplay.setActionBar("§7Kırmak için bedrock'a bak"); } catch (e) {} break; }
+        if (hit.block.typeId !== "minecraft:bedrock") {
+          try { player.onScreenDisplay.setActionBar("§7Bu kristal yalnızca §fbedrock§7'u kırar"); } catch (e) {}
+          break;
+        }
+        try { hit.block.setType("minecraft:air"); } catch (e) {}
         break;
       }
       case "laser": {
@@ -3339,7 +3363,8 @@ world.afterEvents.entityHurt.subscribe((ev) => {
       spray(ev.hurtEntity.dimension, ev.hurtEntity.location, "minecraft:redstone_ore_dust_particle", 15, 1);
     } else if (held.typeId === "stnt:heart_axe") {
       try {
-        ev.hurtEntity.applyDamage(ev.hurtEntity.typeId === "minecraft:player" ? 25 : 1000);
+        // Oyuncuya EK hasar YOK: taban 7 zaten agir. Mob tek vurusta olur.
+        if (ev.hurtEntity.typeId !== "minecraft:player") ev.hurtEntity.applyDamage(1000);
       } catch (e) {}
     }
   } catch (e) {}
@@ -3443,14 +3468,16 @@ function renamePrompt(pl, a, tries) {
 // ---- BLOK KILIGI. Blok KIRINCA o bloga donusulur (asagidaki playerBreakBlock
 // kancasi); blokken BASILI TUTUNCA bakilan yere "yerlesilir"; GOKYUZUNE bakip
 // basili tutunca insana donulur. Uc hareket de ayri, ikisi karismiyor.
-const blockNick = new Map();          // oyuncu -> hangi blok kiligindasin (olay adi)
+// Hangi blok kiligindasin: st:morph OZELLIGINDEN turetilir, ayri bir tabloda
+// TUTULMAZ. Once bellekte bir Map vardi ve dunya kapanip acilinca bosaliyordu:
+// cocuk hala blok gorunuyordu ama "yerles" ve "gokyuzune bak, insana don"
+// hareketlerinin ikisi de sessizce hicbir sey yapmiyordu. st:morph zaten
+// kalici; tek dogru kaynak o olsun.
+const BLOCK_MORPH_BY_N = __BLOCK_MORPH_BY_N__;   // st:morph sayisi -> olay adi
 function isBlockMorph(pl) {
-  const ev = blockNick.get(pl.id);
-  if (!ev) return null;
   let m = 0;
   try { m = pl.getProperty("st:morph") || 0; } catch (e) {}
-  if (!m) { blockNick.delete(pl.id); return null; }   // baska bir sey oldu
-  return ev;
+  return BLOCK_MORPH_BY_N[m] || BLOCK_MORPH_BY_N[String(m)] || null;
 }
 function blockMorphUse(pl) {
   if (!isBlockMorph(pl)) {
@@ -3463,7 +3490,6 @@ function blockMorphUse(pl) {
     // ulasilabilir olmasi sart — kapali bir odada bile tavana bakip cikabilsin
     // diye "blok yok" kosulu secildi, comelme degil (comelme morph yeteneklerini
     // tetikliyor).
-    blockNick.delete(pl.id);
     morphTo(pl, "st:morph_human", "İnsana geri döndün");
     return;
   }
@@ -3507,8 +3533,6 @@ world.afterEvents.playerBreakBlock.subscribe((ev) => {
 
 function morphTo(pl, evName, msg) {
   try {
-    if (BLOCK_MORPH_EVENTS.has(evName)) blockNick.set(pl.id, evName);
-    else blockNick.delete(pl.id);
     pl.triggerEvent(evName);
     pl.onScreenDisplay.setActionBar("§a" + (MORPH_HINT[evName] || msg));
     spray(pl.dimension, pl.location, "minecraft:mob_portal", 20, 1.5);
@@ -3973,6 +3997,16 @@ function detonate(dim, c, short, igniterId) {
     switch (s.kind) {
       case "explode":
         dim.createExplosion(c, s.power, { breaksBlocks: true, causesFire: false });
+        // s.waves: ipucu "etrafa N kucuk patlama dalgasi" diyen TNT'ler icin
+        // merkezin cevresine gecikmeli kucuk patlamalar. Eskiden ipucu bunu
+        // soyluyordu ama kod tek patlama yapiyordu.
+        for (let w = 0; w < (s.waves || 0); w++) {
+          const aci = (w / (s.waves || 1)) * Math.PI * 2, uz = (s.waveDist || 6);
+          const wl = { x: c.x + Math.cos(aci) * uz, y: c.y, z: c.z + Math.sin(aci) * uz };
+          system.runTimeout(() => {
+            try { dim.createExplosion(wl, s.wavePower || 3, { breaksBlocks: true, causesFire: false }); } catch (e) {}
+          }, 8 + w * 6);
+        }
         break;
 
       case "scale": {
@@ -4035,11 +4069,15 @@ function detonate(dim, c, short, igniterId) {
         break;
 
       case "time":
-        // AyTntEntity.java: yalnizca GUNDUZSE geceye cevirir (tod < 12300).
-        // Kosulsuz set etmek geceyi de basa sariyordu.
+        // Yalnizca YON DEGISTIRIYORSA calisir: Ay TNT gunduzu geceye, Gunes
+        // TNT geceyi gunduze cevirir. Eskiden kosul her ikisi icin de
+        // "tod < 12300" idi, yani GUNES TNT GECE HICBIR SEY YAPMIYORDU —
+        // tam da kullanilacagi anda. (Kosulsuz set etmek de yanlis: gunduz
+        // patlatilan Ay TNT gunu basa sariyordu.)
         try {
           const tod = world.getTimeOfDay();
-          if (tod < 12300) world.setTimeOfDay(s.time);
+          const gunduz = tod < 12300, hedefGunduz = s.time < 12300;
+          if (gunduz !== hedefGunduz) world.setTimeOfDay(s.time);
         } catch (e) {
           try { world.setTimeOfDay(s.time); } catch (e2) {}
         }
@@ -4187,7 +4225,9 @@ function detonate(dim, c, short, igniterId) {
           try { dim.spawnEntity(s.entity, p); } catch (e) {}
         }
         if (s.weather) { try { dim.setWeather(s.weather, s.weatherTicks || 12000); } catch (e) {} }
-        if (s.power) { try { dim.createExplosion(c, s.power, { breaksBlocks: false, causesFire: false }); } catch (e) {} }
+        // s.digs: ipucu "magara oyar" diyen TNT'ler icin patlama BLOK KIRAR.
+        // Digerlerinde kirmaz — cocugun evini yikmasin.
+        if (s.power) { try { dim.createExplosion(c, s.power, { breaksBlocks: !!s.digs, causesFire: false }); } catch (e) {} }
         break;
       }
 
@@ -4201,7 +4241,8 @@ function detonate(dim, c, short, igniterId) {
           let d = 0;
           while (bx <= r && d < per) {
             for (let by = -r; by <= r; by++) for (let bz = -r; bz <= r; bz++) {
-              if (bx * bx + by * by + bz * bz > r * r) continue;
+              // s.cube: adi "Kup TNT" olan icin kure degil KUP. Digerleri kure.
+              if (!s.cube && bx * bx + by * by + bz * bz > r * r) continue;
               // d, DEGISTIRILEN degil INCELENEN pozisyonu sayar. Eskiden
               // yalnizca setType'in yanindaydi: filtreye uyan blok yoksa d sifirda
               // kaliyor, while kosulu hic yanlislanmiyor ve TUM kure tek tick'te
@@ -4291,6 +4332,15 @@ function detonate(dim, c, short, igniterId) {
       // ---- blok donusturme, konum-tabanli palet (rainbow, makarna, seker, ...)
       case "transform": {
         const r = s.radius, per = s.perTick || 900, pal = s.palette;
+        // s.buff: ipucu "hiz ve ziplama" diyen TNT'ler icin yakindaki
+        // oyunculara efekt. Eskiden ipucu soz veriyor, kod vermiyordu.
+        if (s.buff) {
+          for (const bp of dim.getPlayers({ location: c, maxDistance: r })) {
+            for (const ef of s.buff) {
+              try { bp.addEffect(ef.id, ef.seconds * 20, { amplifier: ef.amp || 0, showParticles: true }); } catch (e) {}
+            }
+          }
+        }
         const cx = Math.floor(c.x), cy = Math.floor(c.y), cz = Math.floor(c.z);
         let tx = -r;
         const job = system.runInterval(() => {
@@ -4648,6 +4698,23 @@ function releaseCamera(p) {      // kamerayi birak: normal ilk-sahis geri gelir
 // kafasinin on yuzu ile carpisma kutusunun on yuzu arasinda durur (ikisinin de
 // disi ekrani siyah yapar). Tablonun nasil hesaplandigi build.py SIZE_CAM_FWD.
 const SIZE_CAM_FWD = __SIZE_CAM_FWD__;
+const SIZE_H = __SIZE_H__;            // st:size -> carpisma yuksekligi (blok)
+// Oyuncunun BASININ ustunde hedef yukseklige kadar yer var mi? Yalnizca kendi
+// sutununa bakilir: tuzak durumu alcak TAVAN. Yanlara bakmiyoruz, cimen/cicek
+// yuzunden bosuna reddetmeyelim; genislik zaten Minecraft tarafindan disari
+// iterek cozuluyor, asil sikisma dikeyde oluyor.
+const GECIRGEN = new Set(["minecraft:air", "minecraft:water", "minecraft:flowing_water"]);
+function tavanVarMi(pl, hedefY) {
+  const l = pl.location, dim = pl.dimension;
+  const x = Math.floor(l.x), z = Math.floor(l.z), y0 = Math.floor(l.y);
+  for (let dy = 2; dy <= Math.ceil(hedefY); dy++) {
+    try {
+      const b = dim.getBlock({ x, y: y0 + dy, z });
+      if (b && !GECIRGEN.has(b.typeId)) return false;
+    } catch (e) {}
+  }
+  return true;
+}
 system.runInterval(() => {
   for (const p of world.getPlayers()) {
     let sz;

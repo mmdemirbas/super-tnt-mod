@@ -628,6 +628,41 @@ const EYE = 1.62;                                   // taklit: ayaktaki goz
   eq(p.getProperty("st:size"), 2, "Normal Boyut Topu normale dondurdu");
   eq(p.cameraActive, null, "normal boyutta kamera birakiliyor");
 }
+// Alcak tavanin altinda BUYUMEK reddedilmeli: kucukken girilen bir bloklik
+// bosluktan sonra buyumek oyuncuyu bloklarin icinde birakirdi.
+{
+  settle();
+  const p = fresh();
+  for (let dy = 2; dy <= 6; dy++) __sim.setBlock(p.dimension.id, 0, 64 + dy, 0, "minecraft:stone");
+  __sim.state.log.actionBars.length = 0;
+  __sim.fire("after", "itemUse", { itemStack: { typeId: "stnt:buyutme_topu" }, source: p });
+  __sim.tick(5);
+  eq(p.getProperty("st:size"), 2, "tavan altinda buyume reddediliyor");
+  ok(bars().some((m) => m.includes("büyüyecek yer yok")), "neden reddedildigi soyleniyor",
+     bars().join(" | ").slice(0, 100));
+  // Ayni yerde KUCULMEK serbest: kucuk kutu her zaman sigar.
+  __sim.fire("after", "itemUse", { itemStack: { typeId: "stnt:kucultme_topu" }, source: p });
+  __sim.tick(5);
+  eq(p.getProperty("st:size"), 1, "tavan altinda kuculmek serbest");
+}
+
+// Blok kiligi DUNYA YENIDEN YUKLENINCE de calismali. Kilik st:morph'ta kalici;
+// eskiden ayrica bellekte bir Map tutuluyordu ve o bosalinca cocuk blok
+// gorunuyor ama ne yerlesebiliyor ne insana donebiliyordu.
+{
+  settle();
+  const BMM = constOf("BLOCK_MORPH_MAP");
+  const p = fresh();
+  const ev = Object.values(BMM)[0];
+  p.triggerEvent(ev);                       // yalnizca ozellik: yeniden yukleme hali
+  ok(p.getProperty("st:morph") > 0, "yeniden yukleme sonrasi kilik ozelligi duruyor");
+  __sim.state.viewBlock = null;             // gokyuzune bak -> insana don
+  __sim.state.log.actionBars.length = 0;
+  __sim.fire("after", "itemUse", { itemStack: { typeId: "stnt:blok_kiligi" }, source: p });
+  __sim.tick(5);
+  eq(p.getProperty("st:morph"), 0, "yeniden yukleme sonrasi da insana donulebiliyor");
+}
+
 // Hic boyut degistirmemis oyuncunun kamerasina DOKUNULMAZ.
 {
   settle();
@@ -761,6 +796,82 @@ const PASIF = new Set(["bleed", "heavy", "worn_wool", "held_fireproof"]);
   }
   ok(sessiz.length === 0, "her donusum yetenegi GORUNUR bir sey yapiyor",
      `sessiz kalan: ${sessiz.join(", ")}`);
+}
+
+// Kalp Baltasi: ipucu "mob'u tek vurusta oldurur, OYUNCULARA agir hasar"
+// diyor. Eskiden oyuncuya betikten +25 hasar biniyordu; taban 20 ile birlikte
+// 20 canli kardes de tek vurusta oluyordu, yani ipucunun ayirdigi iki durum
+// ayni sonuca cikiyordu.
+{
+  settle();
+  const p = fresh();
+  const kardes = newPlayer("Efe", { x: 1, y: 64, z: 0 });
+  const mob = __sim.addMob("minecraft:cow", { x: 2, y: 64, z: 0 });
+  p.inv[0] = new mc.ItemStack("stnt:heart_axe", 1);
+  __sim.fire("after", "entityHurt", { hurtEntity: kardes, damageSource: { damagingEntity: p } });
+  __sim.tick(2);
+  eq(kardes.damages.length, 0, "Kalp Baltasi oyuncuyu tek vurusta oldurmuyor (betikten ek hasar yok)");
+  __sim.fire("after", "entityHurt", { hurtEntity: mob, damageSource: { damagingEntity: p } });
+  __sim.tick(2);
+  ok(mob.dead, "Kalp Baltasi mob'u tek vurusta olduruyor");
+}
+
+// ------------- 22. Ipucunun soz verdigi seyi GERCEKTEN yapan TNT'ler
+// Hepsi bir ipucu-kod uyusmazligindan cikti: ipucu bir sey soyluyor, kod
+// baskasini yapiyordu ve hicbir denetim bunu gormuyordu.
+{
+  settle();
+  const p = fresh();
+  __sim.state.timeOfDay = 18000;                  // GECE
+  detonateTnt("z_gunes_tnt", p, { x: 0, y: 64, z: 0 });
+  __sim.tick(200);
+  eq(__sim.state.log.timeSets.includes(6000), true,
+     "Gunes TNT GECE gunduze ceviriyor", `set edilenler: ${__sim.state.log.timeSets}`);
+}
+{
+  settle();
+  const p = fresh();
+  __sim.state.timeOfDay = 18000;                  // zaten gece
+  detonateTnt("ay_tnt", p, { x: 0, y: 64, z: 0 });
+  __sim.tick(200);
+  eq(__sim.state.log.timeSets.length, 0, "Ay TNT gece bir sey yapmiyor (gun basa sarmiyor)");
+}
+{
+  settle();
+  const p = fresh();
+  detonateTnt("gold_tnt", p, { x: 0, y: 64, z: 0 });
+  __sim.tick(200);
+  ok(__sim.state.log.explosions.length >= 6,
+     "Altin TNT merkez + bes dalga patlatiyor",
+     `${__sim.state.log.explosions.length} patlama`);
+}
+{
+  settle();
+  const p = fresh();
+  detonateTnt("seker_tnt", p, { x: 0, y: 64, z: 0 });
+  __sim.tick(200);
+  ok(p.effects.has("speed") && p.effects.has("jump_boost"),
+     "Seker TNT hiz ve ziplama veriyor", [...p.effects.keys()].join(","));
+}
+{
+  settle();
+  const p = fresh();
+  detonateTnt("magara_tnt", p, { x: 0, y: 64, z: 0 });
+  __sim.tick(200);
+  ok(__sim.state.log.explosions.some((e) => e.opts.breaksBlocks),
+     "Magara TNT gercekten oyuyor (patlamasi blok kiriyor)");
+}
+{
+  // Kup TNT KUP kazmali: kurenin DISINDA ama kupun icinde kalan kose bosalmali.
+  settle();
+  const p = fresh();
+  const r = SPEC["kup_tnt"].radius;
+  const kose = { x: r - 1, y: 64 + r - 1, z: r - 1 };   // kose: r*sqrt(3) >> r
+  __sim.setBlock(p.dimension.id, kose.x, kose.y, kose.z, "minecraft:stone");
+  detonateTnt("kup_tnt", p, { x: 0, y: 64, z: 0 });
+  __sim.tick(600);
+  const b = __sim.state.blocks.get(`minecraft:overworld|${kose.x},${kose.y},${kose.z}`);
+  eq(b, "minecraft:air", "Kup TNT kupun kosesini de kaziyor (kure degil)");
 }
 
 report();

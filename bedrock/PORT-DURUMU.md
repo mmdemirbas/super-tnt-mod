@@ -1,7 +1,60 @@
 # Super TNT — Bedrock Port Durumu
 
-Son sürüm: **v1.42.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
+Son sürüm: **v1.43.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
 olacak şekilde geliştiriliyor (MorphX / mutant paketine bağımlılık yok).
+
+## v1.43.0 — Hata taraması: ipucu sözleşmesi, sıkışma, tablet yükü
+
+Dört ayrı taramanın bulguları. Hepsi kod okunarak doğrulandı, hiçbiri tablette
+görülmedi — çoğunun ortak yanı şu: **kod çalışıyor, hata vermiyor, ama söz
+verilen şey olmuyor.**
+
+### İpucu ne diyorsa kod onu yapsın
+
+| Ne | Neydi | Ne oldu |
+|---|---|---|
+| **Güneş TNT** | Zaman değiştirme koşulu Ay TNT'den kopyalanmıştı: `tod < 12300` yani **zaten gündüzse**. Güneş TNT'yi gece patlatınca hiçbir şey olmuyordu — tam da kullanılacağı anda. | Koşul yön değiştiriyorsa çalışır: Ay gündüzü geceye, Güneş geceyi gündüze. |
+| **Mağara TNT** | "Mağara oyar" diyordu; patlaması `breaksBlocks: false` idi, tek bir blok bile kırılmıyordu. | Patlaması artık kırıyor (`digs`). Diğer `spawn` TNT'leri kırmıyor — çocuğun evini yıkmasın. |
+| **Altın TNT** | "Merkez + 5 küçük dalga" diyordu; tek patlama vardı. | Merkezin çevresine gecikmeli beş küçük patlama. |
+| **Şeker TNT** | "+ hız ve zıplama" diyordu; hiç efekt vermiyordu. | Yarıçaptaki oyunculara 30 sn hız + zıplama. |
+| **Küp TNT** | Adı Küp, kazısı küreydi (`bx²+by²+bz²>r²`). | Gerçekten küp (`cube`). |
+| **Uyku TNT** | İpucu dört efekt sayıyordu, kod beş uyguluyordu — kazma yorgunluğu yazılmamıştı. | İpucuda yazıyor. |
+| **Lazer Kılıcı** | İpucu yalnızca "blok keser" diyordu; ışının içindeki canlıya 30 hasar (15 kalp) veriyordu. | İpucuda yazıyor. |
+| **Enerji Kristali** | "Baktığın bedrock'u kırar" diyordu; baktığın **her** bloğu siliyordu. `setType` normal kırma yolunu atladığı için sandığa tıklayınca içindekiler de yok oluyordu. | Yalnızca bedrock; başka bloğa bakınca söylüyor. |
+| **Kalp Baltası** | "Mob'u tek vuruşta öldürür, **oyunculara ağır hasar**" diyordu; oyuncuya taban 20 + betikten 25 = 45 hasar biniyordu, yani 20 canlı kardeş de tek vuruşta ölüyordu. | Taban 7, betikten ek hasar yok. Mob hâlâ tek vuruşta ölüyor. |
+| **Ender Send Yumurtası** | "Işınlanır" diyordu; çağrılan boss'ta ışınlanma davranışı hiç yok. | İpucudan çıkarıldı. |
+| **Yıldırım Büyüsü** | Türkçe ipucu "yakar ve öldürür" diyor, İngilizce demiyordu. | İkisi de diyor. |
+
+### Sıkışma ve kaybolan durum
+
+- **Blok kılığı dünya yeniden yüklenince ölüyordu.** Hangi kılıkta olduğun
+  `st:morph`'ta kalıcı ama ayrıca bellekte bir `Map` tutuluyordu. Dünya kapanıp
+  açılınca o Map boşalıyor, çocuk blok görünüyor ama ne yerleşebiliyor ne
+  gökyüzüne bakıp insana dönebiliyordu — iki çıkış yolunun ikisi de sessizce
+  hiçbir şey yapmıyordu. Map kaldırıldı; durum artık `st:morph`'tan
+  **türetiliyor**. Tek doğru kaynak kuralı: aynı bilgi iki yerde durmasın.
+- **Alçak tavanın altında büyümek reddediliyor.** Küçülüp bir bloklık boşluğa
+  giren çocuk orada büyüyünce blokların içinde kalıyordu. Küçülmede kontrol yok
+  — küçük kutu her zaman sığar.
+
+### Tablet yükü
+
+- **Craft Axe doldurması tick'e bölündü.** Paketteki tek bölünmemiş toplu blok
+  işiydi; tavan yalnızca **konan** bloğu sayıyordu, **bakılan** konumu değil, o
+  yüzden masif taşın içini doldurmaya çalışan çocuk hiçbir blok koymadan 20 000
+  konum tarıyordu.
+- **Kamera ötelemesi kademe başına tabloya çevrildi.** Yazdığım formül
+  (`0.25 × ölçek + 0.10`) dört kademenin üçünde çarpışma kutusunun dışına
+  taşıyordu, yani düzelttiğimi sandığım siyahlık üç kademede duruyordu. Hesapla
+  görüldü, tabletle değil.
+
+### Bakılıp temiz çıkanlar
+
+İki kardeşin birbirine karışması (bütün bekleme süreleri oyuncu kimliğine
+bağlı), boyut anahtarlı kayıtlarda boyut kimliği, TNT fitilinin yarış durumu,
+`getEntities` çağrılarının yarıçapı, kalıcı listelerin (portal, izlenen TNT)
+üst sınırı — hepsi doğrulandı, sorun yok. Sahip/mayın kayıtlarının üst sınırı
+yok; iki oyunculu bir dünyada aylarca sorun çıkarmaz, açık bırakıldı.
 
 ## v1.42.0 — POV kamerası geri geldi, bu sefer doğru sürülüyor
 

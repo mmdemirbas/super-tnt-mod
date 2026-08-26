@@ -150,8 +150,8 @@ cp "$BAK/build.bak" bedrock/build.py
 python3 - "$BAK" <<'PYX'
 import io, sys
 s = io.open(sys.argv[1] + "/build.bak", encoding="utf-8").read()
-old = '''    blockNick.delete(pl.id);\n    morphTo(pl, "st:morph_human", "İnsana geri döndün");\n    return;'''
-assert s.count(old) == 1
+old = '''    morphTo(pl, "st:morph_human", "İnsana geri döndün");\n    return;'''
+assert s.count(old) == 1, s.count(old)
 io.open("bedrock/build.py", "w", encoding="utf-8").write(s.replace(old, '    return;', 1))
 PYX
 run "blok kiligindan cikis yolu yok" "insana donuluyor"
@@ -263,6 +263,44 @@ io.open("bedrock/build.py", "w", encoding="utf-8").write(
     s.replace(old, "const CRAFT_AXE_PER_TICK = 999999;", 1))
 PYX
 run "Craft Axe tick butcesi yok" "tick'e bolunerek taraniyor"
+cp "$BAK/build.bak" bedrock/build.py
+
+# 20) buyume tavan kontrolu kalksin -> cocuk bir bloklik boslukta buyuyup
+#     bloklarin icinde sikisir
+python3 - "$BAK" <<'PYX'
+import io, sys
+s = io.open(sys.argv[1] + "/build.bak", encoding="utf-8").read()
+old = "          if (SIZE_H[hedef] > SIZE_H[sz] && !tavanVarMi(player, SIZE_H[hedef])) {"
+assert s.count(old) == 1
+io.open("bedrock/build.py", "w", encoding="utf-8").write(s.replace(old, "          if (false) {", 1))
+PYX
+run "tavan kontrolu yok" "tavan altinda buyume reddediliyor"
+cp "$BAK/build.bak" bedrock/build.py
+
+# 21) blok kiligi yine bellekteki tabloya bagli olsun -> dunya yeniden
+#     yuklenince cocuk blok gorunur ama ne yerlesebilir ne insana donebilir
+python3 - "$BAK" <<'PYX'
+import io, sys
+s = io.open(sys.argv[1] + "/build.bak", encoding="utf-8").read()
+old = "  return BLOCK_MORPH_BY_N[m] || BLOCK_MORPH_BY_N[String(m)] || null;"
+assert s.count(old) == 1
+io.open("bedrock/build.py", "w", encoding="utf-8").write(
+    s.replace(old, "  return (blockNickTmp && blockNickTmp.get(pl.id)) || null;", 1))
+PYX
+run "blok kiligi yeniden yuklemede kayboluyor" "insana donulebiliyor"
+cp "$BAK/build.bak" bedrock/build.py
+
+# 22) Kalp Baltasi oyuncuya yine ek hasar versin -> tek vurusta oldurur,
+#     oysa ipucu "agir hasar" diyor
+python3 - "$BAK" <<'PYX'
+import io, sys
+s = io.open(sys.argv[1] + "/build.bak", encoding="utf-8").read()
+old = '        if (ev.hurtEntity.typeId !== "minecraft:player") ev.hurtEntity.applyDamage(1000);'
+assert s.count(old) == 1
+io.open("bedrock/build.py", "w", encoding="utf-8").write(
+    s.replace(old, "        ev.hurtEntity.applyDamage(1000);", 1))
+PYX
+run "Kalp Baltasi oyuncuyu tek vurusta olduruyor" "oyuncuyu tek vurusta oldurmuyor"
 cp "$BAK/build.bak" bedrock/build.py
 
 echo
