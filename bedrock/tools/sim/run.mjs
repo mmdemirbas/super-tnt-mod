@@ -668,6 +668,75 @@ const EYE = 1.62;                                   // taklit: ayaktaki goz
   ok(!uzak.effects.has("slowness"), "Buz TNT uzaktaki oyuncuya DOKUNMUYOR");
 }
 
+// ------------- 21. HER esya ve HER yetenek GORUNUR bir sey yapiyor mu
+// Bu turun en sinsi hata sinifi: kod calisir, hata vermez, cocuk hicbir sey
+// gormez. Normal creeper'in patlamasi tam boyleydi — patlama olusuyor, ses
+// cikiyor, blok kirilmiyor, can geri konuyor, geriye SES'ten baska iz
+// kalmiyordu. "Hata firlatmadi" yeterli bir olcut degil; ekranda bir sey
+// DEGISMELI. Olcut: parcacik, ses, patlama, dusen esya, komut, eylem cubugu
+// yazisi, hasar, savurma, isinlanma ya da blok degisikliginden EN AZ BIRI.
+function izler(p, mob) {
+  const L = __sim.state.log;
+  return L.particles.length + L.sounds.length + L.explosions.length
+       + L.items.length + L.commands.length + L.actionBars.length
+       + __sim.state.blocks.size + p.damages.length + p.knockbacks.length
+       + p.effects.size + (mob ? mob.damages.length + mob.knockbacks.length + mob.effects.size : 0);
+}
+// Sag tikla DEGIL, baska bir yolla is goren esyalar. Bunlar icin "tiklayinca
+// bir sey olmuyor" DOGRU davranis; listeyi acikca yaziyoruz ki yeni bir pasif
+// tur eklenince buraya da yazilsin, sessizce muaf olmasin.
+const PASIF = new Set(["bleed", "heavy", "worn_wool", "held_fireproof"]);
+{
+  const sessiz = [];
+  for (const [id, a] of Object.entries(ITEM_ACTIONS)) {
+    if (PASIF.has(a.type)) continue;
+    const p = fresh();
+    // Bos hava bir dunyada kazan/patlatan esyalar hicbir iz birakmaz; once
+    // etrafa tas doldur ki "hicbir sey olmadi" gercekten bir bulgu olsun.
+    for (let x = -3; x <= 3; x++) for (let y = 60; y <= 66; y++) for (let z = -3; z <= 6; z++) {
+      __sim.setBlock(p.dimension.id, x, y, z, "minecraft:stone");
+    }
+    const mob = __sim.addMob("minecraft:cow", { x: 0, y: 64, z: 3 });
+    __sim.state.viewEntities = [{ entity: mob }];
+    __sim.state.viewBlock = { block: { typeId: "minecraft:stone", location: { x: 0, y: 63, z: 4 }, dimension: p.dimension } };
+    __ui.reply({ canceled: false, formValues: ["Test", 0] });
+    const once = izler(p, mob);
+    const bloklar = new Map(__sim.state.blocks);
+    const yer = { ...p.location };
+    __sim.fire("after", "itemUse", { itemStack: { typeId: `stnt:${id}` }, source: p });
+    __sim.fire("after", "itemCompleteUse", { itemStack: { typeId: `stnt:${id}` }, source: p });
+    await Promise.resolve(); await Promise.resolve();   // form cevabi asenkron
+    __sim.tick(40);
+    const isinlandi = p.location.x !== yer.x || p.location.y !== yer.y || p.location.z !== yer.z;
+    let blokDegisti = __sim.state.blocks.size !== bloklar.size;
+    if (!blokDegisti) {
+      for (const [k, v] of __sim.state.blocks) if (bloklar.get(k) !== v) { blokDegisti = true; break; }
+    }
+    if (izler(p, mob) === once && !isinlandi && !blokDegisti) sessiz.push(id);
+  }
+  ok(sessiz.length === 0, "her esya GORUNUR bir sey yapiyor", `sessiz kalan: ${sessiz.join(", ")}`);
+}
+{
+  const sessiz = [];
+  for (const [n, ab] of Object.entries(MORPH_ABIL)) {
+    if (!ab.act) continue;
+    const p = fresh();
+    const mob = __sim.addMob("minecraft:cow", { x: 0, y: 64, z: 3 });
+    __sim.state.viewEntities = [{ entity: mob }];
+    __sim.state.viewBlock = { block: { typeId: "minecraft:stone", location: { x: 0, y: 63, z: 4 }, dimension: p.dimension } };
+    p.props.set("st:morph", Number(n));
+    const once = izler(p, mob);
+    const yer = { ...p.location };
+    p.isSneaking = true;
+    __sim.tick(20);
+    p.isSneaking = false;
+    const isinlandi = p.location.x !== yer.x || p.location.y !== yer.y || p.location.z !== yer.z;
+    if (izler(p, mob) === once && !isinlandi) sessiz.push(`${n}:${ab.act}`);
+  }
+  ok(sessiz.length === 0, "her donusum yetenegi GORUNUR bir sey yapiyor",
+     `sessiz kalan: ${sessiz.join(", ")}`);
+}
+
 report();
 
 function report() {

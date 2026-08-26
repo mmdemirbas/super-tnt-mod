@@ -238,6 +238,19 @@ PYX
 run "normale donunce kamera birakilmiyor" "normal boyutta kamera birakiliyor"
 cp "$BAK/build.bak" bedrock/build.py
 
+# 18) bir esyanin eylemi sessizce hicbir sey yapmasin -> "gorunur bir sey
+#     yapiyor" taramasi bunu yakalamali (kod calisir, cocuk hicbir sey gormez)
+python3 - "$BAK" <<'PYX'
+import io, sys
+s = io.open(sys.argv[1] + "/build.bak", encoding="utf-8").read()
+# Ayni satir dosyada uc yerde geciyor; hedef 'case "tunnel"' blogundaki.
+i = s.index('case "tunnel": {')
+j = s.index("\n", i) + 1
+io.open("bedrock/build.py", "w", encoding="utf-8").write(s[:j] + "        break;\n" + s[j:])
+PYX
+run "Delici sessizce hicbir sey yapmiyor" "sessiz kalan"
+cp "$BAK/build.bak" bedrock/build.py
+
 echo
 echo "yakalanan $pass / kacirilan $fail"
 [ "$fail" -eq 0 ]
