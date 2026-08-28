@@ -364,6 +364,39 @@ run "ipucu patlatani da olduruyor sanisi veriyor" "ipucu tersini soyluyor"
 cp "$BAK/b36.bak" bedrock/build.py
 python3 bedrock/build.py > /dev/null 2>&1
 
+# 37) warden morph'unun durus pozu kalksin -> vanilla model bind pozunda
+#     kalir, kollar bacaklara yapisir (cocugun bildirdigi hata)
+cp bedrock/build.py "$BAK/b37.bak"
+python3 - <<'PYX'
+import io
+p = "bedrock/build.py"
+s = io.open(p, encoding="utf-8").read()
+old = '         pose={"right_arm": [0, 0, 15], "left_arm": [0, 0, -15]}),'
+assert s.count(old) == 1
+io.open(p, "w", encoding="utf-8").write(s.replace(old, "         ),", 1))
+PYX
+python3 bedrock/build.py > /dev/null 2>&1
+run "warden morph'unun durus pozu yok" "kollar bacaklara yapisir"
+cp "$BAK/b37.bak" bedrock/build.py
+python3 bedrock/build.py > /dev/null 2>&1
+
+# 38) poz animasyonu uretilsin ama oyuncuya BAGLANMASIN -> dosya durur,
+#     hicbir zaman kosmaz; oyunda hicbir sey degismez
+cp bedrock/build.py "$BAK/b38.bak"
+python3 - <<'PYX'
+import io
+p = "bedrock/build.py"
+s = io.open(p, encoding="utf-8").read()
+old = """                rp_desc["scripts"]["animate"].append(
+                    {f"pose_{mo['key']}": f"query.property('st:morph') == {mo['n']}"})"""
+assert s.count(old) == 1
+io.open(p, "w", encoding="utf-8").write(s.replace(old, "                pass", 1))
+PYX
+python3 bedrock/build.py > /dev/null 2>&1
+run "poz animasyonu oyuncuya baglanmamis" "animate listesine eklenmemis"
+cp "$BAK/b38.bak" bedrock/build.py
+python3 bedrock/build.py > /dev/null 2>&1
+
 echo
 python3 bedrock/build.py > /dev/null && echo "paket yeniden uretildi"
 echo "yakalanan $pass / kacirilan $fail"

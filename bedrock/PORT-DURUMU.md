@@ -1,7 +1,35 @@
 # Super TNT — Bedrock Port Durumu
 
-Son sürüm: **v1.46.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
+Son sürüm: **v1.47.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
 olacak şekilde geliştiriliyor (MorphX / mutant paketine bağımlılık yok).
+
+## v1.47.0 — Warden kılığında kollar hâlâ bacaklara yapışıyordu
+
+v1.40.0'da düzeltilen **Mutant Warden**'dı: kendi modelimiz, düzeltme
+geometrideki `rotation` alanına yazıldı. Menüde bir de **Warden** var ve o
+vanilla `geometry.warden`'ı kullanıyor — oraya hiç dokunulmamıştı.
+
+Ölçüldü: vanilla warden'ın kollarında hiçbir `rotation` yok, kollar uzun
+(y 6..34) ve bacakların (y 0..13) x aralığına **tam değiyor** — sağ kol
+x −17..−9, sağ bacak x −9..−3, örtüşme 0. Oyunda mob'un kolları sürekli
+salındığı için bu göze çarpmıyor; oyuncu kılığı ise statik bind pozunda durur
+(`animation_speed` hareketsizken 0) ve kollar bacaklara yapışık kalır.
+
+Vanilla modeli değiştiremeyiz. Bunun yerine morph'lara **`pose`** alanı
+eklendi: oyuncuya `st:morph` ile kapılı, tek kareli bir animasyon bağlanıyor.
+Bedrock animasyon dönüşleri bind pozunun **üstüne eklendiği** için bu, vanilla
+modele dokunmadan duruşu düzeltir. Açı, Mutant Warden'daki ile aynı 15°.
+
+### Bütün vanilla kılıklar tarandı
+
+Aynı hata başka nerede var diye 80 vanilla modelin geometrisi indirilip
+ölçüldü. Kolu bacağa değen ya da binen altı model çıktı: frog, enderman,
+warden, pillager, piglin, evoker. Bunlardan yalnızca warden düzeltildi —
+diğerlerinde kol kısa ve gövdeye yapışık durmak vanilla görünümün kendisi
+(Steve'in kolları da öyle). Warden'ı ayıran şey kolların **yere kadar uzun**
+olması.
+
+7174 statik denetim, 38 statik mutasyon.
 
 ## v1.46.0 — Geçici su ve buz, oyundan çıkınca da temizleniyor
 

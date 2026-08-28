@@ -845,6 +845,53 @@ def check_icons():
               f"(kenar pikselinin {opak * 100 // len(kenar)}%'i opak)")
 
 
+# --------------------------------------------------- 8b. morph durus pozu
+def check_morph_pose():
+    """Bind pozu kotu olan vanilla model icin poz animasyonu.
+
+    Vanilla geometry.warden'in kollarinda hicbir rotation yok ve kollar uzun
+    (y 6..34); bacaklarin (y 0..13) x araligina TAM DEGIYOR — olculdu: sag kol
+    x -17..-9, sag bacak x -9..-3, ortusme 0. Oyunda mob'un kollari surekli
+    salindigi icin bu goze carpmaz; oyuncu morph'u ise statik bind pozunda
+    durur ve kollar bacaklara yapisik kalir. Cocuk "hala bacaklarimizi
+    tutuyoruz" diye bildirdi.
+    """
+    posed = [m for m in build.MORPHS if m.get("pose")]
+    check(any(m["key"] == "warden" for m in posed),
+          "vanilla warden morph'unun durus pozu yok — kollar bacaklara yapisir")
+    if not posed:
+        return
+    anim_yol = os.path.join(RP, "animations", "morph_pose.animation.json")
+    check(os.path.exists(anim_yol), "poz animasyon dosyasi uretilmemis")
+    if not os.path.exists(anim_yol):
+        return
+    anims = jload(anim_yol)["animations"]
+    pl = jload(os.path.join(RP, "entity", "player.json"))["minecraft:client_entity"]["description"]
+    animate = pl["scripts"]["animate"]
+    for m in posed:
+        aid = f"animation.stnt.pose.{m['key']}"
+        check(aid in anims, f"{m['key']}: poz animasyonu {aid} dosyada yok")
+        check(m["pose"], f"{m['key']}: pose alani bos — hicbir kemik donmez")
+        if aid in anims:
+            kemikler = anims[aid].get("bones", {})
+            check(set(kemikler) == set(m["pose"]),
+                  f"{m['key']}: poz kemikleri spec ile ayni degil")
+        # Oyuncuya BAGLANMIS olmali: kayit + st:morph ile kapili animate girdisi.
+        # Kayit olmadan animasyon dosyada durur ve hicbir zaman kosmaz.
+        check(pl["animations"].get(f"pose_{m['key']}") == aid,
+              f"{m['key']}: poz animasyonu player.json'a kaydedilmemis")
+        gecerli = [e for e in animate if isinstance(e, dict) and f"pose_{m['key']}" in e]
+        check(len(gecerli) == 1, f"{m['key']}: poz animate listesine eklenmemis")
+        if gecerli:
+            kosul = gecerli[0][f"pose_{m['key']}"]
+            check(f"== {m['n']}" in kosul,
+                  f"{m['key']}: poz kosulu yanlis morph sayisini kullaniyor: {kosul}")
+        # Poz KENDI geometrimizde degil, VANILLA modelde duzeltme yapar.
+        # Kendi modelimizde dogru yer geometrinin rotation alani (bkz. v1.40).
+        check(not m.get("ns"),
+              f"{m['key']}: kendi modelimiz — poz animasyonu degil, geometriye yazilmali")
+
+
 # ---------------------------------------------------------------- calistir
 def main():
     js = open(os.path.join(BP, "scripts", "main.js"), encoding="utf-8").read()
@@ -859,6 +906,7 @@ def main():
     check_tooltip_contract(js)
     check_tree(js)
     check_poses()
+    check_morph_pose()
     check_player_control(js)
     check_icons()
     if FAILS:
