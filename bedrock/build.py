@@ -78,7 +78,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 46, 0]
+VERSION = [1, 47, 0]
 MIN_ENGINE = [1, 21, 0]
 # Surum etiketi paket ADINA yazilir. UUID + klasor adlari sabit oldugu icin
 # Minecraft ayni UUID'li paketi yerinde GUNCELLER; ama cihazda eski surum
@@ -169,7 +169,11 @@ PLAYER_BASE = {
 # Oyuncu GORUNTU olarak vanilla mob'a donusur (render controller + vanilla
 # geometry/texture/material). SAF GORSEL: carpisma kutusu st:size'dan gelir,
 # morph sadece gorunumu degistirir, boylece st:size ile cakisma olmaz.
-# DIKKAT: geometry tek basina animate ETMEZ — mob statik bind-pose'da gorunur.
+# DIKKAT: geometry tek basina animate ETMEZ — morph statik bind-pose'da
+# gorunur. Bind pozu kotu olan vanilla model icin 'pose' alani var: oyuncuya
+# st:morph ile kapili tek kareli bir animasyon baglanir (Bedrock animasyon
+# donusleri bind pozunun USTUNE eklenir), boylece vanilla modeli degistirmeden
+# durus duzeltilir.
 #
 # VANILLA TABLOSU ELLE YAZILMAZ. bedrock/tools/gen_morphs.py, bedrock-samples
 # deposundaki resource_pack/entity/*.entity.json dosyalarindan geometry/texture/
@@ -391,8 +395,16 @@ MORPHS_VANILLA = [
     dict(key="happy_ghast", n=81, tr="Mutlu Ghast", cat="Devler", geo="geometry.happy_ghast",
          tex="textures/entity/happy_ghast/happy_ghast", mat="ghast", scale=0.5,
          pas=["slow_falling", 0], act="float"),
+    # POZ: vanilla geometry.warden'in kollarinda hicbir rotation YOK ve kollar
+    # uzun (y 6..34), bacaklarin (y 0..13) x araligina TAM DEGIYOR (olculdu:
+    # sag kol x -17..-9, sag bacak x -9..-3, ortusme 0). Oyunda warden'in
+    # kollari surekli salindigi icin bu goze carpmaz; oyuncu morph'u ise
+    # statik bind pozunda durur ve kollar bacaklara YAPISIK kalir.
+    # Vanilla modeli duzeltemeyiz, o yuzden poz oyuncu tarafinda animasyonla
+    # verilir. Aci, mutant warden'daki ile ayni 15 derece.
     dict(key="warden", n=82, tr="Warden", cat="Devler", geo="geometry.warden",
-         tex="textures/entity/warden/warden", mat="warden", pas=["resistance", 1], act="sonic"),
+         tex="textures/entity/warden/warden", mat="warden", pas=["resistance", 1], act="sonic",
+         pose={"right_arm": [0, 0, 15], "left_arm": [0, 0, -15]}),
     dict(key="wither", n=83, tr="Wither", cat="Devler", geo="geometry.witherBoss",
          tex="textures/entity/wither_boss/wither", mat="wither_boss", scale=0.8,
          pas=["fire_resistance", 0], act="float"),
@@ -2560,6 +2572,24 @@ def build():
                 guarded.append({f"{rc}.third_person":
                                 f"!variable.is_first_person && !variable.map_face_icon && !query.is_spectator && query.property('st:morph') == {mo['n']}"})
         rp_desc["render_controllers"] = guarded
+        # ---- durus pozu: bind pozu kotu olan vanilla modeller icin.
+        # Bedrock animasyon donusleri bind pozunun USTUNE eklenir, o yuzden
+        # tek kareli bir animasyon vanilla modeli degistirmeden pozu duzeltir.
+        # Kosul st:morph oldugu icin poz yalnizca o kiliktayken uygulanir.
+        posed = [mo for mo in MORPHS if mo.get('pose')]
+        if posed:
+            anims = {}
+            for mo in posed:
+                anims[f"animation.stnt.pose.{mo['key']}"] = {
+                    "loop": True,
+                    "bones": {bone: {"rotation": rot} for bone, rot in mo['pose'].items()},
+                }
+            w(os.path.join(RP, "animations/morph_pose.animation.json"),
+              {"format_version": "1.8.0", "animations": anims})
+            for mo in posed:
+                rp_desc["animations"][f"pose_{mo['key']}"] = f"animation.stnt.pose.{mo['key']}"
+                rp_desc["scripts"]["animate"].append(
+                    {f"pose_{mo['key']}": f"query.property('st:morph') == {mo['n']}"})
     w(os.path.join(RP, "entity/player.json"), rp_player)
 
     # ---- morph render controller dosyasi (SADECE MORPHS doluysa)
