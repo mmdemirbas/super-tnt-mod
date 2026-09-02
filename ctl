@@ -1,8 +1,13 @@
 #!/usr/bin/env bash
 # Super TNT — tek komut derleme + dagitim.
 #
-# Alt komutlar cihaz/hedef secer; derleme (bedrock/build.py) her seferinde bir
-# kez calisir. Android tarafi mevcut deploy/deploy.sh'i (push + dogrulama +
+# Fiiller cihaz/hedef secer; derleme (bedrock/build.py) her seferinde bir
+# kez calisir.
+#
+#   ./ctl                 fiil listesi
+#   ./ctl --list          aynisi, satir basina bir `ad<TAB>aciklama`
+#   ./ctl deploy --list   hedefler
+#   ./ctl status          bagli cihazlar, AVD'ler ve simulatorler Android tarafi mevcut deploy/deploy.sh'i (push + dogrulama +
 # Samsung MediaStore duzeltmesi) yeniden kullanir.
 
 set -euo pipefail
@@ -27,36 +32,49 @@ warn()   { printf '%s!%s %s\n'   "$C_WARN" "$C_0" "$*"; }
 err()    { printf '%s✗%s %s\n'   "$C_ERR" "$C_0" "$*" >&2; }
 need()   { command -v "$1" >/dev/null 2>&1 || { err "$1 bulunamadi"; exit 1; }; }
 
+VERBS="build	Sadece SuperTNT.mcaddon derle
+deploy	Derle ve bir cihaza/hedefe gonder
+status	Bagli cihazlar, AVD'ler ve simulatorler"
+
+qualifiers() {
+  case "$1" in
+    deploy) printf '%s\n' \
+      "tablet	Bagli Android tabletlere (USB veya WiFi) — varsayilan" \
+      "iphone	Bagli iPhone'a, iCloud Drive kanaliyla" \
+      "android	Android emulatorunde calistir (yoksa AVD baslatir) — [AVD=<ad>]" \
+      "sim	iPhone simulatorunu ac (SINIRLI) — [IOS_SIM=<ad>]" ;;
+    *)      return 1 ;;
+  esac
+}
+
+list_for() {
+  if [ -z "$1" ]; then printf '%s\n' "$VERBS"; return 0; fi
+  qualifiers "$1" || { err "niteleyicisi yok: $1"; exit 1; }
+}
+
 usage() {
+  printf 'Super TNT — derle ve dagit\n\nKULLANIM\n  ./ctl <fiil> [hedef]\n\nFIILLER\n'
+  printf '%s\n' "$VERBS" | while IFS="$(printf '\t')" read -r name why; do
+    printf '  %-8s %s\n' "$name" "$why"
+  done
+  printf '\nHEDEFLER  (./ctl deploy --list)\n'
+  qualifiers deploy | while IFS="$(printf '\t')" read -r name why; do
+    printf '  %-8s %s\n' "$name" "$why"
+  done
   cat <<'EOF'
-Super TNT — derle ve dagit
-
-KULLANIM
-  ./minecraft <alt-komut>
-
-ALT KOMUTLAR
-  tablet    Bagli Android tabletlere derle + gonder (USB veya WiFi)
-  iphone    Bagli iPhone'a gonder (iCloud Drive kanaliyla)
-  android   Android emulatorunde calistir (yoksa AVD baslatir)
-  ios       iPhone simulatorunu ac (SINIRLI — asagi bkz.)
-  build     Sadece SuperTNT.mcaddon derle
-  help      Bu yardimi goster
-
-DEGISKENLER
-  AVD=<ad>           android icin AVD adi (varsayilan: ilk AVD)
-  IOS_SIM=<ad>       ios icin simulator adi (varsayilan: "iPhone 17")
 
 ORNEKLER
-  ./minecraft tablet
-  ./minecraft android
-  AVD=bb_tablet ./minecraft android
-  IOS_SIM='iPhone 17 Pro' ./minecraft ios
+  ./ctl deploy tablet
+  ./ctl deploy android
+  AVD=bb_tablet ./ctl deploy android
+  IOS_SIM='iPhone 17 Pro' ./ctl deploy sim
+  ./ctl status                        # hangi AVD ve simulator adlari var
 
 NOTLAR
   * tablet / android: Minecraft'in o cihazda KURULU olmasi gerekir.
   * iphone: App Store Minecraft'ina USB'den dogrudan dosya yazilamaz (Apple
     sinirlamasi). iCloud Drive senkronu tek guvenilir kanaldir.
-  * ios: iOS Simulator App Store uygulamalarini (Minecraft dahil) CALISTIRAMAZ;
+  * sim: iOS Simulator App Store uygulamalarini (Minecraft dahil) CALISTIRAMAZ;
     komut yalnizca simulatoru acar.
 EOF
 }
@@ -158,21 +176,46 @@ cmd_ios() {
   cat <<EOF
   SINIRLAMA: Minecraft Bedrock iOS Simulator'da CALISMAZ — App Store yalnizca
   gercek cihaz (arm64) surumunu dagitir, simulator surumu yoktur. Bu komut
-  simulatoru acmaktan oteye gidemez. Gercek iOS testi icin:  ./minecraft iphone
+  simulatoru acmaktan oteye gidemez. Gercek iOS testi icin:  ./ctl deploy iphone
   .mcaddon: $MCADDON
 EOF
 }
 
+cmd_status() {
+  header "bagli Android cihazlar"
+  "$ADB" devices | sed '1d;/^$/d' || true
+  header "AVD'ler  (AVD=<ad> ./ctl deploy android)"
+  if [ -x "$EMU_BIN" ]; then "$EMU_BIN" -list-avds 2>/dev/null || true
+  else warn "emulator bulunamadi: $EMU_BIN"; fi
+  header "iOS simulatorleri  (IOS_SIM=<ad> ./ctl deploy sim)"
+  if command -v xcrun >/dev/null 2>&1; then
+    xcrun simctl list devices available 2>/dev/null | grep -E '^\s+iPhone|^\s+iPad' | sed 's/ *(.*//' | sed 's/^ */  /' || true
+  else warn "xcrun yok"; fi
+}
+
 main() {
-  local sub="${1:-help}"; shift || true
+  local sub="${1:-}"; shift || true
+
   case "$sub" in
-    tablet)         cmd_tablet  "$@" ;;
-    iphone)         cmd_iphone  "$@" ;;
-    android)        cmd_android "$@" ;;
-    ios)            cmd_ios     "$@" ;;
-    build)          build ;;
-    help|-h|--help) usage ;;
-    *)              err "bilinmeyen alt komut: $sub"; echo; usage; exit 2 ;;
+    ""|help|-h|--help) usage; exit 0 ;;
+    --list)            list_for ""; exit 0 ;;
+  esac
+
+  [ "${1:-}" = "--list" ] && { list_for "$sub"; exit 0; }
+
+  case "$sub" in
+    build)  build ;;
+    status) cmd_status ;;
+    deploy)
+      case "${1:-tablet}" in
+        tablet)  shift 2>/dev/null || true; cmd_tablet  "$@" ;;
+        iphone)  shift; cmd_iphone  "$@" ;;
+        android) shift; cmd_android "$@" ;;
+        sim)     shift; cmd_ios     "$@" ;;
+        *)       err "bilinmeyen hedef: $1  (./ctl deploy --list)"; exit 2 ;;
+      esac
+      ;;
+    *) err "bilinmeyen fiil: $sub"; echo; usage; exit 2 ;;
   esac
 }
 
