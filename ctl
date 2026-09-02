@@ -22,11 +22,14 @@ MC_PKG="com.mojang.minecraftpe"          # Minecraft paket adi (Android)
 
 # ---- cikti yardimcilari (renkler tek yerde) -------------------------------
 if [ -t 1 ]; then
-  C_H=$'\033[1;36m'; C_OK=$'\033[1;32m'; C_WARN=$'\033[1;33m'; C_ERR=$'\033[1;31m'; C_0=$'\033[0m'
+  C_H=$'\033[36m'; C_OK=$'\033[32m'; C_WARN=$'\033[33m'; C_ERR=$'\033[31m'; C_0=$'\033[0m'
 else
   C_H=''; C_OK=''; C_WARN=''; C_ERR=''; C_0=''
 fi
-header() { printf '%s== %s ==%s\n' "$C_H" "$*" "$C_0"; }
+# Her seviye icin tek imge ve tek renk; buradaki butun suruculer ayni besini
+# kullanir: ▸ bir adim, ✓ oldu, ! bilinmesi gereken, ⏸ onkosul yok (cikis 75),
+# ✗ olmadi (cikis 1). Sozlesme: ajans/docs/reports/driver-scripts-2026-09-02.md.
+header() { printf '%s▸%s %s\n' "$C_H" "$C_0" "$*"; }
 ok()     { printf '%s✓%s %s\n'   "$C_OK"  "$C_0" "$*"; }
 warn()   { printf '%s!%s %s\n'   "$C_WARN" "$C_0" "$*"; }
 err()    { printf '%s✗%s %s\n'   "$C_ERR" "$C_0" "$*" >&2; }
