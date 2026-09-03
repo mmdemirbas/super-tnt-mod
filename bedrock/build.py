@@ -78,7 +78,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 47, 0]
+VERSION = [1, 48, 0]
 MIN_ENGINE = [1, 21, 0]
 # Surum etiketi paket ADINA yazilir. UUID + klasor adlari sabit oldugu icin
 # Minecraft ayni UUID'li paketi yerinde GUNCELLER; ama cihazda eski surum
@@ -1213,6 +1213,12 @@ TREE_TRUNK = 5               # taban govde yaricapi (tepeye dogru incelir)
 TREE_CROWN = 22              # tepe (yaprak) yaricapi
 TREE_TOP = TREE_H + round(TREE_CROWN * 0.6)   # en ust yaprak katmani
 
+# Sahte Elmas Aletlerin kazma hizi. minecraft:digger kademeleri: tahta 2,
+# tas 4, demir 6, ELMAS 8, netherite 9. Kilik ancak alet gercekten elmas
+# hizinda kazarsa tutuyor — yavas kazan bir "elmas" kazmayi cocuk ilk
+# blokta anlar ve tuzak hic kurulmaz.
+FAKE_DIG_SPEED = 8
+
 ITEMS = [
     dict(id="spicy_chips", tr="Acılı Cips", en="Spicy Chips", kind="food",
          trtip="Ye ve 20 sn Hız III kazan!", entip="Eat for Speed III for 20s!",
@@ -1451,6 +1457,52 @@ ITEMS = [
          color=(40, 70, 82), spawn="stnt:mutant_warden"),
 ]
 
+# ---- Sahte Elmas Aletler (TROL). Elmas takimi gibi gorunur, elmas kadar
+# vurur ve elmas hizinda kazar — ta ki ILK kullanima kadar: bir canliya
+# vurunca ya da bir blok kirinca elindeki alet ayni turden TAHTA alete
+# doner (script: revealFake).
+#
+# Tooltip'ler TEK SABLONDAN uretilir. Bes aletin de tetikleyicisi ayni;
+# elle yazilsalardi biri "ilk blokta", oteki "ilk vurusta" der ve tooltip
+# koda yalan soylemeye baslardi — tooltip bu projede sozlesmedir.
+#
+# Alanlar: wood = donusulecek vanilla esya, woodtr = ekrana yazilan ad,
+# dat = ayni adin Turkce yonelme hali ("Tahta Kazma'ya"), wooden = Ingilizce
+# adi, dig = minecraft:digger blok etiketleri. Kilicta dig YOK: vanilla
+# kilicin da kazma tablosu yoktur ve tuzak yine calisir, cunku blok kirma
+# olayi aleti oyuncunun elinden okur.
+# Hasar degerleri Bedrock elmas takimindan: kilic 7, balta 6, kazma 5,
+# kurek 5, capa 1.
+FAKE_TOOLS = [
+    dict(id="sahte_elmas_kilic", tr="Sahte Elmas Kılıç", en="Fake Diamond Sword",
+         obj_tr="kılıç", obj_en="sword", wood="minecraft:wooden_sword",
+         woodtr="Tahta Kılıç", dat="Tahta Kılıç'a", wooden="Wooden Sword", damage=7),
+    dict(id="sahte_elmas_kazma", tr="Sahte Elmas Kazma", en="Fake Diamond Pickaxe",
+         obj_tr="kazma", obj_en="pickaxe", wood="minecraft:wooden_pickaxe",
+         woodtr="Tahta Kazma", dat="Tahta Kazma'ya", wooden="Wooden Pickaxe", damage=5,
+         dig="'stone', 'metal', 'diamond_pick_diggable', 'rail', 'stair_block', 'slab_block'"),
+    dict(id="sahte_elmas_balta", tr="Sahte Elmas Balta", en="Fake Diamond Axe",
+         obj_tr="balta", obj_en="axe", wood="minecraft:wooden_axe",
+         woodtr="Tahta Balta", dat="Tahta Balta'ya", wooden="Wooden Axe", damage=6,
+         dig="'wood', 'pumpkin', 'plant'"),
+    dict(id="sahte_elmas_kurek", tr="Sahte Elmas Kürek", en="Fake Diamond Shovel",
+         obj_tr="kürek", obj_en="shovel", wood="minecraft:wooden_shovel",
+         woodtr="Tahta Kürek", dat="Tahta Kürek'e", wooden="Wooden Shovel", damage=5,
+         dig="'sand', 'dirt', 'gravel', 'grass', 'snow'"),
+    dict(id="sahte_elmas_capa", tr="Sahte Elmas Çapa", en="Fake Diamond Hoe",
+         obj_tr="çapa", obj_en="hoe", wood="minecraft:wooden_hoe",
+         woodtr="Tahta Çapa", dat="Tahta Çapa'ya", wooden="Wooden Hoe", damage=1,
+         dig="'plant', 'leaves', 'hay_block'"),
+]
+ITEMS += [dict(f, kind="fake_tool", color=(93, 222, 212),
+               trtip=f"TROL: Gerçek elmas {f['obj_tr']} gibi görünür ve öyle çalışır "
+                     f"— ama bir canlıya vurduğun ya da bir blok kırdığın anda "
+                     f"{f['dat']} dönüşür!",
+               entip=f"TROLL: Looks and works like a real diamond {f['obj_en']} - but "
+                     f"the moment you hit something or break a block it turns into a "
+                     f"{f['wooden']}!")
+          for f in FAKE_TOOLS]
+
 # ---------------------------------------------------------------- canavarlar
 # Ender Send + dev boss'lar. Vanilla mob gorseli olceklenir (materials/texture/
 # geometry MC saglar). Adlar MorphX'in calisan dosyasindan dogrulandi.
@@ -1523,6 +1575,8 @@ SYMBOL_IDS = (
     "ses_saldirisi", "mega_gubre", "ejderha_nefesi", "isim_degistirici",
     "blok_kiligi", "donusum_asasi", "tnt_frisbee", "among_us_report",
     "lightning_spell",
+    "sahte_elmas_kilic", "sahte_elmas_kazma", "sahte_elmas_balta",
+    "sahte_elmas_kurek", "sahte_elmas_capa",
 )
 # ARKAPLANI BOYALI kalan tek iki ikon. Ikisi de bir ISIK/DALGA etkisi cizer:
 # saydam zeminde dalgalar havada asili duruyor gibi duruyordu, koyu zemin
@@ -1760,6 +1814,64 @@ def symbol_texture(path, item_id):
             px(x, 5, (90, 160, 110)); px(x, 11, (90, 160, 110))
         vline(2, 5, 11, (90, 160, 110)); vline(13, 5, 11, (90, 160, 110))
         disc(5, 8, 1, (150, 180, 150)); hline(7, 9, 12, (90, 160, 110)); hline(9, 9, 12, (90, 160, 110))
+    elif iid.startswith("sahte_elmas_"):
+        # TUZAGIN TAMAMI IKONDA. Bu alet ancak envanterde gercek bir elmas
+        # aleti gibi okunursa is goruyor: ayni elmas mavisi, ayni ahsap sap,
+        # vanilla aletlerin sol-alttan sag-uste uzanan durusu. Ipucu YOK —
+        # sahteligi ele veren tek sey adi ve tooltip'i, gorseli degil.
+        DL, DM, DD = (150, 248, 240), (93, 222, 212), (52, 166, 162)   # elmas
+        WL, WD = (140, 96, 56), (104, 68, 38)                          # ahsap sap
+
+        # Ortak sap: (2,14) -> (10,6), 2 piksel genis capraz cubuk. Baslik her
+        # zaman sapin UST UCUNA oturur; arada bosluk kalirsa alet "havada duran
+        # iki parca" gibi okunuyor, bu da kiligi bozan ilk sey.
+        SAP = ((2, 14), (3, 13), (4, 12), (5, 11), (6, 10), (7, 9), (8, 8), (9, 7))
+        for (hx, hy) in SAP:
+            px(hx, hy, WD); px(hx + 1, hy, WL)
+
+        tool = iid[len("sahte_elmas_"):]
+        if tool == "kilic":
+            # Kilic tek parca: capraz agiz + ona dik balcak + kisa kabza.
+            # Sap yukaridaki dongude cizildi, kilicta ISE YARAMAZ; uzerine
+            # kabza ve agiz binecek.
+            for i in range(8):                            # 3 piksel kalin agiz
+                px(4 + i, 11 - i, DL); px(5 + i, 11 - i, DM); px(6 + i, 11 - i, DM)
+            px(12, 3, DL); px(13, 3, DM); px(13, 2, DL)   # sivri uc
+            for (gx, gy) in ((2, 9), (3, 10), (4, 11), (5, 12), (6, 13)):
+                px(gx, gy, DD); px(gx + 1, gy, DD)        # agza dik balcak
+            for (hx, hy) in ((1, 14), (2, 13), (3, 12)):
+                px(hx, hy, WD); px(hx + 1, hy, WL)        # kabza
+            px(0, 15, DD); px(1, 15, DD)                  # topuz
+        elif tool == "kazma":
+            # Tepesi ortada, kollari iki yana asagi kivrilan genis yay.
+            rect(9, 2, 10, 6, DM)                         # yaydan sapa inen boyun
+            hline(1, 7, 12, DL); hline(2, 7, 12, DM)      # yayin tepesi
+            for (ax, ay) in ((5, 2), (6, 2), (13, 2), (14, 2)):
+                px(ax, ay, DM)
+            px(4, 3, DM); px(15, 3, DM)
+            px(3, 4, DD); px(15, 4, DD)                   # asagi bakan uclar
+        elif tool == "balta":
+            # Sapin sag yanina oturan tek yanli kama.
+            for (ay, x0, x1) in ((1, 8, 10), (2, 8, 12), (3, 8, 13),
+                                 (4, 8, 13), (5, 8, 12), (6, 8, 10)):
+                hline(ay, x0, x1, DM)
+            for (ex, ey) in ((10, 1), (12, 2), (13, 3), (13, 4), (12, 5), (10, 6)):
+                px(ex, ey, DL)                            # disaridaki kesici agiz
+            vline(8, 1, 6, DD)                            # sapa bakan kalin sirt
+        elif tool == "kurek":
+            # Ustu duz, altina dogru daralan kasik.
+            hline(1, 7, 12, DL)
+            for ay in (2, 3, 4):
+                hline(ay, 7, 12, DM)
+            hline(5, 8, 11, DM); hline(6, 9, 10, DD)      # boyun
+            vline(7, 1, 4, DL)                            # sol kenar parlamasi
+        elif tool == "capa":
+            # "П": ust kol sola uzanir, iki bacak asagi iner — biri sapa
+            # baglanan boyun, oteki toprağı kazan agiz.
+            hline(3, 4, 10, DM); hline(4, 4, 10, DD)      # sola uzanan kol
+            rect(9, 5, 10, 6, DM)                         # sapa inen boyun
+            rect(4, 5, 5, 6, DM); hline(6, 4, 5, DL)      # asagi bakan agiz
+            hline(3, 4, 10, DL)                           # kolun ust parlamasi
     if bg:                                  # yalnizca boyali iki ikonda cerceve
         for i in range(16):
             g[0][i] = shade(bg, 0.7); g[15][i] = shade(bg, 0.7)
@@ -2208,6 +2320,19 @@ def build():
             if not it.get("unbreakable"):
                 icomps["minecraft:durability"] = {"max_durability": 800}
             icomps["minecraft:hand_equipped"] = True
+        elif it['kind'] == "fake_tool":
+            # Kilik elmas takimi. Dayaniklilik da elmasin (1561): esyayi
+            # inceleyen cocuk dolu bir cubuk gorsun. Alet ilk kullanista
+            # tahtaya donecegi icin bu deger pratikte hic tukenmez.
+            icomps["minecraft:damage"] = it['damage']
+            icomps["minecraft:hand_equipped"] = True
+            icomps["minecraft:durability"] = {"max_durability": 1561}
+            if it.get('dig'):
+                icomps["minecraft:digger"] = {
+                    "use_efficiency": True,
+                    "destroy_speeds": [{"block": {"tags": f"query.any_tag({it['dig']})"},
+                                        "speed": FAKE_DIG_SPEED}],
+                }
         elif it['kind'] == "boots":
             icomps["minecraft:wearable"] = {"slot": "slot.armor.feet", "protection": 2}
             icomps["minecraft:durability"] = {"max_durability": 400}
@@ -2613,10 +2738,14 @@ def build():
     tips = {t['id']: t['tr'] for t in TNTS}
     tiptext = {t['id']: t['trtip'] for t in TNTS}
     item_actions = {it['id']: it['action'] for it in ITEMS if it.get('action')}
+    fake_tools = {f"stnt:{f['id']}": f['wood'] for f in FAKE_TOOLS}
+    fake_names = {f"stnt:{f['id']}": f['woodtr'] for f in FAKE_TOOLS}
     script = SCRIPT_TEMPLATE.replace("__SPEC__", json.dumps(spec, indent=2)) \
                             .replace("__NAMES__", json.dumps(tips, ensure_ascii=False)) \
                             .replace("__TIPS__", json.dumps(tiptext, ensure_ascii=False)) \
                             .replace("__ITEM_ACTIONS__", json.dumps(item_actions)) \
+                            .replace("__FAKE_TOOLS__", json.dumps(fake_tools)) \
+                            .replace("__FAKE_NAMES__", json.dumps(fake_names, ensure_ascii=False)) \
                             .replace("__MORPH_FORMS__", json.dumps(
                                 [{"cat": c, "items": [{"ev": f"st:morph_{mo['key']}", "name": mo['tr']}
                                                       for mo in MORPHS if mo['cat'] == c]}
@@ -3396,6 +3525,47 @@ system.runInterval(() => {
     } catch (e) {}
   }
 }, 10);
+
+// ---------------------------------------------------------------- sahte aletler
+// Sahte Elmas Aletler: elmas gorunur, elmas gibi kazar — ILK kullanista tahtaya
+// doner. Iki tetikleyici var, cunku "kullanmak" iki sey demek: bir canliya
+// VURMAK ve bir blok KIRMAK.
+const FAKE_TOOLS = __FAKE_TOOLS__;    // "stnt:sahte_elmas_kilic" -> "minecraft:wooden_sword"
+const FAKE_NAMES = __FAKE_NAMES__;    // ayni anahtar -> tahta aletin Turkce adi
+
+// Elindeki alet sahteyse tahtaya cevirir.
+//
+// Degistirme BIR TICK ERTELENIR. Bunlar after-event: oyun vurus/kirma sonrasi
+// elindeki esyaya dayaniklilik hasarini YAZIYOR, ve ayni tick'te slotu
+// degistirirsek o yazma bizim koydugumuz tahta aleti ezebilir. Ertelemenin
+// bedeli, arada oyuncunun slot degistirmis olabilmesi — o yuzden ikinci
+// tick'te slot yeniden okunur ve hala sahte bir alet degilse dokunulmaz.
+function revealFake(player) {
+  if (!player || player.typeId !== "minecraft:player") return;
+  let held;
+  try {
+    const con = player.getComponent("minecraft:inventory")?.container;
+    held = con && con.getItem(player.selectedSlotIndex);
+  } catch (e) { return; }
+  if (!held || !FAKE_TOOLS[held.typeId]) return;
+  const wood = FAKE_TOOLS[held.typeId];
+  const adi = FAKE_NAMES[held.typeId];
+  system.run(() => {
+    try {
+      const con = player.getComponent("minecraft:inventory")?.container;
+      if (!con) return;
+      const slot = player.selectedSlotIndex;
+      const now = con.getItem(slot);
+      if (!now || !FAKE_TOOLS[now.typeId]) return;      // arada el degistiyse birak
+      con.setItem(slot, new ItemStack(wood, 1));
+      spray(player.dimension, player.location, "minecraft:basic_smoke_particle", 12, 0.7);
+      try { player.dimension.playSound("random.break", player.location, { volume: 1.0 }); } catch (e) {}
+      player.onScreenDisplay.setActionBar(`§cSahte! §fElmas sandın — §6${adi}§f çıktı.`);
+    } catch (e) {}
+  });
+}
+world.afterEvents.entityHitEntity.subscribe((ev) => revealFake(ev.damagingEntity));
+world.afterEvents.playerBreakBlock.subscribe((ev) => revealFake(ev.player));
 
 // Silahlar: Kanli Kilic -> kirmizi parcacik; Kalp Baltasi -> agir hasar.
 world.afterEvents.entityHurt.subscribe((ev) => {

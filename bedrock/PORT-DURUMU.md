@@ -1,7 +1,37 @@
 # Super TNT — Bedrock Port Durumu
 
-Son sürüm: **v1.47.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
+Son sürüm: **v1.48.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
 olacak şekilde geliştiriliyor (MorphX / mutant paketine bağımlılık yok).
+
+## v1.48.0 — Sahte Elmas Aletler (Bedrock'a özel, Java'da yok)
+
+Beş alet: **Sahte Elmas Kılıç, Kazma, Balta, Kürek, Çapa**. Envanterde gerçek
+elmas takımı gibi görünür, elmas kadar vurur ve elmas hızında kazar — ta ki
+ilk kullanıma kadar. Bir canlıya (mob ya da oyuncu) vurunca **ya da** bir blok
+kırınca elindeki alet aynı türden **tahta** alete dönüşür.
+
+**Kılık gerçekten kılık olmalı.** Üç yerde tam elmas taklidi yapılıyor, çünkü
+üçünden biri açık verirse tuzak hiç kurulmuyor:
+
+| Ne | Neden |
+|---|---|
+| `minecraft:digger`, hız 8 | Elmas kademesi. Yavaş kazan bir "elmas" kazmayı çocuk ilk blokta anlar. |
+| `max_durability` 1561 | Elmasın dayanıklılığı; eşyaya bakan dolu bir çubuk görür. |
+| Elle çizilen saydam ikon | Elmas mavisi + ahşap sap, vanilla aletlerin sol-alttan sağ-üste duruşu. Görselde hiçbir ipucu yok. |
+
+Kılıçta `digger` yok — vanilla kılıcın da kazma tablosu yoktur. Tuzak yine
+çalışır, çünkü blok kırma olayı aleti oyuncunun elinden okuyor.
+
+**Değiştirme bir tick ertelenir.** `entityHitEntity` ve `playerBreakBlock`
+after-event; oyun vuruş/kırma sonrası eldeki eşyaya dayanıklılık hasarını
+yazıyor, aynı tick'te slotu değiştirirsek o yazma bizim koyduğumuz tahta aleti
+ezebiliyor. Ertelemenin bedeli oyuncunun arada slot değiştirmiş olabilmesi —
+o yüzden ikinci tick'te slot yeniden okunur, hâlâ sahte bir alet değilse
+dokunulmaz.
+
+**Tooltip'ler tek şablondan üretiliyor.** Beş aletin de tetikleyicisi aynı;
+elle yazılsalar biri "ilk blokta", öteki "ilk vuruşta" der ve tooltip koda
+yalan söylemeye başlardı.
 
 ## v1.47.0 — Warden kılığında kollar hâlâ bacaklara yapışıyordu
 
@@ -992,7 +1022,7 @@ Lazer Kılıcı, Kanca, Dondurucu, Koku Bombası, Among Us Rapor, Delici,
 Lav Kristali, Kanlı Kılıç, Kalp Baltası, Gökkuşağı Botları, End/Nether İncisi, TNT Frizbi, Craft Baltası, + ganimet item'ları (Kuruş, 200 TL, Lego tuğlaları).
 
 **Bedrock'a özel (Java'da karşılığı yok):** Sağlık İksiri, Can Artırıcı,
-Ses Saldırısı, Mega Gübre.
+Ses Saldırısı, Mega Gübre, Sahte Elmas Aletler (kılıç/kazma/balta/kürek/çapa).
 
 ## Portlanmadı — teknik sebeple
 
