@@ -1468,31 +1468,38 @@ ITEMS = [
 #
 # Alanlar: wood = donusulecek vanilla esya, woodtr = ekrana yazilan ad,
 # dat = ayni adin Turkce yonelme hali ("Tahta Kazma'ya"), wooden = Ingilizce
-# adi, dig = minecraft:digger blok etiketleri. Kilicta dig YOK: vanilla
-# kilicin da kazma tablosu yoktur ve tuzak yine calisir, cunku blok kirma
-# olayi aleti oyuncunun elinden okur.
+# adi, tur = vanilla alet turu, dig = ek malzeme etiketleri.
+#
+# KAZMA HIZI IKI ETIKET KUMESINDEN gelir ve sirasi onemli degil, birlesimi
+# onemli: her alet once kendi "is_<tur>_item_destructible" etiketini alir —
+# bu, o alet turunun kirmasi GEREKEN tam blok kumesidir — sonra ustune
+# malzeme etiketleri (stone, wood, sand...) binyor. Ikinci kume tek basina
+# birakilsaydi, adini yanlis yazdigim bir etiket sessizce "hiz yok" demek
+# olurdu: Molang query.any_tag taninmayan etikete hata vermez, false doner.
+# Iki kume birbirini boylece yedekliyor.
 # Hasar degerleri Bedrock elmas takimindan: kilic 7, balta 6, kazma 5,
 # kurek 5, capa 1.
 FAKE_TOOLS = [
     dict(id="sahte_elmas_kilic", tr="Sahte Elmas Kılıç", en="Fake Diamond Sword",
          obj_tr="kılıç", obj_en="sword", wood="minecraft:wooden_sword",
-         woodtr="Tahta Kılıç", dat="Tahta Kılıç'a", wooden="Wooden Sword", damage=7),
+         woodtr="Tahta Kılıç", dat="Tahta Kılıç'a", wooden="Wooden Sword", damage=7,
+         tur="sword"),
     dict(id="sahte_elmas_kazma", tr="Sahte Elmas Kazma", en="Fake Diamond Pickaxe",
          obj_tr="kazma", obj_en="pickaxe", wood="minecraft:wooden_pickaxe",
          woodtr="Tahta Kazma", dat="Tahta Kazma'ya", wooden="Wooden Pickaxe", damage=5,
-         dig="'stone', 'metal', 'diamond_pick_diggable', 'rail', 'stair_block', 'slab_block'"),
+         tur="pickaxe", dig="'stone', 'metal', 'diamond_pick_diggable'"),
     dict(id="sahte_elmas_balta", tr="Sahte Elmas Balta", en="Fake Diamond Axe",
          obj_tr="balta", obj_en="axe", wood="minecraft:wooden_axe",
          woodtr="Tahta Balta", dat="Tahta Balta'ya", wooden="Wooden Axe", damage=6,
-         dig="'wood', 'pumpkin', 'plant'"),
+         tur="axe", dig="'wood'"),
     dict(id="sahte_elmas_kurek", tr="Sahte Elmas Kürek", en="Fake Diamond Shovel",
          obj_tr="kürek", obj_en="shovel", wood="minecraft:wooden_shovel",
          woodtr="Tahta Kürek", dat="Tahta Kürek'e", wooden="Wooden Shovel", damage=5,
-         dig="'sand', 'dirt', 'gravel', 'grass', 'snow'"),
+         tur="shovel", dig="'sand', 'dirt', 'gravel'"),
     dict(id="sahte_elmas_capa", tr="Sahte Elmas Çapa", en="Fake Diamond Hoe",
          obj_tr="çapa", obj_en="hoe", wood="minecraft:wooden_hoe",
          woodtr="Tahta Çapa", dat="Tahta Çapa'ya", wooden="Wooden Hoe", damage=1,
-         dig="'plant', 'leaves', 'hay_block'"),
+         tur="hoe", dig="'leaves'"),
 ]
 ITEMS += [dict(f, kind="fake_tool", color=(93, 222, 212),
                trtip=f"TROL: Gerçek elmas {f['obj_tr']} gibi görünür ve öyle çalışır "
@@ -2327,12 +2334,14 @@ def build():
             icomps["minecraft:damage"] = it['damage']
             icomps["minecraft:hand_equipped"] = True
             icomps["minecraft:durability"] = {"max_durability": 1561}
+            etiket = [f"'minecraft:is_{it['tur']}_item_destructible'"]
             if it.get('dig'):
-                icomps["minecraft:digger"] = {
-                    "use_efficiency": True,
-                    "destroy_speeds": [{"block": {"tags": f"query.any_tag({it['dig']})"},
-                                        "speed": FAKE_DIG_SPEED}],
-                }
+                etiket.append(it['dig'])
+            icomps["minecraft:digger"] = {
+                "use_efficiency": True,
+                "destroy_speeds": [{"block": {"tags": f"query.any_tag({', '.join(etiket)})"},
+                                    "speed": FAKE_DIG_SPEED}],
+            }
         elif it['kind'] == "boots":
             icomps["minecraft:wearable"] = {"slot": "slot.armor.feet", "protection": 2}
             icomps["minecraft:durability"] = {"max_durability": 400}

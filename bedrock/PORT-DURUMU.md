@@ -19,8 +19,14 @@ kırınca elindeki alet aynı türden **tahta** alete dönüşür.
 | `max_durability` 1561 | Elmasın dayanıklılığı; eşyaya bakan dolu bir çubuk görür. |
 | Elle çizilen saydam ikon | Elmas mavisi + ahşap sap, vanilla aletlerin sol-alttan sağ-üste duruşu. Görselde hiçbir ipucu yok. |
 
-Kılıçta `digger` yok — vanilla kılıcın da kazma tablosu yoktur. Tuzak yine
-çalışır, çünkü blok kırma olayı aleti oyuncunun elinden okuyor.
+**Kazma hızı iki etiket kümesinden geliyor.** Her alet önce kendi
+`minecraft:is_<tür>_item_destructible` etiketini alıyor — bu, o alet türünün
+kırması *gereken* tam blok kümesi — sonra üstüne malzeme etiketleri (`stone`,
+`wood`, `sand`...) biniyor. İkinci küme tek başına bırakılsaydı, adı yanlış
+yazılmış bir etiket sessizce "hız yok" demek olurdu: Molang `query.any_tag`
+tanımadığı etikete hata vermez, `false` döner. İki küme birbirini yedekliyor.
+Kılıç da dahil beş aletin hepsinde `digger` var; vanilla kılıç da ağ ve bambu
+kırar.
 
 **Değiştirme bir tick ertelenir.** `entityHitEntity` ve `playerBreakBlock`
 after-event; oyun vuruş/kırma sonrası eldeki eşyaya dayanıklılık hasarını
