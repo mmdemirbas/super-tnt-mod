@@ -68,8 +68,17 @@ seri_al() { echo "$1" | sed -E 's/^adb-(.+)-[^-]+$/\1/'; }
 # sart: "adb shell" stdin'i yutar ve cagiran dongunun geri kalanini yer.
 transport_seri() { adb -s "$1" shell getprop ro.serialno </dev/null 2>/dev/null | tr -d '\r'; }
 
+# USB mu kablosuz mu — transport ADINA BAKARAK anlasilmaz. Kablosuz transport
+# iki bicimde gelebilir: "Android.local:46341" (iki nokta VAR) ve mDNS adiyla
+# "adb-R5GY...-ffM6cn._adb-tls-connect._tcp" (iki nokta YOK). Ada bakan bir
+# filtre ikincisini USB sanir ve ustune USB'ye ozel komut cekilirse baglanti
+# duser. "adb devices -l" ise USB transport'lara " usb:<yol>" alani koyuyor;
+# tek guvenilir isaret bu. (emulator'un da usb: alani yok, ayrica eleniyor.)
 usb_transportlar() {
-  adb devices | awk 'NR>1 && $2=="device" && $1 !~ /:[0-9]+$/ && $1 !~ /^emulator/ {print $1}'
+  adb devices -l | awk 'NR>1 && $2=="device" && $0 ~ / usb:/ {print $1}'
+}
+transport_usb_mu() {
+  adb devices -l | awk -v t="$1" 'NR>1 && $1==t && $0 ~ / usb:/ {bulundu=1} END{exit !bulundu}'
 }
 
 bagla() {
@@ -111,7 +120,7 @@ durum() {
   printf "%-24s %-14s %s\n" "TRANSPORT" "SERI" "TUR"
   for t in $(adb devices | awk 'NR>1 && $2=="device" && $1 !~ /^emulator/ {print $1}'); do
     seri="$(transport_seri "$t")"
-    case "$t" in *:[0-9]*) tur="kablosuz" ;; *) tur="USB" ;; esac
+    if transport_usb_mu "$t"; then tur="USB"; else tur="kablosuz"; fi
     printf "%-24s %-14s %s\n" "$t" "${seri:-?}" "$tur"
     var=1
   done

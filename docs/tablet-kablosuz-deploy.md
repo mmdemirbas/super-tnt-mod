@@ -52,7 +52,7 @@ adb-R5GYC4BGJJZ-LhvfAg._adb-tls-connect._tcp   ->  Android.local:34933
 `tablet-wifi.sh` her çalıştırmada bu kaydı yeniden keşfedip `adb connect`
 yapıyor. Hiçbir adres dosyada saklanmıyor.
 
-## Ölçülen üç tuzak
+## Ölçülen dört tuzak
 
 Bunlar kurulum sırasında karşılaşıldı; çözümleri script'in içinde.
 
@@ -79,7 +79,30 @@ oturumda servis oturunca), sonra sabit kaldı. Yeniden başlatınca başka olur.
 **Çözüm:** port hiçbir yerde saklanmıyor, her çalıştırmada mDNS'ten yeniden
 okunuyor.
 
-### 3. `adb shell` stdin'i yutuyor
+### 3. Transport'un USB mi kablosuz mu olduğu ADINDAN anlaşılmaz
+
+Kablosuz transport **iki** biçimde gelebilir:
+
+```
+Android-2.local:46341                            <- iki nokta VAR
+adb-R5GYC4BGAQW-ffM6cn._adb-tls-connect._tcp     <- iki nokta YOK
+```
+
+"İçinde `:PORT` varsa kablosuzdur" kuralı ikincisini **USB sanır**. Zararı
+teorik değil: USB'ye özel bir komut (`adb tcpip` gibi) kablosuz bir cihaza
+çekilirse `adbd` yeniden başlar ve bağlantı düşer. Aynı hata Bilgebaykuş
+projesindeki `ctl` sürücüsünde de çıktı ve orada da düzeltildi.
+
+**Çözüm:** ada bakma. `adb devices -l` USB transport'lara ` usb:<yol>` alanı
+koyuyor; tek güvenilir işaret bu.
+
+```bash
+adb devices -l | awk 'NR>1 && $2=="device" && $0 ~ / usb:/ {print $1}'   # USB
+```
+
+(`emulator-*` girdilerinin de `usb:` alanı yoktur, ayrıca elenir.)
+
+### 4. `adb shell` stdin'i yutuyor
 
 ```bash
 for T in $(adb devices ...); do
@@ -124,13 +147,20 @@ tabletler yeniden başlayınca kablosuz hata ayıklamanın açık kalması bekle
 durum` ile doğrula. Kablosuz kayıt yayında değilse ayar kapanmış demektir; o
 zaman bir kereliğine kabloyla `tablet-wifi.sh kur`.
 
-**Eski 5555 portu açık.** İki tablette de `service.adb.tcp.port=5555` ayarlı
-ve port dinlemede. Bu kurulumdan ÖNCE de böyleydi, bu düzen onu kullanmıyor.
-Ev ağında ciddi bir risk değil (bağlanan hostun yine de tabletten onay
-alması gerekir) ama gereksiz bir yüzey ve yeniden başlatmada zaten kaybolur.
-Kapatmak istersen, tablet kabloyla bağlıyken:
+**Port 5555 bilerek açık, dokunma.** İki tablette de
+`service.adb.tcp.port=5555` ayarlı. Bu bir kaza değil: tabletleri kablosuza
+ilk açan **Bilgebaykuş** projesindeki `ctl` sürücüsü iki katmanı birden
+kurdu — `adb tcpip 5555` (hemen çalışır, yeniden başlatmada gider) ve
+`adb_wifi_enabled` (kalıcı olması beklenen asıl yol). 5555 kasıtlı bir yedek
+katman; bu repodaki düzen onu kullanmıyor ama kapatılması da istenmedi.
 
-```bash
-adb -s <SERI> shell setprop service.adb.tcp.port -1
-adb -s <SERI> shell stop adbd && adb -s <SERI> shell start adbd
-```
+## Aynı tabletleri iki repo yönetiyor
+
+| Repo | Komut | Ne gönderir |
+|---|---|---|
+| Bilgebaykuş | `./ctl deploy tablet all` | kendi içeriği |
+| Bu repo | `bedrock/install.sh` | `SuperTNT.mcaddon` |
+
+İkisi de aynı iki tablete, aynı kablosuz altyapı üzerinden bağlanıyor. Tablet
+kod adları Bilgebaykuş tarafında: `zeynep` = `R5GYC4BGAQW`, `omer` =
+`R5GYC4BGJJZ`. Kablosuz kurulum ortak; biri kurunca öteki de kullanır.

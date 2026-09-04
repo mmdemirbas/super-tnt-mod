@@ -44,13 +44,19 @@ transport_seri() { adb -s "$1" shell getprop ro.serialno </dev/null 2>/dev/null 
 if [ $# -ge 2 ]; then
   DEVICES="$2"
 else
-  # Hic kablosuz transport yoksa once baglanmayi dene (kablosuz asil yol).
-  if ! adb devices | awk 'NR>1 && $2=="device"' | grep -q ':[0-9]*$'; then
+  # USB mu kablosuz mu — transport ADINA BAKARAK anlasilmaz. Kablosuz
+  # transport "Android.local:46341" (iki nokta VAR) ya da mDNS adiyla
+  # "adb-R5GY...-ffM6cn._adb-tls-connect._tcp" (iki nokta YOK) gelebilir.
+  # Ada bakan filtre ikincisini USB sanir. "adb devices -l" USB transport'lara
+  # " usb:<yol>" alani koyuyor; tek guvenilir isaret bu.
+  KABLOSUZ="$(adb devices -l | awk 'NR>1 && $2=="device" && $0 !~ / usb:/ && $1 !~ /^emulator/ {print $1}')"
+  USB="$(adb devices -l | awk 'NR>1 && $2=="device" && $0 ~ / usb:/ {print $1}')"
+  # Hic kablosuz yoksa once baglanmayi dene (kablosuz asil yol).
+  if [ -z "${KABLOSUZ// /}" ]; then
     "$HERE/tablet-wifi.sh" bagla || echo "(kablosuz kurulamadi, USB ile devam)" >&2
+    KABLOSUZ="$(adb devices -l | awk 'NR>1 && $2=="device" && $0 !~ / usb:/ && $1 !~ /^emulator/ {print $1}')"
   fi
   # Kablosuzlar once listelenir ki ayni seride o kazansin.
-  KABLOSUZ="$(adb devices | awk 'NR>1 && $2=="device" && $1 ~ /:[0-9]+$/ {print $1}')"
-  USB="$(adb devices | awk 'NR>1 && $2=="device" && $1 !~ /:[0-9]+$/ && $1 !~ /^emulator/ {print $1}')"
   DEVICES=""; GORULEN=""
   for T in $KABLOSUZ $USB; do
     S="$(transport_seri "$T")"
@@ -65,7 +71,8 @@ fi
 for D in $DEVICES; do
   WHO="$(adb -s "$D" shell "pm list users" </dev/null 2>/dev/null \
          | grep -oE '\{0:[^:]*' | cut -d: -f2 | tr -d '\r' || echo "$D")"
-  case "$D" in *:[0-9]*) VIA="kablosuz" ;; *) VIA="USB" ;; esac
+  if adb devices -l | awk -v t="$D" 'NR>1 && $1==t && $0 ~ / usb:/ {b=1} END{exit !b}'; then
+    VIA="USB"; else VIA="kablosuz"; fi
   echo "=== $WHO ($D, $VIA)"
 
   # gonder + butunluk dogrula
