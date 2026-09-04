@@ -74,6 +74,38 @@ transport_seri() { adb -s "$1" shell getprop ro.serialno </dev/null 2>/dev/null 
 # filtre ikincisini USB sanir ve ustune USB'ye ozel komut cekilirse baglanti
 # duser. "adb devices -l" ise USB transport'lara " usb:<yol>" alani koyuyor;
 # tek guvenilir isaret bu. (emulator'un da usb: alani yok, ayrica eleniyor.)
+# --- Cocuklarin kod adlari ------------------------------------------------
+# "zeynep" / "omer" hep ayni fiziksel tablet demek: ad, DONANIM seri numarasina
+# (ro.serialno) bagli. O numara kabloda da kablosuzda da ayni ve oturumlar
+# arasi degismez, yani IP ya da port degisse de ad bozulmaz.
+#
+# Dosya REPO DISINDA (~/.config/tablet-adlari): seri numarasi kisisel donanim
+# bilgisi, git'e girmemeli. Ayni dosyayi bilgebaykus projesi de okuyor —
+# adlar tek yerde tanimli olsun, iki projede ayri ayri tutulup birbirinden
+# sapmasin diye. Bicim, bilgebaykus'un "devices.local" bicimiyle ayni:
+#   <kod-adi> <seri-no> <model>
+ADLAR="${TABLET_ADLARI:-}"
+if [ -z "$ADLAR" ]; then
+  for aday in "$(dirname "${BASH_SOURCE[0]:-$0}")/devices.local" "$HOME/.config/tablet-adlari"; do
+    [ -f "$aday" ] && { ADLAR="$aday"; break; }
+  done
+fi
+
+# kod adi -> seri no. Eslesme yoksa girdiyi AYNEN dondurur, boylece cagiran
+# tek yoldan gecer ve seri numarasi da dogrudan yazilabilir.
+ad_to_seri() {
+  if [ -n "$ADLAR" ] && [ -f "$ADLAR" ]; then
+    awk -v k="$1" '$1==k {print $2; f=1; exit} END{if (!f) print k}' "$ADLAR"
+  else
+    echo "$1"
+  fi
+}
+# seri no -> kod adi (kayitli degilse bos).
+seri_to_ad() {
+  [ -n "$ADLAR" ] && [ -f "$ADLAR" ] || return 0
+  awk -v s="$1" '$2==s {print $1; exit}' "$ADLAR"
+}
+
 usb_transportlar() {
   adb devices -l | awk 'NR>1 && $2=="device" && $0 ~ / usb:/ {print $1}'
 }
@@ -95,9 +127,10 @@ Yayinda tablet yok. Sirayla bak:
 EOF
     return 1
   fi
-  local ad seri adres n=0
+  local ad seri ad_gorunen adres n=0
   for ad in $kayitlar; do
     seri="$(seri_al "$ad")"
+    ad_gorunen="$(seri_to_ad "$seri")"
     adres="$(adres_coz "$ad")"
     if [ -z "$adres" ]; then
       echo "  $seri: adres cozulemedi (yayin var, cevap yok)" >&2
@@ -105,7 +138,7 @@ EOF
     fi
     # Zaten bagliysa adb "already connected" der; ikisi de basarilidir.
     if adb connect "$adres" 2>&1 | grep -qE "^(connected|already connected)"; then
-      echo "  $seri  ->  $adres"
+      echo "  ${ad_gorunen:-$seri}  ->  $adres"
       n=$((n + 1))
     else
       echo "  $seri: $adres baglanamadi" >&2
@@ -116,15 +149,17 @@ EOF
 }
 
 durum() {
-  local t seri tur var=0
-  printf "%-24s %-14s %s\n" "TRANSPORT" "SERI" "TUR"
+  local t seri ad tur var=0
+  printf "%-10s %-24s %-14s %s\n" "KOD ADI" "TRANSPORT" "SERI" "TUR"
   for t in $(adb devices | awk 'NR>1 && $2=="device" && $1 !~ /^emulator/ {print $1}'); do
     seri="$(transport_seri "$t")"
+    ad="$(seri_to_ad "$seri")"
     if transport_usb_mu "$t"; then tur="USB"; else tur="kablosuz"; fi
-    printf "%-24s %-14s %s\n" "$t" "${seri:-?}" "$tur"
+    printf "%-10s %-24s %-14s %s\n" "${ad:-—}" "$t" "${seri:-?}" "$tur"
     var=1
   done
   [ "$var" = 1 ] || echo "(bagli cihaz yok)"
+  [ -n "$ADLAR" ] || echo "(kod adi dosyasi yok: ~/.config/tablet-adlari)"
 }
 
 kur() {
@@ -150,6 +185,14 @@ kes() {
   adb disconnect >/dev/null 2>&1
   echo "Kablosuz baglantilar birakildi (USB varsa duruyor)."
 }
+
+# Bu dosya "source" edilirse (install.sh yardimcilari icin) komut
+# CALISTIRILMAZ; sadece fonksiyonlar tanimlanmis olur. Iki kabuk iki ayri
+# isaret veriyor, ikisi de bakiliyor: bash'te sourcing sirasinda BASH_SOURCE[0]
+# ile $0 ayrisir, zsh'de ZSH_EVAL_CONTEXT icinde ":file" gecer. Yalniz bash'e
+# bakmak zsh'den source edildiginde sessizce "bagla" calistiriyordu.
+case "${ZSH_EVAL_CONTEXT:-}" in *:file*) return 0 ;; esac
+[ "${BASH_SOURCE[0]:-$0}" = "$0" ] || return 0
 
 case "${1:-bagla}" in
   bagla|connect) bagla ;;

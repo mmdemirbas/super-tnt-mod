@@ -25,12 +25,21 @@
 # varsa kablosuz olan, cunku bu akisin asil yolu o.
 #
 # KULLANIM
-#   bedrock/install.sh out/SuperTNT.mcaddon            # tum tabletler
-#   bedrock/install.sh out/SuperTNT.mcaddon R5GYC4BGJJZ  # tek cihaz
+#   bedrock/install.sh out/SuperTNT.mcaddon           # iki tablete birden
+#   bedrock/install.sh out/SuperTNT.mcaddon zeynep    # yalniz Zeynep'e
+#   bedrock/install.sh out/SuperTNT.mcaddon omer      # yalniz Omer'e
+#   bedrock/install.sh out/SuperTNT.mcaddon R5GY...   # seri no da olur
+#
+# Kod adlari ~/.config/tablet-adlari dosyasindan okunur (bkz. tablet-wifi.sh);
+# ayni dosyayi bilgebaykus projesi de kullanir.
 
 set -euo pipefail
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
+# Kod adi cozumleme + transport yardimcilari orada tanimli; source edilince
+# tablet-wifi.sh komut calistirmaz.
+# shellcheck source=tablet-wifi.sh
+. "$HERE/tablet-wifi.sh"
 
 FILE="${1:?kullanim: install.sh <dosya.mcaddon> [cihaz-seri]}"
 [ -f "$FILE" ] || { echo "dosya yok: $FILE" >&2; exit 1; }
@@ -41,8 +50,20 @@ DEST="/sdcard/Download/$NAME"
 # her cagriya </dev/null verilir.
 transport_seri() { adb -s "$1" shell getprop ro.serialno </dev/null 2>/dev/null | tr -d '\r'; }
 
-if [ $# -ge 2 ]; then
-  DEVICES="$2"
+if [ $# -ge 2 ] && [ "$2" != "all" ]; then
+  # Kod adi ("zeynep") ya da seri no olabilir; ad_to_seri eslesme yoksa
+  # girdiyi aynen dondurur. Hedef kablosuz da bagli olabilecegi icin once
+  # kablosuzu kurup transportlar arasindan bu seriye ait olani seciyoruz.
+  ISTENEN="$(ad_to_seri "$2")"
+  "$HERE/tablet-wifi.sh" bagla >/dev/null 2>&1 || true
+  DEVICES=""
+  KABLOSUZ="$(adb devices -l | awk 'NR>1 && $2=="device" && $0 !~ / usb:/ && $1 !~ /^emulator/ {print $1}')"
+  USB="$(adb devices -l | awk 'NR>1 && $2=="device" && $0 ~ / usb:/ {print $1}')"
+  for T in $KABLOSUZ $USB; do
+    if [ "$(transport_seri "$T")" = "$ISTENEN" ]; then DEVICES="$T"; break; fi
+  done
+  [ -n "$DEVICES" ] || { echo "'$2' ($ISTENEN) bagli degil. Bagli olanlar:" >&2
+                         "$HERE/tablet-wifi.sh" durum >&2; exit 1; }
 else
   # USB mu kablosuz mu — transport ADINA BAKARAK anlasilmaz. Kablosuz
   # transport "Android.local:46341" (iki nokta VAR) ya da mDNS adiyla
@@ -73,7 +94,8 @@ for D in $DEVICES; do
          | grep -oE '\{0:[^:]*' | cut -d: -f2 | tr -d '\r' || echo "$D")"
   if adb devices -l | awk -v t="$D" 'NR>1 && $1==t && $0 ~ / usb:/ {b=1} END{exit !b}'; then
     VIA="USB"; else VIA="kablosuz"; fi
-  echo "=== $WHO ($D, $VIA)"
+  KOD="$(seri_to_ad "$(transport_seri "$D")")"
+  echo "=== ${KOD:+$KOD — }$WHO ($D, $VIA)"
 
   # gonder + butunluk dogrula
   adb -s "$D" push "$FILE" "$DEST" >/dev/null
