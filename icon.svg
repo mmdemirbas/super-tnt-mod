@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <title>super-tnt-mod</title>
+  <!-- thirty-five kinds of TNT for Minecraft. Drawn on a 24 grid so it stays legible at 16 pixels. -->
+  <rect width="24" height="24" rx="6" fill="#b3261e" />
+  <g fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="5.5" y="9.5" width="13" height="9.5" rx="1.5" />
+    <path d="M5.5 13h13" />
+    <path d="M12 9.5c0-2.2 2-2.4 3.2-4.4" />
+  </g>
+</svg>
