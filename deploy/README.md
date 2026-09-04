@@ -1,47 +1,24 @@
-# Aktarım (deploy)
+# deploy/
 
-Super TNT mobil sürümünü tabletlere, iPhone'a ve emülatörlere aktarma araçları.
-
-## Hızlı kullanım
-
-```bash
-deploy/deploy.sh              # build eder + bağlı tüm tabletlere gönderir
-deploy/deploy.sh --no-build   # yeniden build etmeden gönder
-deploy/deploy.sh --icloud     # iPhone/iPad için iCloud Drive'a da bırak
-deploy/deploy.sh --emu        # Android emülatörlerini de dahil et
-deploy/deploy.sh R5GYC4BGJJZ  # sadece tek cihaz (USB seri no ya da ip:port)
-```
-
-Gönderdikten sonra tablette son adım elle: **Dosyalarım > İndirilenler >
-SuperTNT.mcaddon** (uzun bas > "Sununla aç" > Minecraft). Sonra Dünya
-Ayarları'nda hem Davranış hem Kaynak paketini etkinleştir.
-
-## Kablosuz (WiFi) aktarım — kablo takmadan
-
-Aynı WiFi/LAN'da olman yeterli. Bir kez kur:
+`./ctl` sürücüsünün kullandığı yardımcı. **Normalde buradaki dosyayı doğrudan
+çağırmazsın** — tek giriş noktası `./ctl`.
 
 ```bash
-deploy/wifi-setup.sh          # eşleştirme sihirbazı (adım adım anlatır)
+./ctl deploy tablet            # derle + bağlı tabletlere gönder (kablosuz)
+./ctl deploy tablet zeynep     # yalnız bir çocuğun tableti
+./ctl deploy iphone            # iCloud Drive kanalıyla
+./ctl wifi kur                 # yeni tablet: bir kereliğine kablo
+./ctl status                   # ne bağlı
 ```
 
-Tablette: Ayarlar > Geliştirici seçenekleri > **Kablosuz hata ayıklama** > Aç >
-"Eşleştirme koduyla eşleştir". Script IP+kodu sorar. Kurunca kabloyu çıkar;
-`deploy/deploy.sh` artık kablosuz da gönderir.
+## deploy.sh
 
-Tablet yeniden başlarsa yeniden bağla:
+Paketi cihaza gönderir, boyutunu doğrular ve Samsung MediaStore kaydını
+temizler (bu temizlik olmadan Samsung "Dosyalarım" `.mcaddon`'ı Minecraft'a
+değil Google Play'e yönlendiriyor).
 
-```bash
-deploy/wifi-setup.sh --list
-```
+`./ctl` cihazları seçip her biri için `deploy.sh --no-build <transport>`
+çağırıyor; kablosuz keşif, kod adı çözümleme ve aynı tableti iki kez
+göndermeme `ctl`'de.
 
-## iPhone / iPad
-
-`--icloud` ile `.mcaddon` iCloud Drive'a kopyalanır. iPhone'da: **Dosyalar >
-iCloud Drive > SuperTNT > SuperTNT.mcaddon** (dokun > Minecraft). AirDrop'un
-resmî komut satırı olmadığı için iCloud en güvenilir yol.
-
-## Neden otomatik import yok
-
-Minecraft'ı `adb` ile açıp dosyayı otomatik içe aktarmak kırılgan (ikon
-sırası/dil/çözünürlük değişince bozulur). Elle import her zaman çalışıyor;
-script gönderme + doğrulamayı yapar, son dokunuşu sana bırakır.
+Kablosuz kurulumun tamamı: `docs/tablet-kablosuz-deploy.md`.

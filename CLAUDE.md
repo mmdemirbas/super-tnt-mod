@@ -164,15 +164,17 @@ Bump `VERSION` in `build.py` every time, otherwise Minecraft treats the import a
 a duplicate instead of an update.
 
 ```bash
-python3 bedrock/build.py
-bedrock/install.sh bedrock/out/SuperTNT.mcaddon   # both tablets, over wifi
+./ctl deploy tablet            # build + send to both tablets, over wifi
+./ctl deploy tablet zeynep     # just one child's tablet
 ```
 
-Deployment is **wireless** — no cable. `install.sh` discovers the tablets over
-Bonjour and connects itself; it also de-duplicates when a tablet is reachable on
-both USB and wifi. A brand-new tablet needs the cable once
-(`bedrock/tablet-wifi.sh kur`). See `docs/tablet-kablosuz-deploy.md`, and
-`docs/cocuk-paketleri.md` for the child-facing side.
+`./ctl` is the only entry point — build, deploy, wifi setup and status all live
+there. Deployment is **wireless**: it discovers the tablets over Bonjour and
+connects itself, and de-duplicates when a tablet is reachable on both USB and
+wifi. A brand-new tablet needs the cable once (`./ctl wifi kur`). Child code
+names live in `~/.config/tablet-adlari`, shared with the bilgebaykus project.
+See `docs/tablet-kablosuz-deploy.md`, and `docs/cocuk-paketleri.md` for the
+child-facing side.
 
 ## Commit rules
 

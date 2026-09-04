@@ -3,7 +3,7 @@
 #
 # Tek komut: build eder ve BAGLI olan her yere gonderir:
 #   - USB'yle bagli Android tabletler
-#   - KABLOSUZ (WiFi) bagli tabletler   (once: deploy/wifi-setup.sh)
+#   - KABLOSUZ (WiFi) bagli tabletler   (once: ./ctl wifi kur)
 #   - Android emulatorleri              (--emu ile)
 #   - iPhone / iPad                     (--icloud ile iCloud Drive'a birakir)
 #
@@ -13,6 +13,8 @@
 #   deploy/deploy.sh --emu           # emulatorleri de dahil et
 #   deploy/deploy.sh --icloud        # iPhone/iPad icin iCloud Drive'a da kopyala
 #   deploy/deploy.sh R5GYC4BGJJZ     # sadece tek cihaz (seri no ya da ip:port)
+#
+# Normalde bu script dogrudan CAGRILMAZ: ./ctl deploy tablet onu surer.
 #
 # NEDEN ELLE IMPORT: Minecraft'i adb ile otomatik acmak kirilgan (bkz. asagi).
 # Script dosyayi hazirlar; son adimi (Dosyalarim'dan acma) kullanici yapar.
@@ -55,7 +57,7 @@ fi
 
 if [ -z "${DEVICES// }" ]; then
   echo "== bagli Android cihaz yok =="
-  echo "   USB tak, ya da kablosuz icin: deploy/wifi-setup.sh"
+  echo "   USB tak, ya da kablosuz icin: ./ctl wifi"
 else
   for D in $DEVICES; do
     WHO="$(adb -s "$D" shell "pm list users" 2>/dev/null \
@@ -70,7 +72,7 @@ else
     echo "   gonderildi ve dogrulandi: $LOCAL bayt"
     # MediaStore temizligi: Samsung push edilen .mcaddon'i bazen yanlis tiple
     # kaydeder ve Minecraft'a degil Play'e yonlendirir. Kaydi silince uzantidan
-    # tanir. (bkz. install.sh acikamasi)
+    # tanir.
     adb -s "$D" shell "content delete --uri content://media/external/downloads \
         --where \"_display_name='$NAME'\"" >/dev/null 2>&1 || true
     echo "   Tablette: Dosyalarim > Indirilenler > $NAME (uzun bas > Sununla ac > Minecraft)"

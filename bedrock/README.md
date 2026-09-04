@@ -153,14 +153,19 @@ Tabletin Minecraft klasörü salt okunur (bkz. `docs/bedrock-port-fizibilite.md`
 yani her deneme:
 
 ```bash
-python3 bedrock/build.py
-./bedrock/install.sh bedrock/out/SuperTNT.mcaddon
+./ctl deploy tablet            # derler ve iki tablete birden gönderir
+./ctl deploy tablet zeynep     # yalnız bir çocuğun tableti
 ```
 
-`install.sh` dosyayı gönderir, boyutunu doğrular ve import intent'ini
-**MIME tipiyle** yollar. MIME olmadan Minecraft eşleşmiyor ve Android
-"Play Store'da ara" diyor — ayrıntı `docs/cocuk-paketleri.md`'de.
-Tabletin ekranı açık ve kilidi açık olmalı.
+`./ctl` derler, kablosuz bağlanır, dosyayı gönderir, boyutunu doğrular ve
+Samsung MediaStore kaydını temizler. Kablo gerekmez — ayrıntı
+`docs/tablet-kablosuz-deploy.md`'de.
+
+Son adım **elle**: tablette Dosyalarım > İndirilenler > `SuperTNT.mcaddon`
+> uzun bas > "Sununla aç" > Minecraft. Otomatik import denendi ve çalışmıyor
+(intent ya Minecraft'ı ana menüye düşürüyor ya da "Sununla aç" seçicisini
+açıyor; seçiciyi adb ile geçmek kırılgan). Tabletin ekranı açık ve kilidi
+açık olmalı.
 
 Tur başına bir dokunuş gerektiği için değişiklikleri topla, tek seferde gönder.
 

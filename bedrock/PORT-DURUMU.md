@@ -902,7 +902,7 @@ Sahip Kapısı kalıcı-kayıp fix; Şifreli Sandık şifresini sadece sahip koy
 Craft Baltası boyut güvenliği; Gökkuşağı tooltip dürüstlüğü.
 
 **Aktarım (deploy/).** `deploy/deploy.sh` USB + kablosuz WiFi + emülatör +
-iPhone/iCloud; `deploy/wifi-setup.sh` kablosuz adb kurulumu.
+iPhone/iCloud; `./ctl wifi kur` kablosuz adb kurulumu.
 
 ### Bilinen sınırlar / sıradaki
 - Kilitli/Şifreli Sandık'ta gerçek eşya envanteri yok (Bedrock script-API'de
@@ -1080,4 +1080,4 @@ Ses Saldırısı, Mega Gübre, Sahte Elmas Aletler (kılıç/kazma/balta/kürek/
 
 `bedrock/build.py` tek kaynak. TNTS / BLOCKS / ITEMS listeleri + effect
 türleri. `super_tnt_BP/` ve `super_tnt_RP/` üretilen çıktı (gitignore).
-Kurulum: `bedrock/install.sh` (MediaStore temizliği dahil).
+Kurulum: `./ctl deploy tablet` (MediaStore temizliği dahil).

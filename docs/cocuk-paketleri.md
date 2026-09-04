@@ -164,7 +164,7 @@ filtre yerinde duruyor, sadece iki taraf anlaşamıyor.
 ### Çözüm
 
 ```bash
-./bedrock/install.sh bedrock/out/SuperTNT.mcaddon
+./ctl deploy tablet
 ```
 
 Script dosyayı gönderir ve boyutunu doğrular. **Import'u sen yaparsın** —

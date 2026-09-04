@@ -12,12 +12,15 @@ olmasıdır.
 ## Günlük kullanım
 
 ```bash
-python3 bedrock/build.py                       # paketi üret (VERSION'ı artır!)
-bedrock/install.sh bedrock/out/SuperTNT.mcaddon   # iki tablete birden gönder
+./ctl deploy tablet            # derle + iki tablete birden gönder
+./ctl deploy tablet zeynep     # yalnız Zeynep'in tableti
+./ctl deploy tablet omer       # yalnız Ömer'in tableti
 ```
 
-`install.sh` kablosuz bağlantıyı kendisi kuruyor; ayrı bir komut çalıştırmana
-gerek yok. Kablo takılı olsun ya da olmasın aynı komut çalışır.
+**Tek giriş noktası `./ctl`.** Kablosuz bağlantıyı kendisi kuruyor; ayrı bir
+komut çalıştırmana gerek yok. Kablo takılı olsun ya da olmasın aynı komut
+çalışır. `VERSION` artırmayı unutma — Minecraft aynı sürümü güncelleme değil
+kopya sayar.
 
 Gönderdikten sonrası elle: tablette **Dosyalarım > İndirilenler >
 SuperTNT.mcaddon**'a uzun bas, "Sununla aç" > **Minecraft**. Sonra Dünya
@@ -26,11 +29,25 @@ Ayarları'nda Davranış + Kaynak paketlerinin ikisini de etkinleştir.
 Yardımcı komutlar:
 
 ```bash
-bedrock/tablet-wifi.sh durum    # ne bağlı, hangi tablet, kablosuz mu USB mi
-bedrock/tablet-wifi.sh bagla    # sadece bağlan, deploy etme
-bedrock/tablet-wifi.sh kes      # kablosuz bağlantıları bırak
-bedrock/tablet-wifi.sh kur      # YENİ tablet — bir kereliğine KABLO ister
+./ctl status       # ne bağlı: kod adı — transport — kablosuz mu USB mi
+./ctl wifi         # sadece bağlan, deploy etme
+./ctl wifi kur     # YENİ tablet — bir kereliğine KABLO ister
 ```
+
+## Çocuk adları
+
+`~/.config/tablet-adlari` (repo dışında: seri numarası kişisel donanım
+bilgisi). Biçim `<kod-adı> <seri-no> <model>`:
+
+```
+omer   R5GYC4BGJJZ  SM-X520
+zeynep R5GYC4BGAQW  SM-X520
+```
+
+**Aynı dosyayı bilgebaykuş projesi de okuyor**, böylece adlar iki projede
+ayrışmıyor. Ad donanım seri numarasına bağlı; o numara kabloda da kablosuzda
+da aynı ve oturumlar arası değişmiyor, yani "zeynep" hep aynı fiziksel
+tablet.
 
 ## Nasıl çalışıyor
 
@@ -49,8 +66,8 @@ adb-R5GYC4BGAQW-ffM6cn._adb-tls-connect._tcp   ->  Android-2.local:46341
 adb-R5GYC4BGJJZ-LhvfAg._adb-tls-connect._tcp   ->  Android.local:34933
 ```
 
-`tablet-wifi.sh` her çalıştırmada bu kaydı yeniden keşfedip `adb connect`
-yapıyor. Hiçbir adres dosyada saklanmıyor.
+`./ctl` her çalıştırmada bu kaydı yeniden keşfedip `adb connect` yapıyor.
+Hiçbir adres dosyada saklanmıyor.
 
 ## Ölçülen dört tuzak
 
@@ -114,8 +131,7 @@ Bu döngü ilk cihazdan sonra sessizce duruyor — hata yok, sadece eksik çıkt
 Kurulum sırasında "bağlantılar kopuyor" sanıldı; kopmuyordu, döngü okunacak
 satırları `adb shell`'e kaptırmıştı.
 
-**Çözüm:** her `adb shell` çağrısına `</dev/null`. Hem `tablet-wifi.sh` hem
-`install.sh` böyle.
+**Çözüm:** her `adb shell` çağrısına `</dev/null`.
 
 ## Aynı tablete iki kez gönderme sorunu
 
@@ -127,25 +143,35 @@ R5GYC4BGAQW              device    <- USB
 Android-2.local:46341    device    <- kablosuz, AYNI tablet
 ```
 
-`install.sh` artık transport'ları `ro.serialno` ile gruplayıp her tablet için
-tek transport seçiyor — varsa kablosuz olanı, çünkü asıl yol o.
+`./ctl` transport'ları `ro.serialno` ile gruplayıp her tablet için tek
+transport seçiyor — varsa kablosuz olanı, çünkü asıl yol o.
 
 ## Bakım
 
 | Durum | Ne yapmalı |
 |---|---|
-| Yeni tablet eklendi | Bir kereliğine kabloyla: `tablet-wifi.sh kur` |
+| Yeni tablet eklendi | Bir kereliğine kabloyla: `./ctl wifi kur` |
 | Tablet bulunamıyor | Ekranı aç, aynı wifi'da mı bak. Misafir ağı çalışmaz (cihaz yalıtımı) |
-| Fabrika ayarı / OS güncellemesi | `family-link-usb-debug-setup.md` adımlarını gözden geçir, sonra `kur` |
+| Fabrika ayarı / OS güncellemesi | `family-link-usb-debug-setup.md` adımlarını gözden geçir, sonra `./ctl wifi kur` |
+| Tablet yeniden başladı | Tabletin kilidini bir kez aç. Sonra `./ctl deploy tablet` çalışır |
 | Router değişti / IP değişti | Bir şey yapma. Bağlantı IP ile değil `.local` adıyla kuruluyor |
 
-## Açık kalan iki nokta
+## Yeniden başlatma: adb, tablet açılana kadar kapalı
 
-**Yeniden başlatma sınanmadı.** `adb_wifi_enabled` kalıcı bir ayar, yani
-tabletler yeniden başlayınca kablosuz hata ayıklamanın açık kalması bekleniyor
-— ama bu **denenmedi**. Tabletler bir kapanıp açıldığında `tablet-wifi.sh
-durum` ile doğrula. Kablosuz kayıt yayında değilse ayar kapanmış demektir; o
-zaman bir kereliğine kabloyla `tablet-wifi.sh kur`.
+**Ölçüldü (2026-09-04).** İki tablet yeniden başlatıldı. Açıldıktan sonra adb
+**tamamen** kayboldu — kablosuz da, USB de. Tabletler ağdaydı (`.local` adı
+ping'e cevap veriyordu) ama `adb devices` boştu ve mDNS kaydı yayında değildi.
+
+Sebep yapılandırma değil: adb anahtarları ve kablosuz hata ayıklama durumu
+**kimlik-şifreli depoda** duruyor ve cihaz bir kez açılana (unlock) kadar
+okunamıyor. Kapatılabilir bir ayar yok.
+
+**Pratikte sorun değil:** çocuk tableti açtığı an geri gelir. Yani "reboot oldu
+→ kablo lazım" değil, "reboot sonrası tablet bir kez açılmış olsun" yeterli.
+
+Açıldıktan sonra kablosuzun kabloya gerek kalmadan geri geldiği **henüz
+doğrulanmadı** — tabletler o sırada kilitliydi. İlk fırsatta `./ctl status`
+ile bak: kablosuz satırlar görünüyorsa tamam.
 
 **Port 5555 bilerek açık, dokunma.** İki tablette de
 `service.adb.tcp.port=5555` ayarlı. Bu bir kaza değil: tabletleri kablosuza
@@ -159,7 +185,7 @@ katman; bu repodaki düzen onu kullanmıyor ama kapatılması da istenmedi.
 | Repo | Komut | Ne gönderir |
 |---|---|---|
 | Bilgebaykuş | `./ctl deploy tablet all` | kendi içeriği |
-| Bu repo | `bedrock/install.sh` | `SuperTNT.mcaddon` |
+| Bu repo | `./ctl deploy tablet` | `SuperTNT.mcaddon` |
 
 İkisi de aynı iki tablete, aynı kablosuz altyapı üzerinden bağlanıyor. Tablet
 kod adları Bilgebaykuş tarafında: `zeynep` = `R5GYC4BGAQW`, `omer` =
