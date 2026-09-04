@@ -21,4 +21,17 @@ değil Google Play'e yönlendiriyor).
 çağırıyor; kablosuz keşif, kod adı çözümleme ve aynı tableti iki kez
 göndermeme `ctl`'de.
 
+## secim-test.sh
+
+`ctl`'nin cihaz seçme mantığını gerçek tablet olmadan sınar (sahte `adb`).
+
+```bash
+deploy/secim-test.sh
+```
+
+Neden ayrı bir test: en kritik durum elde tablet varken bile zor üretiliyor —
+aynı tabletin hem kabloyla hem kablosuz bağlı olması, ve kablosuz transport'un
+mDNS-ad biçiminde (iki nokta YOK) gelmesi. O biçim adb'nin önbelleğine bağlı,
+istenince oluşmuyor. Sahte `adb` ile o tablo bir saniyede kuruluyor.
+
 Kablosuz kurulumun tamamı: `docs/tablet-kablosuz-deploy.md`.
