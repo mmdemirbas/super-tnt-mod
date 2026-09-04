@@ -12,28 +12,61 @@
 # Elle import ise her zaman calisiyor (MorphX bu tabletlere boyle yuklendi).
 # Bu yuzden script hazirligi yapar, import'u kullaniciya birakir.
 #
+# KABLOSUZ
+# Kablo gerekmez. Tablet ayni wifi'da ve kablosuz hata ayiklama aciksa bu
+# script kendisi baglanir (bkz. tablet-wifi.sh). Yeni bir tablette bir
+# kereligine kablo gerekir: "bedrock/tablet-wifi.sh kur".
+#
+# AYNI TABLETE IKI KEZ GONDERMEME
+# Kablo TAKILIYKEN kablosuz da bagliysa ayni fiziksel tablet "adb devices"
+# icinde IKI transport olarak gorunur (R5GY... ve Android.local:46341).
+# Naif bir dongu ayni tablete iki kez push eder. Bu yuzden transport'lar
+# ro.serialno ile grupleniyor ve her tablet icin TEK transport seciliyor —
+# varsa kablosuz olan, cunku bu akisin asil yolu o.
+#
 # KULLANIM
-#   bedrock/install.sh out/SuperTNT.mcaddon            # tum bagli tabletler
+#   bedrock/install.sh out/SuperTNT.mcaddon            # tum tabletler
 #   bedrock/install.sh out/SuperTNT.mcaddon R5GYC4BGJJZ  # tek cihaz
 
 set -euo pipefail
+
+HERE="$(cd "$(dirname "$0")" && pwd)"
 
 FILE="${1:?kullanim: install.sh <dosya.mcaddon> [cihaz-seri]}"
 [ -f "$FILE" ] || { echo "dosya yok: $FILE" >&2; exit 1; }
 NAME="$(basename "$FILE")"
 DEST="/sdcard/Download/$NAME"
 
+# "adb shell" stdin'i yutar; cagiran dongunun geri kalanini yememesi icin
+# her cagriya </dev/null verilir.
+transport_seri() { adb -s "$1" shell getprop ro.serialno </dev/null 2>/dev/null | tr -d '\r'; }
+
 if [ $# -ge 2 ]; then
   DEVICES="$2"
 else
-  DEVICES="$(adb devices | awk 'NR>1 && $2=="device" && $1 !~ /^emulator/ {print $1}')"
+  # Hic kablosuz transport yoksa once baglanmayi dene (kablosuz asil yol).
+  if ! adb devices | awk 'NR>1 && $2=="device"' | grep -q ':[0-9]*$'; then
+    "$HERE/tablet-wifi.sh" bagla || echo "(kablosuz kurulamadi, USB ile devam)" >&2
+  fi
+  # Kablosuzlar once listelenir ki ayni seride o kazansin.
+  KABLOSUZ="$(adb devices | awk 'NR>1 && $2=="device" && $1 ~ /:[0-9]+$/ {print $1}')"
+  USB="$(adb devices | awk 'NR>1 && $2=="device" && $1 !~ /:[0-9]+$/ && $1 !~ /^emulator/ {print $1}')"
+  DEVICES=""; GORULEN=""
+  for T in $KABLOSUZ $USB; do
+    S="$(transport_seri "$T")"
+    [ -n "$S" ] || continue
+    case " $GORULEN " in *" $S "*) continue ;; esac
+    GORULEN="$GORULEN $S"
+    DEVICES="$DEVICES $T"
+  done
 fi
-[ -n "$DEVICES" ] || { echo "bagli tablet yok" >&2; exit 1; }
+[ -n "${DEVICES// /}" ] || { echo "bagli tablet yok" >&2; exit 1; }
 
 for D in $DEVICES; do
-  WHO="$(adb -s "$D" shell "pm list users" 2>/dev/null \
+  WHO="$(adb -s "$D" shell "pm list users" </dev/null 2>/dev/null \
          | grep -oE '\{0:[^:]*' | cut -d: -f2 | tr -d '\r' || echo "$D")"
-  echo "=== $WHO ($D)"
+  case "$D" in *:[0-9]*) VIA="kablosuz" ;; *) VIA="USB" ;; esac
+  echo "=== $WHO ($D, $VIA)"
 
   # gonder + butunluk dogrula
   adb -s "$D" push "$FILE" "$DEST" >/dev/null

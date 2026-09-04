@@ -159,9 +159,20 @@ versions stay consistent. See `bedrock/README.md` for known differences and
 `docs/bedrock-port-fizibilite.md` for what can and cannot be ported.
 
 **Deploying to a tablet:** the Minecraft data folder on Android is read-only, so
-each iteration is `build.py` → `adb push` to `/sdcard/Download/` → open the file.
+each iteration is `build.py` → push to `/sdcard/Download/` → open the file.
 Bump `VERSION` in `build.py` every time, otherwise Minecraft treats the import as
-a duplicate instead of an update. See `docs/cocuk-paketleri.md`.
+a duplicate instead of an update.
+
+```bash
+python3 bedrock/build.py
+bedrock/install.sh bedrock/out/SuperTNT.mcaddon   # both tablets, over wifi
+```
+
+Deployment is **wireless** — no cable. `install.sh` discovers the tablets over
+Bonjour and connects itself; it also de-duplicates when a tablet is reachable on
+both USB and wifi. A brand-new tablet needs the cable once
+(`bedrock/tablet-wifi.sh kur`). See `docs/tablet-kablosuz-deploy.md`, and
+`docs/cocuk-paketleri.md` for the child-facing side.
 
 ## Commit rules
 
