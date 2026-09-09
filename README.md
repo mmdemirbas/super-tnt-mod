@@ -47,6 +47,7 @@ Fabric 1.21.1 | 35 Blok + 29 Eşya + 2 Mob + 11 Başarım
 | Tünel Blok | Tünel Kazma Aleti ile oluşturulan kısmen kazılmış blok |
 | Herobrine Çağırıcı | Yerleştirince kendini kaldırır ve Herobrine'ı doğurur — herkese saldırır |
 | Ender Ateşi | Ender Çakmağı ile yakılan mavi ateş — içine gireni başka bir ateşe ışınlar |
+| Altın Ateş | Altın Flint ile yakılan altın ateş — sönmez, yayılmaz, değeni yakar |
 
 ## Eşyalar
 
@@ -75,6 +76,7 @@ Fabric 1.21.1 | 35 Blok + 29 Eşya + 2 Mob + 11 Başarım
 | Lazer Kılıcı | Sağ tıkla — 9 blok lazer ışını, 15 kalp hasar, 20 sn soğuma |
 | Lav Kristali | Elinde tut — ateş ve lavdan tamamen korunursun |
 | Ender Çakmağı | Mavi ateş yakar; ateşe giren başka bir ateşe ışınlanır (64 kullanım) |
+| Altın Flint | Altın ateş yakar ve tıkladığın bloğu altın bloğuna çevirir (64 kullanım) |
 
 ## Zırh Setleri
 

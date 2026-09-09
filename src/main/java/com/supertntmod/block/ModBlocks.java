@@ -445,6 +445,10 @@ public class ModBlocks {
     public static final EnderFireBlock ENDER_FIRE = regBlockOnly("ender_fire",
             new EnderFireBlock(fireSettings("ender_fire")));
 
+    // 🟡 Altın Ateş - Altın Flint ile yakılır; sönmez, yayılmaz
+    public static final GoldFireBlock GOLD_FIRE = regBlockOnly("gold_fire",
+            new GoldFireBlock(fireSettings("gold_fire")));
+
     // TunneledBlock için BlockEntity tipi
     public static final BlockEntityType<TunneledBlockEntity> TUNNELED_BLOCK_ENTITY_TYPE =
             Registry.register(Registries.BLOCK_ENTITY_TYPE,

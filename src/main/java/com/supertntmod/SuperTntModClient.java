@@ -182,6 +182,7 @@ public class SuperTntModClient implements ClientModInitializer {
         BlockEntityRendererRegistry.register(ModBlocks.TUNNELED_BLOCK_ENTITY_TYPE, TunneledBlockEntityRenderer::new);
         BlockRenderLayerMap.putBlock(ModBlocks.TUNNELED_BLOCK, BlockRenderLayer.CUTOUT);
         BlockRenderLayerMap.putBlock(ModBlocks.ENDER_FIRE, BlockRenderLayer.CUTOUT);
+        BlockRenderLayerMap.putBlock(ModBlocks.GOLD_FIRE, BlockRenderLayer.CUTOUT);
 
         // Çizim eşyası: sağ tıklayınca çizim ekranını aç
         UseItemCallback.EVENT.register((player, world, hand) -> {

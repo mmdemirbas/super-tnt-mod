@@ -358,5 +358,9 @@
   "item.supertntmod.ender_flint": "Ender Flint and Steel",
   "item.supertntmod.ender_flint.tooltip": "Lights a blue fire. Whoever steps into it is teleported: most often to another Ender Fire, sometimes to a soul fire in the Nether, very rarely to an orange Nether fire.",
   "item.supertntmod.ender_flint.tooltip2": "Nether fires burn you. If no destination exists, nothing happens.",
-  "item.supertntmod.ender_flint.no_target": "There is no fire to travel to."
+  "item.supertntmod.ender_flint.no_target": "There is no fire to travel to.",
+  "block.supertntmod.gold_fire": "Gold Fire",
+  "item.supertntmod.golden_flint": "Golden Flint",
+  "item.supertntmod.golden_flint.tooltip": "Lights a gold fire and turns the block you clicked into a block of gold. The fire never goes out and never spreads.",
+  "item.supertntmod.golden_flint.tooltip2": "The fire burns anything that touches it. Unbreakable blocks and containers stay as they are."
 }

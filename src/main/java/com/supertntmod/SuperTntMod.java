@@ -212,8 +212,9 @@ public class SuperTntMod implements ModInitializer {
                             entries.add(ModItems.KOKU_BOMBASI);
                             entries.add(ModItems.DONDURUCU);
                             entries.add(ModItems.ESYA_CALMACA);
-                            // Ender Çakmağı
+                            // Ender Çakmağı / Altın Flint
                             entries.add(ModItems.ENDER_FLINT);
+                            entries.add(ModItems.GOLDEN_FLINT);
                         })
                         .build());
 

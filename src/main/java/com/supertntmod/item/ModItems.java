@@ -255,6 +255,13 @@ public class ModItems {
                     .maxDamage(64)
                     .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "ender_flint")))));
 
+    // 🟡 Altın Flint — altın ateş yakar, yakıldığı bloğu altına çevirir
+    public static final GoldenFlintItem GOLDEN_FLINT = register("golden_flint",
+            new GoldenFlintItem(new Item.Settings()
+                    .maxCount(1)
+                    .maxDamage(64)
+                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "golden_flint")))));
+
     private static <T extends Item> T register(String name, T item) {
         Identifier id = Identifier.of(SuperTntMod.MOD_ID, name);
         return Registry.register(Registries.ITEM, id, item);

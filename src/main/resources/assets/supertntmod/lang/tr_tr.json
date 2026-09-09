@@ -358,5 +358,9 @@
   "item.supertntmod.ender_flint": "Ender Çakmağı",
   "item.supertntmod.ender_flint.tooltip": "Mavi ateş yakar. Ateşin içine giren ışınlanır: çoğunlukla başka bir Ender Ateşi'ne, bazen Nether'daki bir ruh ateşine, çok seyrek Nether'daki turuncu ateşe.",
   "item.supertntmod.ender_flint.tooltip2": "Nether ateşleri yakar. Gidilecek yer yoksa hiçbir şey olmaz.",
-  "item.supertntmod.ender_flint.no_target": "Gidilecek bir ateş yok."
+  "item.supertntmod.ender_flint.no_target": "Gidilecek bir ateş yok.",
+  "block.supertntmod.gold_fire": "Altın Ateş",
+  "item.supertntmod.golden_flint": "Altın Flint",
+  "item.supertntmod.golden_flint.tooltip": "Altın ateş yakar ve tıkladığın bloğu altın bloğuna çevirir. Ateş sönmez ve yayılmaz.",
+  "item.supertntmod.golden_flint.tooltip2": "Ateşe değen yanar. Kırılamayan bloklar ve sandıklar olduğu gibi kalır."
 }
