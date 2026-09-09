@@ -36,6 +36,20 @@ public class ModBlocks {
                 .hardness(4.0f).resistance(0.0f);
     }
 
+    // Özel ateşler: çarpışmasız, anında kırılır, ışık saçar.
+    // replaceable() BİLEREK yok — su/lav akışı bu ateşleri söndürmemeli.
+    private static AbstractBlock.Settings fireSettings(String name) {
+        return AbstractBlock.Settings.create()
+                .registryKey(RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(SuperTntMod.MOD_ID, name)))
+                .noCollision()
+                .nonOpaque()
+                .breakInstantly()
+                .luminance(state -> 15)
+                .sounds(net.minecraft.sound.BlockSoundGroup.WOOL)
+                .pistonBehavior(net.minecraft.block.piston.PistonBehavior.DESTROY)
+                .dropsNothing();
+    }
+
     // 💎 Elmas TNT - Dev patlama
     public static final DiamondTntBlock DIAMOND_TNT = reg("diamond_tnt",
             new DiamondTntBlock(hardTntSettings("diamond_tnt")));
@@ -426,6 +440,10 @@ public class ModBlocks {
             new ZehirToprakBlock(AbstractBlock.Settings.copy(Blocks.MOSS_BLOCK)
                     .registryKey(RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(SuperTntMod.MOD_ID, "zehir_toprak")))
                     .strength(0.5f)));
+
+    // 🔵 Ender Ateşi - Ender Çakmağı ile yakılır; içine gireni ışınlar
+    public static final EnderFireBlock ENDER_FIRE = regBlockOnly("ender_fire",
+            new EnderFireBlock(fireSettings("ender_fire")));
 
     // TunneledBlock için BlockEntity tipi
     public static final BlockEntityType<TunneledBlockEntity> TUNNELED_BLOCK_ENTITY_TYPE =

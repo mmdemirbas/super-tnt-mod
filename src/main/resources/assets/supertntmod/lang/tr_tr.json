@@ -353,5 +353,10 @@
   "item.supertntmod.esya_calmaca.no_target": "10 blok yarıçapında oyuncu yok.",
   "item.supertntmod.esya_calmaca.title": "%s'in Envanteri",
   "item.supertntmod.esya_calmaca.target_warned": "%s envanterini karıştırıyor!",
-  "entity.supertntmod.walking_tnt": "Yürüyen TNT"
+  "entity.supertntmod.walking_tnt": "Yürüyen TNT",
+  "block.supertntmod.ender_fire": "Ender Ateşi",
+  "item.supertntmod.ender_flint": "Ender Çakmağı",
+  "item.supertntmod.ender_flint.tooltip": "Mavi ateş yakar. Ateşin içine giren ışınlanır: çoğunlukla başka bir Ender Ateşi'ne, bazen Nether'daki bir ruh ateşine, çok seyrek Nether'daki turuncu ateşe.",
+  "item.supertntmod.ender_flint.tooltip2": "Nether ateşleri yakar. Gidilecek yer yoksa hiçbir şey olmaz.",
+  "item.supertntmod.ender_flint.no_target": "Gidilecek bir ateş yok."
 }

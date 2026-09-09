@@ -1,4 +1,5 @@
 her iki branch'e ekle:
+- [x] ender çakmağı → EnderFlintItem + EnderFireBlock (mavi ateş; içine gireni ağırlıklı çekilişle başka bir ender ateşine / Nether ruh ateşine / Nether turuncu ateşine ışınlar)
 - [x] koku bombası → KokuBombasiItem + ZehirToprakBlock (3 blok yarıçapında saçılır; değen anında ölür; toprak 60 sn sonra solar)
 - [x] dondurucu → DondurucuItem (canlıyı öldürür, spawn egg verir; "blok" yerine fonksiyonel olarak spawn egg kullanıldı)
 - [x] eşya çalmaca → EsyaCalmacaItem (10 blok yarıçaptaki en yakın oyuncunun envanteri sandık-benzeri UI ile açılır; mob desteği vanilla'da moblar genel envanter taşımadığı için ileriye bırakıldı)

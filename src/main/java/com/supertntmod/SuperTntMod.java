@@ -212,6 +212,8 @@ public class SuperTntMod implements ModInitializer {
                             entries.add(ModItems.KOKU_BOMBASI);
                             entries.add(ModItems.DONDURUCU);
                             entries.add(ModItems.ESYA_CALMACA);
+                            // Ender Çakmağı
+                            entries.add(ModItems.ENDER_FLINT);
                         })
                         .build());
 
@@ -292,6 +294,7 @@ public class SuperTntMod implements ModInitializer {
             com.supertntmod.item.PortalGunItem.clearAll();
             com.supertntmod.block.TntDoorBlock.clearAll();
             com.supertntmod.item.HizEsyasiItem.ACTIVE.clear();
+            com.supertntmod.block.EnderFireBlock.clearCooldowns();
         });
 
         // Yerçekimi TNT: ters yerçekimi zamanlayıcısı
@@ -330,6 +333,7 @@ public class SuperTntMod implements ModInitializer {
             com.supertntmod.item.DiaryItem.clearWriteMode(id);
             com.supertntmod.item.CraftAxeItem.onPlayerDisconnect(id);
             com.supertntmod.item.DeliciItem.onPlayerDisconnect(id);
+            com.supertntmod.block.EnderFireBlock.onPlayerDisconnect(id);
         });
 
         // Oyuncu bağlanınca crash sonrası stale state'i toparla:

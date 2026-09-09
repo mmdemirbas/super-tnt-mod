@@ -353,5 +353,10 @@
   "item.supertntmod.esya_calmaca.no_target": "No player within 10 blocks.",
   "item.supertntmod.esya_calmaca.title": "Stealing from %s",
   "item.supertntmod.esya_calmaca.target_warned": "%s is rummaging through your inventory!",
-  "entity.supertntmod.walking_tnt": "Walking TNT"
+  "entity.supertntmod.walking_tnt": "Walking TNT",
+  "block.supertntmod.ender_fire": "Ender Fire",
+  "item.supertntmod.ender_flint": "Ender Flint and Steel",
+  "item.supertntmod.ender_flint.tooltip": "Lights a blue fire. Whoever steps into it is teleported: most often to another Ender Fire, sometimes to a soul fire in the Nether, very rarely to an orange Nether fire.",
+  "item.supertntmod.ender_flint.tooltip2": "Nether fires burn you. If no destination exists, nothing happens.",
+  "item.supertntmod.ender_flint.no_target": "There is no fire to travel to."
 }

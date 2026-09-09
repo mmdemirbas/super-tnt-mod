@@ -248,6 +248,13 @@ public class ModItems {
                     .maxCount(1)
                     .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "esya_calmaca")))));
 
+    // 🔵 Ender Çakmağı — mavi ateş yakar, ateşe girenler ışınlanır
+    public static final EnderFlintItem ENDER_FLINT = register("ender_flint",
+            new EnderFlintItem(new Item.Settings()
+                    .maxCount(1)
+                    .maxDamage(64)
+                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SuperTntMod.MOD_ID, "ender_flint")))));
+
     private static <T extends Item> T register(String name, T item) {
         Identifier id = Identifier.of(SuperTntMod.MOD_ID, name);
         return Registry.register(Registries.ITEM, id, item);

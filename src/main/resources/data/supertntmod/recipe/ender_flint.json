@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "EEE",
+    "EFE",
+    "EEE"
+  ],
+  "key": {
+    "E": "minecraft:ender_pearl",
+    "F": "minecraft:flint_and_steel"
+  },
+  "result": {
+    "id": "supertntmod:ender_flint",
+    "count": 1
+  }
+}
