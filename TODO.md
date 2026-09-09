@@ -1,4 +1,5 @@
 her iki branch'e ekle:
+- [x] tükenmezlik büyüsü → veri tabanlı `tukenmezlik` büyüsü + UnendingItemStackMixin (örste her eşyaya basılır; yığın eksilmez, dayanıklılık ve ok tüketimi durur)
 - [x] altın ateş → GoldenFlintItem + GoldFireBlock (ham altın + demir + altın külçesi tarifi; ateş sönmez, yayılmaz, yakıldığı bloğu altın bloğuna çevirir)
 - [x] ender çakmağı → EnderFlintItem + EnderFireBlock (mavi ateş; içine gireni ağırlıklı çekilişle başka bir ender ateşine / Nether ruh ateşine / Nether turuncu ateşine ışınlar)
 - [x] koku bombası → KokuBombasiItem + ZehirToprakBlock (3 blok yarıçapında saçılır; değen anında ölür; toprak 60 sn sonra solar)

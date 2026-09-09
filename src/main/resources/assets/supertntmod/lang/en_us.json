@@ -362,5 +362,6 @@
   "block.supertntmod.gold_fire": "Gold Fire",
   "item.supertntmod.golden_flint": "Golden Flint",
   "item.supertntmod.golden_flint.tooltip": "Lights a gold fire and turns the block you clicked into a block of gold. The fire never goes out and never spreads.",
-  "item.supertntmod.golden_flint.tooltip2": "The fire burns anything that touches it. Unbreakable blocks and containers stay as they are."
+  "item.supertntmod.golden_flint.tooltip2": "The fire burns anything that touches it. Unbreakable blocks and containers stay as they are.",
+  "enchantment.supertntmod.tukenmezlik": "Unending"
 }

@@ -276,6 +276,35 @@ class ResourceFileTest {
     }
 
     @Test
+    void tukenmezlikEnchantmentIsWiredToItsMixin() throws IOException {
+        // Tükenmezlik'in hangi eşyalara basılabileceğine UnendingEnchantmentTargetMixin
+        // karar veriyor ve büyüyü JSON'daki description anahtarından tanıyor. Anahtar
+        // yalnız bir tarafta değişirse örs büyüyü sessizce reddeder — derleyici de,
+        // diğer testler de bunu göremez.
+        String key = "enchantment.supertntmod.tukenmezlik";
+
+        Path enchantment = DATA.resolve("enchantment/tukenmezlik.json");
+        assertTrue(Files.exists(enchantment), "enchantment/tukenmezlik.json bulunmali");
+        assertTrue(Files.readString(enchantment).contains("\"" + key + "\""),
+                "tukenmezlik.json description anahtari " + key + " olmali");
+
+        Path helper = Path.of("src/main/java/com/supertntmod/item/ModEnchantments.java");
+        assertTrue(Files.readString(helper).contains("\"" + key + "\""),
+                "ModEnchantments ayni description anahtarini tasimali");
+
+        Path mixin = Path.of("src/main/java/com/supertntmod/mixin/UnendingEnchantmentTargetMixin.java");
+        assertTrue(Files.exists(mixin), "UnendingEnchantmentTargetMixin bulunmali");
+        assertTrue(Files.readString(Path.of("src/main/resources/supertntmod.mixins.json"))
+                        .contains("UnendingEnchantmentTargetMixin"),
+                "mixin supertntmod.mixins.json icinde kayitli olmali");
+
+        // supported_items bilerek bos bir etikete bakiyor; etiket dosyasi yoksa
+        // buyu hicbir esyaya basilamaz hale gelir.
+        assertTrue(Files.exists(DATA.resolve("tags/item/tukenmezlik.json")),
+                "supported_items'in gosterdigi etiket dosyasi bulunmali");
+    }
+
+    @Test
     void everyBlockstateHasItemsJsonForCrafting() throws IOException {
         Path blockstates = ASSETS.resolve("blockstates");
         Path items = ASSETS.resolve("items");

@@ -7,7 +7,9 @@
     "BlockItemMixin",
     "TntArmorDamageMixin",
     "AmethystArmorSlotMixin",
-    "AmethystArmorEquipMixin"
+    "AmethystArmorEquipMixin",
+    "UnendingItemStackMixin",
+    "UnendingEnchantmentTargetMixin"
   ],
   "injectors": {
     "defaultRequire": 1

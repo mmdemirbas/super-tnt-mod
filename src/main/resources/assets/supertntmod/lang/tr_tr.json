@@ -362,5 +362,6 @@
   "block.supertntmod.gold_fire": "Altın Ateş",
   "item.supertntmod.golden_flint": "Altın Flint",
   "item.supertntmod.golden_flint.tooltip": "Altın ateş yakar ve tıkladığın bloğu altın bloğuna çevirir. Ateş sönmez ve yayılmaz.",
-  "item.supertntmod.golden_flint.tooltip2": "Ateşe değen yanar. Kırılamayan bloklar ve sandıklar olduğu gibi kalır."
+  "item.supertntmod.golden_flint.tooltip2": "Ateşe değen yanar. Kırılamayan bloklar ve sandıklar olduğu gibi kalır.",
+  "enchantment.supertntmod.tukenmezlik": "Tükenmezlik"
 }

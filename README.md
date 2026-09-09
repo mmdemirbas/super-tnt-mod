@@ -100,6 +100,12 @@ Fabric 1.21.1 | 35 Blok + 29 Eşya + 2 Mob + 11 Başarım
 
 Ametist zırh elmas seviyesinde koruma sağlar. Giyildikten sonra çıkarılamaz. Çıkarmak için Enerji Kristali'ni havaya sağ tıkla — 5 saniyeliğine gevşer.
 
+## Büyüler
+
+| Büyü | Etkisi |
+|------|--------|
+| Tükenmezlik | Örste **her** eşyaya basılır. Basıldığı eşya hiç eksilmez: ok, blok, totem, yiyecek tükenmez; alet ve zırh yıpranmaz. Elmaslarla çevrili kitaptan yapılır |
+
 ## Mob
 
 | Mob | Özellik |
