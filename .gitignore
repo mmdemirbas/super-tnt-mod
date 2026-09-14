@@ -53,3 +53,8 @@ __pycache__/
 
 # Sim: main.js kopyasi (build ciktisi)
 bedrock/tools/sim/main.copy.mjs
+
+# oku (docs/plan): kit baglantisi ve derleme ciktisi
+docs/plan/_oku
+docs/plan/dist/
+docs/plan/index.html
