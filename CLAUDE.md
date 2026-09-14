@@ -4,11 +4,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-A Minecraft **Fabric** mod ("Super TNT Mod") built for Minecraft 1.21.11 with
-Fabric Loader 0.18.2, Fabric API 0.139.4, and Java 21.
+**The Bedrock Add-On under `bedrock/` is the product.** The kids play it on
+their tablets (`./ctl deploy tablet`); every new feature goes into
+`bedrock/build.py`. Nothing is played from the Java side any more — see
+"Bedrock port" below and `bedrock/PORT-DURUMU.md` (the changelog and the
+source of truth for what the pack does).
 
-There is also a **Bedrock Add-On** port under `bedrock/` for the kids' tablets —
-see "Bedrock port" below.
+The repo also contains the original Minecraft **Fabric** mod (Minecraft 1.21.11,
+Fabric Loader 0.18.2, Fabric API 0.139.4, Java 21). It is **legacy**: it is not
+opened or deployed any more. Do not implement a request there unless the user
+explicitly asks for Java. A feature that exists only in `src/` does not exist
+for the kids.
 
 Current size (verify with a script before quoting these — they grow):
 
@@ -148,15 +154,29 @@ a bug, not a wording nit. The 2026-07-19 audit found 54 such mismatches.
 
 When changing behaviour, update the tooltip in **both** languages in the same commit.
 
-## Bedrock port
+## Bedrock port (the main focus)
 
-`bedrock/build.py` generates a Minecraft Bedrock Add-On from a subset of the Java
-TNTs (12 of 71 so far). Everything under `bedrock/super_tnt_BP/` and
-`bedrock/super_tnt_RP/` is **generated output** — edit `build.py`, not those folders.
+`bedrock/build.py` generates the Minecraft Bedrock Add-On: 70 TNTs, blocks,
+items, morphs and a ~2500-line script (`SCRIPT_TEMPLATE`). It started as a port
+of the Java mod and has since outgrown it; new features are Bedrock-only.
+Everything under `bedrock/super_tnt_BP/` and `bedrock/super_tnt_RP/` is
+**generated output** — edit `build.py`, not those folders.
 
-Behaviour numbers and tooltip text are copied from the Java source so the two
-versions stay consistent. See `bedrock/README.md` for known differences and
-`docs/bedrock-port-fizibilite.md` for what can and cannot be ported.
+Before sending anything to a tablet:
+
+```bash
+bash bedrock/tools/test.sh     # build + check_pack + sim + mutations, one command
+```
+
+`check_pack.py` enforces the tooltip contract statically; `tools/sim/run.mjs`
+runs the script under a fake `@minecraft/server` (extend the fake when a new
+API surface is used); the two mutation scripts prove those layers catch
+something. A new feature ships with a sim scenario and a mutation. Script API is
+`@minecraft/server` 1.14.0 — no custom enchantments, no `beforeEvents.entityHurt`.
+
+See `bedrock/PORT-DURUMU.md` for the per-version design notes and known limits,
+`bedrock/README.md` for the dev loop, and `docs/bedrock-port-fizibilite.md` for
+what can and cannot be ported.
 
 **Deploying to a tablet:** the Minecraft data folder on Android is read-only, so
 each iteration is `build.py` → push to `/sdcard/Download/` → open the file.
