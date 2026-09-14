@@ -475,6 +475,40 @@ PYX
 run "gecici blok suresi tick sayacina bagli" "Su TNT once suyu koyuyor"
 cp "$BAK/build.bak" bedrock/build.py
 
+# 36) varis kaydi olmasin -> bekleme suresi dolunca iki ates arasinda ping-pong
+python3 - "$BAK" <<'PYX'
+import io, sys
+s = io.open(sys.argv[1] + "/build.bak", encoding="utf-8").read()
+old = "      if (arr && arr.d === p.dimension.id && arr.x === at.x && arr.y === at.y && arr.z === at.z) continue;"
+assert s.count(old) == 1
+io.open("bedrock/build.py", "w", encoding="utf-8").write(s.replace(old, "", 1))
+PYX
+run "ender atesi varista geri isinliyor (ping-pong)" "varista geri sicramiyor"
+cp "$BAK/build.bak" bedrock/build.py
+
+# 37) tasinan totem baska yuvada mi diye bakilmasin -> her tasimada KOPYA
+python3 - "$BAK" <<'PYX'
+import io, sys
+s = io.open(sys.argv[1] + "/build.bak", encoding="utf-8").read()
+old = "          if (gone && !anySlotHas(con, gone)) { try { con.setItem(i, restoreUnending(gone)); next[i] = gone; } catch (e) {} }"
+assert s.count(old) == 1
+io.open("bedrock/build.py", "w", encoding="utf-8").write(
+    s.replace(old, "          if (gone) { try { con.setItem(i, restoreUnending(gone)); next[i] = gone; } catch (e) {} }", 1))
+PYX
+run "tasinan tukenmez totem kopyalaniyor" "KOPYALANMIYOR"
+cp "$BAK/build.bak" bedrock/build.py
+
+# 38) Nether taramasi butcesiz olsun -> tek tick'te 17 bin getBlock, tablet donar
+python3 - "$BAK" <<'PYX'
+import io, sys
+s = io.open(sys.argv[1] + "/build.bak", encoding="utf-8").read()
+old = "    if (++n >= EF.perTick) return false;"
+assert s.count(old) == 1
+io.open("bedrock/build.py", "w", encoding="utf-8").write(s.replace(old, "", 1))
+PYX
+run "Nether taramasi tek tick'te bitiyor (donma)" "tick basina butceli"
+cp "$BAK/build.bak" bedrock/build.py
+
 echo
 echo "yakalanan $pass / kacirilan $fail"
 [ "$fail" -eq 0 ]

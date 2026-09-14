@@ -59,6 +59,7 @@ ITEM_TEX_MAP = {
     "tnt_armor_kask": "tnt_armor_helmet", "tnt_armor_govus": "tnt_armor_chestplate",
     "tnt_armor_pantolon": "tnt_armor_leggings", "tnt_armor_bot": "tnt_armor_boots",
     "ender_send_yumurta": "ender_send_spawn_egg",
+    "ender_cakmagi": "ender_flint", "altin_flint": "golden_flint",
 }
 BP = os.path.join(HERE, "super_tnt_BP")
 RP = os.path.join(HERE, "super_tnt_RP")
@@ -78,7 +79,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 48, 0]
+VERSION = [1, 49, 0]
 MIN_ENGINE = [1, 21, 0]
 # Surum etiketi paket ADINA yazilir. UUID + klasor adlari sabit oldugu icin
 # Minecraft ayni UUID'li paketi yerinde GUNCELLER; ama cihazda eski surum
@@ -1162,6 +1163,27 @@ for _i, (_pn, _pc) in enumerate(PORTAL_COLORS):
                        entip="Placed by the Portal Gun; same-color pair teleports. Break one, its twin goes too.",
                        kind="portal_block", color=_pc, mat="minecraft:ender_pearl"))
 
+# Atesler yaratici menuden GIZLI (hidden): yalniz cakmakla yakilir, Java'daki
+# regBlockOnly ile ayni. Dokular Java'nin blok klasorunden (tex).
+BLOCKS += [
+    dict(id="ender_atesi", tr="Ender Ateşi", en="Ender Fire", kind="fire", hidden=True,
+         trtip="Ender Çakmağı ile yakılır. İçine giren oyuncu başka bir ateşe ışınlanır. Sönmez; yumrukla kırılır.",
+         entip="Lit by the Ender Flint and Steel. A player who steps in is teleported to another fire. Never goes out; punch to remove.",
+         color=(80, 60, 200), tex="ender_fire", mat="minecraft:ender_pearl"),
+    dict(id="altin_atesi", tr="Altın Ateş", en="Gold Fire", kind="fire", hidden=True,
+         trtip="Altın Flint ile yakılır. Sönmez, yayılmaz; içine giren oyuncu yanar. Yumrukla kırılır.",
+         entip="Lit by the Golden Flint. Never goes out, never spreads; a player who steps in burns. Punch to remove.",
+         color=(240, 190, 60), tex="gold_fire", mat="minecraft:gold_ingot"),
+    dict(id="tukenmezlik_orsu", tr="Tükenmezlik Örsü", en="Unending Anvil", kind="anvil",
+         trtip="Elinde bir eşyayla dokun — o eşya TÜKENMEZ olur: yığın hep dolu kalır, alet ve zırh "
+               "yıpranmaz, totem bitmez. Ok, blok, yiyecek... her eşyada çalışır. 8 elmas + örs ile yapılır.",
+         entip="Tap it while holding an item - that item becomes UNENDING: the stack stays full, tools "
+               "and armour never wear out, totems never run out. Works on arrows, blocks, food... any "
+               "item. Crafted from 8 diamonds and an anvil.",
+         color=(70, 70, 78), mat="minecraft:anvil",
+         recipe=dict(pattern=["DDD", "DAD", "DDD"], key={"D": "minecraft:diamond", "A": "minecraft:anvil"})),
+]
+
 # ---------------------------------------------------------------- item tanimlari
 # kind "food": yenince efekt. "drink": icince efekt (icme animasyonu).
 # "raycast": bakilan bloga/varliga etki.
@@ -1218,6 +1240,31 @@ TREE_TOP = TREE_H + round(TREE_CROWN * 0.6)   # en ust yaprak katmani
 # hizinda kazarsa tutuyor — yavas kazan bir "elmas" kazmayi cocuk ilk
 # blokta anlar ve tuzak hic kurulmaz.
 FAKE_DIG_SPEED = 8
+
+# ---- Ender Atesi: isinlanma hedefleri. Cocuklarin tarifi "%90 / %50 / %1";
+# uc sayi yuzde olarak 141 ediyor, bu yuzden AGIRLIK olarak uygulaniyor
+# (normalize: ~%64 baska ender atesi, ~%35 Nether ruh atesi, ~%0,7 Nether
+# turuncu atesi). Secilen turde yer yoksa siradaki denenir; hicbiri tutmazsa
+# oyuncu yerinde kalir ve bunu eylem cubugunda gorur.
+#
+# Nether taramasi chunk ister; Nether'da oyuncu yoksa hicbir chunk yuklu
+# degildir. Betik gecici bir tickingarea acar, chunk gelene kadar bekler,
+# tarar, alani kaldirir. Tarama tick basina butceyle ilerler (Craft Baltasi
+# deseni): 17x17x61 = 17 637 konum tek tick'te tableti dondururdu.
+ENDER_FIRE = dict(
+    ender=90, soul=50, fire=1,     # agirliklar: ender atesi / ruh atesi / turuncu ates
+    cooldown=40,                   # varista yeniden isinlanmama suresi (tick)
+    radius=8, minY=30, maxY=90,    # Nether taramasi: yatay yaricap ve Y araligi
+    perTick=1500,                  # tick basina BAKILAN konum
+    loadWait=100,                  # tickingarea sonrasi chunk bekleme tavani (tick)
+    maxFires=128,                  # kayitli ender atesi tavani (en yeniler kalir)
+)
+# ---- Altin Ates: icine giren oyuncu yanar. Vanilla atesle ayni tempo:
+# 10 tick'te 1 hasar + 8 sn alev.
+GOLD_FIRE = dict(burn=8, damage=1, every=10)
+# ---- Tukenmezlik: isaret esyanin LORE satiri (gorunur ve kalici). Dongu
+# isaretli yigini dolu, aleti yipranmamis tutar.
+UNENDING = dict(every=10, mark="§d✦ Tükenmez")
 
 ITEMS = [
     dict(id="spicy_chips", tr="Acılı Cips", en="Spicy Chips", kind="food",
@@ -1509,6 +1556,38 @@ ITEMS += [dict(f, kind="fake_tool", color=(93, 222, 212),
                      f"the moment you hit something or break a block it turns into a "
                      f"{f['wooden']}!")
           for f in FAKE_TOOLS]
+
+# ---- Cakmaklar. Ikisi de "raycast": bakilan blogun USTUNE ates koyar.
+# Dayaniklilik + enchantable(flintsteel): orste Tamir ve Kirilmazlik basilir.
+ITEMS += [
+    dict(id="ender_cakmagi", tr="Ender Çakmağı", en="Ender Flint and Steel", kind="raycast",
+         trtip="Baktığın bloğun üstüne mavi Ender Ateşi yakar. Ateşe giren oyuncu ışınlanır: "
+               "çoğunlukla başka bir Ender Ateşi'ne, bazen Nether'daki bir ruh ateşine, çok "
+               "seyrek Nether'daki turuncu ateşe. Nether ateşleri yakar! Gidecek yer yoksa "
+               "olduğun yerde kalırsın. 64 kullanım.",
+         entip="Lights a blue Ender Fire on top of the block you look at. A player who steps in "
+               "is teleported: most often to another Ender Fire, sometimes to a soul fire in the "
+               "Nether, very rarely to an orange Nether fire. Nether fires burn! If there is "
+               "nowhere to go you stay put. 64 uses.",
+         color=(120, 70, 200), durability=64, enchant_slot="flintsteel",
+         recipe=dict(pattern=["EEE", "EFE", "EEE"],
+                     key={"E": "minecraft:ender_pearl", "F": "minecraft:flint_and_steel"}),
+         action=dict(type="ender_fire", range=6)),
+    dict(id="altin_flint", tr="Altın Flint", en="Golden Flint", kind="raycast",
+         trtip="Baktığın bloğu altın bloğuna çevirir ve üstüne Altın Ateş yakar. Ateş sönmez, "
+               "su söndürmez, yayılmaz; içine giren oyuncu yanar. Yumrukla kırılır. Bedrock ve "
+               "sandık gibi bloklar altına dönmez. 64 kullanım; örste Tamir büyüsü basılabilir.",
+         entip="Turns the block you look at into a block of gold and lights a Gold Fire on top. "
+               "The fire never goes out, water does not put it out, it never spreads; a player "
+               "who steps in burns. Punch it to remove. Bedrock and containers are not turned "
+               "to gold. 64 uses; Mending can be applied on an anvil.",
+         color=(240, 190, 60), durability=64, enchant_slot="flintsteel",
+         # Cocuklarin tarifi: solda altin kulce, ortada demir kulce, sagda ham altin.
+         recipe=dict(pattern=["AIH"],
+                     key={"A": "minecraft:gold_ingot", "I": "minecraft:iron_ingot",
+                          "H": "minecraft:raw_gold"}),
+         action=dict(type="gold_fire", range=6)),
+]
 
 # ---------------------------------------------------------------- canavarlar
 # Ender Send + dev boss'lar. Vanilla mob gorseli olceklenir (materials/texture/
@@ -1910,6 +1989,16 @@ def decor_texture(path, base, kind):
             elif kind in ("decor", "kill"):
                 if y in (5, 10):
                     c = shade(base, 0.72)
+            elif kind == "anvil":
+                # ust plaka acik metal, dar bel iki yani karanlik, taban orta ton
+                if y <= 3:
+                    c = shade(base, 1.45)
+                elif 4 <= y <= 9 and (x < 5 or x > 10):
+                    c = shade(base, 0.30)
+                elif y >= 12:
+                    c = shade(base, 1.10)
+                if y == 1 and x in (7, 8):
+                    c = (222, 120, 255)            # mor parilti: buyu orsu
             row.append(c)
         rows.append(row)
     png(path, rows)
@@ -2197,6 +2286,8 @@ def build():
         dst = os.path.join(RP, rel + ".png")
         jt = BLOCK_TEX_MAP.get(blk['id'])
         jsrc = os.path.join(JAVA_ITEM_TEX, f"{jt}.png") if jt else None
+        if blk.get('tex'):                              # Java'nin blok dokusu
+            jsrc = os.path.join(JAVA_TEX, f"{blk['tex']}.png")
         if jsrc and os.path.exists(jsrc):
             os.makedirs(os.path.dirname(dst), exist_ok=True)
             shutil.copy(jsrc, dst)
@@ -2283,6 +2374,24 @@ def build():
             # gorunur ama icinden gecilir + parlak (portal hissi)
             comps["minecraft:collision_box"] = False
             comps["minecraft:light_emission"] = 12
+        elif blk['kind'] == "fire":
+            # Ates: carpismasiz, capraz iki duzlem (kendi geometrimiz; yerlesik
+            # "minecraft:geometry.cross" bu surumde dogrulanmadi), isik sacar,
+            # isigi kesmez, kirilinca hicbir sey dusurmez. Sonmesi icin bir
+            # mekanizma YOK — "sonmez" sozu boyle tutuluyor.
+            comps["minecraft:collision_box"] = False
+            comps["minecraft:selection_box"] = {"origin": [-8, 0, -8], "size": [16, 6, 16]}
+            comps["minecraft:light_emission"] = 15
+            comps["minecraft:light_dampening"] = 0
+            comps["minecraft:geometry"] = "geometry.stnt_cross"
+            comps["minecraft:material_instances"] = {
+                "*": {"texture": f"stnt_{blk['id']}", "render_method": "alpha_test",
+                      "face_dimming": False, "ambient_occlusion": False}}
+            comps["minecraft:destructible_by_mining"] = {"seconds_to_destroy": 0.0}
+            comps["minecraft:loot"] = "loot_tables/empty.json"
+        elif blk['kind'] == "anvil":
+            comps["minecraft:destructible_by_mining"] = {"seconds_to_destroy": 1.2}
+            comps["minecraft:destructible_by_explosion"] = {"explosion_resistance": 1200}
         elif blk['kind'] == "mini":
             # tam bloktan kucuk: hucre tabaninda ortali 8x8x8 kup.
             comps["minecraft:geometry"] = "geometry.stnt_mini"
@@ -2293,13 +2402,15 @@ def build():
             # gorunmez kilabilir).
             comps["minecraft:material_instances"] = {
                 "*": {"texture": f"stnt_{blk['id']}", "render_method": "alpha_test"}}
+        # hidden: yaratici menude gorunmez (cakmakla yakilan atesler).
+        menu = ({"category": "none"} if blk.get('hidden')
+                else {"category": "construction", "group": "itemGroup.name.super_tnt"})
         w(os.path.join(BP, f"blocks/{blk['id']}.json"), {
             "format_version": "1.20.20",
             "minecraft:block": {
                 "description": {"identifier": f"stnt:{blk['id']}",
                                 "is_experimental": False,
-                                "menu_category": {"category": "construction",
-                                                  "group": "itemGroup.name.super_tnt"}},
+                                "menu_category": menu},
                 "components": comps,
             },
         })
@@ -2352,6 +2463,11 @@ def build():
             # sag tikla varligi cagir; Super TNT grubunda gorunur
             icomps["minecraft:entity_placer"] = {"entity": it['spawn']}
             icomps["minecraft:max_stack_size"] = 16
+        if it.get('durability'):
+            icomps["minecraft:durability"] = {"max_durability": it['durability']}
+        if it.get('enchant_slot'):
+            # enchantable olmadan ors hicbir buyuyu kabul etmez (Tamir dahil).
+            icomps["minecraft:enchantable"] = {"slot": it['enchant_slot'], "value": 10}
         w(os.path.join(BP, f"items/{it['id']}.json"), {
             # 1.20.30: minecraft:wearable en az bu surumu ister (TNT zirhi +
             # gokkusagi botlari). 1.20.20'de wearable sessizce devre disi kalir.
@@ -2362,6 +2478,25 @@ def build():
                                                   "group": "itemGroup.name.super_tnt"}},
                 "components": icomps,
             },
+        })
+
+    # ---------- ates geometrisi: 45 derece capraz iki duzlem (vanilla ates gibi).
+    # Sifir kalinlikta kup = duzlem; alpha_test iki yuzu de cizer.
+    if any(b['kind'] == "fire" for b in BLOCKS):
+        plane = lambda angle: {
+            "origin": [-8, 0, 0], "size": [16, 16, 0], "pivot": [0, 8, 0], "rotation": [0, angle, 0],
+            "uv": {"north": {"uv": [0, 0], "uv_size": [16, 16]},
+                   "south": {"uv": [16, 0], "uv_size": [-16, 16]}}}
+        w(os.path.join(RP, "models/blocks/stnt_cross.geo.json"), {
+            "format_version": "1.16.0",
+            "minecraft:geometry": [{
+                "description": {"identifier": "geometry.stnt_cross",
+                                "texture_width": 16, "texture_height": 16,
+                                "visible_bounds_width": 1, "visible_bounds_height": 1,
+                                "visible_bounds_offset": [0, 0.5, 0]},
+                "bones": [{"name": "cross", "pivot": [0, 0, 0],
+                           "cubes": [plane(45), plane(-45)]}],
+            }],
         })
 
     # ---------- mini blok geometrisi (hucre tabaninda ortali 8x8x8 kup)
@@ -2599,6 +2734,22 @@ def build():
             },
         })
 
+    # ---------- esya / blok tarifleri (recipe alani olanlar)
+    for row in ITEMS + BLOCKS:
+        r = row.get('recipe')
+        if not r:
+            continue
+        w(os.path.join(BP, f"recipes/{row['id']}.json"), {
+            "format_version": "1.20.10",
+            "minecraft:recipe_shaped": {
+                "description": {"identifier": f"stnt:{row['id']}_recipe"},
+                "tags": ["crafting_table"],
+                "pattern": r['pattern'],
+                "key": {k: {"item": v} for k, v in r['key'].items()},
+                "result": {"item": f"stnt:{row['id']}", "count": 1},
+            },
+        })
+
     # ---------- dil
     for pack in (BP, RP):
         os.makedirs(os.path.join(pack, "texts"), exist_ok=True)
@@ -2773,6 +2924,9 @@ def build():
                                  for mo in MORPHS if 'pas' in mo or 'act' in mo},
                                 ensure_ascii=False)) \
                             .replace("__FUSE__", str(FUSE_TICKS)) \
+                            .replace("__ENDER_FIRE__", json.dumps(ENDER_FIRE)) \
+                            .replace("__GOLD_FIRE__", json.dumps(GOLD_FIRE)) \
+                            .replace("__UNENDING__", json.dumps(UNENDING, ensure_ascii=False)) \
                             .replace("__PORTAL_N__", str(len(PORTAL_COLORS))) \
                             .replace("__PORTAL_NAMES__", json.dumps([n for n, _ in PORTAL_COLORS], ensure_ascii=False)) \
                             .replace("__SIZE_SCALES__", json.dumps({i: SIZE_TABLE[i][0] for i in SIZE_TABLE})) \
@@ -3304,6 +3458,8 @@ function itemAction(player, a) {
         spray(dim, above, "minecraft:mob_portal", 30, 1.5);
         break;
       }
+      case "ender_fire": { lightFire(player, dim, a, false); break; }
+      case "gold_fire": { lightFire(player, dim, a, true); break; }
       case "lightning": {
         const hit = player.getBlockFromViewDirection({ maxDistance: 64 });
         const p = hit ? hit.block.location : player.location;
@@ -5245,6 +5401,351 @@ world.afterEvents.entityHurt.subscribe((ev) => {
     try { src.applyDamage(8); } catch (e) {}
   } catch (e) {}
 });
+
+// ---------------------------------------------------------------- atesler
+// Ender Atesi (mavi): icine giren oyuncuyu isinlar. Altin Ates (sari): yakar.
+// Ikisi de SONMEZ — zamanlanmis sondurme yok, su onlari silmez (blok
+// replaceable degil); yalniz yumrukla kirilir.
+const EF = __ENDER_FIRE__;
+const GF = __GOLD_FIRE__;
+const ENDER_FIRE_ID = "stnt:ender_atesi", GOLD_FIRE_ID = "stnt:altin_atesi";
+const EF_PROP = "stnt:enderfires";
+const EF_AREA = "stnt_ender";        // gecici tickingarea adi (tek seferde bir tarama)
+
+// Altina donusmeyecek bloklar: dunya tabani/bariyer (dunyayi delerdi), sivi,
+// kendi atesler ve portallar (kayit tutarliligi), altinin kendisi.
+const GOLD_SKIP = new Set(["minecraft:air", "minecraft:bedrock", "minecraft:barrier", "minecraft:command_block",
+  "minecraft:end_portal", "minecraft:end_portal_frame", "minecraft:end_gateway", "minecraft:water",
+  "minecraft:flowing_water", "minecraft:lava", "minecraft:flowing_lava", "minecraft:gold_block",
+  ENDER_FIRE_ID, GOLD_FIRE_ID, "stnt:tukenmezlik_orsu"]);
+function goldable(b) {
+  if (!b || GOLD_SKIP.has(b.typeId) || b.typeId.startsWith("stnt:portal_")) return false;
+  // Sandik gibi icerik tasiyan blok: esyalar sessizce yok olurdu.
+  try { if (b.getComponent && b.getComponent("minecraft:inventory")) return false; } catch (e) {}
+  return true;
+}
+
+// Bakilan blogun USTUNE ates koy. Altin Flint ayrica bakilan blogu altina
+// cevirir: "hangi blogun uzerine yakildiysa" bilgisi burada var, ates
+// blogunda degil.
+function lightFire(player, dim, a, gold) {
+  const hit = player.getBlockFromViewDirection({ maxDistance: a.range });
+  if (!hit) { try { player.onScreenDisplay.setActionBar("§7Ateş için yakındaki bir bloğa bak"); } catch (e) {} return; }
+  const bl = hit.block.location;
+  const above = { x: Math.floor(bl.x), y: Math.floor(bl.y) + 1, z: Math.floor(bl.z) };
+  const target = dim.getBlock(above);
+  if (!target || target.typeId !== "minecraft:air") { try { player.onScreenDisplay.setActionBar("§7Üstü boş bir bloğa bak"); } catch (e) {} return; }
+  if (gold && goldable(hit.block)) { try { hit.block.setType("minecraft:gold_block"); } catch (e) {} }
+  try { target.setType(gold ? GOLD_FIRE_ID : ENDER_FIRE_ID); } catch (e) {}
+  if (!gold) addEnderFire(dim.id, above.x, above.y, above.z);
+  spray(dim, { x: above.x + 0.5, y: above.y + 0.2, z: above.z + 0.5 },
+        gold ? "minecraft:basic_flame_particle" : "minecraft:blue_flame_particle", 12, 0.6);
+  try { dim.playSound("fire.ignite", above, { volume: 1.0, pitch: gold ? 1.3 : 0.7 }); } catch (e) {}
+  wearHeld(player, gold ? "stnt:altin_flint" : "stnt:ender_cakmagi");
+}
+
+// Elindeki cakmagi 1 yipratir. ItemStack KOPYA: geri yazmak sart. Tukenmez
+// isaretli cakmaga dokunulmaz — dongu onu zaten sifirlar, ama son kullanimda
+// kirilip yok olmasi dongunun onune gecerdi.
+function wearHeld(player, typeId) {
+  try {
+    const con = player.getComponent("minecraft:inventory")?.container;
+    const slot = player.selectedSlotIndex;
+    const it = con && con.getItem(slot);
+    if (!it || it.typeId !== typeId || isUnending(it)) return;
+    const d = it.getComponent("minecraft:durability");
+    if (!d) return;
+    if (d.damage + 1 >= d.maxDurability) {
+      con.setItem(slot, undefined);
+      try { player.dimension.playSound("random.break", player.location, { volume: 1.0 }); } catch (e) {}
+      return;
+    }
+    d.damage += 1;
+    con.setItem(slot, it);
+  } catch (e) {}
+}
+
+function getEnderFires() {
+  try { const r = world.getDynamicProperty(EF_PROP); return typeof r === "string" ? JSON.parse(r) : []; }
+  catch (e) { return []; }
+}
+function setEnderFires(a) { try { world.setDynamicProperty(EF_PROP, JSON.stringify(a.slice(-EF.maxFires))); } catch (e) {} }
+function addEnderFire(d, x, y, z) {
+  const a = getEnderFires();
+  if (!a.some((q) => q.d === d && q.x === x && q.y === y && q.z === z)) { a.push({ d, x, y, z }); setEnderFires(a); }
+}
+function removeEnderFire(d, x, y, z) {
+  setEnderFires(getEnderFires().filter((q) => !(q.d === d && q.x === x && q.y === y && q.z === z)));
+}
+// Komutla/elle konan ender atesi de kayda girsin.
+world.afterEvents.playerPlaceBlock.subscribe((ev) => {
+  try {
+    const b = ev.block;
+    if (!b || b.typeId !== ENDER_FIRE_ID) return;
+    addEnderFire(b.dimension.id, Math.floor(b.location.x), Math.floor(b.location.y), Math.floor(b.location.z));
+  } catch (e) {}
+});
+world.afterEvents.playerBreakBlock.subscribe((ev) => {
+  try {
+    if (ev.brokenBlockPermutation.type.id !== ENDER_FIRE_ID) return;
+    const bl = ev.block.location;
+    removeEnderFire(ev.dimension.id, Math.floor(bl.x), Math.floor(bl.y), Math.floor(bl.z));
+  } catch (e) {}
+});
+
+// Agirlikli SIRA: her secenek bir kez cekilir; ilk tutan hedef kullanilir.
+function enderOrder() {
+  const pool = [["ender", EF.ender], ["soul", EF.soul], ["fire", EF.fire]];
+  const order = [];
+  while (pool.length) {
+    let total = 0; for (const [, w] of pool) total += w;
+    let r = Math.random() * total, i = 0;
+    for (; i < pool.length - 1; i++) { r -= pool[i][1]; if (r < 0) break; }
+    order.push(pool.splice(i, 1)[0][0]);
+  }
+  return order;
+}
+// Rastgele sirada en fazla 16 kaydi blokla dogrular; yetim kaydi siler.
+// Yuklu olmayan chunk'taki kayda guvenilir (isinlanma chunk'i yukler).
+function pickEnderFire(from) {
+  const all = getEnderFires().filter((q) => !(q.d === from.d && q.x === from.x && q.y === from.y && q.z === from.z));
+  for (let i = all.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [all[i], all[j]] = [all[j], all[i]]; }
+  for (const q of all.slice(0, 16)) {
+    try {
+      const b = world.getDimension(q.d).getBlock({ x: q.x, y: q.y, z: q.z });
+      if (!b || b.typeId === ENDER_FIRE_ID) return q;
+      removeEnderFire(q.d, q.x, q.y, q.z);
+    } catch (e) {}
+  }
+  return null;
+}
+
+const enderPending = new Map();   // oyuncu id -> bekleyen Nether taramasi
+const enderCd = new Map();
+const enderArrival = new Map();   // oyuncu -> az once vardigi ates (uzerinden cekilene kadar)
+let enderBusy = null;             // tek tickingarea: su an tarayan oyuncu
+
+function enderTeleport(p, q) {
+  const c = { x: q.x + 0.5, y: q.y + 0.5, z: q.z + 0.5 };
+  try { p.teleport({ x: q.x + 0.5, y: q.y, z: q.z + 0.5 }, { dimension: world.getDimension(q.d) }); } catch (e) { return; }
+  spray(p.dimension, c, "minecraft:mob_portal", 24, 1);
+  try { p.dimension.playSound("mob.endermen.portal", c, { volume: 1.0 }); } catch (e) {}
+  enderArrival.set(p.id, q);
+  enderCd.set(p.id, system.currentTick + EF.cooldown);
+}
+// Komutu once oyuncuyla, o gecersizse boyutla calistir (oyuncu cikmis olabilir).
+function runCmd(p, cmd) {
+  try { if (p) { p.runCommand(cmd); return; } } catch (e) {}
+  try { world.getDimension("minecraft:overworld").runCommand(cmd); } catch (e) {}
+}
+function enderRelease(id, p) {
+  enderPending.delete(id);
+  if (enderBusy === id) {
+    enderBusy = null;
+    runCmd(p, `tickingarea remove ${EF_AREA}`);
+  }
+}
+// Siradaki secenegi dener. Ender atesi senkron; Nether secenekleri chunk
+// yuklemesi bekledigi icin BEKLEYEN kayda gecer (asagidaki dongu surdurur).
+function enderAdvance(st) {
+  const p = st.p;
+  while (st.i < st.order.length) {
+    const k = st.order[st.i++];
+    if (k === "ender") {
+      const q = pickEnderFire(st.from);
+      if (q) { enderRelease(p.id, p); enderTeleport(p, q); return; }
+      continue;
+    }
+    st.fire = k === "soul" ? "minecraft:soul_fire" : "minecraft:fire";
+    st.phase = enderBusy && enderBusy !== p.id ? "queue" : "load";
+    st.cur = null; st.found = [];
+    enderPending.set(p.id, st);
+    if (st.phase === "load") enderStartLoad(st);
+    return;
+  }
+  enderRelease(p.id, p);
+  try { p.onScreenDisplay.setActionBar("§7Gidecek bir ateş yok"); } catch (e) {}
+}
+function enderStartLoad(st) {
+  enderBusy = st.p.id;
+  st.phase = "load";
+  st.until = system.currentTick + EF.loadWait;
+  try {
+    st.p.runCommand(`execute in nether run tickingarea add ${st.cx - EF.radius} ${EF.minY} ${st.cz - EF.radius} `
+      + `${st.cx + EF.radius} ${EF.maxY} ${st.cz + EF.radius} ${EF_AREA}`);
+  } catch (e) {}
+}
+// Butceli tarama: null = chunk bekleniyor, false = devam, true = bitti.
+function enderScanStep(st) {
+  const nether = world.getDimension("minecraft:nether");
+  if (!st.cur) {
+    let probe; try { probe = nether.getBlock({ x: st.cx, y: 64, z: st.cz }); } catch (e) {}
+    if (!probe) return null;
+    st.cur = { dx: -EF.radius, dz: -EF.radius, y: EF.minY };
+  }
+  const c = st.cur;
+  let n = 0;
+  while (c.dx <= EF.radius) {
+    let b; try { b = nether.getBlock({ x: st.cx + c.dx, y: c.y, z: st.cz + c.dz }); } catch (e) {}
+    if (b && b.typeId === st.fire) st.found.push({ d: "minecraft:nether", x: st.cx + c.dx, y: c.y, z: st.cz + c.dz });
+    if (++c.y > EF.maxY) { c.y = EF.minY; if (++c.dz > EF.radius) { c.dz = -EF.radius; c.dx++; } }
+    if (st.found.length >= 32) return true;
+    if (++n >= EF.perTick) return false;
+  }
+  return true;
+}
+system.runInterval(() => {
+  for (const [id, st] of [...enderPending]) {
+    try {
+      st.p.location;                                   // oyuncu cikti mi? (InvalidEntityError)
+    } catch (e) { enderRelease(id, null); continue; }
+    try {
+      if (st.phase === "queue") { if (!enderBusy) enderStartLoad(st); continue; }
+      const r = enderScanStep(st);
+      if (r === null) {
+        if (system.currentTick <= st.until) continue;   // chunk daha gelmedi
+        enderAdvance(st);                                // suresi doldu: siradaki
+        continue;
+      }
+      if (r === false) continue;
+      if (st.found.length) {
+        const q = st.found[Math.floor(Math.random() * st.found.length)];
+        enderRelease(id, st.p);
+        enderTeleport(st.p, q);
+      } else {
+        enderAdvance(st);
+      }
+    } catch (e) { enderRelease(id, st.p); }
+  }
+}, 2);
+// Modul yuklenirken eski bir taramadan kalan alan olmasin (betik ortada olduyse).
+runCmd(null, `tickingarea remove ${EF_AREA}`);
+
+// Altin Ates: yakar. Ates direnci olan yanmaz (vanilla ile ayni).
+function burnIn(p) {
+  try { if (p.getEffects().some((e) => e.typeId === "fire_resistance")) return; } catch (e) {}
+  try { p.setOnFire(GF.burn, true); } catch (e) {}
+  try { p.applyDamage(GF.damage, { cause: "fire" }); } catch (e) { try { p.applyDamage(GF.damage); } catch (e2) {} }
+}
+// Ayak hizasindaki blok: ender atesi -> isinla, altin ates -> yak.
+system.runInterval(() => {
+  const now = system.currentTick;
+  for (const p of world.getPlayers()) {
+    try {
+      const l = p.location;
+      const at = { x: Math.floor(l.x), y: Math.floor(l.y), z: Math.floor(l.z) };
+      const b = p.dimension.getBlock(at);
+      const id = b ? b.typeId : "";
+      if (id === GOLD_FIRE_ID) burnIn(p);
+      if (id !== ENDER_FIRE_ID) { enderArrival.delete(p.id); continue; }
+      if (enderPending.has(p.id) || (enderCd.get(p.id) || 0) > now) continue;
+      const arr = enderArrival.get(p.id);
+      if (arr && arr.d === p.dimension.id && arr.x === at.x && arr.y === at.y && arr.z === at.z) continue;
+      enderArrival.delete(p.id);
+      // Bekleme suresi aramadan ONCE: hedef bulunamasa da yazilir, yoksa
+      // atesin icinde duran oyuncu her turda yeni bir Nether taramasi acar.
+      enderCd.set(p.id, now + EF.cooldown);
+      const scale = p.dimension.id === "minecraft:overworld" ? 0.125 : 1;   // vanilla portal olcegi
+      enderAdvance({ p, order: enderOrder(), i: 0, from: { d: p.dimension.id, x: at.x, y: at.y, z: at.z },
+                     cx: Math.floor(at.x * scale), cz: Math.floor(at.z * scale) });
+    } catch (e) {}
+  }
+}, GF.every);
+
+// ---------------------------------------------------------------- Tukenmezlik Orsu
+// Bedrock'ta ozel buyu yok ve vanilla ors genisletilemez. Isaret bu yuzden
+// esyanin LORE satiri: cocuk esyada "Tukenmez" yazisini gorur, isaret esyayla
+// birlikte tasinir ve kalicidir. Dongu isaretli yigini dolu, aleti yipranmamis
+// tutar; TEK ADETLI isaretli esya (totem gibi) tukenince ayni yuvaya geri
+// konur. Yalniz DEGISEN esya geri yazilir — her turda her yuvayi yazmak yay
+// germeyi / yemeyi keserdi.
+const UN = __UNENDING__;
+const ANVIL_ID = "stnt:tukenmezlik_orsu";
+function isUnending(it) {
+  try { return !!it && it.getLore().includes(UN.mark); } catch (e) { return false; }
+}
+function markUnending(player) {
+  try {
+    const con = player.getComponent("minecraft:inventory")?.container;
+    const slot = player.selectedSlotIndex;
+    const it = con && con.getItem(slot);
+    if (!it) { player.onScreenDisplay.setActionBar("§7Elinde bir eşya tut, sonra örse dokun"); return; }
+    if (isUnending(it)) { player.onScreenDisplay.setActionBar("§dBu eşya zaten tükenmez"); return; }
+    const lore = it.getLore(); lore.push(UN.mark); it.setLore(lore);
+    con.setItem(slot, it);
+    spray(player.dimension, player.location, "minecraft:enchanting_table_particle", 20, 1.0);
+    try { player.dimension.playSound("random.anvil_use", player.location, { volume: 1.0 }); } catch (e) {}
+    player.onScreenDisplay.setActionBar("§d✦ Eşyan artık TÜKENMEZ!");
+  } catch (e) {}
+}
+world.beforeEvents.playerInteractWithBlock.subscribe((ev) => {
+  try {
+    if (!ev.block || ev.block.typeId !== ANVIL_ID) return;
+    ev.cancel = true;                                  // elindeki blogu orsun ustune koymasin
+    const player = ev.player;
+    system.run(() => markUnending(player));
+  } catch (e) {}
+});
+function refreshUnending(it) {                          // true = geri yazilmali
+  let changed = false;
+  try { if (it.amount < it.maxAmount) { it.amount = it.maxAmount; changed = true; } } catch (e) {}
+  try { const d = it.getComponent("minecraft:durability"); if (d && d.damage > 0) { d.damage = 0; changed = true; } } catch (e) {}
+  return changed;
+}
+function anySlotHas(con, typeId) {
+  for (let i = 0; i < con.size; i++) {
+    try { const it = con.getItem(i); if (it && it.typeId === typeId && isUnending(it)) return true; } catch (e) {}
+  }
+  return false;
+}
+function restoreUnending(typeId) {
+  const back = new ItemStack(typeId, 1);
+  back.setLore([UN.mark]);
+  return back;
+}
+const unendingSeen = new Map();   // oyuncu id -> { yuva: typeId } tek adetli isaretli esyalar
+const UN_SLOTS = ["Head", "Chest", "Legs", "Feet", "Offhand"];
+system.runInterval(() => {
+  for (const p of world.getPlayers()) {
+    try {
+      const con = p.getComponent("minecraft:inventory")?.container;
+      if (!con) continue;
+      const seen = unendingSeen.get(p.id) || {};
+      const next = {};
+      for (let i = 0; i < con.size; i++) {
+        const it = con.getItem(i);
+        if (!it) {
+          // Tek adetli isaretli esya tukendi mi? Baska yuvaya tasindiysa
+          // dokunma; envanterde hic yoksa ayni yuvaya geri koy.
+          const gone = seen[i];
+          if (gone && !anySlotHas(con, gone)) { try { con.setItem(i, restoreUnending(gone)); next[i] = gone; } catch (e) {} }
+          continue;
+        }
+        if (!isUnending(it)) continue;
+        if (it.maxAmount === 1) next[i] = it.typeId;
+        if (refreshUnending(it)) con.setItem(i, it);
+      }
+      // Giyilen zirh ve sol el (totem cogunlukla orada).
+      const eq = p.getComponent("minecraft:equippable");
+      if (eq) for (const name of UN_SLOTS) {
+        const sl = EquipmentSlot[name];
+        if (!sl) continue;
+        try {
+          const it = eq.getEquipment(sl);
+          if (!it) {
+            const gone = seen["eq:" + name];
+            if (gone && !anySlotHas(con, gone)) { eq.setEquipment(sl, restoreUnending(gone)); next["eq:" + name] = gone; }
+            continue;
+          }
+          if (!isUnending(it)) continue;
+          if (it.maxAmount === 1) next["eq:" + name] = it.typeId;
+          if (refreshUnending(it)) eq.setEquipment(sl, it);
+        } catch (e) {}
+      }
+      unendingSeen.set(p.id, next);
+    } catch (e) {}
+  }
+}, UN.every);
 '''
 
 if __name__ == "__main__":

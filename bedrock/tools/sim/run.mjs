@@ -1011,6 +1011,177 @@ const PASIF = new Set(["bleed", "heavy", "worn_wool", "held_fireproof"]);
   eq(kalan, 0, "yeniden yuklemeden sonra su geri aliniyor");
 }
 
+// ---- 26. Ender Cakmagi: bakilan blogun ustune ates, kayit, cakmak yipranir
+{
+  const p = fresh();
+  const { ItemStack } = mc;
+  p.inv[0] = new ItemStack("stnt:ender_cakmagi", 1);
+  __sim.state.viewBlock = { block: p.dimension.getBlock({ x: 3, y: 63, z: 3 }) };
+  __sim.fire("after", "itemUse", { itemStack: { typeId: "stnt:ender_cakmagi" }, source: p });
+  __sim.tick(2);
+  eq(p.dimension.getBlock({ x: 3, y: 64, z: 3 }).typeId, "stnt:ender_atesi", "Ender Cakmagi bakilan blogun USTUNE ates koyuyor");
+  const kayit = JSON.parse(mc.world.getDynamicProperty("stnt:enderfires") || "[]");
+  ok(kayit.some((q) => q.x === 3 && q.y === 64 && q.z === 3), "ender atesi kalici kayda giriyor", JSON.stringify(kayit));
+  eq(p.inv[0].damage, 1, "cakmak bir kullanimda 1 yipraniyor");
+  // ustu dolu bloga bakinca ates KONMAZ, cocuk nedenini gorur
+  __sim.setBlock(p.dimension.id, 6, 64, 6, "minecraft:stone");
+  __sim.state.viewBlock = { block: p.dimension.getBlock({ x: 6, y: 63, z: 6 }) };
+  __sim.fire("after", "itemUse", { itemStack: { typeId: "stnt:ender_cakmagi" }, source: p });
+  __sim.tick(2);
+  eq(p.dimension.getBlock({ x: 6, y: 64, z: 6 }).typeId, "minecraft:stone", "ustu dolu bloga ates konmuyor");
+  ok(bars().some((m) => m.includes("boş")), "ustu doluysa eylem cubugu nedenini yaziyor");
+  eq(p.inv[0].damage, 1, "bosa giden kullanim cakmagi yipratmiyor");
+  // kirilinca kayittan duser
+  __sim.fire("after", "playerBreakBlock", { brokenBlockPermutation: { type: { id: "stnt:ender_atesi" } },
+    block: { location: { x: 3, y: 64, z: 3 } }, dimension: p.dimension, player: p });
+  const sonra = JSON.parse(mc.world.getDynamicProperty("stnt:enderfires") || "[]");
+  ok(!sonra.some((q) => q.x === 3 && q.y === 64 && q.z === 3), "kirilan ender atesi kayittan dusuyor");
+}
+
+// ---- 27. Ender Atesi: iki ates arasinda isinlanma, Nether secenegi, geri sicramama
+{
+  const { ItemStack } = mc;
+  const yak = (p, x, z) => {
+    __sim.state.viewBlock = { block: p.dimension.getBlock({ x, y: 63, z }) };
+    __sim.fire("after", "itemUse", { itemStack: { typeId: "stnt:ender_cakmagi" }, source: p });
+    __sim.tick(2);
+  };
+  // (a) Math.random=0 -> sira hep "ender" once: senkron isinlanma
+  const rnd = Math.random;
+  Math.random = () => 0;
+  let p = fresh();
+  p.inv[0] = new ItemStack("stnt:ender_cakmagi", 1);
+  yak(p, 5, 5); yak(p, 40, 40);
+  p.location = { x: 5.5, y: 64, z: 5.5 };
+  __sim.tick(12);
+  ok(Math.floor(p.location.x) === 40 && Math.floor(p.location.z) === 40, "atesin icine giren oyuncu OBUR ender atesine isinlaniyor",
+     JSON.stringify(p.location));
+  __sim.tick(60);
+  ok(Math.floor(p.location.x) === 40, "varista geri sicramiyor (uzerinden cekilene kadar)", JSON.stringify(p.location));
+  p.location = { x: 40.5, y: 66, z: 40.5 };   // atesten cik
+  __sim.tick(12);
+  p.location = { x: 40.5, y: 64, z: 40.5 };   // tekrar gir
+  __sim.tick(12);
+  ok(Math.floor(p.location.x) === 5, "cikip tekrar girince yeniden isinlaniyor", JSON.stringify(p.location));
+  // (b) Math.random=0.99 -> sira: ruh atesi, turuncu ates, ender. Nether bos:
+  //     tickingarea acilir, tarama biter, siradakine duser, sonunda ender'e isinlanir.
+  Math.random = () => 0.99;
+  p = fresh();
+  p.inv[0] = new ItemStack("stnt:ender_cakmagi", 1);
+  yak(p, 5, 5); yak(p, 40, 40);
+  __sim.state.log.commands.length = 0;
+  p.location = { x: 5.5, y: 64, z: 5.5 };
+  __sim.tick(120);
+  const cmds = __sim.state.log.commands.map((c) => c.c);
+  ok(cmds.some((c) => c.includes("tickingarea add") && c.includes("in nether")), "Nether secenegi icin gecici tickingarea aciliyor", cmds.join(" | ").slice(0, 120));
+  ok(cmds.some((c) => c.includes("tickingarea remove")), "tarama bitince tickingarea kaldiriliyor");
+  ok(Math.floor(p.location.x) === 40, "Nether'da ates yoksa siradaki secenek (ender atesi) kullaniliyor", JSON.stringify(p.location));
+  ok(__sim.state.counters.maxGetBlockPerTick < 3000, "Nether taramasi tick basina butceli", String(__sim.state.counters.maxGetBlockPerTick));
+  // (c) Nether'da ruh atesi VARSA oraya gidiyor (overworld 40 -> nether 5)
+  p = fresh();
+  p.inv[0] = new ItemStack("stnt:ender_cakmagi", 1);
+  __sim.setBlock("minecraft:nether", 7, 60, 7, "minecraft:soul_fire");
+  yak(p, 40, 40); yak(p, 80, 80);
+  p.location = { x: 40.5, y: 64, z: 40.5 };
+  __sim.tick(120);
+  ok(p.dimension.id === "minecraft:nether" && Math.floor(p.location.x) === 7, "ruh atesi secilince Nether'daki ruh atesine gidiyor",
+     `${p.dimension.id} ${JSON.stringify(p.location)}`);
+  // (d) hic hedef yok: yerinde kalir ve bunu gorur
+  Math.random = () => 0;
+  p = fresh();
+  p.inv[0] = new ItemStack("stnt:ender_cakmagi", 1);
+  yak(p, 5, 5);
+  p.location = { x: 5.5, y: 64, z: 5.5 };
+  __sim.tick(150);                                  // iki Nether secenegi de denenip elensin
+  ok(Math.floor(p.location.x) === 5 && p.dimension.id === "minecraft:overworld", "tek ates: yerinde kaliyor", `${p.dimension.id} ${JSON.stringify(p.location)}`);
+  ok(bars().some((m) => m.includes("Gidecek")), "hedef yoksa eylem cubugu soyluyor", bars().join(" | ").slice(0, 80));
+  Math.random = rnd;
+  ok(__sim.errors.length === 0, "ates dongusu tick'te hata uretmiyor", __sim.errors[0]);
+}
+
+// ---- 28. Altin Flint: blok altina doner, ates ustune; bedrock donmez; ates yakar
+{
+  const p = fresh();
+  const { ItemStack } = mc;
+  p.inv[0] = new ItemStack("stnt:altin_flint", 1);
+  __sim.setBlock(p.dimension.id, 2, 63, 2, "minecraft:dirt");
+  __sim.state.viewBlock = { block: p.dimension.getBlock({ x: 2, y: 63, z: 2 }) };
+  __sim.fire("after", "itemUse", { itemStack: { typeId: "stnt:altin_flint" }, source: p });
+  __sim.tick(2);
+  eq(p.dimension.getBlock({ x: 2, y: 63, z: 2 }).typeId, "minecraft:gold_block", "bakilan blok ALTIN oluyor");
+  eq(p.dimension.getBlock({ x: 2, y: 64, z: 2 }).typeId, "stnt:altin_atesi", "ustune altin ates konuyor");
+  eq(p.inv[0].damage, 1, "altin flint 1 yipraniyor");
+  __sim.setBlock(p.dimension.id, 9, 63, 9, "minecraft:bedrock");
+  __sim.state.viewBlock = { block: p.dimension.getBlock({ x: 9, y: 63, z: 9 }) };
+  __sim.fire("after", "itemUse", { itemStack: { typeId: "stnt:altin_flint" }, source: p });
+  __sim.tick(2);
+  eq(p.dimension.getBlock({ x: 9, y: 63, z: 9 }).typeId, "minecraft:bedrock", "bedrock altina DONMUYOR (dunya tabani delinmez)");
+  eq(p.dimension.getBlock({ x: 9, y: 64, z: 9 }).typeId, "stnt:altin_atesi", "ama ates yine de yaniyor");
+  // ates sonmuyor: 2000 tick sonra hala orada
+  __sim.tick(2000);
+  eq(p.dimension.getBlock({ x: 2, y: 64, z: 2 }).typeId, "stnt:altin_atesi", "altin ates 100 sn sonra hala yaniyor (sonmez)");
+  // icine giren yanar
+  p.location = { x: 2.5, y: 64, z: 2.5 };
+  const once = p.damages.length;
+  __sim.tick(40);
+  ok(p.damages.length > once, "altin atesin icindeki oyuncu hasar aliyor", `${p.damages.length - once} vurus`);
+  ok((p.fires || 0) > 0, "oyuncu alev aliyor");
+  p.addEffect("fire_resistance", 600, {});
+  const n2 = p.damages.length;
+  __sim.tick(40);
+  eq(p.damages.length, n2, "ates direnci olan yanmiyor");
+}
+
+// ---- 29. Tukenmezlik Orsu: isaret, dolum, onarim, totem geri gelir, kopya yok
+{
+  const p = fresh();
+  const { ItemStack } = mc;
+  const anvil = { typeId: "stnt:tukenmezlik_orsu", location: { x: 1, y: 64, z: 1 }, dimension: p.dimension };
+  const dokun = () => { const ev = { block: anvil, player: p, cancel: false }; __sim.fire("before", "playerInteractWithBlock", ev); __sim.tick(2); return ev; };
+  // eli bos
+  let ev = dokun();
+  ok(ev.cancel === true, "orse dokunma vanilla etkilesimi bastiriyor");
+  ok(bars().some((m) => m.includes("Elinde")), "eli bosken ne yapacagini soyluyor");
+  // 5 ok
+  p.inv[0] = new ItemStack("minecraft:arrow", 5);
+  dokun();
+  ok(p.inv[0].lore.some((l) => l.includes("Tükenmez")), "esyaya gorunur Tukenmez isareti konuyor", JSON.stringify(p.inv[0].lore));
+  __sim.tick(12);
+  eq(p.inv[0].amount, 64, "isaretli yigin DOLUYOR");
+  p.inv[0].amount = 10;                              // ok atildi
+  __sim.tick(12);
+  eq(p.inv[0].amount, 64, "harcanan oklar geri geliyor");
+  // isaretsiz yigin dokunulmaz
+  p.inv[1] = new ItemStack("minecraft:arrow", 3);
+  __sim.tick(12);
+  eq(p.inv[1].amount, 3, "isaretsiz yigina dokunulmuyor");
+  // yipranan alet onariliyor
+  p.selectedSlotIndex = 2;
+  p.inv[2] = new ItemStack("minecraft:diamond_pickaxe", 1);
+  dokun();
+  p.inv[2].damage = 900;
+  __sim.tick(12);
+  eq(p.inv[2].damage, 0, "isaretli alet yipranmiyor (onariliyor)");
+  // totem tukenince ayni yuvaya geri geliyor
+  p.selectedSlotIndex = 3;
+  p.inv[3] = new ItemStack("minecraft:totem_of_undying", 1);
+  dokun();
+  __sim.tick(12);
+  p.inv[3] = undefined;                              // totem kullanildi
+  __sim.tick(12);
+  ok(p.inv[3] && p.inv[3].typeId === "minecraft:totem_of_undying" && p.inv[3].lore.length > 0, "tukenen isaretli totem ayni yuvaya geri geliyor");
+  // yuva degistirince KOPYA olusmuyor
+  p.inv[7] = p.inv[3]; p.inv[3] = undefined;
+  __sim.tick(12);
+  ok(!p.inv[3], "tasinan totem eski yuvasina KOPYALANMIYOR");
+  eq(p.inv.filter((it) => it && it.typeId === "minecraft:totem_of_undying").length, 1, "envanterde tek totem var");
+  // ikinci dokunus ikinci isaret eklemiyor
+  p.selectedSlotIndex = 0;
+  dokun();
+  eq(p.inv[0].lore.filter((l) => l.includes("Tükenmez")).length, 1, "isaret bir kez konuyor");
+  ok(__sim.errors.length === 0, "tukenmezlik dongusu tick'te hata uretmiyor", __sim.errors[0]);
+}
+
 report();
 
 function report() {

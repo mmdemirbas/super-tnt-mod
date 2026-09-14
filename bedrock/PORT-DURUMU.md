@@ -1,7 +1,55 @@
 # Super TNT — Bedrock Port Durumu
 
-Son sürüm: **v1.48.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
+Son sürüm: **v1.49.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
 olacak şekilde geliştiriliyor (MorphX / mutant paketine bağımlılık yok).
+
+## v1.49.0 — Ender Çakmağı, Altın Flint, Tükenmezlik Örsü
+
+Üç çocuk isteği. Üçü de önce yanlışlıkla Java moduna yazılmıştı (2026-09-09);
+çocuklar tablette bulamayınca buraya taşındı. Java tarafı artık bakım dışı.
+
+**Ender Çakmağı → Ender Ateşi.** Bakılan bloğun üstüne mavi ateş. İçine giren
+oyuncu ışınlanır. Çocukların "%90 / %50 / %1" tarifi yüzde olarak 141 ettiği
+için **ağırlık** olarak uygulandı (`ENDER_FIRE`): her seçenek bir kez çekilir,
+ilk tutan hedef kullanılır; sıra ~%64 başka bir ender ateşi, ~%35 Nether ruh
+ateşi, ~%0,7 Nether turuncu ateşi. Hiçbiri tutmazsa oyuncu yerinde kalır ve
+eylem çubuğunda görür.
+
+| Sorun | Çözüm |
+|---|---|
+| Ateş konumları yeniden başlatmada kaybolur | `stnt:enderfires` dünya özelliği (portal kaydıyla aynı desen), tavan 128 |
+| Nether'da oyuncu yokken chunk yüklü değil, `getBlock` `undefined` | Geçici `tickingarea` (tek ad, tek seferde bir tarama); chunk gelene kadar en çok 100 tick beklenir, sonra alan kaldırılır |
+| 17×17×61 = 17 637 konumluk tarama tek tick'te tableti dondurur | Tick başına 1500 konum (Craft Baltası deseni); sim tavanı 3000 |
+| Varışta hedef ateş yeniden tetikler | Varış kaydı: üzerinden çekilene kadar ışınlanmaz + 40 tick bekleme |
+| Ateşin içinde duran oyuncu her turda tarama açar | Bekleme süresi aramadan **önce** yazılır |
+
+Yalnız **oyuncular** ışınlanır; moblar değil. Ateş sönmez, su silmez
+(`collision_box` yok ama replaceable değil), yumrukla kırılır.
+
+**Altın Flint → Altın Ateş.** Tarif çocukların dediği gibi: sol altın külçe,
+orta demir külçe, sağ ham altın (`["AIH"]`, ızgarada her satırda tutar). Bakılan
+blok altın bloğuna döner, üstüne ateş konur. Dönüşüm çakmakta, ateş bloğunda
+değil — "hangi bloğun üzerine yakıldıysa" bilgisi yalnız orada var. Bedrock,
+bariyer, sıvı, kendi ateşlerimiz, portallar ve içerik taşıyan bloklar dönmez.
+Ateş içindeki oyuncuyu 10 tick'te 1 hasar + 8 sn alevle yakar; ateş direnci
+olan yanmaz. Moblar yanmaz (ipucu "oyuncu" der). Dayanıklılık 64 +
+`enchantable(flintsteel)`: örste Tamir ve Kırılmazlık basılır.
+
+**Tükenmezlik Örsü.** Bedrock'ta özel büyü yok ve vanilla örs genişletilemez;
+"örste her eşyaya basılan büyü" bu yüzden kendi bloğumuz. Elinde eşyayla dokun →
+eşyanın lore'una `✦ Tükenmez` yazılır (görünür, kalıcı, eşyayla taşınır). Döngü
+(10 tick) işaretli yığını dolu ve aleti onarılmış tutar; giyilen zırh ve sol el
+dahil. Tek adetli işaretli eşya (totem) tükenince aynı yuvaya geri konur;
+envanterde başka yerdeyse **konmaz** (taşıma ≠ tükenme).
+
+Bilinen sınır: tek adetli işaretli bir eşyayı sandığa koyar ya da yere atarsan
+envanterde bir tane daha belirir — eşya zaten sınırsız olduğu için kabul edildi,
+ama bir kopyalama yoludur. Yalnız değişen yuva geri yazılır; her turda her
+yuvayı yazmak yay germeyi keserdi.
+
+**Sim:** taklit `ItemStack`'e lore/dayanıklılık/`maxAmount`, `Entity.setOnFire`,
+`Dimension.runCommand`, `equippable.setEquipment` eklendi. 39 yeni test
+(26–29), 3 sim mutasyonu (36–38), 2 denetim mutasyonu (39–40).
 
 ## v1.48.0 — Sahte Elmas Aletler (Bedrock'a özel, Java'da yok)
 

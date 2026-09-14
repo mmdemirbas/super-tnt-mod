@@ -397,6 +397,37 @@ run "poz animasyonu oyuncuya baglanmamis" "animate listesine eklenmemis"
 cp "$BAK/b38.bak" bedrock/build.py
 python3 bedrock/build.py > /dev/null 2>&1
 
+# 39) cakmagin ipucu kullanim sayisini yanlis yazsin -> cocuk 64 bekler, 32'de kirilir
+cp bedrock/build.py "$BAK/b39.bak"
+python3 - <<'PYX'
+import io
+p = "bedrock/build.py"
+s = io.open(p, encoding="utf-8").read()
+old = 'color=(240, 190, 60), durability=64, enchant_slot="flintsteel",'
+assert s.count(old) == 1
+io.open(p, "w", encoding="utf-8").write(s.replace(old, 'color=(240, 190, 60), durability=32, enchant_slot="flintsteel",', 1))
+PYX
+python3 bedrock/build.py > /dev/null 2>&1
+run "cakmak ipucu kullanim sayisi kodla celisiyor" "32 kullanim yazmiyor"
+cp "$BAK/b39.bak" bedrock/build.py
+python3 bedrock/build.py > /dev/null 2>&1
+
+# 40) "Tamir buyusu basilabilir" desin ama enchantable bileseni olmasin ->
+#     ors hicbir buyuyu kabul etmez, soz bosa cikar
+cp bedrock/build.py "$BAK/b40.bak"
+python3 - <<'PYX'
+import io
+p = "bedrock/build.py"
+s = io.open(p, encoding="utf-8").read()
+old = 'color=(240, 190, 60), durability=64, enchant_slot="flintsteel",'
+assert s.count(old) == 1
+io.open(p, "w", encoding="utf-8").write(s.replace(old, 'color=(240, 190, 60), durability=64,', 1))
+PYX
+python3 bedrock/build.py > /dev/null 2>&1
+run "Tamir sozu var, enchantable yok" "enchantable degil"
+cp "$BAK/b40.bak" bedrock/build.py
+python3 bedrock/build.py > /dev/null 2>&1
+
 echo
 python3 bedrock/build.py > /dev/null && echo "paket yeniden uretildi"
 echo "yakalanan $pass / kacirilan $fail"

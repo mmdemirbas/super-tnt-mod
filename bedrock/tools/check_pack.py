@@ -505,11 +505,18 @@ def check_pack_integrity():
     # (g) Yaratici menu grubu. Grubu olmayan bir esya menude HICBIR YERDE
     # gorunmez — cocuk yeni esyayi bulamaz ve "eklenmemis" sanir. Grup adinin
     # dil karsiligi da olmali, yoksa sekme ham anahtar yazar.
+    # Istisna: build.py'de hidden=True denen bloklar (cakmakla yakilan atesler)
+    # BILEREK menude yok; onlar icin dogru olan "none" kategorisi.
+    hidden = {b["id"] for b in build.BLOCKS if b.get("hidden")}
     groups = set()
     for p in glob.glob(os.path.join(BP, "items", "*.json")) + glob.glob(os.path.join(BP, "blocks", "*.json")):
         kind = "minecraft:item" if os.sep + "items" + os.sep in p else "minecraft:block"
         desc = jload(p)[kind]["description"]
         mc = desc.get("menu_category")
+        if kind == "minecraft:block" and os.path.basename(p)[:-5] in hidden:
+            check(bool(mc and mc.get("category") == "none"),
+                  f"{os.path.basename(p)}: hidden ama menu kategorisi 'none' degil")
+            continue
         check(bool(mc and mc.get("group")),
               f"{os.path.basename(p)}: yaratici menu grubu yok, menude gorunmez")
         if mc and mc.get("group"):
@@ -655,6 +662,37 @@ def check_tooltip_contract(js):
                   f"item {it['id']}: ipucu kirilmaz oldugunu yazmiyor")
         if a.get("type") == "rename":
             check(str(a["maxLen"]) in tip, f"item {it['id']}: ipucu {a['maxLen']} harf sinirini yazmiyor")
+        # Dayanikliligi olan esya kullanim sayisini yazmali; sayi bilesenle ayni olmali.
+        if it.get("durability"):
+            check(f"{it['durability']} kullanım" in tip,
+                  f"item {it['id']}: ipucu {it['durability']} kullanim yazmiyor")
+            comps = jload(os.path.join(BP, "items", f"{it['id']}.json"))["minecraft:item"]["components"]
+            check(comps.get("minecraft:durability", {}).get("max_durability") == it["durability"],
+                  f"item {it['id']}: dayaniklilik bileseni ipucuyla ayni degil")
+            # "Tamir buyusu basilabilir" sozu enchantable bileseni ister; onsuz
+            # ors HICBIR buyuyu kabul etmez ve soz bosa cikar.
+            if "Tamir" in tip:
+                check("minecraft:enchantable" in comps,
+                      f"item {it['id']}: ipucu Tamir buyusu diyor ama esya enchantable degil")
+        if a.get("type") == "ender_fire":
+            # Uc hedef turu de ipucunda olmali (agirliklari build.ENDER_FIRE'da);
+            # Nether atesleri yakar, bu da yazmali.
+            for w in ("Ender Ateşi", "ruh ateşi", "turuncu", "yakar"):
+                check(w in tip, f"item {it['id']}: ipucu '{w}' demiyor")
+            for w in ("Ender Fire", "soul fire", "orange", "burn"):
+                check(w in it["entip"], f"item {it['id']}: ingilizce ipucu '{w}' demiyor")
+            check(build.ENDER_FIRE["ender"] > build.ENDER_FIRE["soul"] > build.ENDER_FIRE["fire"],
+                  f"item {it['id']}: agirlik sirasi ipucunun 'cogunlukla/bazen/cok seyrek' sirasiyla celisiyor")
+            check("EF.cooldown" in js and "tickingarea add" in js,
+                  f"item {it['id']}: ates dongusunde bekleme suresi ya da Nether yuklemesi yok")
+        if a.get("type") == "gold_fire":
+            for w in ("altın bloğuna çevirir", "sönmez", "yayılmaz", "yanar"):
+                check(w in tip, f"item {it['id']}: ipucu '{w}' demiyor")
+            for w in ("block of gold", "never goes out", "never spreads", "burns"):
+                check(w in it["entip"], f"item {it['id']}: ingilizce ipucu '{w}' demiyor")
+            # "Sonmez": ates blogunun zamanlanmis bir sondurme yolu OLMAMALI.
+            check("GOLD_FIRE_ID" in js and 'scheduleRemoval("stnt:altin_atesi"' not in js,
+                  f"item {it['id']}: altin ates icin sondurme yolu var, ipucu sonmez diyor")
         if a.get("type") == "sonic":
             check(str(a["range"]) in tip, f"item {it['id']}: ipucu {a['range']} blok menzili yazmiyor")
         if a.get("type") == "mega_tree":
@@ -669,6 +707,14 @@ def check_tooltip_contract(js):
             check(str(a["radius"]) in tip, f"item {it['id']}: ipucu {a['radius']} blok yaricapi yazmiyor")
             check(str(a["seconds"]) in tip, f"item {it['id']}: ipucu {a['seconds']} saniyeyi yazmiyor")
             check(a["pulse"] % 20 == 0, f"item {it['id']}: pulse {a['pulse']} tam saniye degil")
+    for blk in build.BLOCKS:
+        if blk.get("kind") == "anvil":
+            check("TÜKENMEZ" in blk["trtip"] and "UNENDING" in blk["entip"],
+                  f"blok {blk['id']}: ipucu tukenmezligi buyuk harfle vurgulamiyor")
+            # Isaret lore'da; dongu onu okuyup yigini doldurmali ve onarmali.
+            check("getLore().includes(UN.mark)" in js, f"blok {blk['id']}: betik lore isaretini okumuyor")
+            check("it.amount = it.maxAmount" in js and "d.damage = 0" in js,
+                  f"blok {blk['id']}: betik yigini doldurmuyor ya da onarmiyor")
 
 
 # ---------------------------------------------------------------- 5. mega agac
