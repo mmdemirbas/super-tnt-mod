@@ -30,7 +30,13 @@ rm -rf bedrock/__pycache__
 step "1/4  paket uretimi" bash -c 'python3 bedrock/build.py | tail -3'
 step "2/4  statik denetim" python3 bedrock/tools/check_pack.py
 step "3/4  betigi calistir" node bedrock/tools/sim/run.mjs
-step "4/4  mutasyonlar" bash -c 'bash bedrock/tools/mutation_test.sh | tail -2; bash bedrock/tools/sim/mutations.sh | tail -2'
+# Iki betik de kosar; biri bile kacirirsa adim GECMEDI. Eskiden bash -c'nin
+# cikis kodu yalniz son betigin (ve tail'in) kodu idi: mutation_test.sh'daki
+# bir kacirma "hepsi gecti" altinda gizleniyordu — bir kez oldu.
+step "4/4  mutasyonlar" bash -c 'set -o pipefail
+  bash bedrock/tools/mutation_test.sh | tail -2; r1=$?
+  bash bedrock/tools/sim/mutations.sh | tail -2; r2=$?
+  [ "$r1" -eq 0 ] && [ "$r2" -eq 0 ]'
 
 printf '\n'
 if [ "$fail" -eq 0 ]; then
