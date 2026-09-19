@@ -460,6 +460,21 @@ run "Patlayici Kum ipucu zinciri soylemiyor" "zinciri soylemiyor"
 cp "$BAK/b42.bak" bedrock/build.py
 python3 bedrock/build.py > /dev/null 2>&1
 
+# 43) Lego bloklari geometrisiz kalsin -> duz renkli kup, cikinti yok
+cp bedrock/build.py "$BAK/b43.bak"
+python3 - <<'PYX'
+import io
+p = "bedrock/build.py"
+s = io.open(p, encoding="utf-8").read()
+old = '            comps["minecraft:geometry"] = "geometry.stnt_lego"'
+assert s.count(old) == 1
+io.open(p, "w", encoding="utf-8").write(s.replace(old, "            pass", 1))
+PYX
+python3 bedrock/build.py > /dev/null 2>&1
+run "Lego bloklari cikintisiz" "Lego cikintisiz"
+cp "$BAK/b43.bak" bedrock/build.py
+python3 bedrock/build.py > /dev/null 2>&1
+
 echo
 python3 bedrock/build.py > /dev/null && echo "paket yeniden uretildi"
 echo "yakalanan $pass / kacirilan $fail"

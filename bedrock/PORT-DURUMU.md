@@ -3,7 +3,7 @@
 Son sürüm: **v1.51.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
 olacak şekilde geliştiriliyor (MorphX / mutant paketine bağımlılık yok).
 
-## v1.51.0 — Patlayıcı Kum zinciri
+## v1.51.0 — Patlayıcı Kum zinciri, çıkıntılı Lego
 
 **Zincirleme patlama.** Patlama olayı (F3, `beforeEvents.explosion`) zaten
 vurduğu Super TNT bloğunu yok etmek yerine ateşliyordu; aynı dal artık
@@ -28,9 +28,27 @@ yarıçap içindeki hava dışı bloklar). Yıkım **taklit edilmez**: 15. senar
 kazma döngüsü bedavaya geçerdi — ilk denemede sim mutasyonu 30 tam da böyle
 kaçtı ve geri alındı.
 
+**Çıkıntılı Lego.** 16 renk Lego tuğlasının çıkıntıları dokuda çizili
+dairelerdi (yan yüzlerde de görünüyordu). Şimdi geometri: tam 16'lık gövde +
+üstünde 4 tane 4×2×4 çıkıntı, 8 piksel aralıkla (`geometry.stnt_lego`).
+Çıkıntılar hücrenin **üstüne** taşar (y 16–18): blok tam küp kaldığı için
+komşu yüz gizleme (`opaque`) doğru çalışır ve üst üste konunca çıkıntılar
+üstteki tuğlanın içinde kalır, gerçek Lego gibi ek yeri görünmez. Çıkıntı
+yüzleri gövde dokusunun iç bölgesini örnekler; üç boyut hissini oyunun yüz
+gölgelemesi verir. Doku düz gövde oldu. Çarpışma kutusu tam blok; çıkıntılar
+yalnız görsel.
+
+Dayanak: blok modeli sınırı 30×30×30 piksel ve hücre içinde en az 1 piksel
+(wiki.bedrock.dev/blocks/block-components#geometry, doğrudan okundu). Bu
+paketin blok biçimi 1.20.20; taşan geometrinin bu biçimde de kabul edildiği
+**tablette doğrulanmalı** — reddederse 16 Lego bloğu ve Lego TNT'nin döşediği
+tuğlalar görünmez olur; o durumda gövdeyi 14'e indirip çıkıntıları hücre içinde
+tutmak (`alpha_test`) yedek plan.
+
 **Sim/denetim:** 13 test (31: kum → kum dalga, kum → Elmas TNT fitili, tur
 tavanı, tarla temizleniyor), 2 sim mutasyonu (40: F3 kumu zincire almasın,
-41: tavan kalksın), 1 denetim mutasyonu (42: ipucu zinciri söylemesin).
+41: tavan kalksın), 2 denetim mutasyonu (42: ipucu zinciri söylemesin, 43:
+Lego geometrisiz kalsın).
 
 ## v1.50.0 — Patlayıcı Kum
 

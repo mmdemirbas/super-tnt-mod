@@ -1982,8 +1982,8 @@ def symbol_texture(path, item_id):
 
 
 def decor_texture(path, base, kind):
-    """TNT-olmayan blok dokusu. lego=cikintili, glow=parlak, plate=cizgili."""
-    studs = [(4, 4), (11, 4), (4, 11), (11, 11)]
+    """TNT-olmayan blok dokusu. glow=parlak, plate=cizgili, anvil=ors.
+    Lego duz govdedir: cikintilar dokuda degil geometride (geometry.stnt_lego)."""
     rows = []
     for y in range(16):
         row = []
@@ -1991,11 +1991,7 @@ def decor_texture(path, base, kind):
             c = shade(base, 1.0 + ((x * 7 + y * 13) % 5 - 2) * 0.02)
             if x in (0, 15) or y in (0, 15):
                 c = shade(c, 0.78)
-            if kind == "lego":
-                for (sx, sy) in studs:
-                    if (x - sx) ** 2 + (y - sy) ** 2 <= 3:
-                        c = shade(base, 1.35)
-            elif kind == "glow":
+            if kind == "glow":
                 if (x + y) % 4 == 0:
                     c = shade(base, 1.30)
             elif kind in ("decor", "kill"):
@@ -2380,7 +2376,11 @@ def build():
             "minecraft:destructible_by_mining": {"seconds_to_destroy": 0.4},
             "minecraft:geometry": "minecraft:geometry.full_block",
         }
-        if blk['kind'] == "ghost":
+        if blk['kind'] == "lego":
+            # Gercek cikintilar: tam kup + ustunde 4 nokta (bkz. stnt_lego geo).
+            # Carpisma kutusu tam blok kalir; cikintilar yalniz gorsel.
+            comps["minecraft:geometry"] = "geometry.stnt_lego"
+        elif blk['kind'] == "ghost":
             # icinden gecilir: carpisma kutusu yok
             comps["minecraft:collision_box"] = False
         elif blk['kind'] == "glow":
@@ -2517,6 +2517,34 @@ def build():
                                 "visible_bounds_offset": [0, 0.5, 0]},
                 "bones": [{"name": "cross", "pivot": [0, 0, 0],
                            "cubes": [plane(45), plane(-45)]}],
+            }],
+        })
+
+    # ---------- Lego geometrisi: tam 16'lik govde + ustunde 4 cikinti (4x2x4,
+    # 8 piksel aralikla, gercek Lego oraninda). Cikintilar hucrenin USTUNE
+    # tasar (y 16-18): blok tam kup kaldigi icin komsu yuz gizleme (opaque)
+    # dogru calisir; ustune blok konunca cikintilar onun icinde kalir, gercek
+    # Lego'daki gibi ek yeri gorunmez. Blok modeli siniri 30x30x30 ve hucre
+    # icinde en az 1 piksel (wiki.bedrock.dev/blocks/block-components#geometry).
+    # Cikinti yuzleri govde dokusunun ic bolgesini orneklar: renk ayni, uc
+    # boyut hissini oyunun yuz golgelemesi verir (ust acik, yanlar koyu).
+    if any(b['kind'] == "lego" for b in BLOCKS):
+        face = lambda w, h: {"uv": [6, 6], "uv_size": [w, h]}
+        full = {"uv": [0, 0], "uv_size": [16, 16]}
+        cubes = [{"origin": [-8, 0, -8], "size": [16, 16, 16],
+                  "uv": {f: full for f in ("north", "south", "east", "west", "up", "down")}}]
+        for sx in (-6, 2):
+            for sz in (-6, 2):
+                cubes.append({"origin": [sx, 16, sz], "size": [4, 2, 4],
+                              "uv": {"up": face(4, 4), "down": face(4, 4),
+                                     "north": face(4, 2), "south": face(4, 2),
+                                     "east": face(4, 2), "west": face(4, 2)}})
+        w(os.path.join(RP, "models/blocks/stnt_lego.geo.json"), {
+            "format_version": "1.16.0",
+            "minecraft:geometry": [{
+                "description": {"identifier": "geometry.stnt_lego",
+                                "texture_width": 16, "texture_height": 16},
+                "bones": [{"name": "lego", "pivot": [0, 0, 0], "cubes": cubes}],
             }],
         })
 

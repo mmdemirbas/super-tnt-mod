@@ -738,6 +738,18 @@ def check_tooltip_contract(js):
                   f"blok {blk['id']}: patlama olayi kumu zincire almiyor")
             check("zincirleme" in blk["trtip"] and "chain" in blk["entip"],
                   f"blok {blk['id']}: kod zincirleme patlatiyor ama ipucu zinciri soylemiyor")
+    # Lego: cikintilar geometride olmali. Doku duz govde oldugu icin geometri
+    # duserse blok duz bir renkli kup olur ve "Lego" adi bosa cikar.
+    legos = [b for b in build.BLOCKS if b.get("kind") == "lego"]
+    if legos:
+        geo = jload(os.path.join(RP, "models", "blocks", "stnt_lego.geo.json"))["minecraft:geometry"][0]
+        cubes = [c for bone in geo["bones"] for c in bone["cubes"]]
+        studs = [c for c in cubes if c["origin"][1] >= 16 and c["size"][1] > 0]
+        check(len(studs) == 4, f"Lego geometrisi: ustte 4 cikinti olmali, {len(studs)} var")
+        for blk in legos:
+            comps = jload(os.path.join(BP, "blocks", f"{blk['id']}.json"))["minecraft:block"]["components"]
+            check(comps.get("minecraft:geometry") == "geometry.stnt_lego",
+                  f"blok {blk['id']}: Lego cikintisiz (geometry.stnt_lego bagli degil)")
 
 
 # ---------------------------------------------------------------- 5. mega agac
