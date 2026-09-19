@@ -79,7 +79,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 50, 0]
+VERSION = [1, 51, 0]
 MIN_ENGINE = [1, 21, 0]
 # Surum etiketi paket ADINA yazilir. UUID + klasor adlari sabit oldugu icin
 # Minecraft ayni UUID'li paketi yerinde GUNCELLER; ama cihazda eski surum
@@ -1133,10 +1133,10 @@ BLOCKS += [
     # dokusu olarak kullaniyor ve tablette dogrulandi. Gucu vanilla TNT ile
     # ayni (KUM_POWER = 4); ipucu "TNT gibi" diyor, check_pack bunu tutuyor.
     dict(id="patlayici_kum", tr="Patlayıcı Kum", en="Explosive Sand",
-         trtip="TUZAK: normal kum gibi görünür — kazan TNT gibi patlar! Blokları yıkar. "
-               "Ortaya barut, kenarlara kum ile yapılır.",
-         entip="TRAP: looks like normal sand - dig it and it explodes like TNT! Breaks blocks. "
-               "Crafted with gunpowder in the middle and sand around it.",
+         trtip="TUZAK: normal kum gibi görünür — kazan TNT gibi patlar! Blokları yıkar; yakındaki "
+               "TNT'leri ve patlayıcı kumları da zincirleme patlatır. Ortaya barut, kenarlara kum ile yapılır.",
+         entip="TRAP: looks like normal sand - dig it and it explodes like TNT! Breaks blocks; sets off "
+               "nearby TNTs and explosive sand in a chain. Crafted with gunpowder in the middle and sand around it.",
          kind="explosive_sand", color=(219, 211, 160), vtex="textures/blocks/sand",
          mat="minecraft:sand",
          recipe=dict(pattern=["SSS", "SGS", "SSS"], key={"S": "minecraft:sand", "G": "minecraft:gunpowder"})),
@@ -4267,6 +4267,11 @@ try {
           lit++;
           continue;                            // patlamanin yok etmesini engelle
         }
+        if (b.typeId === "stnt:patlayici_kum") {  // zincir: kum da patlar (bkz. kumChain)
+          kumChain(dim, b.location);
+          lit++;
+          continue;
+        }
       } catch (e) {}
       keep.push(b);
     }
@@ -5358,13 +5363,45 @@ world.beforeEvents.playerInteractWithBlock.subscribe((ev) => {
 // ---- Patlayici Kum: kum kiliginda tuzak. Kazilinca (blok gittikten sonra)
 // oldugu yerde vanilla TNT gucunde patlar; blok kirar, ates yakmaz. Kazan
 // oyuncu ayrilmaz — tuzagin amaci bu. Vanilla kum (minecraft:sand) etkilenmez.
+//
+// ZINCIR: patlama olayi (F3) vurdugu kumu yok etmek yerine kuyruga alir; kum
+// sirasi gelene kadar yerinde durur (fitil yanar gibi). Tur basina en cok
+// KUM_PER_TICK kum patlar: 20x20'lik bir kum tarlasi tek tick'te 400 patlama
+// uretmesin, dalga dalga gitsin (tablet). Kuyruktaki kum bu arada kazilir ya
+// da baska yolla giderse sirasi bos gecer — tip denetimi bunun icin.
 const KUM_POWER = 4;   // vanilla TNT
+const KUM_PER_TICK = 6;   // zincirde bir turda (2 tick) patlayan kum tavani
+const kumQueue = [];
+const kumQueued = new Set();
+function kumBoom(dim, loc) {
+  const c = { x: Math.floor(loc.x) + 0.5, y: Math.floor(loc.y) + 0.5, z: Math.floor(loc.z) + 0.5 };
+  try { dim.createExplosion(c, KUM_POWER, { breaksBlocks: true, causesFire: false }); } catch (e) {}
+}
+function kumChain(dim, loc) {
+  const k = pkey(dim.id, loc);
+  if (kumQueued.has(k)) return;
+  kumQueued.add(k);
+  kumQueue.push({ dim, loc: { x: Math.floor(loc.x), y: Math.floor(loc.y), z: Math.floor(loc.z) }, k });
+}
+system.runInterval(() => {
+  // Tur basinda sayilir: bu turun patlamalarinin kuyruga ekledigi kumlar
+  // SONRAKI turda gider; dalga boyle olusur.
+  const n0 = Math.min(KUM_PER_TICK, kumQueue.length);
+  for (let n = 0; n < n0; n++) {
+    const q = kumQueue.shift();
+    kumQueued.delete(q.k);
+    try {
+      const b = q.dim.getBlock(q.loc);
+      if (!b || b.typeId !== "stnt:patlayici_kum") continue;   // bu arada kazildi/gitti
+      b.setType("minecraft:air");
+      kumBoom(q.dim, q.loc);
+    } catch (e) {}
+  }
+}, 2);
 world.afterEvents.playerBreakBlock.subscribe((ev) => {
   try {
     if (ev.brokenBlockPermutation.type.id !== "stnt:patlayici_kum") return;
-    const l = ev.block.location;
-    const c = { x: Math.floor(l.x) + 0.5, y: Math.floor(l.y) + 0.5, z: Math.floor(l.z) + 0.5 };
-    ev.dimension.createExplosion(c, KUM_POWER, { breaksBlocks: true, causesFire: false });
+    kumBoom(ev.dimension, ev.block.location);
   } catch (e) {}
 });
 

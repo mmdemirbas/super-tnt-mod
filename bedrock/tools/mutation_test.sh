@@ -444,6 +444,22 @@ run "Patlayici Kum TNT gucunde degil" "TNT gucunde degil"
 cp "$BAK/b41.bak" bedrock/build.py
 python3 bedrock/build.py > /dev/null 2>&1
 
+# 42) Patlayici Kum'un ipucu zinciri soylemesin -> cocuk kum tarlasinin yanina
+#     TNT koyar, hepsi gider, "ipucunda yazmiyordu"
+cp bedrock/build.py "$BAK/b42.bak"
+python3 - <<'PYX'
+import io
+p = "bedrock/build.py"
+s = io.open(p, encoding="utf-8").read()
+old = "TNT'leri ve patlayıcı kumları da zincirleme patlatır. "
+assert s.count(old) == 1
+io.open(p, "w", encoding="utf-8").write(s.replace(old, "", 1))
+PYX
+python3 bedrock/build.py > /dev/null 2>&1
+run "Patlayici Kum ipucu zinciri soylemiyor" "zinciri soylemiyor"
+cp "$BAK/b42.bak" bedrock/build.py
+python3 bedrock/build.py > /dev/null 2>&1
+
 echo
 python3 bedrock/build.py > /dev/null && echo "paket yeniden uretildi"
 echo "yakalanan $pass / kacirilan $fail"

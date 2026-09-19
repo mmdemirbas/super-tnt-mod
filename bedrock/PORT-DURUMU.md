@@ -1,7 +1,36 @@
 # Super TNT — Bedrock Port Durumu
 
-Son sürüm: **v1.50.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
+Son sürüm: **v1.51.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
 olacak şekilde geliştiriliyor (MorphX / mutant paketine bağımlılık yok).
+
+## v1.51.0 — Patlayıcı Kum zinciri
+
+**Zincirleme patlama.** Patlama olayı (F3, `beforeEvents.explosion`) zaten
+vurduğu Super TNT bloğunu yok etmek yerine ateşliyordu; aynı dal artık
+Patlayıcı Kum'u da tanıyor. Vurulan kum silinmez, kuyruğa girer ve sırası
+gelince yerinde patlar; onun patlaması bir sonraki halkayı kuyruğa alır. Böylece
+kum → kum, kum → Super TNT (fitil yanar), Super TNT → kum ve vanilla TNT → kum
+yönlerinin hepsi çalışır; vanilla TNT'yi patlama zaten kendisi ateşler.
+
+| Sorun | Çözüm |
+|---|---|
+| 20×20 kum tarlası tek tick'te 400 patlama üretir, tablet donar | Tur başına (2 tick) en çok `KUM_PER_TICK = 6` kum; tur başında sayılır, o turun eklediği kumlar sonraki tura kalır (dalga) |
+| Aynı kum iki patlamanın alanına giriyor | Konum anahtarlı `Set`; kuyruğa bir kez girer |
+| Kuyruktaki kum bu arada kazıldı ya da başka yolla gitti | Sırası gelince tip denetimi; kum değilse boş geçer |
+
+Kazan oyuncu yine ayrılmaz. Kum bekleme sırasındayken yerinde durur — fitil
+yanıyor gibi; sürede özel bir şey yok, sadece sıra.
+
+**Sim taklidi:** `Dimension.createExplosion` artık `breaksBlocks` ise
+`beforeEvents.explosion`'ı ateşliyor (etki listesi: açıkça konmuş, güç kadar
+yarıçap içindeki hava dışı bloklar). Yıkım **taklit edilmez**: 15. senaryonun
+"blok değişti" ölçümü TNT'nin kendi işini ölçer; krater de sayılsaydı boş bir
+kazma döngüsü bedavaya geçerdi — ilk denemede sim mutasyonu 30 tam da böyle
+kaçtı ve geri alındı.
+
+**Sim/denetim:** 13 test (31: kum → kum dalga, kum → Elmas TNT fitili, tur
+tavanı, tarla temizleniyor), 2 sim mutasyonu (40: F3 kumu zincire almasın,
+41: tavan kalksın), 1 denetim mutasyonu (42: ipucu zinciri söylemesin).
 
 ## v1.50.0 — Patlayıcı Kum
 
@@ -23,8 +52,8 @@ Bilinen sınırlar: (1) Özel blok yerçekimine uymaz, altı boşalınca düşme
 dikkatli bir çocuk bundan anlayabilir. (2) Kürek hızlandırmaz: blok etiketi
 (`tag:minecraft:is_shovel_item_destructible`) bu pakette hiç denenmedi, yanlış
 bir bileşen bloğun hiç yüklenmemesine yol açabileceği için konmadı; tablette
-doğrulanınca eklenebilir. (3) Yanındaki bir patlama onu sadece siler, zincirleme
-patlatmaz (`explosion` olayı `getImpactedBlocks` ile eklenebilir; istenmedi).
+doğrulanınca eklenebilir. (3) ~~Yanındaki bir patlama onu sadece siler~~ —
+v1.51.0'da zincirleme eklendi.
 
 **Sim/denetim:** 7 test (30), 1 sim mutasyonu (39: patlama blok kırmasın),
 1 denetim mutasyonu (41: güç 2'ye insin). check_pack: güç 4, ipucu "TNT gibi"

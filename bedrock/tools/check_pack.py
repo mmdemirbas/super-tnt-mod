@@ -731,6 +731,13 @@ def check_tooltip_contract(js):
             comps = jload(os.path.join(BP, "blocks", f"{blk['id']}.json"))["minecraft:block"]["components"]
             check(comps.get("minecraft:loot") == "loot_tables/empty.json",
                   f"blok {blk['id']}: kirilinca esya dusuruyor, tuzak geri kazanilir")
+            # Zincir: patlama olayi (F3) kumu kuyruga almali ve ipucu bunu
+            # soylemeli — cocuk kum tarlasinin yanina TNT koyunca ne olacagini
+            # ipucundan ogrenir.
+            check("kumChain(dim, b.location)" in js,
+                  f"blok {blk['id']}: patlama olayi kumu zincire almiyor")
+            check("zincirleme" in blk["trtip"] and "chain" in blk["entip"],
+                  f"blok {blk['id']}: kod zincirleme patlatiyor ama ipucu zinciri soylemiyor")
 
 
 # ---------------------------------------------------------------- 5. mega agac

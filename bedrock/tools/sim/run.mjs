@@ -1207,6 +1207,61 @@ const PASIF = new Set(["bleed", "heavy", "worn_wool", "held_fireproof"]);
   ok(__sim.errors.length === 0, "Patlayici Kum tick'te hata uretmiyor", __sim.errors[0]);
 }
 
+// ---- 31. Patlayici Kum zinciri: kum -> kum dalga dalga, kum -> Super TNT fitili, tur tavani
+{
+  settle();
+  const p = fresh();
+  const D = "minecraft:overworld";
+  const KUM_PER_TICK = Number(js.match(/const KUM_PER_TICK = (\d+);/)[1]);
+  const blok = (x, z) => p.dimension.getBlock({ x, y: 63, z }).typeId;
+  const kaz = (x, z) => {                          // blok cogu zaman kaziyla gitmis olur
+    __sim.setBlock(D, x, 63, z, "minecraft:air");
+    __sim.fire("after", "playerBreakBlock", {
+      player: p, dimension: p.dimension,
+      block: { typeId: "minecraft:air", location: { x, y: 63, z }, dimension: p.dimension },
+      brokenBlockPermutation: { type: { id: "stnt:patlayici_kum" } },
+    });
+  };
+  const exp = __sim.state.log.explosions;
+  // (a) 10 -> 13 -> 16: ilk patlama 13'e ulasir (3 blok), 16'ya ulasmaz (6 blok)
+  __sim.setBlock(D, 13, 63, 10, "stnt:patlayici_kum");
+  __sim.setBlock(D, 16, 63, 10, "stnt:patlayici_kum");
+  kaz(10, 10);
+  eq(exp.length, 1, "kazilan kum hemen patliyor");
+  __sim.tick(2);
+  eq(exp.length, 2, "vurulan kum bir sonraki turda patliyor");
+  eq(blok(13, 10), "minecraft:air", "sirasi gelen kum yerinden kalkiyor");
+  eq(blok(16, 10), "stnt:patlayici_kum", "uzaktaki kum henuz duruyor (dalga ona yeni ulasti)");
+  __sim.tick(2);
+  eq(exp.length, 3, "zincir dalga dalga ilerliyor: 10 -> 13 -> 16");
+  eq(blok(16, 10), "minecraft:air", "ucuncu kum da gitti");
+  __sim.tick(10);
+  eq(exp.length, 3, "zincir bitince yeniden patlama yok");
+  // (b) kumun patlamasi yanindaki Elmas TNT'yi silmez, ATESLER (fitil)
+  __sim.setBlock(D, 30, 63, 30, "stnt:diamond_tnt");
+  kaz(28, 30);
+  __sim.tick(2);
+  eq(blok(30, 30), "minecraft:air", "vurulan Elmas TNT bloktan kalkiyor (fitil yandi)");
+  ok(__sim.state.entities.some((e) => e.typeId === "stnt:diamond_tnt_primed" && !e.dead),
+     "vurulan Elmas TNT fitili yanan varliga donusuyor");
+  // (c) tavan: 19 kum ayni yaricapta -> ilk turda en cok KUM_PER_TICK, sonunda hepsi
+  let n = 0;
+  for (let x = 50; x <= 54; x++) for (let z = 50; z <= 53; z++) {
+    if (x === 52 && z === 52) continue;
+    __sim.setBlock(D, x, 63, z, "stnt:patlayici_kum"); n++;
+  }
+  const before = exp.length;
+  kaz(52, 52);
+  __sim.tick(2);
+  eq(exp.length - before, 1 + KUM_PER_TICK, `tur basina en cok ${KUM_PER_TICK} kum patliyor (tablet)`);
+  __sim.tick(2 * Math.ceil(n / KUM_PER_TICK) + 2);
+  eq(exp.length - before, 1 + n, "kum tarlasinin tamami sonunda patliyor");
+  let kalan = 0;
+  for (let x = 50; x <= 54; x++) for (let z = 50; z <= 53; z++) if (blok(x, z) === "stnt:patlayici_kum") kalan++;
+  eq(kalan, 0, "tarlada kum kalmiyor");
+  ok(__sim.errors.length === 0, "kum zinciri tick'te hata uretmiyor", __sim.errors[0]);
+}
+
 report();
 
 function report() {

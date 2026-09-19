@@ -514,12 +514,40 @@ cp "$BAK/build.bak" bedrock/build.py
 python3 - "$BAK" <<'PYX'
 import io, sys
 s = io.open(sys.argv[1] + "/build.bak", encoding="utf-8").read()
-old = "    ev.dimension.createExplosion(c, KUM_POWER, { breaksBlocks: true, causesFire: false });"
+old = "  try { dim.createExplosion(c, KUM_POWER, { breaksBlocks: true, causesFire: false }); } catch (e) {}"
 assert s.count(old) == 1
 io.open("bedrock/build.py", "w", encoding="utf-8").write(
-    s.replace(old, "    ev.dimension.createExplosion(c, KUM_POWER, { breaksBlocks: false, causesFire: false });", 1))
+    s.replace(old, "  try { dim.createExplosion(c, KUM_POWER, { breaksBlocks: false, causesFire: false }); } catch (e) {}", 1))
 PYX
 run "Patlayici Kum blok kirmiyor" "Patlayici Kum blok yikiyor"
+cp "$BAK/build.bak" bedrock/build.py
+
+# 40) patlama olayi kumu zincire almasin -> yandaki kum sessizce silinir,
+#     "zincirleme patlatir" sozu bos kalir
+python3 - "$BAK" <<'PYX'
+import io, sys
+s = io.open(sys.argv[1] + "/build.bak", encoding="utf-8").read()
+old = """        if (b.typeId === "stnt:patlayici_kum") {  // zincir: kum da patlar (bkz. kumChain)
+          kumChain(dim, b.location);
+          lit++;
+          continue;
+        }
+"""
+assert s.count(old) == 1
+io.open("bedrock/build.py", "w", encoding="utf-8").write(s.replace(old, "", 1))
+PYX
+run "patlama kumu zincire almiyor" "bir sonraki turda patliyor"
+cp "$BAK/build.bak" bedrock/build.py
+
+# 41) zincir tavani kalksin -> kum tarlasi tek turda patlar, tablet donar
+python3 - "$BAK" <<'PYX'
+import io, sys
+s = io.open(sys.argv[1] + "/build.bak", encoding="utf-8").read()
+old = "  const n0 = Math.min(KUM_PER_TICK, kumQueue.length);"
+assert s.count(old) == 1
+io.open("bedrock/build.py", "w", encoding="utf-8").write(s.replace(old, "  const n0 = kumQueue.length;", 1))
+PYX
+run "kum zinciri tek turda patliyor (donma)" "tur basina"
 cp "$BAK/build.bak" bedrock/build.py
 
 echo
