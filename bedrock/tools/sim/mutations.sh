@@ -509,6 +509,19 @@ PYX
 run "Nether taramasi tek tick'te bitiyor (donma)" "tick basina butceli"
 cp "$BAK/build.bak" bedrock/build.py
 
+# 39) Patlayici Kum'un patlamasi blok kirmasin -> ipucu "Blokları yıkar" diyor,
+#     kazan cocuk sadece ses duyar, kum yerinde kalmis gibi olur
+python3 - "$BAK" <<'PYX'
+import io, sys
+s = io.open(sys.argv[1] + "/build.bak", encoding="utf-8").read()
+old = "    ev.dimension.createExplosion(c, KUM_POWER, { breaksBlocks: true, causesFire: false });"
+assert s.count(old) == 1
+io.open("bedrock/build.py", "w", encoding="utf-8").write(
+    s.replace(old, "    ev.dimension.createExplosion(c, KUM_POWER, { breaksBlocks: false, causesFire: false });", 1))
+PYX
+run "Patlayici Kum blok kirmiyor" "Patlayici Kum blok yikiyor"
+cp "$BAK/build.bak" bedrock/build.py
+
 echo
 echo "yakalanan $pass / kacirilan $fail"
 [ "$fail" -eq 0 ]

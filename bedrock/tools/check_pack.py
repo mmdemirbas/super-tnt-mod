@@ -715,6 +715,22 @@ def check_tooltip_contract(js):
             check("getLore().includes(UN.mark)" in js, f"blok {blk['id']}: betik lore isaretini okumuyor")
             check("it.amount = it.maxAmount" in js and "d.damage = 0" in js,
                   f"blok {blk['id']}: betik yigini doldurmuyor ya da onarmiyor")
+        if blk.get("kind") == "explosive_sand":
+            # "TNT gibi patlar" -> guc vanilla TNT'ninki (4) olmali. Guc bir
+            # kez "cocuklar icin yumusatilirsa" ipucu yalan soyler. Blok
+            # kirdigini hem ipucu soylemeli hem kod yapmali; kirilinca esya
+            # dusurmemeli (dusurse tuzak, kazani odullendirir).
+            pw = js_const(js, "KUM_POWER")
+            check(pw == 4, f"blok {blk['id']}: KUM_POWER {pw}, TNT gucunde degil; ipucu 'TNT gibi' diyor")
+            check("TNT gibi" in blk["trtip"] and "like TNT" in blk["entip"],
+                  f"blok {blk['id']}: ipucu TNT gucunu soylemiyor")
+            check("Blokları yıkar" in blk["trtip"] and "Breaks blocks" in blk["entip"],
+                  f"blok {blk['id']}: ipucu blok yiktigini soylemiyor")
+            check("createExplosion(c, KUM_POWER, { breaksBlocks: true, causesFire: false })" in js,
+                  f"blok {blk['id']}: betik blok kiran, ates yakmayan patlama uretmiyor")
+            comps = jload(os.path.join(BP, "blocks", f"{blk['id']}.json"))["minecraft:block"]["components"]
+            check(comps.get("minecraft:loot") == "loot_tables/empty.json",
+                  f"blok {blk['id']}: kirilinca esya dusuruyor, tuzak geri kazanilir")
 
 
 # ---------------------------------------------------------------- 5. mega agac

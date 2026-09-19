@@ -79,7 +79,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 49, 0]
+VERSION = [1, 50, 0]
 MIN_ENGINE = [1, 21, 0]
 # Surum etiketi paket ADINA yazilir. UUID + klasor adlari sabit oldugu icin
 # Minecraft ayni UUID'li paketi yerinde GUNCELLER; ama cihazda eski surum
@@ -1128,6 +1128,18 @@ BLOCKS += [
          trtip="Yaklaşan olursa patlar! Kurulunca 2 saniye içinde kaç. Blokları da yıkar.",
          entip="Detonates when something approaches! Run within 2s of arming. Breaks blocks too.",
          kind="proximity", color=(150, 70, 60), mat="minecraft:iron_ingot"),
+    # Doku VANILLA'nin kum dosyasi (vtex): kendi PNG'miz yok, atlas girdisi
+    # dogrudan vanilla RP yoluna bakar. Blok kiliklari ayni yolu entity
+    # dokusu olarak kullaniyor ve tablette dogrulandi. Gucu vanilla TNT ile
+    # ayni (KUM_POWER = 4); ipucu "TNT gibi" diyor, check_pack bunu tutuyor.
+    dict(id="patlayici_kum", tr="Patlayıcı Kum", en="Explosive Sand",
+         trtip="TUZAK: normal kum gibi görünür — kazan TNT gibi patlar! Blokları yıkar. "
+               "Ortaya barut, kenarlara kum ile yapılır.",
+         entip="TRAP: looks like normal sand - dig it and it explodes like TNT! Breaks blocks. "
+               "Crafted with gunpowder in the middle and sand around it.",
+         kind="explosive_sand", color=(219, 211, 160), vtex="textures/blocks/sand",
+         mat="minecraft:sand",
+         recipe=dict(pattern=["SSS", "SGS", "SSS"], key={"S": "minecraft:sand", "G": "minecraft:gunpowder"})),
 ]
 
 # Mini bloklar: tam bloktan kucuk (hucre ortasinda 8x8x8 kup). Kucultme
@@ -2288,6 +2300,9 @@ def build():
         jsrc = os.path.join(JAVA_ITEM_TEX, f"{jt}.png") if jt else None
         if blk.get('tex'):                              # Java'nin blok dokusu
             jsrc = os.path.join(JAVA_TEX, f"{blk['tex']}.png")
+        if blk.get('vtex'):                             # vanilla RP'nin dokusu (kilik)
+            terrain[key] = {"textures": blk['vtex']}
+            continue
         if jsrc and os.path.exists(jsrc):
             os.makedirs(os.path.dirname(dst), exist_ok=True)
             shutil.copy(jsrc, dst)
@@ -2392,6 +2407,12 @@ def build():
         elif blk['kind'] == "anvil":
             comps["minecraft:destructible_by_mining"] = {"seconds_to_destroy": 1.2}
             comps["minecraft:destructible_by_explosion"] = {"explosion_resistance": 1200}
+        elif blk['kind'] == "explosive_sand":
+            # Elle kazma suresi vanilla kumla ayni (0.75 sn). Kirilinca hicbir
+            # sey dusurmez: patlayan blok geri kazanilmaz, tuzak kuran onu
+            # yeniden yapar. Patlamanin kendisi betikte (playerBreakBlock).
+            comps["minecraft:destructible_by_mining"] = {"seconds_to_destroy": 0.75}
+            comps["minecraft:loot"] = "loot_tables/empty.json"
         elif blk['kind'] == "mini":
             # tam bloktan kucuk: hucre tabaninda ortali 8x8x8 kup.
             comps["minecraft:geometry"] = "geometry.stnt_mini"
@@ -5331,6 +5352,19 @@ world.beforeEvents.playerInteractWithBlock.subscribe((ev) => {
     ev.cancel = true;
     const dim = ev.block.dimension, loc = { x: ev.block.location.x, y: ev.block.location.y, z: ev.block.location.z }, player = ev.player;
     system.run(() => { try { dim.getBlock(loc)?.setType("minecraft:air"); } catch (e) {} fakeTntBoom(dim, loc, player); });
+  } catch (e) {}
+});
+
+// ---- Patlayici Kum: kum kiliginda tuzak. Kazilinca (blok gittikten sonra)
+// oldugu yerde vanilla TNT gucunde patlar; blok kirar, ates yakmaz. Kazan
+// oyuncu ayrilmaz — tuzagin amaci bu. Vanilla kum (minecraft:sand) etkilenmez.
+const KUM_POWER = 4;   // vanilla TNT
+world.afterEvents.playerBreakBlock.subscribe((ev) => {
+  try {
+    if (ev.brokenBlockPermutation.type.id !== "stnt:patlayici_kum") return;
+    const l = ev.block.location;
+    const c = { x: Math.floor(l.x) + 0.5, y: Math.floor(l.y) + 0.5, z: Math.floor(l.z) + 0.5 };
+    ev.dimension.createExplosion(c, KUM_POWER, { breaksBlocks: true, causesFire: false });
   } catch (e) {}
 });
 

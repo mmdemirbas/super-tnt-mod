@@ -1182,6 +1182,31 @@ const PASIF = new Set(["bleed", "heavy", "worn_wool", "held_fireproof"]);
   ok(__sim.errors.length === 0, "tukenmezlik dongusu tick'te hata uretmiyor", __sim.errors[0]);
 }
 
+// ---- 30. Patlayici Kum: kazilinca TNT gucunde patlar, blok kirar; gercek kum patlamaz
+{
+  settle();
+  const p = fresh();
+  const kaz = (id, x, z) => {
+    __sim.fire("after", "playerBreakBlock", {
+      player: p, dimension: p.dimension,
+      block: { typeId: "minecraft:air", location: { x, y: 63, z }, dimension: p.dimension },
+      brokenBlockPermutation: { type: { id } },
+    });
+    __sim.tick(2);
+  };
+  kaz("stnt:patlayici_kum", 4, 4);
+  const exp = __sim.state.log.explosions;
+  eq(exp.length, 1, "Patlayici Kum kazilinca bir kez patliyor");
+  const e = exp[0] || { loc: {}, opts: {} };
+  eq(e.power, 4, "Patlayici Kum TNT gucunde (4) patliyor");
+  ok(e.opts.breaksBlocks === true, "Patlayici Kum blok yikiyor", JSON.stringify(e.opts));
+  ok(e.opts.causesFire === false, "Patlayici Kum ates yakmiyor", JSON.stringify(e.opts));
+  ok(e.loc.x === 4.5 && e.loc.y === 63.5 && e.loc.z === 4.5, "patlama kazilan blogun ortasinda", JSON.stringify(e.loc));
+  kaz("minecraft:sand", 6, 6);
+  eq(exp.length, 1, "gercek kum kazilinca patlamiyor");
+  ok(__sim.errors.length === 0, "Patlayici Kum tick'te hata uretmiyor", __sim.errors[0]);
+}
+
 report();
 
 function report() {

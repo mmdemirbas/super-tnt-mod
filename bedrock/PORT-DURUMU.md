@@ -1,7 +1,34 @@
 # Super TNT — Bedrock Port Durumu
 
-Son sürüm: **v1.49.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
+Son sürüm: **v1.50.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
 olacak şekilde geliştiriliyor (MorphX / mutant paketine bağımlılık yok).
+
+## v1.50.0 — Patlayıcı Kum
+
+Çocuk isteği: normal kum gibi görünen, kazılınca patlayan tuzak bloğu. Tarif
+çocukların dediği gibi: ortaya barut, kenarlara 8 kum → 1 blok.
+
+**Görünüm.** Kendi PNG'miz yok; atlas girdisi (`stnt_patlayici_kum`) doğrudan
+vanilla kaynak paketinin `textures/blocks/sand` dosyasına bakar (`vtex`). Blok
+kılıkları aynı yolu entity dokusu olarak kullanıyor ve tablette çalışıyor; bu
+yüzden yaklaşık bir kum rengi çizmek yerine gerçek kum dokusu seçildi. Elle
+kazma süresi vanilla kumla aynı (0.75 sn).
+
+**Patlama.** `playerBreakBlock` sonrası, bloğun ortasında `KUM_POWER = 4`
+(vanilla TNT gücü), blok kırar, ateş yakmaz. Kazan oyuncu ayrılmaz; tuzağın
+amacı bu. Kırılınca eşya düşürmez (boş loot): patlayan blok geri kazanılmaz,
+düşürse kazan çocuk tuzağı ödül olarak alırdı.
+
+Bilinen sınırlar: (1) Özel blok yerçekimine uymaz, altı boşalınca düşmez —
+dikkatli bir çocuk bundan anlayabilir. (2) Kürek hızlandırmaz: blok etiketi
+(`tag:minecraft:is_shovel_item_destructible`) bu pakette hiç denenmedi, yanlış
+bir bileşen bloğun hiç yüklenmemesine yol açabileceği için konmadı; tablette
+doğrulanınca eklenebilir. (3) Yanındaki bir patlama onu sadece siler, zincirleme
+patlatmaz (`explosion` olayı `getImpactedBlocks` ile eklenebilir; istenmedi).
+
+**Sim/denetim:** 7 test (30), 1 sim mutasyonu (39: patlama blok kırmasın),
+1 denetim mutasyonu (41: güç 2'ye insin). check_pack: güç 4, ipucu "TNT gibi"
+ve "Blokları yıkar", boş loot.
 
 ## v1.49.0 — Ender Çakmağı, Altın Flint, Tükenmezlik Örsü
 

@@ -428,6 +428,22 @@ run "Tamir sozu var, enchantable yok" "enchantable degil"
 cp "$BAK/b40.bak" bedrock/build.py
 python3 bedrock/build.py > /dev/null 2>&1
 
+# 41) Patlayici Kum'un gucu "cocuklar icin" 2'ye insin -> ipucu hala
+#     "TNT gibi patlar" der, kazan cocuk ufak bir puf gorur
+cp bedrock/build.py "$BAK/b41.bak"
+python3 - <<'PYX'
+import io
+p = "bedrock/build.py"
+s = io.open(p, encoding="utf-8").read()
+old = "const KUM_POWER = 4;   // vanilla TNT"
+assert s.count(old) == 1
+io.open(p, "w", encoding="utf-8").write(s.replace(old, "const KUM_POWER = 2;   // vanilla TNT", 1))
+PYX
+python3 bedrock/build.py > /dev/null 2>&1
+run "Patlayici Kum TNT gucunde degil" "TNT gucunde degil"
+cp "$BAK/b41.bak" bedrock/build.py
+python3 bedrock/build.py > /dev/null 2>&1
+
 echo
 python3 bedrock/build.py > /dev/null && echo "paket yeniden uretildi"
 echo "yakalanan $pass / kacirilan $fail"
