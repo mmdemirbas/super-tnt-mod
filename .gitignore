@@ -59,6 +59,3 @@ docs/plan/_oku
 docs/plan/dist/
 docs/plan/index.html
 
-# oku belge ağacı: _oku yerel kurulumu gösterir, dist/ derleme çıktısı
-docs/guide/_oku
-docs/guide/dist/

@@ -1,13 +1,11 @@
----
-title: Katalog
-order: 20
-summary: Paketteki her TNT, blok, eşya, canavar ve kılık — bedrock/build.py listelerinden üretilir.
----
+# Katalog
 
-> [!TLDR]
-> Sürüm 1.51.0: 70 TNT, 51 blok, 53 eşya, 4 canavar, 135 kılık. Tarifte `M` malzeme, ortadaki `T` normal TNT: 8 malzeme + 1 TNT = 1 özel TNT.
+Paketteki her TNT, blok, eşya, canavar ve kılık; `bedrock/build.py` listelerinden
+`scripts/katalog.py` üretir, elle düzenlenmez.
 
-## TNT'ler {#tnt}
+Sürüm 1.51.0: 70 TNT, 51 blok, 53 eşya, 4 canavar, 135 kılık. Tarifte `M` malzeme, ortadaki `T` normal TNT: 8 malzeme + 1 TNT = 1 özel TNT.
+
+## TNT'ler
 
 | TNT | Ne yapar | Tarif malzemesi |
 |---|---|---|
@@ -82,7 +80,7 @@ summary: Paketteki her TNT, blok, eşya, canavar ve kılık — bedrock/build.py
 | Üreyen TNT | Güçlü bir patlamayla dünyayı sarsar! | tnt |
 | Yürüyen TNT | Büyük bir patlama yapar! | tnt |
 
-## Bloklar {#bloklar}
+## Bloklar
 
 | Blok | Ne yapar |
 |---|---|
@@ -106,7 +104,7 @@ summary: Paketteki her TNT, blok, eşya, canavar ve kılık — bedrock/build.py
 
 Lego tuğlaları 16 renkte gelir (Beyaz, Turuncu, Eflatun, Açık Mavi, Sarı, Fıstık Yeşili, Pembe, Gri, Açık Gri, Camgöbeği, Mor, Mavi, Kahverengi, Yeşil, Kırmızı, Siyah); Lego TNT ve Çizim Eşyası bunlardan yapı kurar.
 
-## Eşyalar {#esyalar}
+## Eşyalar
 
 | Eşya | Ne yapar |
 |---|---|
@@ -164,7 +162,7 @@ Lego tuğlaları 16 renkte gelir (Beyaz, Turuncu, Eflatun, Açık Mavi, Sarı, F
 | Ender Çakmağı | Baktığın bloğun üstüne mavi Ender Ateşi yakar. Ateşe giren oyuncu ışınlanır: çoğunlukla başka bir Ender Ateşi'ne, bazen Nether'daki bir ruh ateşine, çok seyrek Nether'daki turuncu ateşe. Nether ateşleri yakar! Gidecek yer yoksa olduğun yerde kalırsın. 64 kullanım. |
 | Altın Flint | Baktığın bloğu altın bloğuna çevirir ve üstüne Altın Ateş yakar. Ateş sönmez, su söndürmez, yayılmaz; içine giren oyuncu yanar. Yumrukla kırılır. Bedrock ve sandık gibi bloklar altına dönmez. 64 kullanım; örste Tamir büyüsü basılabilir. |
 
-## Canavarlar {#canavarlar}
+## Canavarlar
 
 | Canavar | Can | Hasar |
 |---|---|---|
@@ -173,7 +171,7 @@ Lego tuğlaları 16 renkte gelir (Beyaz, Turuncu, Eflatun, Açık Mavi, Sarı, F
 | Dev Creeper | 180 | 8 |
 | Mutant Warden | 500 | 22 |
 
-## Kılıklar {#kiliklar}
+## Kılıklar
 
 Dönüşüm Asası ile girilen kılıklar; her biri o canlının hareketini ve gücünü verir.
 

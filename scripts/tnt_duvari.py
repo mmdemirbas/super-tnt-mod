@@ -5,7 +5,7 @@ izometrik bir küp olarak çizen SVG üretir. Dokular base64 gömülü olduğu i
 dosya tek başına açılır; GitHub ve oku aynı dosyayı gösterir.
 
     python3 bedrock/build.py            # önce paket (dokular üretilir)
-    python3 scripts/tnt_duvari.py       # -> docs/guide/tnt-duvari.svg
+    python3 scripts/tnt_duvari.py       # -> docs/tnt-duvari.svg
 """
 import base64
 import os
@@ -13,7 +13,7 @@ import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RP = os.path.join(ROOT, "bedrock", "super_tnt_RP", "textures", "blocks")
-OUT = os.path.join(ROOT, "docs", "guide", "tnt-duvari.svg")
+OUT = os.path.join(ROOT, "docs", "tnt-duvari.svg")
 
 COLS, TILE, W = 10, 124, 30          # sütun, hücre genişliği, küp yarı genişliği
 LABEL_H, PAD = 34, 24

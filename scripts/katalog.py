@@ -2,7 +2,7 @@
 """Katalog: bedrock/build.py içindeki listelerden (TNTS, BLOCKS, ITEMS,
 MONSTERS, MORPHS_*) Türkçe katalog tablolarını üretir. İki hedef:
 
-  docs/guide/katalog.md             — belge sitesindeki tam katalog sayfası
+  docs/KATALOG.md                   — tam katalog, düz markdown
   README.md  (<!-- katalog --> arası) — README'deki özet sayılar
 
     python3 scripts/katalog.py
@@ -60,35 +60,33 @@ def main():
     counts = dict(tnt=len(tnts), blok=len(m.BLOCKS), esya=len(items), canavar=len(monsters),
                   kilik=len(morphs) + len(block_morphs))
 
-    md = [f"""---
-title: Katalog
-order: 20
-summary: Paketteki her TNT, blok, eşya, canavar ve kılık — bedrock/build.py listelerinden üretilir.
----
+    md = [f"""# Katalog
 
-> [!TLDR]
-> Sürüm {version}: {counts['tnt']} TNT, {counts['blok']} blok, {counts['esya']} eşya, {counts['canavar']} canavar, {counts['kilik']} kılık. Tarifte `M` malzeme, ortadaki `T` normal TNT: 8 malzeme + 1 TNT = 1 özel TNT.
+Paketteki her TNT, blok, eşya, canavar ve kılık; `bedrock/build.py` listelerinden
+`scripts/katalog.py` üretir, elle düzenlenmez.
 
-## TNT'ler {{#tnt}}
+Sürüm {version}: {counts['tnt']} TNT, {counts['blok']} blok, {counts['esya']} eşya, {counts['canavar']} canavar, {counts['kilik']} kılık. Tarifte `M` malzeme, ortadaki `T` normal TNT: 8 malzeme + 1 TNT = 1 özel TNT.
+
+## TNT'ler
 
 {table(["TNT", "Ne yapar", "Tarif malzemesi"],
        [(t["tr"], t.get("trtip", ""), mat_name(t.get("mat"))) for t in tnts])}
 
-## Bloklar {{#bloklar}}
+## Bloklar
 
 {table(["Blok", "Ne yapar"], [(b["tr"], b.get("trtip", "")) for b in blocks])}
 
 Lego tuğlaları {len(lego)} renkte gelir ({", ".join(b["tr"].replace(" Lego Tuğla", "") for b in lego)}); Lego TNT ve Çizim Eşyası bunlardan yapı kurar.
 
-## Eşyalar {{#esyalar}}
+## Eşyalar
 
 {table(["Eşya", "Ne yapar"], [(i["tr"], i.get("trtip", "")) for i in items])}
 
-## Canavarlar {{#canavarlar}}
+## Canavarlar
 
 {table(["Canavar", "Can", "Hasar"], [(MONSTER_TR.get(x["id"], x["id"]), str(x.get("hp", "")), str(x.get("dmg", ""))) for x in monsters])}
 
-## Kılıklar {{#kiliklar}}
+## Kılıklar
 
 Dönüşüm Asası ile girilen kılıklar; her biri o canlının hareketini ve gücünü verir.
 
@@ -96,7 +94,7 @@ Dönüşüm Asası ile girilen kılıklar; her biri o canlının hareketini ve g
        [(c, ", ".join(x["tr"] for x in morphs if x["cat"] == c) or ", ".join(x["tr"] for x in block_morphs if x["cat"] == c))
         for c in m.MORPH_CATS])}
 """]
-    out = os.path.join(ROOT, "docs", "guide", "katalog.md")
+    out = os.path.join(ROOT, "docs", "KATALOG.md")
     os.makedirs(os.path.dirname(out), exist_ok=True)
     open(out, "w", encoding="utf-8").write("".join(md))
 
@@ -104,7 +102,7 @@ Dönüşüm Asası ile girilen kılıklar; her biri o canlının hareketini ve g
     readme = os.path.join(ROOT, "README.md")
     summary = (f"**v{version} · {counts['tnt']} TNT · {counts['blok']} blok · {counts['esya']} eşya · "
                f"{counts['canavar']} canavar · {counts['kilik']} kılık** — tam liste "
-               f"[katalogda](https://mmdemirbas.github.io/super-tnt-mod/katalog.html).")
+               f"[katalogda](docs/KATALOG.md).")
     s = open(readme, encoding="utf-8").read()
     s2 = re.sub(r"(<!-- katalog -->).*?(<!-- /katalog -->)", lambda mm: f"{mm.group(1)}\n{summary}\n{mm.group(2)}", s, flags=re.S)
     if s2 != s:
