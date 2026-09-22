@@ -116,6 +116,7 @@ burst() {  # burst <ad> [kare=28] [aralik=0.3]
 # Secilen kareleri depoya al: docs/kareler/<ad>-fNN.jpg — ustteki HUD dugmeleri ve
 # kenarlar kirpilmis 2160x1350 (16:10), yayina hazir; docs/kareler/<ad>.jpg butun
 # cekimin kontak sayfasi (6 sutun, kirpilmamis). Ham PNG'ler bedrock/out'ta kalir.
+# web/ altinda 1440 px kopyasi durur; site onu kullanir (tam boy ~700 KB, web ~270 KB).
 # Duz klasor, essiz adlar: acilis sayfasi ureteci varliklari dosya adiyla kopyaliyor.
 # ImageMagick 7 (`brew install imagemagick`); montage yerine append, cunku montage
 # yazi tipi bulamayinca hata koduyla cikiyor.
@@ -123,7 +124,11 @@ keep() {  # keep <ad> <NN>...
   local src="$OUT/$1" tmp i row=0
   [ -d "$src" ] || { echo "cekim yok: $src" >&2; return 1; }
   mkdir -p "$KEEP"; tmp="$(mktemp -d)"
-  for i in "${@:2}"; do magick "$src/f$i.png" -crop 2160x1350+260+250 +repage -quality 84 "$KEEP/$1-f$i.jpg"; done
+  mkdir -p "$KEEP/web"
+  for i in "${@:2}"; do
+    magick "$src/f$i.png" -crop 2160x1350+260+250 +repage -quality 84 "$KEEP/$1-f$i.jpg"
+    magick "$KEEP/$1-f$i.jpg" -resize 1440x -quality 78 "$KEEP/web/$1-f$i.jpg"   # siteye giden boy
+  done
   ls "$src"/f*.png | xargs -n 6 | while read -r files; do
     row=$((row + 1)); magick $files -resize 300x -background '#222' +append "$tmp/r$(printf %02d $row).png"
   done

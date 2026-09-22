@@ -13,6 +13,8 @@ eşyalar, dev canavarlar ve girilecek 130'dan fazla kılık. Tablette, Bedrock't
 
 ![Lego TNT patladıktan sonra: kraterin etrafı renkli Lego tuğlalarına dönmüş, ortada yeşil parıltı](docs/kareler/lego_high-f10.jpg)
 
+[Oyundan daha fazla kare](https://mmdemirbas.github.io/super-tnt-mod/kareler.html) · hepsi `docs/kareler/`'de.
+
 Fikirler çocuklardan geliyor: "patlayınca etrafa kağıt saçan TNT", "kazınca patlayan kum",
 "herkesi minik yapan top". Her biri bir akşam yazılıyor, ertesi gün tablette deneniyor, olmayanı
 söylüyorlar. Böyle böyle bir TNT modu, Zeynep TNT'den Kıyamet TNT'ye 70 patlayıcıya, kılık
