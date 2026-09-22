@@ -11,7 +11,7 @@ eşyalar, dev canavarlar ve girilecek 130'dan fazla kılık. Tablette, Bedrock't
 [Sürüm notları](bedrock/PORT-DURUMU.md) ·
 [Proje sayfası](https://mdemirbas.com/tr/projeler/super-tnt-mod/)
 
-![70 TNT, paketin kendi dokularıyla](docs/tnt-duvari.svg)
+![Lego TNT patladıktan sonra: kraterin etrafı renkli Lego tuğlalarına dönmüş, ortada yeşil parıltı](docs/kareler/lego_high-f10.jpg)
 
 Fikirler çocuklardan geliyor: "patlayınca etrafa kağıt saçan TNT", "kazınca patlayan kum",
 "herkesi minik yapan top". Her biri bir akşam yazılıyor, ertesi gün tablette deneniyor, olmayanı
@@ -21,6 +21,8 @@ değiştirmeye ve dev canavarlara büyüdü.
 <!-- katalog -->
 **v1.51.0 · 70 TNT · 51 blok · 53 eşya · 4 canavar · 135 kılık** — tam liste [katalogda](docs/KATALOG.md).
 <!-- /katalog -->
+
+![70 TNT, paketin kendi dokularıyla](docs/tnt-duvari.svg)
 
 ## Kurulum
 
@@ -58,6 +60,7 @@ Oyun içi ipuçları her TNT ve eşyanın üzerinde yazar; eşyaların kullanım
 | `src/` | Modun ilk hali, Fabric (Java) modu. Artık geliştirilmiyor; özellikler yalnız Bedrock'a eklenir. |
 | `site/` | Web sitesi; GitHub Pages olduğu gibi yayımlar. |
 | `docs/KATALOG.md` | Tam katalog; `scripts/katalog.py` üretir. |
+| `docs/emulator.md` | Android emülatöründe Minecraft: `./ctl deploy android` ve `bedrock/tools/shots.sh` ile oyun içi doğrulama ve ekran görüntüsü. |
 | `scripts/katalog.py`, `scripts/tnt_duvari.py` | Katalog sayfasını ve yukarıdaki TNT duvarını `build.py` listelerinden üretir. |
 
 ## Geliştirme
