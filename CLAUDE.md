@@ -29,6 +29,10 @@ bash bedrock/tools/test.sh     # build + check_pack + sim + mutations, one comma
 CI (`.github/workflows/build.yml`) runs `test.sh` on every push; the `.mcaddon`
 is its artifact. There is no automated in-game test: `test.sh` proves the
 script runs and the pack is consistent, not that an explosion looks right.
+For that, `bedrock/tools/shots.sh` drives Minecraft on the `mc_tablet`
+emulator by chat command — stage, place a row of TNT, free camera, fire,
+capture frames — see `docs/emulator.md` for the AVD settings that make it
+work (software GPU, keyboards disabled, vanilla TNT as the trigger).
 
 ## The Add-On: `bedrock/build.py`
 

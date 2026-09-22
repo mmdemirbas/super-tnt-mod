@@ -212,11 +212,13 @@ ensure_emulator() {
     printf '%s\n' "$serial"; return 0
   fi
   [ -x "$EMU_BIN" ] || { err "emulator bulunamadi: $EMU_BIN — ANDROID_HOME dogru mu?"; exit 1; }
+  # Varsayilan mc_tablet: Play Store'lu imaj, Minecraft ordan kurulu (docs/emulator.md).
   local avd="${AVD:-}"
+  [ -n "$avd" ] || avd="$("$EMU_BIN" -list-avds 2>/dev/null | awk '/^mc_tablet$/{f=1} END{print f?"mc_tablet":""}')"
   [ -n "$avd" ] || avd="$("$EMU_BIN" -list-avds 2>/dev/null | head -1)"
   [ -n "$avd" ] || { err "hic AVD yok. Android Studio > Device Manager ile bir tane olustur."; exit 1; }
   header "emulator baslatiliyor: $avd" >&2
-  "$EMU_BIN" -avd "$avd" >/dev/null 2>&1 &
+  "$EMU_BIN" -avd "$avd" -no-boot-anim >/dev/null 2>&1 &
   "$ADB" wait-for-device
   local i=0
   until [ "$("$ADB" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = "1" ]; do
