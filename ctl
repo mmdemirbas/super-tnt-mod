@@ -204,39 +204,52 @@ build() {
 
 # Calisan bir emulatorun seri numarasini stdout'a yazar; yoksa baslatir.
 # Tum ilerleme mesajlari stderr'e gider ki $(ensure_emulator) sadece seriyi alsin.
+# Calisan emulatorlerden AVD adi $1 olanin seri numarasi. Baska bir proje
+# (bilgebaykus) ayni anda kendi AVD'siyle calisabilir; "ilk emulator" onunki
+# olabilir ve paketi yanlis cihaza gonderir (2026-09-23).
+emulator_of_avd() {
+  local s
+  for s in $("$ADB" devices | awk '$1 ~ /^emulator-/ && $2=="device"{print $1}'); do
+    [ "$("$ADB" -s "$s" emu avd name 2>/dev/null | head -1 | tr -d '\r')" = "$1" ] && { printf '%s\n' "$s"; return 0; }
+  done
+  return 1
+}
+
 ensure_emulator() {
-  local serial
-  serial="$("$ADB" devices | awk '$1 ~ /^emulator-/ && $2=="device"{print $1; exit}')"
-  if [ -n "$serial" ]; then
-    header "emulator (zaten calisiyor: $serial)" >&2
-    printf '%s\n' "$serial"; return 0
-  fi
   [ -x "$EMU_BIN" ] || { err "emulator bulunamadi: $EMU_BIN — ANDROID_HOME dogru mu?"; exit 1; }
   # Varsayilan mc_tablet: Play Store'lu imaj, Minecraft ordan kurulu (docs/emulator.md).
-  local avd="${AVD:-}"
+  local serial avd="${AVD:-}"
   [ -n "$avd" ] || avd="$("$EMU_BIN" -list-avds 2>/dev/null | awk '/^mc_tablet$/{f=1} END{print f?"mc_tablet":""}')"
   [ -n "$avd" ] || avd="$("$EMU_BIN" -list-avds 2>/dev/null | head -1)"
   [ -n "$avd" ] || { err "hic AVD yok. Android Studio > Device Manager ile bir tane olustur."; exit 1; }
+  if serial="$(emulator_of_avd "$avd")"; then
+    header "emulator (zaten calisiyor: $avd = $serial)" >&2
+    printf '%s\n' "$serial"; return 0
+  fi
   header "emulator baslatiliyor: $avd" >&2
   # -gpu ACIKCA verilir: config.ini'deki hw.gpu.mode=swiftshader_indirect
   # komut satirindan baslatmada uygulanmiyor, emulator ana makine GPU'suna
   # duser ve Minecraft paketin sikistirilmis dokularini reddedip SIYAH ekran
   # verir (2026-09-23'te yasandi; docs/emulator.md).
   "$EMU_BIN" -avd "$avd" -no-boot-anim -gpu "${EMU_GPU:-swiftshader_indirect}" >/dev/null 2>&1 &
-  "$ADB" wait-for-device
   local i=0
-  until [ "$("$ADB" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = "1" ]; do
+  until serial="$(emulator_of_avd "$avd")"; do
+    i=$((i + 1)); [ "$i" -gt 120 ] && { err "emulator adb'de gorunmedi (120s)"; exit 1; }
+    sleep 1
+  done
+  i=0
+  until [ "$("$ADB" -s "$serial" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = "1" ]; do
     i=$((i + 1)); [ "$i" -gt 180 ] && { err "emulator acilis zaman asimi (180s)"; exit 1; }
     sleep 1
   done
   # boot_completed paylasilan depolamanin hazir oldugunu soylemez: hemen
   # ardindan gelen push "secure_mkdirs() failed" ile dusuyordu.
   i=0
-  until "$ADB" shell ls /sdcard/Download >/dev/null 2>&1; do
+  until "$ADB" -s "$serial" shell ls /sdcard/Download >/dev/null 2>&1; do
     i=$((i + 1)); [ "$i" -gt 60 ] && { err "/sdcard hazir olmadi (60s)"; exit 1; }
     sleep 1
   done
-  serial="$("$ADB" devices | awk '$1 ~ /^emulator-/ && $2=="device"{print $1; exit}')"
+  serial="$(emulator_of_avd "$avd")"
   ok "emulator hazir: $serial" >&2
   printf '%s\n' "$serial"
 }
