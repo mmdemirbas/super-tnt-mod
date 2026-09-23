@@ -27,6 +27,21 @@
 # (ETC2/ASTC) reddedip siyah kare veriyor. 2560x1600'de ~1 kare/sn cekilir.
 set -u
 ADB="${ADB:-$HOME/Library/Android/sdk/platform-tools/adb}"
+# Hedef: mc_tablet AVD'si. Baska bir proje ayni anda kendi emulatorunu
+# acmis olabilir; o zaman ciplak adb "more than one device" der ya da yanlis
+# cihaza dokunur. adb ANDROID_SERIAL'i kendiliginden kullanir.
+if [ -z "${ANDROID_SERIAL:-}" ]; then
+  for s in $("$ADB" devices | awk '$1 ~ /^emulator-/ && $2=="device"{print $1}'); do
+    [ "$("$ADB" -s "$s" emu avd name 2>/dev/null | head -1 | tr -d '\r')" = "${AVD:-mc_tablet}" ] && { export ANDROID_SERIAL="$s"; break; }
+  done
+  [ -n "${ANDROID_SERIAL:-}" ] || { echo "${AVD:-mc_tablet} emulatoru calismiyor: ./ctl deploy android" >&2; exit 1; }
+fi
+# Klavye acikken Gboard input text'i yeniden siralar (kelimeler karisir, "/"
+# kayar). Emulator yeniden acilinca geri gelebiliyor; her calismada kapat.
+# </dev/null: adb shell dongunun stdin'ini yiyip ikinci klavyeyi atlatiyordu.
+for _ime in $("$ADB" shell ime list -s </dev/null | tr -d '\r'); do
+  "$ADB" shell ime disable "$_ime" </dev/null >/dev/null
+done
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 OUT="$ROOT/bedrock/out/shots"      # ham kareler (gitignore)
 KEEP="$ROOT/docs/kareler"          # depoya alinan kareler

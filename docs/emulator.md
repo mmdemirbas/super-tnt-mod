@@ -66,8 +66,16 @@ gerekir.
 (kelimeleri karıştırıyor, `/`'ı taşıyor). Bütün klavyeler kapatıldı:
 
 ```bash
-$ADB shell ime list -s | while read -r i; do $ADB shell ime disable "$i"; done
+for i in $($ADB shell ime list -s); do $ADB shell ime disable "$i" </dev/null; done
+$ADB shell ime list -s     # boş çıkmalı
 ```
+
+`while read` döngüsü **kullanılmaz**: `adb shell` döngünün stdin'ini yer,
+yalnız ilk klavye kapanır (2026-09-23). Klavyeler kalıcı değil — emülatör
+yeniden açılınca ya da başka bir uygulama kurulunca Gboard geri gelebilir.
+Belirtisi: sohbette kelimeler karışık, "Unknown command: gerule" gibi
+hatalar, ekranın altında öneri çubuğu. `shots.sh` her komuttan önce bunu
+kendisi yapar.
 
 Sonrasında sohbet alanına odaklanıp kelime kelime `input text` (boşluk `%s`)
 ve `keyevent 66` (Enter) ile komut gidiyor; `shots.sh cmd` bunu yapar.
