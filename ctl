@@ -218,11 +218,22 @@ ensure_emulator() {
   [ -n "$avd" ] || avd="$("$EMU_BIN" -list-avds 2>/dev/null | head -1)"
   [ -n "$avd" ] || { err "hic AVD yok. Android Studio > Device Manager ile bir tane olustur."; exit 1; }
   header "emulator baslatiliyor: $avd" >&2
-  "$EMU_BIN" -avd "$avd" -no-boot-anim >/dev/null 2>&1 &
+  # -gpu ACIKCA verilir: config.ini'deki hw.gpu.mode=swiftshader_indirect
+  # komut satirindan baslatmada uygulanmiyor, emulator ana makine GPU'suna
+  # duser ve Minecraft paketin sikistirilmis dokularini reddedip SIYAH ekran
+  # verir (2026-09-23'te yasandi; docs/emulator.md).
+  "$EMU_BIN" -avd "$avd" -no-boot-anim -gpu "${EMU_GPU:-swiftshader_indirect}" >/dev/null 2>&1 &
   "$ADB" wait-for-device
   local i=0
   until [ "$("$ADB" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = "1" ]; do
     i=$((i + 1)); [ "$i" -gt 180 ] && { err "emulator acilis zaman asimi (180s)"; exit 1; }
+    sleep 1
+  done
+  # boot_completed paylasilan depolamanin hazir oldugunu soylemez: hemen
+  # ardindan gelen push "secure_mkdirs() failed" ile dusuyordu.
+  i=0
+  until "$ADB" shell ls /sdcard/Download >/dev/null 2>&1; do
+    i=$((i + 1)); [ "$i" -gt 60 ] && { err "/sdcard hazir olmadi (60s)"; exit 1; }
     sleep 1
   done
   serial="$("$ADB" devices | awk '$1 ~ /^emulator-/ && $2=="device"{print $1; exit}')"

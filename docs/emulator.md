@@ -24,7 +24,22 @@ içinde önemli olanlar:
 | `hw.camera.front/back` | `webcam0` | Google hesabı girişi bir adımda selfie istiyor; atlanabiliyor, ama kamera eşliyse o adım da geçilebilir. |
 
 `./ctl deploy android` bu AVD'yi varsayılan alır (`AVD=<ad>` ile değişir),
-`-no-boot-anim` ile başlatır ve `adb devices`'ta görünene kadar bekler.
+`-no-boot-anim -gpu swiftshader_indirect` ile başlatır, açılışı ve paylaşılan
+depolamanın hazır olmasını bekler.
+
+- **`-gpu` açıkça verilmeli.** `config.ini`'deki `hw.gpu.mode` komut
+  satırından başlatmada uygulanmadı (2026-09-23): emülatör Mac'in GPU'suna
+  düştü (`dumpsys SurfaceFlinger | grep GLES` → "Apple M1 Max") ve Minecraft
+  siyah ekranda kaldı. Doğru olan satırda "SwiftShader" yazar.
+- **`boot_completed` yetmez.** Hemen ardından gelen `adb push`
+  `secure_mkdirs() failed` ile düştü; `ctl` artık `/sdcard/Download`
+  okunabilene kadar bekler.
+- **Emülatör paylaşılmaz.** Başka bir proje (bilgebaykus) aynı anda
+  `emulator-5554`'e kendi uygulamasını açınca Minecraft arka plana düşüp grafik
+  bağlamını kaybetti. Her proje kendi AVD'sini açar (`bb_tablet` →
+  `emulator-5556`) ve `adb -s` ile yalnız onu hedefler; `ctl` "çalışan ilk
+  emülatörü" alır, o yüzden iki proje aynı anda çalışıyorsa hangi seri
+  numarasının kimde olduğuna bakın.
 
 Bir kez elle yapılanlar: Play Store'a Minecraft'ın **satın alınmış olduğu**
 Google hesabıyla giriş, Minecraft kurulumu, Microsoft hesabı olmadan "Play"
