@@ -74,8 +74,8 @@ python3 scripts/tnt_duvari.py  # TNT duvarı (docs/tnt-duvari.svg)
 ./gradlew build                # eski Java modu (build/libs/*.jar)
 ```
 
-Kurallar `CLAUDE.md`'de: her davranış değişikliği iki dildeki ipucuyla aynı commit'te;
-`main`, `zeynep` dalının sıkı atasıdır.
+Kurallar `CLAUDE.md`'de: her davranış değişikliği iki dildeki ipucuyla aynı commit'te.
+Tek dal var: `main`; web sitesi de ondan yayımlanır.
 
 ## Lisans
 
