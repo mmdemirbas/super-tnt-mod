@@ -34,6 +34,7 @@ oyunda gör → iyi bir kare çek, buraya al → tablete gönder.
 | `elmas_diyari_tnt` | yüksek kamera, `solo` | f08 | Elmas blok tarlası |
 | `buz_tnt` | yüksek kamera, `solo` | f14, f15 | Buz yayılırken, yağış |
 | `gokkusagi_tnt` | yüksek kamera, `solo` | f08 | Bu uzaklıktan küçük kalıyor; alçak kamera ister — sitede kullanılmadı |
+| `patlayici_kum` | `stage`; `/setblock` ile x=-9..6 arası 3 aralıkla 6 `stnt:patlayici_kum` + x=9'a `stnt:diamond_tnt`; `cam 0 -50 -8 0 -59 8`; `fire -11 8`; `burst patlayici_kum 36 0.1` | f04, f05, f06, f07 | Zincir: f05 dalga sağdan sola, f06 Elmas TNT'nin fitili yanıyor — sitede f05, f06. 2026-09-23 |
 | `hero` | `stage; row lego_tnt gokkusagi_tnt pasta_tnt zumrut_yagmuru_tnt kalp_tnt dunya_tnt cizgi_tnt; cam 0 -52 -8 0 -58 8; line -6 6 8` | f08, f10, f12 | Yedi TNT birlikte; vanilya hat krater açtı — sitede yalnız f12 |
 
 "Yüksek kamera" = `CAM="0 -50 -6 0 -59 8"`; `solo`nun varsayılanı alçak

@@ -45,6 +45,13 @@ biçimi 1.20.20'de taşan geometrinin kabul edildiği **emülatörde görüldü*
 çiziliyor, üst üste konanlarda ek yeri görünmüyor — `docs/kareler/lego_high-f10.jpg`.
 Yedek plan (gövde 14, çıkıntılar hücre içinde) gerekmedi.
 
+**Oyunda görüldü** (emülatör, 2026-09-23, v1.51.0): kum dokusu vanilla kumla
+aynı; 3 aralıklı 6 kumun yanına atılan vanilla TNT sırayı bir dalgada patlattı
+ve uçtaki Elmas TNT'nin fitilini yaktı (`docs/kareler/patlayici_kum-f05.jpg`,
+`-f06.jpg`); tek bir kum elle kazılınca (uzun basış) patlayıp duvarda krater
+açtı. Görülmeyen: tur tavanının (6 kum) büyük bir tarlada yavaşlattığı —
+6 kum tek turda bitti.
+
 **Sim/denetim:** 13 test (31: kum → kum dalga, kum → Elmas TNT fitili, tur
 tavanı, tarla temizleniyor), 2 sim mutasyonu (40: F3 kumu zincire almasın,
 41: tavan kalksın), 2 denetim mutasyonu (42: ipucu zinciri söylemesin, 43:
