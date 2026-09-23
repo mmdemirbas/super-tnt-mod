@@ -13,6 +13,15 @@ besleniyor; yeni bir sahne çekince buraya `shots.sh keep` ile al, aşağıdaki
 tabloya satırını ekle, sonra açılış sayfasını yeniden üret
 (`atolye/bin/web/landing/build.py specs/super-tnt-mod.json .`).
 
+Aynı kareler kişisel sitede de kullanılır: `~/dev/mmdemirbas/mdemirbas-com`,
+`src/content/projects.yaml` içindeki `super-tnt-mod` kartı
+(`static/media/projects/super-tnt-lego.jpg`, 16:10 kırpılmış). Daha iyi bir
+kare çıkınca oraya **yeni bir dosya adıyla** konur — eski ad bir hafta
+önbellekte kalır.
+
+Yeni bir eşya ya da TNT eklenince akış: `test.sh` → `./ctl deploy android` →
+oyunda gör → iyi bir kare çek, buraya al → tablete gönder.
+
 | Sahne | Komut | Seçilen | Not |
 |---|---|---|---|
 | `lego_high` | `CAM="0 -50 -6 0 -59 8" solo lego_tnt lego_high` | f10, f12 | Site ve README'nin ana görseli (f10) |

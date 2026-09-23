@@ -39,11 +39,11 @@ gölgelemesi verir. Doku düz gövde oldu. Çarpışma kutusu tam blok; çıkın
 yalnız görsel.
 
 Dayanak: blok modeli sınırı 30×30×30 piksel ve hücre içinde en az 1 piksel
-(wiki.bedrock.dev/blocks/block-components#geometry, doğrudan okundu). Bu
-paketin blok biçimi 1.20.20; taşan geometrinin bu biçimde de kabul edildiği
-**tablette doğrulanmalı** — reddederse 16 Lego bloğu ve Lego TNT'nin döşediği
-tuğlalar görünmez olur; o durumda gövdeyi 14'e indirip çıkıntıları hücre içinde
-tutmak (`alpha_test`) yedek plan.
+(wiki.bedrock.dev/blocks/block-components#geometry, doğrudan okundu). Blok
+biçimi 1.20.20'de taşan geometrinin kabul edildiği **emülatörde görüldü**
+(2026-09-22, v1.51.0): Lego TNT'nin döşediği tuğlalarda dört çıkıntı da
+çiziliyor, üst üste konanlarda ek yeri görünmüyor — `docs/kareler/lego_high-f10.jpg`.
+Yedek plan (gövde 14, çıkıntılar hücre içinde) gerekmedi.
 
 **Sim/denetim:** 13 test (31: kum → kum dalga, kum → Elmas TNT fitili, tur
 tavanı, tarla temizleniyor), 2 sim mutasyonu (40: F3 kumu zincire almasın,

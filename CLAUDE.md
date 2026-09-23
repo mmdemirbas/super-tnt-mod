@@ -34,6 +34,22 @@ emulator by chat command — stage, place a row of TNT, free camera, fire,
 capture frames — see `docs/emulator.md` for the AVD settings that make it
 work (software GPU, keyboards disabled, vanilla TNT as the trigger).
 
+**Every new feature goes through the emulator before a tablet:** `test.sh`
+green → `./ctl deploy android` → see it work in-game (the pack loads, the
+block renders, the effect happens) → only then `./ctl deploy tablet`. Anything
+the tests cannot see — geometry, textures, particles, "does it feel right" —
+is checked here, not on the kids' tablets. Say which parts were seen in-game
+and which were not.
+
+**Then shoot it for the gallery.** A good frame of the new thing goes into
+`docs/kareler/` via `shots.sh keep` (procedure and table in
+`docs/kareler/README.md`); that folder feeds this repo's site
+(`site/index.html`, `site/kareler.html`) and README. The public landing page
+is a separate project, `~/dev/mmdemirbas/mdemirbas-com`
+(`src/content/projects.yaml` → `id: super-tnt-mod`, image under
+`static/media/projects/`); change its image only when a new frame is clearly
+better, under a new file name (the old one is edge-cached for a week).
+
 ## The Add-On: `bedrock/build.py`
 
 `bedrock/build.py` generates the Minecraft Bedrock Add-On: 70 TNTs, blocks,
