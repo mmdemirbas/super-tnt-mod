@@ -182,6 +182,64 @@ def check_tnts():
         check(f"stnt.tip.{tid}" in tr, f"TNT {tid}: tr_TR ipucu yok")
 
 
+def check_glyphs():
+    """Her TNT'nin bir amblemi var mi, her amblem cizili mi, olu amblem var mi.
+
+    Amblem bu katmanin TEK ayirt edici isareti: sablon yeniden renklendirilince
+    70 TNT ayni desende kaliyor. Eksik bir amblem oyunda hicbir hata vermez,
+    yalnizca o TNT komsusundan ayirt edilemez hale gelir.
+    """
+    for t in build.TNTS:
+        check(t["id"] in build.TNT_GLYPH, f"TNT {t['id']}: amblemi yok (TNT_GLYPH)")
+    for tid, name in build.TNT_GLYPH.items():
+        check(name in build.GLYPHS, f"TNT {tid}: '{name}' diye bir amblem yok")
+    bilinen = {t["id"] for t in build.TNTS}
+    for tid in build.TNT_GLYPH:
+        check(tid in bilinen, f"TNT_GLYPH'te olmayan TNT: {tid}")
+    kullanilan = set(build.TNT_GLYPH.values())
+    for name in build.GLYPHS:
+        check(name in kullanilan, f"amblem '{name}' hicbir TNT'de kullanilmiyor")
+    for name, art in build.GLYPHS.items():
+        check(len(art) == 8, f"amblem {name}: {len(art)} satir, 8 olmali")
+        check(all(len(r) == 8 for r in art), f"amblem {name}: satirlar 8 karakter olmali")
+        dolu = sum(r.count("#") for r in art)
+        # Bos ya da neredeyse bos siluet, 16x16'lik dokuda hicbir sey gostermez.
+        check(dolu >= 8, f"amblem {name}: yalnizca {dolu} piksel dolu")
+
+
+def check_side_distance():
+    """Iki TNT'nin yan yuzu BIRBIRINE COK BENZEMESIN.
+
+    Bayt esitligi yetmiyor: yeniden renklendirme sonrasi Buz TNT ile Dondurucu
+    TNT'nin dokulari farkli dosyalar ama gozle ayni. Olculen buyukluk piksel
+    basina ortalama mutlak RGB farki (0-256).
+
+    Esik 10, olcumden: amblemler basiliyken en yakin cift 22.3
+    (Zeynep Komut / Komut); amblemler kaldirilinca en yakin cift 1.9
+    (Buz / Dondurucu) ve alti cift 4'un altina iniyor. 10 ikisinin ortasinda.
+    Kilik ciftleri (DISGUISES) disarida: onlarin ayni gorunmesi ISTENEN sey.
+    """
+    import itertools
+    _rp = build.read_png
+    faces = {}
+    for t in build.TNTS:
+        p = os.path.join(RP, "textures", "blocks", f"stnt_{t['id']}_side.png")
+        if not os.path.exists(p):
+            continue
+        _w, _h, px = _rp(p)
+        faces[t["id"]] = [c[:3] for row in px for c in row]
+    kilik = [{n[len("stnt_"):] for n in d} for d in DISGUISES]
+    for a, b_ in itertools.combinations(sorted(faces), 2):
+        if any({a, b_} <= d for d in kilik):
+            continue
+        fa, fb = faces[a], faces[b_]
+        fark = sum(abs(x - y) for pa, pb in zip(fa, fb)
+                   for x, y in zip(pa, pb)) / (256 * 3)
+        check(fark >= 10,
+              f"{a} ile {b_} yan yuzu ayirt edilemeyecek kadar benzer "
+              f"(fark {fark:.1f}, en az 10 olmali)")
+
+
 # ---------------------------------------------------------------- 3. morph
 def js_const(js, name):
     for line in js.splitlines():
@@ -980,6 +1038,8 @@ def main():
     check_manifest()
     check_items(js)
     check_tnts()
+    check_glyphs()
+    check_side_distance()
     check_morphs(js)
     check_ids(js)
     check_client_entities()

@@ -475,6 +475,38 @@ run "Lego bloklari cikintisiz" "Lego cikintisiz"
 cp "$BAK/b43.bak" bedrock/build.py
 python3 bedrock/build.py > /dev/null 2>&1
 
+# 44) bir TNT'nin amblemi dusurulsun -> doku uretilir, hata cikmaz, o TNT
+#     komsusundan ayirt edilemez hale gelir
+cp bedrock/build.py "$BAK/b44.bak"
+python3 - <<'PYX'
+import io
+p = "bedrock/build.py"
+s = io.open(p, encoding="utf-8").read()
+old = '    "kalp_tnt": "kalp",\n'
+assert s.count(old) == 1
+io.open(p, "w", encoding="utf-8").write(s.replace(old, "", 1))
+PYX
+python3 bedrock/build.py > /dev/null 2>&1
+run "bir TNT amblemsiz kalmis" "amblemi yok"
+cp "$BAK/b44.bak" bedrock/build.py
+python3 bedrock/build.py > /dev/null 2>&1
+
+# 45) amblem sablonu yeniden renklendirmeden ONCE degil SONRA basilsin diye
+#     degil — amblem hic basilmasin: butun yan yuzler yalniz renkle ayrilir
+cp bedrock/build.py "$BAK/b45.bak"
+python3 - <<'PYX'
+import io
+p = "bedrock/build.py"
+s = io.open(p, encoding="utf-8").read()
+old = "    if glyph:\n        draw_glyph(rows, glyph, base)\n"
+assert s.count(old) == 1
+io.open(p, "w", encoding="utf-8").write(s.replace(old, "", 1))
+PYX
+python3 bedrock/build.py > /dev/null 2>&1
+run "amblemler hic basilmiyor" "ayirt edilemeyecek kadar benzer"
+cp "$BAK/b45.bak" bedrock/build.py
+python3 bedrock/build.py > /dev/null 2>&1
+
 echo
 python3 bedrock/build.py > /dev/null && echo "paket yeniden uretildi"
 echo "yakalanan $pass / kacirilan $fail"
