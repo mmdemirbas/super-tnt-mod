@@ -1,7 +1,76 @@
 # Super TNT — Bedrock Port Durumu
 
-Son sürüm: **v1.51.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
+Son sürüm: **v1.52.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
 olacak şekilde geliştiriliyor (MorphX / mutant paketine bağımlılık yok).
+
+## v1.52.0 — Görünüş turu: amblemler, yanan ateş, yenilikler ekranı
+
+Ömer "bizimki mağazadakiler kadar iyi olmaz" diyordu. Paket çocuğun gözüyle
+ölçüldüğünde şikâyetin nereden geldiği sayılabilir çıktı (plan:
+`docs/plan/magaza-kalitesi.md`). Bu sürüm o listenin görünüş kalemlerini
+kapatıyor.
+
+**Pillow yokmuş — dokular hiç üretilmiyormuş.** `tnt_face` şablonu Pillow ile
+boyuyor, "PIL yoksa düz renge düşer" diyordu. Pillow kurulu değil, yani yedek
+dal **her zaman** çalışıyordu: 70 TNT'nin hepsi bantlı boş kareydi; şablondaki
+TNT yazısı ve fitil hiçbir zaman görünmedi. Hata vermediği için denetimler de
+temiz diyordu. Artık saf Python bir PNG okuyucu (1/2/4/8/16 bit, palet) ve
+`colorsys` kullanılıyor — ikisi de standart kütüphane. Uçan TNT varlığının
+64x32 atlası da aynı yoldan geçiyordu, o da düzeldi.
+
+Parlaklık hedefe **gama** ile taşınıyor, çarpanla değil. Gri tonların tonu
+tanımsızdır; yalnız ton taşınınca Görünmez TNT (gri) ile Zebra TNT (siyah)
+aynı dokuyu üretiyordu. Gamada 0 ve 1 sabit kalır, yazı ve fitil kontrastı
+korunur.
+
+**Her TNT'nin kendi amblemi.** Şablon yeniden renklendirilince bütün TNT'ler
+aynı desende kalıyor, yalnız rengi değişiyordu; beş pembe aile TNT'si, üç mavi
+su TNT'si ve iki gri taş TNT'si elde ayırt edilemiyordu. Artık her TNT'nin yan
+yüzüne 8x8 bir siluet basılıyor. Yalnız dolgu yazılıyor, konturu `draw_glyph`
+türetiyor; dolgu ile kontur hedef bölgenin ortalama parlaklığına göre ters
+çevriliyor, böylece amblem hem beyaz Temizleyici TNT'de hem siyah Zebra
+TNT'de okunuyor.
+
+Gizli TNT'ye **bilerek** Cam TNT'nin amblemi veriliyor: o bir kılık, ayrı bir
+amblem tuzağı envanterde ele veriyordu. Bunu mutasyon 19 yakaladı —
+`DISGUISES` boşaltılınca düşmesi gereken denetim düşmüyordu.
+
+Yeni ölçülebilir kural: iki yan yüz arasındaki piksel başına ortalama RGB
+farkı en az 10 olmalı. Eşik ölçümden geliyor — amblemli en yakın çift 22,3;
+amblemsiz 1,9 (Buz / Dondurucu) ve altı çift 4'ün altında. Bayt eşitliği bunu
+göremezdi: dosyalar farklı, görüntü aynıydı.
+
+**Ateş yanıyor.** Ender Ateşi ve Altın Ateş elle çizilmiş saydam alevi Java
+ağacından kopyalıyordu, yani sabit duruyorlardı. Aynı çizim artık kaynak
+olarak okunuyor ve ondan sekiz kare türetiliyor: her sütun kareyle birlikte
+kayan bir dalga kadar oynuyor, parlaklık hafif nabız atıyor. Kareler alt alta
+tek PNG'de (16x128) ve `flipbook_textures.json` üretiliyor.
+
+**Yenilikler ekranı.** Güncelleme sessizdi; paket yeniden yüklendikten sonra
+çocuk ne değiştiğini hiçbir yerden öğrenemiyordu — yapılan iş görünmüyordu.
+Dünyaya ilk girişte bir kez "bunlar geldi" ekranı açılıyor; görülen sürüm
+oyuncunun dinamik özelliğinde durduğu için bir daha açılmıyor. Notlar
+`build.py`'deki `CHANGES` tablosunda, `VERSION`'ın hemen yanında ve
+`check_pack` notsuz sürüm üretilmesine izin vermiyor.
+
+**Paket simgesi** artık 128x128 çiziliyor; yan yüz dokusunun kendisi değil.
+
+### Bilinen sınır: emülatörde paket içe alınamıyor
+
+`mc_tablet` emülatöründe `.mcaddon` **içe alınamadı**, yani bu sürüm oyunda
+görülmedi. Denenenler ve sonuçları:
+
+| Yol | Sonuç |
+|---|---|
+| `am start -a VIEW -d file:///sdcard/Download/SuperTNT.mcaddon` | Minecraft açıkken "intent delivered", hiçbir şey olmuyor |
+| Aynısı, önce `am force-stop` ile | Minecraft açılıyor, paket klasörleri oluşmuyor |
+| `games/com.mojang/development_behavior_packs` altına doğrudan yazmak | `Permission denied` (Android 15 kapsamlı depolama) |
+
+Emülatördeki Minecraft'ta hiç dünya da yok (`minecraftWorlds` klasörü
+oluşmamış), yani `shots.sh`'in ön koşulu sağlanmıyor. Geriye kalan yol elle:
+emülatörde bir dosya yöneticisiyle `.mcaddon`'u açmak, sonra Creative +
+Cheats + Flat bir dünya kurup davranış paketini seçmek. Bir kez yapılınca
+`shots.sh` gerisini sürüyor.
 
 ## v1.51.0 — Patlayıcı Kum zinciri, çıkıntılı Lego
 
