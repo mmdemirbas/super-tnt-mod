@@ -42,7 +42,7 @@ K7. Kalp TNT buff'i YALNIZCA oyunculara. Java'da 88b9de1 ayni hatayi
 K8. Zincirleme taramasi tick'lere yayilir. Tek tick'te (2R+1)^3 blok
     sorgusu tablette gorunur donmaya yol aciyordu.
 """
-import json, os, re, shutil, struct, zlib, zipfile
+import colorsys, json, math, os, re, shutil, struct, zlib, zipfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
@@ -2018,45 +2018,146 @@ def decor_texture(path, base, kind):
 TEMPLATE = "diamond_tnt"
 
 
-def tnt_face(path, base, band=True, face="side"):
-    """TNT sablonunu hedef renge boyar. PIL yoksa duz renge duser."""
-    src = os.path.join(JAVA_TEX, f"{TEMPLATE}_{face}.png")
-    try:
-        from PIL import Image
-        import colorsys
-        if not os.path.exists(src):
-            raise FileNotFoundError(src)
-        im = Image.open(src).convert("RGB")
-        th, ts, _ = colorsys.rgb_to_hsv(*[c / 255 for c in base])
-        out = Image.new("RGB", im.size)
-        px_in, px_out = im.load(), out.load()
-        for y in range(im.size[1]):
-            for x in range(im.size[0]):
-                r, g, b = px_in[x, y]
-                _, s, v = colorsys.rgb_to_hsv(r / 255, g / 255, b / 255)
-                # ton hedeften, doygunluk hedefe olceklenir, parlaklik korunur
-                # -> yazi/fitil/golge yapisi aynen kalir
-                ns = min(1.0, s * (0.35 + ts))
-                nr, ng, nb = colorsys.hsv_to_rgb(th, ns, v)
-                px_out[x, y] = (int(nr * 255), int(ng * 255), int(nb * 255))
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        out.save(path)
-        return
-    except Exception:
-        pass
-    # yedek: duz renk
-    rows = []
-    for y in range(16):
+def read_png(path):
+    """Saf Python PNG okuyucu. Her bit derinligi (1/2/4/8) ve palet destekli;
+    (genislik, yukseklik, satirlar) doner, her piksel (r, g, b, a).
+
+    Pillow'a bagli KALINMAZ. Kurulu olmadigi bir makinede tnt_face sessizce
+    duz renge dusuyordu: 70 TNT'nin hepsi bantli bos kare oluyor, sablondaki
+    "TNT" yazisi da fitil de hic gorunmuyordu. Hata vermedigi icin de kimse
+    fark etmiyordu. Okuyucu burada oldugu surece cikti her makinede ayni.
+    """
+    d = open(path, "rb").read()
+    if d[:8] != b"\x89PNG\r\n\x1a\n":
+        raise SystemExit(f"PNG degil: {path}")
+    i, idat, plte, trns = 8, b"", None, None
+    w = h = bd = ct = inter = None
+    while i < len(d):
+        ln = struct.unpack(">I", d[i:i + 4])[0]
+        tag, data = d[i + 4:i + 8], d[i + 8:i + 8 + ln]
+        if tag == b"IHDR":
+            w, h, bd, ct, _, _, inter = struct.unpack(">IIBBBBB", data)
+        elif tag == b"PLTE":
+            plte = [tuple(data[k:k + 3]) for k in range(0, len(data), 3)]
+        elif tag == b"tRNS":
+            trns = data
+        elif tag == b"IDAT":
+            idat += data
+        elif tag == b"IEND":
+            break
+        i += 12 + ln
+    if inter:
+        raise SystemExit(f"interlaced PNG desteklenmiyor: {path}")
+    nch = {0: 1, 2: 3, 3: 1, 4: 2, 6: 4}[ct]
+    stride = (w * nch * bd + 7) // 8
+    bpp = max(1, (nch * bd) // 8)          # filtrenin "sol komsu" adimi
+    raw = zlib.decompress(idat)
+    rows, prev, pos = [], bytearray(stride), 0
+    for _y in range(h):
+        f = raw[pos]
+        pos += 1
+        line = bytearray(raw[pos:pos + stride])
+        pos += stride
+        for x in range(stride):            # PNG satir filtreleri
+            a = line[x - bpp] if x >= bpp else 0
+            b = prev[x]
+            c = prev[x - bpp] if x >= bpp else 0
+            if f == 1:
+                line[x] = (line[x] + a) & 255
+            elif f == 2:
+                line[x] = (line[x] + b) & 255
+            elif f == 3:
+                line[x] = (line[x] + (a + b) // 2) & 255
+            elif f == 4:
+                pp = a + b - c
+                pa, pb, pc = abs(pp - a), abs(pp - b), abs(pp - c)
+                line[x] = (line[x] + (a if pa <= pb and pa <= pc
+                                      else b if pb <= pc else c)) & 255
+        if bd == 8:
+            samples = list(line)
+        elif bd == 16:                     # 16 bit: ust bayt yeterli (8 bite in)
+            samples = list(line[0::2])
+        else:                              # 1/2/4 bit: baytlari orneklere ac
+            per, mask, samples = 8 // bd, (1 << bd) - 1, []
+            for byte in line:
+                for k in range(per):
+                    samples.append((byte >> (8 - bd * (k + 1))) & mask)
+            samples = samples[:w * nch]
         row = []
-        for x in range(16):
-            c = shade(base, 1.0 + ((x * 7 + y * 13) % 5 - 2) * 0.02)
-            if band and 6 <= y <= 9:
-                c = shade(base, 1.30)
-            if x in (0, 15) or y in (0, 15):
-                c = shade(c, 0.78)
-            row.append(c)
+        for x in range(w):
+            sm = samples[x * nch:(x + 1) * nch]
+            if ct == 3:
+                r, g, b_ = plte[sm[0]]
+                al = trns[sm[0]] if trns and sm[0] < len(trns) else 255
+            elif ct == 0:
+                r = g = b_ = sm[0]; al = 255
+            elif ct == 4:
+                r = g = b_ = sm[0]; al = sm[1]
+            elif ct == 2:
+                r, g, b_ = sm; al = 255
+            else:
+                r, g, b_, al = sm
+            row.append((r, g, b_, al))
         rows.append(row)
-    png(path, rows)
+        prev = line
+    return w, h, rows
+
+
+_TEMPLATE_FACES = {}
+
+
+def template_face(face):
+    """Sablon TNT yuzunu bir kez okur; RGB satirlari doner."""
+    if face not in _TEMPLATE_FACES:
+        src = os.path.join(JAVA_TEX, f"{TEMPLATE}_{face}.png")
+        if not os.path.exists(src):
+            raise SystemExit(f"TNT sablonu bulunamadi: {src}")
+        _, _, rows = read_png(src)
+        _TEMPLATE_FACES[face] = [[c[:3] for c in row] for row in rows]
+    return _TEMPLATE_FACES[face]
+
+
+def recolor(rows, base):
+    """Sablonu hedef renge boyar: TON hedeften, doygunluk hedefe olceklenir,
+    parlaklik ise hedefin parlakligina GAMA ile tasinir.
+
+    Parlakligi tasimak sart: gri tonlarin (doygunluk 0) tonu tanimsizdir, yani
+    yalniz ton tasinirsa Gorunmez TNT (gri) ile Zebra TNT (siyah) ayni dokuyu
+    uretir — check_pack bunu "iki blogun yan yuzu ayni" diye yakaliyor.
+    Gama secildi, carpan degil: 0 ve 1 sabit kalir, boylece yazi/fitil/bant
+    kontrasti korunur; carpanda parlak hedefler beyaza kirpilip duzlesiyordu.
+    """
+    th, ts, tv = colorsys.rgb_to_hsv(*[c / 255 for c in base])
+    tv = max(0.10, min(0.92, tv))          # uc degerler dokuyu duzlestirir
+    mean = _template_mean(rows)
+    g = math.log(tv) / math.log(mean) if 0 < mean < 1 else 1.0
+    g = max(0.15, min(6.0, g))
+    out = []
+    for row in rows:
+        line = []
+        for (r, g_, b) in row:
+            _, s, v = colorsys.rgb_to_hsv(r / 255, g_ / 255, b / 255)
+            nr, ng, nb = colorsys.hsv_to_rgb(th, min(1.0, s * (0.35 + ts)), v ** g)
+            line.append((int(nr * 255), int(ng * 255), int(nb * 255)))
+        out.append(line)
+    return out
+
+
+_MEANS = {}
+
+
+def _template_mean(rows):
+    """Sablonun ortalama parlakligi; gama ussunu bundan cikariyoruz."""
+    key = id(rows)
+    if key not in _MEANS:
+        vs = [colorsys.rgb_to_hsv(*[c / 255 for c in px])[2] for row in rows for px in row]
+        _MEANS[key] = sum(vs) / len(vs)
+    return _MEANS[key]
+
+
+def tnt_face(path, base, face="side"):
+    """TNT sablonunu hedef renge boyar ve yazar."""
+    png(path, recolor(template_face(face), base))
 
 
 def compose_entity_texture(t, dst):
@@ -2065,30 +2166,33 @@ def compose_entity_texture(t, dst):
     MC kutu-UV duzeni, 16x16x16 kup, uv [0,0]:
       top (16,0) | bottom (32,0) | dogu (0,16) | kuzey (16,16)
       bati (32,16) | guney (48,16)
-    PIL varsa gercek yuz PNG'leri birlestirilir; yoksa duz renge duser.
+
+    Yuzler bu noktada zaten uretilmis 16x16 PNG'ler; olceklemeye gerek yok,
+    piksel piksel yerlestirilir. Eskiden PIL yoksa duz renge dusuyordu, yani
+    havada ucan fitilli TNT hicbir makinede sablon gibi gorunmuyordu.
     """
     os.makedirs(os.path.dirname(dst), exist_ok=True)
     faces = {}
     for face in ("top", "side", "bottom"):
         p = os.path.join(RP, f"textures/blocks/stnt_{t['id']}_{face}.png")
-        faces[face] = p if os.path.exists(p) else None
-    try:
-        from PIL import Image
-        atlas = Image.new("RGBA", (64, 32), (0, 0, 0, 0))
-        def put(face, xy):
-            if faces[face]:
-                atlas.paste(Image.open(faces[face]).convert("RGBA").resize((16, 16)), xy)
-        put("top", (16, 0)); put("bottom", (32, 0))
-        for xy in ((0, 16), (16, 16), (32, 16), (48, 16)):
-            put("side", xy)
-        atlas.save(dst)
-        return "pil"
-    except ImportError:
-        # yedek: renk tanimindan duz doku (PIL yoksa)
-        base = t.get('color', ((200, 60, 60),) * 3)
-        rows = [[base[0] if y < 16 else base[1] for _ in range(64)] for y in range(32)]
-        png_rgb(dst, rows, 64, 32)
-        return "fallback"
+        if os.path.exists(p):
+            _, _, rows = read_png(p)
+            faces[face] = [[c[:3] for c in row] for row in rows]
+    atlas = [[(0, 0, 0) for _ in range(64)] for _ in range(32)]
+
+    def put(face, ox, oy):
+        src = faces.get(face)
+        if not src:
+            return
+        for y in range(16):
+            for x in range(16):
+                atlas[oy + y][ox + x] = src[y][x]
+
+    put("top", 16, 0)
+    put("bottom", 32, 0)
+    for ox in (0, 16, 32, 48):
+        put("side", ox, 16)
+    png_rgb(dst, atlas, 64, 32)
 
 
 def png_rgb(path, rows, wd, ht):
@@ -2280,7 +2384,7 @@ def build():
                 copied += 1
             else:
                 idx = {"top": 0, "side": 1, "bottom": 2}[face]
-                tnt_face(dst, t['color'][idx], band=(face == "side"), face=face)
+                tnt_face(dst, t['color'][idx], face=face)
                 generated += 1
             terrain[key] = {"textures": rel}
     # DECOR blok dokulari (tek yuz, tum yonler ayni). Java'da gercek cizilmis
@@ -2340,7 +2444,7 @@ def build():
     # ---------- pack_icon (calisan paketlerin hepsinde var; eksikligi
     #            paketi bozuk gosteriyor)
     for pack, base in ((BP, (196, 48, 54)), (RP, (60, 90, 190))):
-        tnt_face(os.path.join(pack, "pack_icon.png"), base, band=True, face="side")
+        tnt_face(os.path.join(pack, "pack_icon.png"), base, face="side")
 
     # ---------- bloklar
     for t in TNTS:
