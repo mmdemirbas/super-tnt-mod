@@ -2877,6 +2877,78 @@ def tnt_face(path, base, face="side", glyph=None):
     png(path, rows)
 
 
+def pack_icon(path, base):
+    """Paket simgesi: 128x128, cizilmis bir TNT — sablonun buyutulmusu degil.
+
+    Eskiden yan yuz dokusu oldugu gibi simge olarak yaziliyordu: paket
+    listesinde 70 TNT'lik bir eklenti, 16 piksellik bulanik bir kareyle
+    temsil ediliyordu. Burada govde, bant, yazi, fitil ve kivilcim ayri ayri
+    ve tam cozunurlukte ciziliyor.
+    """
+    N = 128
+    koyu = shade(base, 0.45)
+    orta = base
+    acik = shade(base, 1.35)
+    bant = tuple(min(255, int(c * 0.35 + 255 * 0.65)) for c in base)
+    zemin = (18, 20, 30)
+    ip = (120, 96, 60)
+    kiv = (255, 240, 170)
+
+    g = [[zemin for _ in range(N)] for _ in range(N)]
+
+    def kutu(x0, y0, x1, y1, c):
+        for y in range(max(0, y0), min(N, y1 + 1)):
+            for x in range(max(0, x0), min(N, x1 + 1)):
+                g[y][x] = c
+
+    # govde: hafif perspektif — ust yuz acik, on yuz orta, sag yan koyu
+    ust, sol, en, boy, kalin = 26, 18, 84, 84, 14
+    for y in range(ust - kalin, ust):                    # ust yuz (egik)
+        kay = (ust - y) // 2
+        kutu(sol + kay, y, sol + en + kay, y, acik)
+    for y in range(ust, ust + boy):                      # on yuz
+        kutu(sol, y, sol + en, y, orta)
+    for y in range(ust - kalin, ust + boy - kalin):      # sag yan
+        kay = max(0, (ust - y) // 2)
+        kutu(sol + en + 1, y + kalin, sol + en + kalin + kay, y + kalin, koyu)
+
+    kutu(sol, ust + 30, sol + en, ust + 52, bant)        # ortadaki acik bant
+    kutu(sol, ust + 29, sol + en, ust + 29, koyu)
+    kutu(sol, ust + 53, sol + en, ust + 53, koyu)
+
+    # "TNT" yazisi: harf basina 5x7 izgara, bantta ortalanir
+    HARF = {"T": ("#####", "..#..", "..#..", "..#..", "..#..", "..#..", "..#.."),
+            "N": ("#...#", "##..#", "#.#.#", "#.#.#", "#..##", "#...#", "#...#")}
+    olcek, bosluk = 3, 3
+    yazi = "TNT"
+    gen = len(yazi) * 5 * olcek + (len(yazi) - 1) * bosluk
+    bx = sol + (en - gen) // 2
+    by = ust + 31 + (22 - 7 * olcek) // 2
+    for i, ch in enumerate(yazi):
+        art = HARF[ch]
+        ox = bx + i * (5 * olcek + bosluk)
+        for ry, satir in enumerate(art):
+            for rx, v in enumerate(satir):
+                if v == "#":
+                    kutu(ox + rx * olcek, by + ry * olcek,
+                         ox + rx * olcek + olcek - 1, by + ry * olcek + olcek - 1, koyu)
+
+    # fitil: ust yuzden yukari kivrilan ip + ucunda kivilcim
+    fx, fy = sol + en // 2 + 6, ust - kalin
+    for k in range(20):
+        x = fx + int(6 * math.sin(k / 4.0))
+        y = fy - k
+        kutu(x, y, x + 3, y + 1, ip)
+    sx, sy = fx + int(6 * math.sin(20 / 4.0)), fy - 20
+    for dy in range(-6, 7):
+        for dx in range(-6, 7):
+            if dx * dx + dy * dy <= 30:
+                g[max(0, min(N - 1, sy + dy))][max(0, min(N - 1, sx + dx))] = kiv
+
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    png_rgb(path, g, N, N)
+
+
 def compose_entity_texture(t, dst):
     """Blok yuzlerinden varlik dokusu (64x32) uretir.
 
@@ -3175,7 +3247,7 @@ def build():
     # ---------- pack_icon (calisan paketlerin hepsinde var; eksikligi
     #            paketi bozuk gosteriyor)
     for pack, base in ((BP, (196, 48, 54)), (RP, (60, 90, 190))):
-        tnt_face(os.path.join(pack, "pack_icon.png"), base, face="side")
+        pack_icon(os.path.join(pack, "pack_icon.png"), base)
 
     # ---------- bloklar
     for t in TNTS:

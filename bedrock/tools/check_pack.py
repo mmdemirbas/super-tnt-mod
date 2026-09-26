@@ -312,6 +312,24 @@ def check_changes(js):
             check(satir in js, f"CHANGES {v}: '{satir[:30]}...' main.js'e gecmemis")
 
 
+def check_pack_icon():
+    """Paket simgesi listede buyuk gosterilir; 16 piksellik bir kare bulanik
+    cikar. Eskiden yan yuz dokusu oldugu gibi simge olarak yaziliyordu."""
+    for pack, ad in ((BP, "BP"), (RP, "RP")):
+        p = os.path.join(pack, "pack_icon.png")
+        if not check(os.path.exists(p), f"{ad}: pack_icon.png yok"):
+            continue
+        w, h, px = build.read_png(p)
+        check(w >= 64 and h >= 64,
+              f"{ad}: pack_icon {w}x{h} — listede bulanik gorunur, en az 64x64 olmali")
+        renk = {c[:3] for row in px for c in row}
+        check(len(renk) >= 4, f"{ad}: pack_icon neredeyse tek renk ({len(renk)} renk)")
+        ikiz = [os.path.basename(q) for q in
+                glob.glob(os.path.join(RP, "textures", "blocks", "*.png"))
+                if open(q, "rb").read() == open(p, "rb").read()]
+        check(not ikiz, f"{ad}: pack_icon bir blok dokusunun kopyasi ({ikiz})")
+
+
 # ---------------------------------------------------------------- 3. morph
 def js_const(js, name):
     for line in js.splitlines():
@@ -1114,6 +1132,7 @@ def main():
     check_side_distance()
     check_flipbook()
     check_changes(js)
+    check_pack_icon()
     check_morphs(js)
     check_ids(js)
     check_client_entities()
