@@ -1981,6 +1981,59 @@ def symbol_texture(path, item_id):
     return True
 
 
+FIRE_FRAMES = 8               # kare sayisi
+FIRE_TICKS_PER_FRAME = 2      # kare basina tick (20 tick = 1 sn)
+
+
+def fire_texture(path, base, src=None):
+    """Ates bloklari icin ANIMASYONLU alev dokusu (16 x 16*N, RGBA).
+
+    Elle cizilmis alev BOZULMAZ: kaynak doku varsa kareler ondan turetilir.
+    Her sutun, kareyle birlikte kayan bir dalga kadar yukari-asagi oynar ve
+    parlaklik hafifce nabiz atar; siluet ayni kalir, ates yanar gorunur.
+    Kaynak yoksa (yeni bir ates blogu eklenirse) duz bir alev uretilir, yani
+    doku eksikligi sessiz bir bos kareye donmez.
+
+    Kareler ALT ALTA yazilir — Bedrock flipbook duzeni budur.
+    """
+    if src and os.path.exists(src):
+        _w, _h, taban = read_png(src)
+    else:
+        core = tuple(min(255, int(c * 0.45 + 255 * 0.55)) for c in base)
+        edge = shade(base, 0.55)
+        taban = []
+        for y in range(16):
+            row = []
+            for x in range(16):
+                h = max(2, min(15, int(round(6.5 + 5.5 * math.sin(math.pi * x / 15.0)))))
+                if y < 16 - h:
+                    row.append((0, 0, 0, 0))
+                else:
+                    t = (y - (16 - h)) / max(1, h - 1)
+                    row.append(tuple(int(edge[k] + (core[k] - edge[k]) * t)
+                                     for k in range(3)) + (255,))
+            taban.append(row)
+
+    bos = (0, 0, 0, 0)
+    rows = []
+    for f in range(FIRE_FRAMES):
+        faz = 2 * math.pi * f / FIRE_FRAMES
+        # sutun basina dikey kayma: dalga kareyle ilerler -> ates akiyor gorunur
+        kay = [int(round(1.6 * math.sin(faz + x * 0.8))) for x in range(16)]
+        nabiz = 1.0 + 0.10 * math.sin(faz * 2)
+        for y in range(16):
+            row = []
+            for x in range(16):
+                sy = y + kay[x]
+                c = taban[sy][x] if 0 <= sy < 16 else bos
+                if c[3] == 0:
+                    row.append(bos)
+                else:
+                    row.append(tuple(shade(c[:3], nabiz)) + (c[3],))
+            rows.append(row)
+    png_rgba(path, rows, 16, 16 * FIRE_FRAMES)
+
+
 def decor_texture(path, base, kind):
     """TNT-olmayan blok dokusu. glow=parlak, plate=cizgili, anvil=ors.
     Lego duz govdedir: cikintilar dokuda degil geometride (geometry.stnt_lego)."""
@@ -3052,7 +3105,11 @@ def build():
         if blk.get('vtex'):                             # vanilla RP'nin dokusu (kilik)
             terrain[key] = {"textures": blk['vtex']}
             continue
-        if jsrc and os.path.exists(jsrc):
+        if blk['kind'] == "fire":
+            # Elle cizilmis alev kaynak olarak kullanilir, kopyalanmaz:
+            # kopyalanan doku SABIT kalirdi.
+            fire_texture(dst, blk['color'], jsrc)
+        elif jsrc and os.path.exists(jsrc):
             os.makedirs(os.path.dirname(dst), exist_ok=True)
             shutil.copy(jsrc, dst)
         else:
@@ -3062,6 +3119,15 @@ def build():
     w(os.path.join(RP, "textures/terrain_texture.json"),
       {"resource_pack_name": "super_tnt", "texture_name": "atlas.terrain",
        "padding": 8, "num_mip_levels": 4, "texture_data": terrain})
+
+    # ---------- flipbook (animasyonlu dokular)
+    # atlas_tile, terrain_texture.json'daki ANAHTARLA ayni olmali; tutmazsa
+    # Minecraft animasyonu sessizce yok sayar ve ilk kareyi sabit gosterir.
+    w(os.path.join(RP, "textures/flipbook_textures.json"),
+      [{"flipbook_texture": f"textures/blocks/stnt_{blk['id']}",
+        "atlas_tile": f"stnt_{blk['id']}",
+        "ticks_per_frame": FIRE_TICKS_PER_FRAME}
+       for blk in BLOCKS if blk['kind'] == "fire"])
 
     # ---------- item ikonlari
     item_tex = {}

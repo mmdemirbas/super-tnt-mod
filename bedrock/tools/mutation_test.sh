@@ -507,6 +507,39 @@ run "amblemler hic basilmiyor" "ayirt edilemeyecek kadar benzer"
 cp "$BAK/b45.bak" bedrock/build.py
 python3 bedrock/build.py > /dev/null 2>&1
 
+# 46) ates dokusu tek kare kalsin -> flipbook girdisi durur, ates kipirdamaz
+cp bedrock/build.py "$BAK/b46.bak"
+python3 - <<'PYX'
+import io
+p = "bedrock/build.py"
+s = io.open(p, encoding="utf-8").read()
+old = "FIRE_FRAMES = 8 "
+assert s.count(old) == 1
+io.open(p, "w", encoding="utf-8").write(s.replace(old, "FIRE_FRAMES = 1 ", 1))
+PYX
+python3 bedrock/build.py > /dev/null 2>&1
+run "ates dokusu tek kare" "animasyon yok"
+cp "$BAK/b46.bak" bedrock/build.py
+python3 bedrock/build.py > /dev/null 2>&1
+
+# 47) kareler uretilsin ama hepsi AYNI olsun -> doku uzun, denetimler gecer,
+#     ates yine kipirdamaz
+cp bedrock/build.py "$BAK/b47.bak"
+python3 - <<'PYX'
+import io
+p = "bedrock/build.py"
+s = io.open(p, encoding="utf-8").read()
+old = "        kay = [int(round(1.6 * math.sin(faz + x * 0.8))) for x in range(16)]"
+assert s.count(old) == 1
+io.open(p, "w", encoding="utf-8").write(
+    s.replace(old, "        kay = [0 for x in range(16)]\n        nabiz_kapali = True", 1)
+     .replace("        nabiz = 1.0 + 0.10 * math.sin(faz * 2)", "        nabiz = 1.0", 1))
+PYX
+python3 bedrock/build.py > /dev/null 2>&1
+run "ates kareleri birbirinin ayni" "butun kareler ayni"
+cp "$BAK/b47.bak" bedrock/build.py
+python3 bedrock/build.py > /dev/null 2>&1
+
 echo
 python3 bedrock/build.py > /dev/null && echo "paket yeniden uretildi"
 echo "yakalanan $pass / kacirilan $fail"

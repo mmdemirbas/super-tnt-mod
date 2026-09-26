@@ -240,6 +240,51 @@ def check_side_distance():
               f"(fark {fark:.1f}, en az 10 olmali)")
 
 
+def check_flipbook():
+    """Ates bloklari GERCEKTEN animasyonlu mu.
+
+    Animasyonun uc ayagi var ve biri eksikse Minecraft hata vermez, sadece
+    ilk kareyi sabit gosterir: doku uzun olacak (16 x 16*N), flipbook girdisi
+    olacak, ve girdideki atlas_tile terrain_texture.json'daki anahtarla
+    birebir tutacak. Ayrica ates capraz geometride cizildigi icin dokunun
+    SAYDAM pikseli olmali; opak kare iki kati levha gibi durur.
+    """
+    fb_path = os.path.join(RP, "textures", "flipbook_textures.json")
+    atesler = [b for b in build.BLOCKS if b["kind"] == "fire"]
+    if not check(os.path.exists(fb_path), "flipbook_textures.json yok"):
+        return
+    fb = {e["atlas_tile"]: e for e in jload(fb_path)}
+    terrain = jload(os.path.join(RP, "textures", "terrain_texture.json"))["texture_data"]
+    for blk in atesler:
+        tile = f"stnt_{blk['id']}"
+        if not check(tile in fb, f"ates {blk['id']}: flipbook girdisi yok"):
+            continue
+        check(tile in terrain,
+              f"ates {blk['id']}: atlas_tile '{tile}' terrain_texture.json'da yok")
+        check(fb[tile].get("ticks_per_frame", 0) >= 1,
+              f"ates {blk['id']}: ticks_per_frame yok")
+        png = os.path.join(RP, "textures", "blocks", f"{tile}.png")
+        if not check(os.path.exists(png), f"ates {blk['id']}: doku dosyasi yok"):
+            continue
+        w, h, px = build.read_png(png)
+        check(w == 16, f"ates {blk['id']}: doku genisligi {w}, 16 olmali")
+        check(h >= 32 and h % 16 == 0,
+              f"ates {blk['id']}: doku yuksekligi {h} — tek kare, animasyon yok")
+        saydam = sum(1 for row in px for c in row if c[3] == 0)
+        check(saydam > 0,
+              f"ates {blk['id']}: dokuda hic saydam piksel yok, capraz "
+              f"geometride kati levha gibi gorunur")
+        # Kareler birbirinin AYNISI olmamali: kayma sifirlanirsa doku uzun
+        # kalir, denetimler gecer ve ates yine kipirdamaz.
+        kare = h // 16
+        ilk = [px[y] for y in range(16)]
+        farkli = any([px[f * 16 + y] for y in range(16)] != ilk for f in range(1, kare))
+        check(farkli, f"ates {blk['id']}: butun kareler ayni, ates kipirdamaz")
+    for tile in fb:
+        check(any(f"stnt_{b['id']}" == tile for b in atesler),
+              f"flipbook girdisi '{tile}' hicbir ates blogunu gostermiyor")
+
+
 # ---------------------------------------------------------------- 3. morph
 def js_const(js, name):
     for line in js.splitlines():
@@ -1040,6 +1085,7 @@ def main():
     check_tnts()
     check_glyphs()
     check_side_distance()
+    check_flipbook()
     check_morphs(js)
     check_ids(js)
     check_client_entities()
