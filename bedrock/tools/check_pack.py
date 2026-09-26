@@ -285,6 +285,33 @@ def check_flipbook():
               f"flipbook girdisi '{tile}' hicbir ates blogunu gostermiyor")
 
 
+def check_changes(js):
+    """Her surumun yenilik notu var mi ve ekran gercekten bir kez mi aciliyor.
+
+    Notsuz bir surum sessizce cikar: paket guncellenir, cocuk hicbir fark
+    gormez — bu ozelligin var olma sebebi tam olarak buydu.
+    """
+    ver = ".".join(str(n) for n in build.VERSION)
+    check(ver in build.CHANGES, f"surum {ver} icin yenilik notu yok (CHANGES)")
+    for v, satirlar in build.CHANGES.items():
+        check(re.fullmatch(r"\d+\.\d+\.\d+", v), f"CHANGES: '{v}' surum numarasi degil")
+        check(len(satirlar) >= 1, f"CHANGES {v}: not listesi bos")
+        for satir in satirlar:
+            check(satir.strip() != "", f"CHANGES {v}: bos satir")
+            check(len(satir) <= 120, f"CHANGES {v}: satir cok uzun ({len(satir)})")
+    check(f'const VER = "{ver}"' in js, f"main.js surumu {ver} degil")
+    check('"stnt:gorulen_surum"' in js, "yenilikler: gorulen surum ozelligi yok")
+    # Yazma olmadan ekran HER giriste acilir; okuma olmadan HIC acilmaz.
+    check("setDynamicProperty(SEEN_PROP, VER)" in js,
+          "yenilikler: gorulen surum yazilmiyor, ekran her giriste acilir")
+    check("getDynamicProperty(SEEN_PROP)" in js,
+          "yenilikler: gorulen surum okunmuyor")
+    check("initialSpawn" in js, "yenilikler: ilk girise baglanmamis")
+    for v in build.CHANGES:
+        for satir in build.CHANGES[v]:
+            check(satir in js, f"CHANGES {v}: '{satir[:30]}...' main.js'e gecmemis")
+
+
 # ---------------------------------------------------------------- 3. morph
 def js_const(js, name):
     for line in js.splitlines():
@@ -1086,6 +1113,7 @@ def main():
     check_glyphs()
     check_side_distance()
     check_flipbook()
+    check_changes(js)
     check_morphs(js)
     check_ids(js)
     check_client_entities()

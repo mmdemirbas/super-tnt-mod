@@ -551,5 +551,29 @@ run "kum zinciri tek turda patliyor (donma)" "tur basina"
 cp "$BAK/build.bak" bedrock/build.py
 
 echo
+# Yenilikler ekrani: gorulen surum YAZILMASIN -> ekran her giriste acilir
+python3 - "$BAK" <<'PYX'
+import io, sys
+s = io.open(sys.argv[1] + "/build.bak", encoding="utf-8").read()
+old = "    try { pl.setDynamicProperty(SEEN_PROP, VER); } catch (e) {}\n  }).catch(() => {});"
+assert s.count(old) == 1, s.count(old)
+io.open("bedrock/build.py", "w", encoding="utf-8").write(
+    s.replace(old, "  }).catch(() => {});", 1))
+PYX
+run "yenilikler ekrani her giriste aciliyor" "ikinci giriste ekran acilmiyor"
+cp "$BAK/build.bak" bedrock/build.py
+
+# Yenilikler ekrani olup dirilmede DE acilsin -> her olumde ekranla karsilasir
+python3 - "$BAK" <<'PYX'
+import io, sys
+s = io.open(sys.argv[1] + "/build.bak", encoding="utf-8").read()
+old = "    if (!ev.initialSpawn) return;\n    // Dunya daha yuklenirken form acilmaz"
+assert s.count(old) == 1
+io.open("bedrock/build.py", "w", encoding="utf-8").write(
+    s.replace(old, "    // Dunya daha yuklenirken form acilmaz", 1))
+PYX
+run "yenilik ekrani olup dirilmede de aciliyor" "olup dirilince yenilik ekrani acilmiyor"
+cp "$BAK/build.bak" bedrock/build.py
+
 echo "yakalanan $pass / kacirilan $fail"
 [ "$fail" -eq 0 ]

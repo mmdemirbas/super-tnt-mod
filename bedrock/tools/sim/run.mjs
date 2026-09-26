@@ -1262,6 +1262,48 @@ const PASIF = new Set(["bleed", "heavy", "worn_wool", "held_fireproof"]);
   ok(__sim.errors.length === 0, "kum zinciri tick'te hata uretmiyor", __sim.errors[0]);
 }
 
+// ---- 26. Yenilikler ekrani: bir kez acilir, bir daha acilmaz
+{
+  const p = fresh();
+  __sim.fire("after", "playerSpawn", { player: p, initialSpawn: true });
+  __sim.tick(80);                                   // ekran 60 tick gecikmeli
+  const yeni = __ui.shown.filter((f) => f.parts.some(
+    (q) => q[0] === "title" && String(q[1]).includes("Super TNT v")));
+  ok(yeni.length === 1, "yenilikler ekrani ilk giriste aciliyor",
+     `acilan form: ${__ui.shown.length}`);
+  const govde = yeni.length
+    ? (yeni[0].parts.find((q) => q[0] === "body") || [])[1] || "" : "";
+  ok(govde.includes("işareti"), "ekran bu surumun notlarini gosteriyor");
+  ok(govde.includes("Ömer"), "yapimcilar satiri var");
+
+  // Ekran kapatildi -> gorulen surum yazilmis olmali; ikinci giriste acilmaz.
+  // Form cevabi bir Promise; tick senkron oldugu icin mikrogorev kuyrugunu
+  // elle bosaltmadan setDynamicProperty henuz calismamis olur.
+  await Promise.resolve(); await Promise.resolve();
+  const sayi = __ui.shown.length;
+  __sim.fire("after", "playerSpawn", { player: p, initialSpawn: true });
+  __sim.tick(80);
+  ok(__ui.shown.length === sayi, "ikinci giriste ekran acilmiyor",
+     `${__ui.shown.length - sayi} form daha acildi`);
+}
+
+// ---- 27. Olup dirilmek yenilik ekranini acmaz
+{
+  const p = fresh();
+  __sim.fire("after", "playerSpawn", { player: p, initialSpawn: false });
+  __sim.tick(80);
+  ok(__ui.shown.length === 0, "olup dirilince yenilik ekrani acilmiyor");
+}
+
+// ---- 28. Eski surumu goren oyuncu yeni notlari goruyor
+{
+  const p = fresh();
+  p.setDynamicProperty("stnt:gorulen_surum", "1.0.0");
+  __sim.fire("after", "playerSpawn", { player: p, initialSpawn: true });
+  __sim.tick(80);
+  ok(__ui.shown.length === 1, "eski surumden gelen oyuncuya ekran aciliyor");
+}
+
 report();
 
 function report() {

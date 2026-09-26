@@ -79,8 +79,24 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 51, 0]
+VERSION = [1, 52, 0]
 MIN_ENGINE = [1, 21, 0]
+
+# ---- Yenilikler ekrani ----------------------------------------------------
+# Surum -> o surumde COCUGUN GORECEGI degisiklikler. Kod notu degil: her satir
+# oyunda fark edilen bir seyi anlatmali, yoksa ekran dolar ama bir sey
+# soylemez. check_pack, VERSION'in burada bir karsiligi olmadan paketi
+# uretmeye izin vermez — sessizce notsuz surum cikmasin diye.
+# Tablo bu surumde basladi; oncekilerin notlari bedrock/PORT-DURUMU.md'de.
+CHANGES = {
+    "1.52.0": [
+        "Her TNT'nin artık kendi işareti var — 70 TNT birbirinden ayrı görünüyor.",
+        "Bütün TNT'ler gerçek TNT dokusunda: yazısı, bandı ve fitili görünüyor.",
+        "Ender Ateşi ile Altın Ateş artık yanıyor, alevleri kıpırdıyor.",
+    ],
+}
+# Tek paket iki tablete de gidiyor, o yuzden isim listesi ortak.
+CREDITS = "Yapımcılar: Ömer, Zeynep ve Baba"
 # Surum etiketi paket ADINA yazilir. UUID + klasor adlari sabit oldugu icin
 # Minecraft ayni UUID'li paketi yerinde GUNCELLER; ama cihazda eski surum
 # girdisi kalirsa listede iki "Super TNT" gorunur. Adi surumle etiketleyince
@@ -3792,6 +3808,9 @@ def build():
                                  for mo in MORPHS if 'pas' in mo or 'act' in mo},
                                 ensure_ascii=False)) \
                             .replace("__FUSE__", str(FUSE_TICKS)) \
+                            .replace("__VER_STR__", VER_STR) \
+                            .replace("__CHANGES__", json.dumps(CHANGES, ensure_ascii=False)) \
+                            .replace("__CREDITS__", CREDITS) \
                             .replace("__ENDER_FIRE__", json.dumps(ENDER_FIRE)) \
                             .replace("__GOLD_FIRE__", json.dumps(GOLD_FIRE)) \
                             .replace("__UNENDING__", json.dumps(UNENDING, ensure_ascii=False)) \
@@ -5872,6 +5891,66 @@ world.afterEvents.playerBreakBlock.subscribe((ev) => {
       { x: ev.block.location.x + 0.5, y: ev.block.location.y + 0.5, z: ev.block.location.z + 0.5 });
   } catch (e) {}
 });
+
+// ---------------------------------------------------------------- yenilikler
+// Guncelleme sessizdi: cocuk paketi yeniden yukluyor ve ne degistigini hicbir
+// yerden ogrenemiyordu — yapilan is gorunmuyordu. Dunyaya ILK girişte (olup
+// dirilmede degil) bir kez "bunlar geldi" ekrani acilir.
+const VER = "__VER_STR__";
+const CHANGES = __CHANGES__;            // surum -> [satir, ...]
+const CREDITS = "__CREDITS__";
+const SEEN_PROP = "stnt:gorulen_surum";
+
+function verNum(v) {
+  const p = String(v).split(".").map((n) => parseInt(n, 10) || 0);
+  return (p[0] || 0) * 1000000 + (p[1] || 0) * 1000 + (p[2] || 0);
+}
+
+// Oyuncunun en son GORDUGU surumden sonraki notlar. Arada bir surum atlanmis
+// olabilir (tablet o turda kapaliydi); o zaman ikisi birden gosterilir.
+function yeniNotlar(gorulen) {
+  const g = gorulen ? verNum(gorulen) : -1;
+  return Object.keys(CHANGES)
+    .filter((v) => verNum(v) > g)
+    .sort((a, b) => verNum(b) - verNum(a))
+    .slice(0, 3);
+}
+
+function yenilikEkrani(pl, tries) {
+  let gorulen;
+  try { gorulen = pl.getDynamicProperty(SEEN_PROP); } catch (e) { return; }
+  if (gorulen === VER) return;
+  const surumler = yeniNotlar(typeof gorulen === "string" ? gorulen : null);
+  if (!surumler.length) {
+    try { pl.setDynamicProperty(SEEN_PROP, VER); } catch (e) {}
+    return;
+  }
+  let govde = "\u00A7fYenilikler:\n";
+  for (const v of surumler) {
+    if (surumler.length > 1) govde += `\n\u00A77v${v}\n`;
+    for (const satir of CHANGES[v]) govde += `\u00A7a\u2022 \u00A7f${satir}\n`;
+  }
+  govde += `\n\u00A77${CREDITS}`;
+  const f = new ActionFormData().title(`\u00A7eSuper TNT v${VER}`).body(govde);
+  f.button("\u00A7aTamam");
+  f.show(pl).then((r) => {
+    // Parmak hala ekrandayken form "UserBusy" doner — biraz sonra tekrar dene.
+    if (r.canceled && r.cancelationReason === "UserBusy" && tries > 0) {
+      system.runTimeout(() => yenilikEkrani(pl, tries - 1), 40);
+      return;
+    }
+    // Kapatan da gormus sayilir; her giriste yeniden acmak cocugu bikdirir.
+    try { pl.setDynamicProperty(SEEN_PROP, VER); } catch (e) {}
+  }).catch(() => {});
+}
+
+try {
+  world.afterEvents.playerSpawn.subscribe((ev) => {
+    if (!ev.initialSpawn) return;
+    // Dunya daha yuklenirken form acilmaz; kisa bir gecikme sart.
+    system.runTimeout(() => yenilikEkrani(ev.player, 5), 60);
+  });
+} catch (e) {}
 
 // TANI: oyuncu dunyaya girince chat'e yazar. Bu mesaj gorunuyorsa davranis
 // paketi aktif VE script calisiyor demektir. Gorunmuyorsa paket aktif degil.
