@@ -1,7 +1,42 @@
 # Super TNT — Bedrock Port Durumu
 
-Son sürüm: **v1.53.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
+Son sürüm: **v1.54.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
 olacak şekilde geliştiriliyor (MorphX / mutant paketine bağımlılık yok).
+
+## v1.54.0 — Eşyaların adı, elde tutunca ipucu, okunan düğmeler
+
+Emülatörde v1.53.0'ı gözle denerken çıktı. Üçü de testlerden geçiyordu:
+hiçbiri hata vermiyor, hepsi yalnızca ekranda görünüyor.
+
+**54 eşyanın adı oyunda kod gibi görünüyordu.** Envanterde "Süper TNT Rehberi"
+yerine `item.stnt:rehber` yazıyordu. Sebebi tek bir ek: dil dosyasında eşyanın
+ad anahtarı `item.<id>`, **sonunda `.name` yok**; blokta ise `tile.<id>.name`
+var. `format_version` 1.20.30 veri tabanlı eşyalar böyle arıyor, bulamayınca
+ham anahtarı basıyor. 54 eşyanın hepsi aynı satırdan üretildiği için hepsi
+birden yanlıştı; bloklar (70 TNT + 51 blok) doğruydu.
+
+**Elde eşya tutunca ekranın altındaki satır da bozuktu.** Betik adı
+`tile.<id>.name` ile çeviriyordu, yani eşyalarda aynı ham anahtar. Betiğe
+`ITEM_IDS` geçiliyor artık; anahtar eşyada `item.<id>`, blokta
+`tile.<id>.name` seçiliyor. Liste `ITEMS`'ten üretiliyor, ayrı bir yerde
+tutulmuyor.
+
+**Rehberin gezinme düğmeleri boş görünüyordu.** "« Listeye dön", "» Sonraki
+sayfa", "« Rehbere dön" ve dönüşüm menüsündeki "◀ Geri" `§7` (gri) ile
+yazılmıştı; form düğmesinin zemini de açık gri, yani yazı görünmüyordu. Çocuk
+boş bir düğme görüyor. Renk kodları kaldırıldı; ok işaretleri kaldı.
+
+**Denetim:** `check_pack` üç şey daha tutuyor — eşyanın ad satırı `.name`
+eksiz mi, form düğmesinde `§7` var mı, `ITEM_IDS` betikte var ve kullanılıyor
+mu. Üç mutasyon (53, 54, 55) üçünü de yakalıyor. Statik denetim 13055'ten
+13124'e, mutasyon 52'den 55'e çıktı.
+
+**Oyun içinde görülenler (emülatör, v1.53.0):** paket yükleniyor, yenilik
+ekranı yalnız 1.53.0'ı gösteriyor, 70 TNT'nin amblemleri ayrı ayrı görünüyor,
+Rehber açılıyor ve TNT'ler (70) / Eşyalar (54) / Bloklar (51) listeleniyor,
+ayrıntı sayfası ipucunu ve tarif cümlesini yazıyor, çalışma masasında
+8 elmas + 1 TNT gerçekten Elmas TNT veriyor. Görülmeyen: Ender Ateşi ile
+Altın Ateş'in alevi.
 
 ## v1.53.0 — Tarifler: 92 yeni tarif, ipucunda yapılışı, 25 yapılamayan TNT
 
