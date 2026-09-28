@@ -58,19 +58,47 @@ oyuncunun dinamik özelliğinde durduğu için bir daha açılmıyor. Notlar
 ### Bilinen sınır: emülatörde paket içe alınamıyor
 
 `mc_tablet` emülatöründe `.mcaddon` **içe alınamadı**, yani bu sürüm oyunda
-görülmedi. Denenenler ve sonuçları:
+görülmedi. 2026-09-28'de ölçülen yollar:
 
 | Yol | Sonuç |
 |---|---|
 | `am start -a VIEW -d file:///sdcard/Download/SuperTNT.mcaddon` | Minecraft açıkken "intent delivered", hiçbir şey olmuyor |
-| Aynısı, önce `am force-stop` ile | Minecraft açılıyor, paket klasörleri oluşmuyor |
-| `games/com.mojang/development_behavior_packs` altına doğrudan yazmak | `Permission denied` (Android 15 kapsamlı depolama) |
+| Aynısı, önce `am force-stop` ile | Minecraft açılıyor, paket görünmüyor |
+| `am start -a VIEW -d content://media/external/file/<id> --grant-read-uri-permission` | Aynı: intent gidiyor, içe alma olmuyor |
+| SAF adresi `content://com.android.externalstorage.documents/document/primary%3ADownload%2F...` | `am` kabuktan `SecurityException` atıyor; izin veremiyor |
+| `games/com.mojang/behavior_packs` altına doğrudan yazmak | `Permission denied`; kabuğa `MANAGE_EXTERNAL_STORAGE` verilse de değişmiyor |
+| `am start -a VIEW_DOWNLOADS` + dosyaya dokunmak | Dosya yöneticisi açılıyor, dokununca Minecraft öne geliyor — **ama paket yine gelmiyor** |
 
-Emülatördeki Minecraft'ta hiç dünya da yok (`minecraftWorlds` klasörü
-oluşmamış), yani `shots.sh`'in ön koşulu sağlanmıyor. Geriye kalan yol elle:
-emülatörde bir dosya yöneticisiyle `.mcaddon`'u açmak, sonra Creative +
-Cheats + Flat bir dünya kurup davranış paketini seçmek. Bir kez yapılınca
-`shots.sh` gerisini sürüyor.
+İki şeyi düzeltmek gerekiyor:
+
+**1. Dosya sistemine bakarak "içe alındı mı" sorusu yanıtlanamaz.**
+`/sdcard/Android/data/com.mojang.minecraftpe/files/games/com.mojang` altında
+`logs`, `minecraftpe` ve `world_templates` var ama **hepsi boş** — `options.txt`
+bile yok. Buna karşın oyunun içinde 09/23/26 tarihli, Creative bir "My World"
+dünyası duruyor. Yani bu Minecraft sürümü (v26.51) verisini root olmadan
+görülemeyen iç depolamada tutuyor. Önceki not "dünya yok" diyordu; yanlış
+yere bakıyordu.
+
+**2. Minecraft'ın izni yoktu.** `READ_EXTERNAL_STORAGE` **granted=false**
+durumundaydı ve içe alma denemesi sırasında `MANAGE_EXTERNAL_STORAGE` reddedildi.
+İzin artık verildi:
+
+```bash
+adb shell pm grant com.mojang.minecraftpe android.permission.READ_EXTERNAL_STORAGE
+```
+
+`MANAGE_EXTERNAL_STORAGE` verilemiyor — "not a changeable permission type".
+İzinden sonra da içe alma olmadı, ama bu izin her koşulda gerekli.
+
+**Menüyü dokunuşla sürmek de yarıda kalıyor.** Ana menüde dokunuşlar işliyor
+(Settings ve Play açıldı), ama Play ekranında hiçbir dokunuş ya da tuş olayı
+işlemiyor: "Create new world", dünya satırı, kalem simgesi ve BACK — 100 ms
+ile 1500 ms arası basılı tutmalarla denendi, hiçbiri yanıt vermiyor. Yani içe
+alma çözülse bile dünya kurulumu buradan sürülemiyor.
+
+Geriye kalan yol elle: emülatör penceresinde fareyle `.mcaddon`'u açmak, sonra
+Creative + Cheats + Flat bir dünya kurup davranış paketini seçmek. Bir kez
+yapılınca `shots.sh` gerisini sürüyor — dokunuşlar dünya içinde çalışıyor.
 
 ## v1.51.0 — Patlayıcı Kum zinciri, çıkıntılı Lego
 
