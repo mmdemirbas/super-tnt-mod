@@ -62,6 +62,15 @@ gerekir.
 **Dokunma:** `input tap` 90 ms basıyor ve Minecraft bunu görmüyor;
 `input swipe x y x y 220` (aynı noktada 220 ms) her yerde çalışıyor.
 
+**`wm density`'ye dokunmayın.** Ekran yoğunluğunu değiştirmek System UI'ı
+yeniden başlatıyor; 2026-09-29'da üst üste denendiğinde önce "System UI isn't
+responding", sonra "Process system isn't responding" çıktı ve ardından her
+`adb shell` askıda kaldı — emülatörü soğuk açmak gerekti. Minecraft'ın arayüz
+ölçeği yoğunluğa zaten bakmıyor (320 → 120 denendi, arayüz aynı kaldı); menüde
+daha çok satır görmenin yolu değil. `wm size` de bir kez, açılıştan hemen sonra
+ve Minecraft açılmadan önce verilmeli: oyun çalışırken boyut değişince grafik
+bağlamını kaybedip siyah ekrana düşüyor.
+
 **Dünya ayarlarının sol menüsü sürülemiyor.** `Dünyayı düzenle` ekranında sol
 listenin yalnızca en üstteki iki satırı (`General`, `Advanced`) dokunuşa yanıt
 veriyor; `Cheats`, `Resource packs`, `Behavior packs` hiçbir tekrarla
