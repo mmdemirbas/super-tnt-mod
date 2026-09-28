@@ -1,7 +1,50 @@
 # Super TNT — Bedrock Port Durumu
 
-Son sürüm: **v1.52.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
+Son sürüm: **v1.53.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
 olacak şekilde geliştiriliyor (MorphX / mutant paketine bağımlılık yok).
+
+## v1.53.0 — Tarifler: 51 yeni tarif, ipucunda yapılışı, 25 yapılamayan TNT
+
+Planın ikinci turu (`docs/plan/magaza-kalitesi.md`). Ömer'in seçtiği 20 çizim
+tablet oturumunu bekliyor; tarif işi beklemiyordu, o yüzden bu tur tarifler.
+
+**51 yeni tarif.** Eşyaların ve blokların 47'si artık çalışma masasında
+yapılabiliyor (para, Lego parçaları, portallar ve ateşler bilerek dışarıda:
+onlar kılıkla, silahla ya da çakmakla geliyor). Tarifler tek tabloda,
+`build.py` içindeki `RECIPES`'te duruyor; TNT'lerinki `tnt_recipe()` ile tek
+düzenden üretiliyor.
+
+**İpucu artık yapılışı da söylüyor — ve bu cümle elle yazılmıyor.**
+`recipe_text()` cümleyi tarifin kendisinden üretiyor: "Yapılışı: kenarlara
+8 obsidyen, ortaya 1 Nether yıldızı." Elle yazılan cümle bir tarif değişince
+sessizce yanlış kalıyordu; eskiden yazılmış dört cümle de silinip buraya
+bağlandı. Malzeme adları `VANILLA` tablosunda, iki dilde.
+
+**25 TNT aslında hiç yapılamıyormuş.** Tarif çakışma denetimi eklenince çıktı:
+70 TNT'nin 45'i ayrı malzeme kullanıyordu, kalan 25'i bir başkasıyla harfi
+harfine aynı tarife düşüyordu. Bedrock aynı desen+anahtara iki sonuç
+bağlayamaz; birini sessizce yutar. Yutulanlar arasında Zümrüt TNT, Altın TNT,
+Redstone TNT, Su TNT, Gökkuşağı TNT ve bütün aile TNT'leri vardı. Hepsine
+kendi malzemesi verildi (Anne TNT kurabiye, Bebek TNT yatak, Zebra TNT siyah
+yün...), çakışma kalmadı.
+
+**İki kimlik yanlıştı.** `minecraft:chain` ve `minecraft:magma_block` Bedrock'ta
+yok; doğrusu `minecraft:iron_chain` ve `minecraft:magma`. Bedrock böyle bir
+tarifi hata vermeden yok sayıyor, masada hiçbir şey çıkmıyor. Yakalayabilmek
+için `vanilla_ids.json`'a eşya listesi eklendi (1623 eşya) —
+`fetch_vanilla_ids.py` artık `mojang-items.json`'u da çekiyor.
+
+**Denetim:** `check_recipes()` dört şey tutuyor — her malzeme gerçek bir vanilla
+eşya/blok mu, her malzemenin `VANILLA`'da adı var mı, iki tarif aynı
+desen+anahtara düşüyor mu, tarifi olan her şeyin ipucu üretilen cümleyi
+taşıyor mu. Üç mutasyon (48, 49, 50) üçünün de yakaladığını gösteriyor.
+Statik denetim 10307'den 11457'ye çıktı.
+
+**Sim senaryosu yok, bilerek:** tarifler veri, betik değil — `main.js` onlara
+hiç dokunmuyor. Bu katmanın kapısı `check_pack` + mutasyonlar.
+
+**Oyunda görülmedi.** Emülatör hâlâ paketi içe alamıyor (aşağıdaki tablo).
+Tarifler tablette elle denenmeli: masayı aç, 51 tarifin birkaçını çevir.
 
 ## v1.52.0 — Görünüş turu: amblemler, yanan ateş, yenilikler ekranı
 
