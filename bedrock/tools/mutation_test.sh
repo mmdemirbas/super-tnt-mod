@@ -584,9 +584,9 @@ python3 - <<'PYX'
 import io
 p = "bedrock/build.py"
 s = io.open(p, encoding="utf-8").read()
-old = '                    metin += " " + recipe_text(tarif, "tr" if lang == "tr_TR" else "en")'
+old = '        metin += " " + recipe_text(tarif, lang)'
 assert s.count(old) == 1
-io.open(p, "w", encoding="utf-8").write(s.replace(old, "                    pass", 1))
+io.open(p, "w", encoding="utf-8").write(s.replace(old, "        pass", 1))
 PYX
 python3 bedrock/build.py > /dev/null 2>&1
 run "ipucunda tarif cumlesi yok" "tarif cumlesi yok"

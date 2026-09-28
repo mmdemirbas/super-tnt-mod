@@ -472,7 +472,7 @@ assert s.count(old) == 1
 io.open("bedrock/build.py", "w", encoding="utf-8").write(
     s.replace(old, "  a.push({ i: id, d: dimId, x, y, z, r, b: blok, t: system.currentTick + saniye * 20 });", 1))
 PYX
-run "gecici blok suresi tick sayacina bagli" "Su TNT once suyu koyuyor"
+run "gecici blok suresi tick sayacina bagli" "gecici blok suresi DUNYA saatine gore yaziliyor"
 cp "$BAK/build.bak" bedrock/build.py
 
 # 36) varis kaydi olmasin -> bekleme suresi dolunca iki ates arasinda ping-pong
@@ -573,6 +573,32 @@ io.open("bedrock/build.py", "w", encoding="utf-8").write(
     s.replace(old, "    // Dunya daha yuklenirken form acilmaz", 1))
 PYX
 run "yenilik ekrani olup dirilmede de aciliyor" "olup dirilince yenilik ekrani acilmiyor"
+cp "$BAK/build.bak" bedrock/build.py
+
+# Rehber sayfalanmasin -> tek formda 174 dugme. Minecraft boyle bir formu
+# acmakta zorlaniyor; kilik menusu 135 kayitla zaten sinirda.
+python3 - "$BAK" <<'PYX'
+import io, sys
+s = io.open(sys.argv[1] + "/build.bak", encoding="utf-8").read()
+old = "const GUIDE_PAGE = 24;"
+assert s.count(old) == 1
+io.open("bedrock/build.py", "w", encoding="utf-8").write(
+    s.replace(old, "const GUIDE_PAGE = 999;", 1))
+PYX
+run "rehber sayfalanmiyor" "ilk sayfada 24 kayit + ileri + geri dugmesi var"
+cp "$BAK/build.bak" bedrock/build.py
+
+# Rehber ayrintisinda aciklama yerine yalniz ad -> cocuk ne yaptigini ve
+# nasil yapildigini hicbir yerde okuyamaz
+python3 - "$BAK" <<'PYX'
+import io, sys
+s = io.open(sys.argv[1] + "/build.bak", encoding="utf-8").read()
+old = '    .body(TIPS[id] || "\u2014")'
+assert s.count(old) == 1, s.count(old)
+io.open("bedrock/build.py", "w", encoding="utf-8").write(
+    s.replace(old, '    .body(NAMES[id] || "\u2014")', 1))
+PYX
+run "rehber ayrintisi aciklamasiz" "ayrintida yapilis cumlesi var"
 cp "$BAK/build.bak" bedrock/build.py
 
 echo "yakalanan $pass / kacirilan $fail"

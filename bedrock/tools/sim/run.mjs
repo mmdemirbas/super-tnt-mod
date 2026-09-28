@@ -31,6 +31,9 @@ const ITEM_ACTIONS = constOf("ITEM_ACTIONS");
 const MORPH_ABIL = constOf("MORPH_ABIL");
 const MORPH_MAP = constOf("MORPH_MAP");
 const SPEC = constOf("SPEC");
+const GUIDE = constOf("GUIDE");
+const NAMES = constOf("NAMES");
+const TIPS = constOf("TIPS");
 const playerEvents = JSON.parse(readFileSync(join(BP, "entities", "player.json"), "utf8"))
   ["minecraft:entity"].events;
 
@@ -755,8 +758,11 @@ const EYE = 1.62;                                   // taklit: ayaktaki goz
 // yazisi, hasar, savurma, isinlanma ya da blok degisikliginden EN AZ BIRI.
 function izler(p, mob) {
   const L = __sim.state.log;
+  // Acilan form da GORUNUR bir sonuctur: Rehber gibi tek isi bir ekran acmak
+  // olan esyalar parcacik ya da ses uretmez ama oyuncu ekrani gorur.
   return L.particles.length + L.sounds.length + L.explosions.length
        + L.items.length + L.commands.length + L.actionBars.length
+       + __ui.shown.length
        + __sim.state.blocks.size + p.damages.length + p.knockbacks.length
        + p.effects.size + (mob ? mob.damages.length + mob.knockbacks.length + mob.effects.size : 0);
 }
@@ -1001,10 +1007,26 @@ const PASIF = new Set(["bleed", "heavy", "worn_wool", "held_fireproof"]);
   // runTimeout idi, yani yalnizca bellekte: su SONSUZA KADAR kaliyordu.
   settle();
   const p = fresh();
+  mc.world.setDynamicProperty("stnt:temp", "[]");
   detonateTnt("water_tnt", p, { x: 0, y: 70, z: 0 });
   __sim.tick(150);                             // fitil bitti, su kondu, 10 sn dolmadi
   const suVar = [...__sim.state.blocks.values()].filter((v) => v === "minecraft:water").length;
   ok(suVar > 0, "Su TNT once suyu koyuyor", `${suVar} blok`);
+
+  // Surenin DUNYA saatiyle yazildigini dogrudan olc. Eskiden bu, "150 tick
+  // sonra su hala duruyor mu" uzerinden dolayli olcuuluyordu; o olcum supurge
+  // araligina ve o ana kadar birikmis tick sayisina bagliydi, yani bambaska
+  // bir sey eklemek (bir esya) onu sessizce ise yaramaz hale getiriyordu.
+  // Kayittaki sure dunya saatinin ILERISINDE olmali; tick sayaci ile
+  // yazilsaydi dunya saatinin cok GERISINDE kalirdi.
+  {
+    const kayit = JSON.parse(mc.world.getDynamicProperty("stnt:temp") || "[]");
+    const su = kayit.find((q) => q.b === "minecraft:water");
+    ok(!!su, "gecici su kaydi yazildi", JSON.stringify(kayit).slice(0, 80));
+    ok(su && su.t > mc.world.getAbsoluteTime(),
+       "gecici blok suresi DUNYA saatine gore yaziliyor",
+       su ? `t=${su.t} dunya saati=${mc.world.getAbsoluteTime()}` : "kayit yok");
+  }
   __sim.sertReload();                          // bekleyen runTimeout'lar kayboldu
   __sim.tick(400);
   const kalan = [...__sim.state.blocks.values()].filter((v) => v === "minecraft:water").length;
@@ -1302,6 +1324,62 @@ const PASIF = new Set(["bleed", "heavy", "worn_wool", "held_fireproof"]);
   __sim.fire("after", "playerSpawn", { player: p, initialSpawn: true });
   __sim.tick(80);
   ok(__ui.shown.length === 1, "eski surumden gelen oyuncuya ekran aciliyor");
+}
+
+// ---- 29. Rehber: kategori -> sayfali liste -> ayrinti, sonra geri
+{
+  const p = fresh();
+  // 1. ekran: kategoriler. "TNT'ler"i sec (0).
+  __ui.reply({ selection: 0 });
+  __sim.fire("after", "itemUse", { itemStack: { typeId: "stnt:rehber" }, source: p });
+  __sim.tick(3);
+  await Promise.resolve(); await Promise.resolve();
+  __sim.tick(3);
+
+  const ekranlar = __ui.shown;
+  ok(ekranlar.length >= 2, "rehber once kategorileri, sonra listeyi aciyor",
+     `acilan form: ${ekranlar.length}`);
+  const kat = ekranlar[0].parts.filter((q) => q[0] === "button").map((q) => q[1]);
+  eq(kat.length, 3, "rehberde uc kategori var");
+  ok(kat[0].startsWith("TNT'ler (70)"), "TNT kategorisi sayisini yaziyor", kat[0]);
+
+  const liste = ekranlar[1].parts.filter((q) => q[0] === "button").map((q) => q[1]);
+  // 24 kayit + "sonraki sayfa" + "rehbere don" (ilk sayfada "onceki" yok)
+  eq(liste.length, 26, "ilk sayfada 24 kayit + ileri + geri dugmesi var");
+  ok(liste.some((b) => b.includes("Sonraki sayfa")), "sonraki sayfa dugmesi var");
+  ok(!liste.some((b) => b.includes("Önceki sayfa")), "ilk sayfada onceki yok");
+  const govde = (ekranlar[1].parts.find((q) => q[0] === "body") || [])[1] || "";
+  ok(govde.includes("Sayfa 1 / 3"), "sayfa sayaci dogru", govde);
+  ok(__sim.errors.length === 0, "rehber hata uretmiyor", __sim.errors[0]);
+}
+
+// ---- 30. Rehber ayrinti ekrani tarifi de gosteriyor
+{
+  const p = fresh();
+  __ui.reply({ selection: 0 });   // kategori: TNT'ler
+  __ui.reply({ selection: 0 });   // listedeki ilk kayit
+  __sim.fire("after", "itemUse", { itemStack: { typeId: "stnt:rehber" }, source: p });
+  __sim.tick(3);
+  await Promise.resolve(); await Promise.resolve();
+  __sim.tick(3);
+  await Promise.resolve(); await Promise.resolve();
+  __sim.tick(3);
+
+  const ayrinti = __ui.shown[2];
+  ok(!!ayrinti, "ayrinti ekrani aciliyor", `acilan form: ${__ui.shown.length}`);
+  if (ayrinti) {
+    const govde = (ayrinti.parts.find((q) => q[0] === "body") || [])[1] || "";
+    ok(govde.includes("Yapılışı:"),
+       "ayrintida yapilis cumlesi var — cocuk nasil yapildigini burada okuyor", govde.slice(0, 60));
+  }
+}
+
+// ---- 31. Her TNT, esya ve blok rehberde bir kez geciyor
+{
+  const hepsi = GUIDE.flatMap((g) => g.ids);
+  eq(new Set(hepsi).size, hepsi.length, "rehberde ayni kayit iki kez yok");
+  const eksik = hepsi.filter((id) => !NAMES[id] || !TIPS[id]);
+  eq(eksik.length, 0, "rehberdeki her kaydin adi ve aciklamasi var", eksik.slice(0, 3).join(","));
 }
 
 report();

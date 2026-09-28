@@ -573,6 +573,39 @@ DISGUISES = [
 ]
 
 
+def check_guide(js):
+    """Rehber, paketteki HER seyi bir kez gostermeli.
+
+    Rehber cocugun "bu pakette neler var" sorusuna bakabilecegi tek yer:
+    Bedrock'ta ozel esyanin tooltip'i yok. Bir kayit listeden dusunce hicbir
+    hata cikmaz, o sey oyunda yalnizca envanterde bir ikon olarak kalir ve ne
+    yaptigi hic okunamaz.
+    """
+    m = re.search(r"const GUIDE = (\[[\s\S]*?\]);", js)
+    check(m is not None, "main.js icinde GUIDE yok — rehber verisi gecmemis")
+    if not m:
+        return
+    guide = json.loads(m.group(1))
+    listelenen = [i for g in guide for i in g["ids"]]
+    check(len(listelenen) == len(set(listelenen)), "rehberde ayni kayit iki kez var")
+
+    hepsi = [r['id'] for r in build.TNTS + build.ITEMS + build.BLOCKS]
+    for rid in hepsi:
+        check(rid in listelenen, f"rehberde '{rid}' yok — oyunda ne yaptigi okunamaz")
+    for rid in listelenen:
+        check(rid in hepsi, f"rehberde olmayan bir sey listelenmis: '{rid}'")
+
+    # Ad ve aciklama olmadan kayit bos bir dugme olur.
+    for name in ("NAMES", "TIPS"):
+        mm = re.search(rf"const {name} = (\{{[\s\S]*?\}});", js)
+        check(mm is not None, f"main.js icinde {name} yok")
+        if not mm:
+            continue
+        tablo = json.loads(mm.group(1))
+        for rid in listelenen:
+            check(rid in tablo and tablo[rid], f"{name}: '{rid}' icin karsilik yok")
+
+
 def check_recipes():
     """Tarifler: Bedrock hatali bir tarifi sessizce yok sayar, cocuk da masada
     hicbir sey goremez ve bunu bize "calismiyor" diye bile soyleyemez.
@@ -1217,6 +1250,7 @@ def main():
     check_client_entities()
     check_pack_integrity()
     check_recipes()
+    check_guide(js)
     check_tooltip_contract(js)
     check_tree(js)
     check_poses()

@@ -93,6 +93,7 @@ CHANGES = {
         "Artık her şeyin tarifi var: 92 yeni tarif, çalışma masasında hepsi çıkıyor.",
         "İpucu ne yaptığını olduğu gibi nasıl yapıldığını da yazıyor.",
         "25 TNT aslında hiç yapılamıyormuş — hepsinin malzemesi ayrıldı, hepsi yapılıyor.",
+        "Cebinde Rehber var: kitap + TNT ile yapılır, paketteki her şeyi anlatır.",
         "Lego ve mini bloklar yünden yapılıyor, bir seferde 4 tane çıkıyor.",
     ],
     "1.52.0": [
@@ -1299,6 +1300,13 @@ GOLD_FIRE = dict(burn=8, damage=1, every=10)
 UNENDING = dict(every=10, mark="§d✦ Tükenmez")
 
 ITEMS = [
+    dict(id="rehber", tr="Süper TNT Rehberi", en="Super TNT Guide", kind="raycast",
+         trtip="Sağ tık — paketteki her şeyin listesi açılır: ne yaptığı ve nasıl "
+               "yapıldığı yazar. TNT'ler, eşyalar, bloklar ayrı ayrı.",
+         entip="Right-click - opens the list of everything in the pack: what it does "
+               "and how it is crafted. TNTs, items and blocks in separate lists.",
+         color=(200, 170, 90),
+         action=dict(type="guide")),
     dict(id="spicy_chips", tr="Acılı Cips", en="Spicy Chips", kind="food",
          trtip="Ye ve 20 sn Hız III kazan!", entip="Eat for Speed III for 20s!",
          color=(224, 120, 40), action=dict(type="eat", effect="speed", seconds=20, amp=2)),
@@ -1689,6 +1697,7 @@ SYMBOL_IDS = (
     "lightning_spell",
     "sahte_elmas_kilic", "sahte_elmas_kazma", "sahte_elmas_balta",
     "sahte_elmas_kurek", "sahte_elmas_capa",
+    "rehber",
 )
 # ARKAPLANI BOYALI kalan tek iki ikon. Ikisi de bir ISIK/DALGA etkisi cizer:
 # saydam zeminde dalgalar havada asili duruyor gibi duruyordu, koyu zemin
@@ -1904,6 +1913,18 @@ def symbol_texture(path, item_id):
         for (bx, by) in ((5, 9), (9, 10), (6, 12), (10, 12), (8, 9)):
             px(bx, by, (104, 104, 108))              # tas benegi
         hline(8, 3, 12, (150, 150, 154))             # kup ust kenar isigi
+    elif iid == "rehber":
+        # acik kitap: kahverengi kapak, iki krem sayfa, ortada sirt, ustunde
+        # kirmizi ayrac. Envanterde tek kitap ikonu bu, karismaz.
+        rect(2, 3, 13, 12, (122, 68, 40))            # kapak
+        rect(3, 4, 7, 11, (240, 230, 202))           # sol sayfa
+        rect(9, 4, 12, 11, (240, 230, 202))          # sag sayfa
+        vline(8, 3, 12, (86, 46, 26))                # sirt
+        hline(6, 4, 6, (160, 148, 120))              # yazi satirlari
+        hline(8, 4, 6, (160, 148, 120))
+        hline(6, 9, 11, (160, 148, 120))
+        hline(8, 9, 11, (160, 148, 120))
+        vline(11, 2, 6, (206, 58, 48))               # ayrac
     elif iid == "isim_degistirici":
         # asili duran isim etiketi: ip, delik, kagit, uzerinde iki yazi satiri
         vline(8, 1, 3, (150, 130, 90))               # ip
@@ -2706,6 +2727,7 @@ TNT_GLYPH = {
 # Bedrock ayni desen+anahtari iki kez gorunce birini sessizce yutuyor.
 # Desen satirlari esit uzunlukta olmali; bosluk = bos hucre.
 RECIPES = {
+    "rehber":             dict(pattern=["BT"], key={"B": "minecraft:book", "T": "minecraft:tnt"}),
     # --- yiyecek ve iksir
     "spicy_chips":        dict(pattern=["BPB"], key={"B": "minecraft:blaze_powder", "P": "minecraft:baked_potato"}),
     "saglik_iksiri":      dict(pattern=["GGG", "GBG", "GGG"], key={"G": "minecraft:glistering_melon_slice", "B": "minecraft:glass_bottle"}),
@@ -2972,6 +2994,28 @@ def tnt_recipe(t):
     Hem tarif dosyasi hem ipucu cumlesi buradan okur, yoksa ikisi ayrisir."""
     return dict(pattern=["MMM", "MTM", "MMM"],
                 key={"M": t['mat'], "T": "minecraft:tnt"})
+
+
+def recipe_of(rid):
+    """Bir kimligin tarifi. TNT'ler tek duzenden, geri kalan RECIPES'ten."""
+    for t in TNTS:
+        if t['id'] == rid:
+            return tnt_recipe(t)
+    return RECIPES.get(rid)
+
+
+def tooltip(row, lang):
+    """Ipucunun TAM metni: yazilan aciklama + tarifden uretilen yapilis cumlesi.
+
+    texts/*.lang, betikteki TIPS ve Rehber ucu de buradan okur. Ayri ayri
+    kurulsalardi cocuk eylem cubuginda baska, rehberde baska bir sey okurdu ve
+    hangisinin dogru oldugu belli olmazdi.
+    """
+    metin = row["trtip" if lang == "tr" else "entip"]
+    tarif = recipe_of(row['id'])
+    if tarif:
+        metin += " " + recipe_text(tarif, lang)
+    return metin
 
 
 def recipe_unlock(recipe):
@@ -3321,6 +3365,7 @@ def png_rgb(path, rows, wd, ht):
         c = struct.pack('>I', len(data)) + tag + data
         return c + struct.pack('>I', zlib.crc32(tag + data) & 0xffffffff)
     hdr = struct.pack('>IIBBBBB', wd, ht, 8, 2, 0, 0, 0)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
     open(path, 'wb').write(b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', hdr)
                           + chunk(b'IDAT', zlib.compress(raw, 9)) + chunk(b'IEND', b''))
 
@@ -3334,6 +3379,7 @@ def png_rgba(path, rows, wd, ht):
         c = struct.pack('>I', len(data)) + tag + data
         return c + struct.pack('>I', zlib.crc32(tag + data) & 0xffffffff)
     hdr = struct.pack('>IIBBBBB', wd, ht, 8, 6, 0, 0, 0)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
     open(path, 'wb').write(b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', hdr)
                           + chunk(b'IDAT', zlib.compress(raw, 9)) + chunk(b'IEND', b''))
 
@@ -4048,25 +4094,16 @@ def build():
             lines = [f"pack.name=Super TNT Mod",
                      f"pack.description=Super TNT Mod",
                      f"itemGroup.name.super_tnt={grp}"]
-            # Ipucunun sonuna tarif cumlesi EKLENIR (elle yazilmaz, bkz.
-            # recipe_text). Tarifi olmayanda hic cumle cikmaz; "yapilamaz"
-            # diye bir cumle de yazmiyoruz, cunku cogu blok kilikla ya da
-            # baska bir TNT'nin patlamasiyla geliyor.
-            def tip(row, tarif):
-                metin = row[tk]
-                if tarif:
-                    metin += " " + recipe_text(tarif, "tr" if lang == "tr_TR" else "en")
-                return metin
-
+            kisa = "tr" if lang == "tr_TR" else "en"
             for t in TNTS:
                 lines.append(f"tile.stnt:{t['id']}.name={t[nk]}")
-                lines.append(f"stnt.tip.{t['id']}={tip(t, tnt_recipe(t))}")
+                lines.append(f"stnt.tip.{t['id']}={tooltip(t, kisa)}")
             for blk in BLOCKS:
                 lines.append(f"tile.stnt:{blk['id']}.name={blk[nk]}")
-                lines.append(f"stnt.tip.{blk['id']}={tip(blk, blk.get('recipe'))}")
+                lines.append(f"stnt.tip.{blk['id']}={tooltip(blk, kisa)}")
             for it in ITEMS:
                 lines.append(f"item.stnt:{it['id']}.name={it[nk]}")
-                lines.append(f"stnt.tip.{it['id']}={tip(it, it.get('recipe'))}")
+                lines.append(f"stnt.tip.{it['id']}={tooltip(it, kisa)}")
             open(os.path.join(pack, f"texts/{lang}.lang"), 'w',
                  encoding='utf-8').write("\n".join(lines) + "\n")
 
@@ -4194,8 +4231,15 @@ def build():
 
     # ---------- script
     spec = {t['id']: t['effect'] for t in TNTS}
-    tips = {t['id']: t['tr'] for t in TNTS}
-    tiptext = {t['id']: t['trtip'] for t in TNTS}
+    # NAMES/TIPS eskiden yalniz TNT'leri tasiyordu: cocuk elinde bir esya ya da
+    # blok tutunca eylem cubuginda HICBIR sey gormuyordu. Bedrock'ta ozel
+    # esyanin baska bir ipucu yeri de yok, yani o esyalarin aciklamasi oyunda
+    # hic okunamiyordu. Artik ucu de burada.
+    tips = {r['id']: r['tr'] for r in TNTS + ITEMS + BLOCKS}
+    tiptext = {r['id']: tooltip(r, "tr") for r in TNTS + ITEMS + BLOCKS}
+    guide = [{"cat": "TNT'ler", "ids": [t['id'] for t in TNTS]},
+             {"cat": "Eşyalar", "ids": [i['id'] for i in ITEMS]},
+             {"cat": "Bloklar", "ids": [b['id'] for b in BLOCKS]}]
     item_actions = {it['id']: it['action'] for it in ITEMS if it.get('action')}
     fake_tools = {f"stnt:{f['id']}": f['wood'] for f in FAKE_TOOLS}
     fake_names = {f"stnt:{f['id']}": f['woodtr'] for f in FAKE_TOOLS}
@@ -4205,6 +4249,7 @@ def build():
                             .replace("__ITEM_ACTIONS__", json.dumps(item_actions)) \
                             .replace("__FAKE_TOOLS__", json.dumps(fake_tools)) \
                             .replace("__FAKE_NAMES__", json.dumps(fake_names, ensure_ascii=False)) \
+                            .replace("__GUIDE__", json.dumps(guide, ensure_ascii=False)) \
                             .replace("__MORPH_FORMS__", json.dumps(
                                 [{"cat": c, "items": [{"ev": f"st:morph_{mo['key']}", "name": mo['tr']}
                                                       for mo in MORPHS if mo['cat'] == c]}
@@ -4656,6 +4701,10 @@ function itemAction(player, a) {
         blockMorphUse(player);
         break;
       }
+      case "guide": {
+        guideOpen(player, 0);
+        break;
+      }
       case "sonic": {
         // Kisa bekleme: her tik 24 adim + 24 varlik taramasi demek, hizli
         // tiklama tableti yorar. 10 tick fark edilmeyecek kadar kisa.
@@ -4999,6 +5048,61 @@ system.runInterval(() => {
 // VURMAK ve bir blok KIRMAK.
 const FAKE_TOOLS = __FAKE_TOOLS__;    // "stnt:sahte_elmas_kilic" -> "minecraft:wooden_sword"
 const FAKE_NAMES = __FAKE_NAMES__;    // ayni anahtar -> tahta aletin Turkce adi
+const GUIDE = __GUIDE__;              // [{cat, ids:[...]}] — rehberin icindekiler
+const GUIDE_PAGE = 24;                // bir sayfada kac kayit
+
+// ---------------------------------------------------------------- Rehber
+// Bedrock'ta ozel esyanin tooltip'i yok; eylem cubugu da yalniz ELDEKI seyi
+// anlatiyor. Cocugun "bu pakette neler var" sorusuna bakabilecegi tek yer bu.
+// Sayfalama sart: tek formda 174 dugme Minecraft'i kilitliyor (kilik menusu
+// 135 kayitla zaten sinirda), o yuzden 24'erli.
+function guideOpen(pl, tries) {
+  const f = new ActionFormData().title("§eSüper TNT Rehberi")
+    .body("Neye bakmak istersin?");
+  for (const g of GUIDE) f.button(`${g.cat} (${g.ids.length})`);
+  f.show(pl).then((r) => {
+    if (r.canceled) {
+      // UserBusy: oyuncu daha yukleniyor ya da baska ekran acik. Birkac kez dene.
+      if (r.cancelationReason === "UserBusy" && (tries || 0) < 5) {
+        system.runTimeout(() => guideOpen(pl, (tries || 0) + 1), 20);
+      }
+      return;
+    }
+    if (r.selection === undefined) return;
+    guideList(pl, r.selection, 0);
+  }).catch(() => {});
+}
+
+function guideList(pl, cat, page) {
+  const g = GUIDE[cat];
+  if (!g) return;
+  const sayfa = Math.max(1, Math.ceil(g.ids.length / GUIDE_PAGE));
+  const p = Math.min(Math.max(0, page), sayfa - 1);
+  const dilim = g.ids.slice(p * GUIDE_PAGE, (p + 1) * GUIDE_PAGE);
+  const f = new ActionFormData().title(`§e${g.cat}`)
+    .body(`Sayfa ${p + 1} / ${sayfa}`);
+  for (const id of dilim) f.button(NAMES[id] || id);
+  if (p + 1 < sayfa) f.button("§7» Sonraki sayfa");
+  if (p > 0) f.button("§7« Önceki sayfa");
+  f.button("§7« Rehbere dön");
+  f.show(pl).then((r) => {
+    if (r.canceled || r.selection === undefined) return;
+    let i = r.selection;
+    if (i < dilim.length) { guideDetail(pl, cat, p, dilim[i]); return; }
+    i -= dilim.length;
+    if (p + 1 < sayfa) { if (i === 0) { guideList(pl, cat, p + 1); return; } i -= 1; }
+    if (p > 0) { if (i === 0) { guideList(pl, cat, p - 1); return; } i -= 1; }
+    guideOpen(pl, 0);
+  }).catch(() => {});
+}
+
+function guideDetail(pl, cat, page, id) {
+  const f = new ActionFormData().title(`§e${NAMES[id] || id}`)
+    .body(TIPS[id] || "—")
+    .button("§7« Listeye dön");
+  f.show(pl).then(() => guideList(pl, cat, page)).catch(() => {});
+}
+
 
 // Elindeki alet sahteyse tahtaya cevirir.
 //
