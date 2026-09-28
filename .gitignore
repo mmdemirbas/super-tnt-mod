@@ -47,6 +47,7 @@ bedrock/out/
 # temp / scratch
 
 tmp/
+.claude/
 
 # Python
 __pycache__/
