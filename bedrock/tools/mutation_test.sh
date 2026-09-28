@@ -626,6 +626,55 @@ run "bir esyanin tarifi yok" "NO_RECIPE"
 cp "$BAK/b52.bak" bedrock/build.py
 python3 bedrock/build.py > /dev/null 2>&1
 
+# 53) esyanin ad anahtarina '.name' geri eklensin -> oyun adi bulamaz ve
+#     envanterde "item.stnt:rehber" gibi cig anahtar yazar. Hicbir hata cikmaz.
+cp bedrock/build.py "$BAK/b53.bak"
+python3 - <<'PYX'
+import io
+p = "bedrock/build.py"
+s = io.open(p, encoding="utf-8").read()
+old = 'lines.append(f"item.stnt:{it[\'id\']}={it[nk]}")'
+assert s.count(old) == 1
+new = 'lines.append(f"item.stnt:{it[\'id\']}.name={it[nk]}")'
+io.open(p, "w", encoding="utf-8").write(s.replace(old, new, 1))
+PYX
+python3 bedrock/build.py > /dev/null 2>&1
+run "esya ad anahtari .name ekli" "ad satiri yok"
+cp "$BAK/b53.bak" bedrock/build.py
+python3 bedrock/build.py > /dev/null 2>&1
+
+# 54) rehber dugmesine §7 geri gelsin -> acik gri zeminde gri yazi gorunmez,
+#     cocuk bos bir dugme gorur
+cp bedrock/build.py "$BAK/b54.bak"
+python3 - <<'PYX'
+import io
+p = "bedrock/build.py"
+s = io.open(p, encoding="utf-8").read()
+old = 'f.button("« Rehbere dön");'
+assert s.count(old) == 1
+io.open(p, "w", encoding="utf-8").write(s.replace(old, 'f.button("§7« Rehbere dön");', 1))
+PYX
+python3 bedrock/build.py > /dev/null 2>&1
+run "form dugmesinde §7" "gorunmez"
+cp "$BAK/b54.bak" bedrock/build.py
+python3 bedrock/build.py > /dev/null 2>&1
+
+# 55) eylem cubugu esya/blok ayrimini birakip her seye 'tile.<id>.name' desin
+#     -> esya elde tutulunca cubukta cig anahtar yazar
+cp bedrock/build.py "$BAK/b55.bak"
+python3 - <<'PYX'
+import io
+p = "bedrock/build.py"
+s = io.open(p, encoding="utf-8").read()
+old = 'const adKey = ITEM_IDS.has(s) ? `item.stnt:${s}` : `tile.stnt:${s}.name`;'
+assert s.count(old) == 1
+io.open(p, "w", encoding="utf-8").write(s.replace(old, 'const adKey = `tile.stnt:${s}.name`;', 1))
+PYX
+python3 bedrock/build.py > /dev/null 2>&1
+run "eylem cubugu esya/blok ayrimi yok" "ITEM_IDS kullanilmiyor"
+cp "$BAK/b55.bak" bedrock/build.py
+python3 bedrock/build.py > /dev/null 2>&1
+
 echo
 python3 bedrock/build.py > /dev/null && echo "paket yeniden uretildi"
 echo "yakalanan $pass / kacirilan $fail"

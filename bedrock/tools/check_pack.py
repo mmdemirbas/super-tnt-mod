@@ -157,8 +157,12 @@ def check_items(js):
         if icon in itex:
             rel = itex[icon]["textures"]
             check(os.path.exists(os.path.join(RP, rel + ".png")), f"item {iid}: doku dosyasi yok ({rel}.png)")
-        check(f"item.stnt:{iid}.name" in tr, f"item {iid}: tr_TR ad satiri yok")
-        check(f"item.stnt:{iid}.name" in en, f"item {iid}: en_US ad satiri yok")
+        # Esyanin ad anahtari '.name' EKSIZ. '.name' ekli yazilinca oyun adi
+        # bulamaz ve envanterde cig anahtari gosterir (2026-09-29, emulator).
+        check(f"item.stnt:{iid}" in tr, f"item {iid}: tr_TR ad satiri yok")
+        check(f"item.stnt:{iid}" in en, f"item {iid}: en_US ad satiri yok")
+        check(f"item.stnt:{iid}.name" not in tr,
+              f"item {iid}: ad anahtari '.name' ekli — oyun boyle arayamaz")
         check(f"stnt.tip.{iid}" in tr, f"item {iid}: tr_TR ipucu yok")
         check(f"stnt.tip.{iid}" in en, f"item {iid}: en_US ipucu yok")
         act = it.get("action")
@@ -605,6 +609,21 @@ def check_guide(js):
         for rid in listelenen:
             check(rid in tablo and tablo[rid], f"{name}: '{rid}' icin karsilik yok")
 
+    # Form dugmesinde §7 (gri) yazi, acik gri dugme zemininde GORUNMEZ olur:
+    # cocuk bos bir dugme gorur, nereye bastigini bilmez (2026-09-29, emulator).
+    check('.button("§7' not in js and ".button(`§7" not in js,
+          "form dugmesinde §7 renk kodu var — yazi dugme zemininde gorunmez")
+
+    # Eylem cubugundaki ad anahtari: esya 'item.<id>', blok 'tile.<id>.name'.
+    # Yanlisini kullanan cubuk cig anahtari basar.
+    mi = re.search(r"const ITEM_IDS = new Set\((\[[\s\S]*?\])\);", js)
+    check(mi is not None, "main.js icinde ITEM_IDS yok — esya/blok ayrimi yapilamaz")
+    if mi:
+        check(sorted(json.loads(mi.group(1))) == sorted(i["id"] for i in build.ITEMS),
+              "ITEM_IDS listesi build.ITEMS ile ayni degil")
+        check("ITEM_IDS.has(s)" in js,
+              "ITEM_IDS kullanilmiyor — eylem cubugu esyalarda cig anahtar basar")
+
 
 def check_recipes():
     """Tarifler: Bedrock hatali bir tarifi sessizce yok sayar, cocuk da masada
@@ -741,7 +760,9 @@ def check_pack_integrity():
     for lang in ("tr_TR", "en_US"):
         names = {}
         for line in open(os.path.join(RP, "texts", f"{lang}.lang"), encoding="utf-8"):
-            if line.startswith(("item.", "tile.")) and ".name=" in line:
+            ad_satiri = (line.startswith("tile.") and ".name=" in line) or \
+                        (line.startswith("item.stnt:") and ".name=" not in line)
+            if ad_satiri:
                 k, v = line.strip().split("=", 1)
                 check(v not in names, f"{lang}: '{v}' adi hem {names.get(v)} hem {k}")
                 names.setdefault(v, k)

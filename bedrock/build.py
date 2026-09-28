@@ -79,7 +79,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 53, 0]
+VERSION = [1, 54, 0]
 MIN_ENGINE = [1, 21, 0]
 
 # ---- Yenilikler ekrani ----------------------------------------------------
@@ -89,6 +89,11 @@ MIN_ENGINE = [1, 21, 0]
 # uretmeye izin vermez — sessizce notsuz surum cikmasin diye.
 # Tablo bu surumde basladi; oncekilerin notlari bedrock/PORT-DURUMU.md'de.
 CHANGES = {
+    "1.54.0": [
+        "Eşyaların adı artık yazıyor: 54 eşya envanterde kod gibi görünüyordu.",
+        "Elde eşya tutunca ekranın altında adı ve ne işe yaradığı çıkıyor.",
+        "Rehberdeki geri ve sonraki sayfa düğmelerinin yazısı artık okunuyor.",
+    ],
     "1.53.0": [
         "Artık her şeyin tarifi var: 92 yeni tarif, çalışma masasında hepsi çıkıyor.",
         "İpucu ne yaptığını olduğu gibi nasıl yapıldığını da yazıyor.",
@@ -4102,7 +4107,11 @@ def build():
                 lines.append(f"tile.stnt:{blk['id']}.name={blk[nk]}")
                 lines.append(f"stnt.tip.{blk['id']}={tooltip(blk, kisa)}")
             for it in ITEMS:
-                lines.append(f"item.stnt:{it['id']}.name={it[nk]}")
+                # Blokta anahtar 'tile.<id>.name', ESYADA 'item.<id>' — sonunda
+                # '.name' YOK. format_version 1.20.30 veri-tabanli esyalar boyle
+                # ariyor; '.name' ekli yazilinca oyun adi bulamayip cig anahtari
+                # ("item.stnt:rehber") basiyor. 2026-09-29'da emulatorde goruldu.
+                lines.append(f"item.stnt:{it['id']}={it[nk]}")
                 lines.append(f"stnt.tip.{it['id']}={tooltip(it, kisa)}")
             open(os.path.join(pack, f"texts/{lang}.lang"), 'w',
                  encoding='utf-8').write("\n".join(lines) + "\n")
@@ -4246,6 +4255,7 @@ def build():
     script = SCRIPT_TEMPLATE.replace("__SPEC__", json.dumps(spec, indent=2)) \
                             .replace("__NAMES__", json.dumps(tips, ensure_ascii=False)) \
                             .replace("__TIPS__", json.dumps(tiptext, ensure_ascii=False)) \
+                            .replace("__ITEM_IDS__", json.dumps([i['id'] for i in ITEMS])) \
                             .replace("__ITEM_ACTIONS__", json.dumps(item_actions)) \
                             .replace("__FAKE_TOOLS__", json.dumps(fake_tools)) \
                             .replace("__FAKE_NAMES__", json.dumps(fake_names, ensure_ascii=False)) \
@@ -4326,6 +4336,9 @@ import { ActionFormData, ModalFormData } from "@minecraft/server-ui";
 const SPEC = __SPEC__;
 const NAMES = __NAMES__;
 const TIPS = __TIPS__;
+// Ad ceviri anahtari esyada ve blokta farkli; hangisinin esya oldugunu bilmek
+// icin ITEMS listesinden uretilen tek kaynak.
+const ITEM_IDS = new Set(__ITEM_IDS__);
 const ITEM_ACTIONS = __ITEM_ACTIONS__;
 const TREE_WOOD = __TREE_WOOD__;       // fidan -> [govde blogu, yaprak blogu]
 const MORPH_FORMS = __MORPH_FORMS__;   // donusum menusu: kategori -> mob listesi
@@ -5082,9 +5095,10 @@ function guideList(pl, cat, page) {
   const f = new ActionFormData().title(`§e${g.cat}`)
     .body(`Sayfa ${p + 1} / ${sayfa}`);
   for (const id of dilim) f.button(NAMES[id] || id);
-  if (p + 1 < sayfa) f.button("§7» Sonraki sayfa");
-  if (p > 0) f.button("§7« Önceki sayfa");
-  f.button("§7« Rehbere dön");
+  // Renk kodu YOK: §7 gri, dugme zemini de acik gri — yazi gorunmez oluyordu.
+  if (p + 1 < sayfa) f.button("» Sonraki sayfa");
+  if (p > 0) f.button("« Önceki sayfa");
+  f.button("« Rehbere dön");
   f.show(pl).then((r) => {
     if (r.canceled || r.selection === undefined) return;
     let i = r.selection;
@@ -5099,7 +5113,7 @@ function guideList(pl, cat, page) {
 function guideDetail(pl, cat, page, id) {
   const f = new ActionFormData().title(`§e${NAMES[id] || id}`)
     .body(TIPS[id] || "—")
-    .button("§7« Listeye dön");
+    .button("« Listeye dön");
   f.show(pl).then(() => guideList(pl, cat, page)).catch(() => {});
 }
 
@@ -5359,7 +5373,7 @@ function morphMenu(pl) {
     const g = MORPH_FORMS[i - 1];
     if (!g) return;
     const sub = new ActionFormData().title(g.cat).body("Bir yaratık seç:");
-    sub.button("§7◀ Geri");
+    sub.button("◀ Geri");
     for (const m of g.items) sub.button(m.name);
     showForm(pl, sub, (j) => {
       if (j === 0) { morphMenu(pl); return; }
@@ -5549,9 +5563,12 @@ system.runInterval(() => {
       // Ham metin yerine ceviri anahtari: oyuncunun dilinde gorunur ve
       // texts/*.lang'daki anahtarlar olu kalmaz.
       try {
+        // Esyanin ad anahtari 'item.<id>', blogunki 'tile.<id>.name'.
+        // Yanlisini kullanan eylem cubugu cig anahtari basiyor.
+        const adKey = ITEM_IDS.has(s) ? `item.stnt:${s}` : `tile.stnt:${s}.name`;
         p.onScreenDisplay.setActionBar({
           rawtext: [
-            { text: "§e" }, { translate: `tile.stnt:${s}.name` },
+            { text: "§e" }, { translate: adKey },
             { text: "§r §7- " }, { translate: `stnt.tip.${s}` },
           ],
         });
