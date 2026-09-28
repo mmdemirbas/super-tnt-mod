@@ -451,7 +451,7 @@ python3 - <<'PYX'
 import io
 p = "bedrock/build.py"
 s = io.open(p, encoding="utf-8").read()
-old = "TNT'leri ve patlayıcı kumları da zincirleme patlatır. "
+old = "TNT'leri ve patlayıcı kumları da zincirleme patlatır."
 assert s.count(old) == 1
 io.open(p, "w", encoding="utf-8").write(s.replace(old, "", 1))
 PYX
@@ -538,6 +538,59 @@ PYX
 python3 bedrock/build.py > /dev/null 2>&1
 run "ates kareleri birbirinin ayni" "butun kareler ayni"
 cp "$BAK/b47.bak" bedrock/build.py
+python3 bedrock/build.py > /dev/null 2>&1
+
+# 48) iki TNT ayni malzemeyi kullansin -> tarifleri harfi harfine ayni olur,
+#     Bedrock birini sessizce yutar ve o TNT hic yapilamaz. 2026-09-28'de
+#     70 TNT'nin 25'i tam bu yuzden yapilamiyordu; kimse fark etmemisti.
+cp bedrock/build.py "$BAK/b48.bak"
+python3 - <<'PYX'
+import io
+p = "bedrock/build.py"
+s = io.open(p, encoding="utf-8").read()
+old = 'mat="minecraft:cookie"'
+assert s.count(old) == 1
+io.open(p, "w", encoding="utf-8").write(s.replace(old, 'mat="minecraft:emerald"', 1))
+PYX
+python3 bedrock/build.py > /dev/null 2>&1
+run "iki TNT ayni tarife dusuyor" "ayni tarif"
+cp "$BAK/b48.bak" bedrock/build.py
+python3 bedrock/build.py > /dev/null 2>&1
+
+# 49) bir tarifte olmayan bir vanilla kimligi -> Bedrock tarifi sessizce
+#     yok sayar, masada hicbir sey cikmaz. chain/magma_block ikisi de boyleydi.
+cp bedrock/build.py "$BAK/b49.bak"
+python3 - <<'PYX'
+import io
+p = "bedrock/build.py"
+s = io.open(p, encoding="utf-8").read()
+old = '"W": "minecraft:wooden_sword"'
+assert s.count(old) == 1
+s = s.replace(old, '"W": "minecraft:wood_sword"', 1)
+# adi da ekle: gercek hata tam boyleydi (chain/magma icin ad yazilmisti ama
+# Bedrock'ta o kimlikler yoktu), yoksa build ad bulamayip hic uretmiyor
+s = s.replace('VANILLA = {', 'VANILLA = {\n    "minecraft:wood_sword": ("tahta kilic", "wood sword"),', 1)
+io.open(p, "w", encoding="utf-8").write(s)
+PYX
+python3 bedrock/build.py > /dev/null 2>&1
+run "tarifte olmayan malzeme" "vanilla esya/blok yok"
+cp "$BAK/b49.bak" bedrock/build.py
+python3 bedrock/build.py > /dev/null 2>&1
+
+# 50) tarif cumlesi ipucuna eklenmesin -> cocuk eşyayi gorur, nasil
+#     yapildigini hicbir yerde okuyamaz
+cp bedrock/build.py "$BAK/b50.bak"
+python3 - <<'PYX'
+import io
+p = "bedrock/build.py"
+s = io.open(p, encoding="utf-8").read()
+old = '                    metin += " " + recipe_text(tarif, "tr" if lang == "tr_TR" else "en")'
+assert s.count(old) == 1
+io.open(p, "w", encoding="utf-8").write(s.replace(old, "                    pass", 1))
+PYX
+python3 bedrock/build.py > /dev/null 2>&1
+run "ipucunda tarif cumlesi yok" "tarif cumlesi yok"
+cp "$BAK/b50.bak" bedrock/build.py
 python3 bedrock/build.py > /dev/null 2>&1
 
 echo

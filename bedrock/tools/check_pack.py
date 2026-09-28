@@ -41,6 +41,7 @@ _spec.loader.exec_module(build)          # build() sadece __main__'de calisir
 
 VAN = json.load(open(os.path.join(HERE, "vanilla_ids.json"), encoding="utf-8"))
 BLOCKS = set(VAN["blocks"])
+ITEM_IDS = set(VAN["items"])
 ENTITIES = set(VAN["entities"])
 # Etki kimlikleri vanilla verisinde "minecraft:speed" olarak duruyor; betikte
 # ve addEffect cagrilarinda kisa ad kullaniliyor. Iki bicimi de kabul et.
@@ -570,6 +571,65 @@ DISGUISES = [
     {"stnt_gizli_tnt", "stnt_cam_tnt"},
     {"stnt_right_golden_plate", "stnt_wrong_golden_plate"},
 ]
+
+
+def check_recipes():
+    """Tarifler: Bedrock hatali bir tarifi sessizce yok sayar, cocuk da masada
+    hicbir sey goremez ve bunu bize "calismiyor" diye bile soyleyemez.
+
+    Uc sey tutuluyor:
+    (a) Her malzeme gercek bir vanilla esya/blok ya da bizim kendi id'miz.
+        Tek harf yazim hatasi tarifi ise yaramaz hale getirir, hicbir yerde
+        hata cikmaz.
+    (b) Iki tarif ayni desen+anahtarda olamaz. Bedrock ayni sekle iki sonuc
+        baglayamaz; birini yutar, hangisini yuttugu da belli olmaz.
+    (c) Tarifi olan her seyin ipucu, tarifi ANLATIYOR olmali; ustelik cumle
+        tarifin kendisinden uretilmis olmali (build.recipe_text). Elle yazilan
+        cumle tarif degisince sessizce yanlis kalirdi.
+    """
+    lang = {}
+    for kod, kisa in (("tr_TR", "tr"), ("en_US", "en")):
+        lang[kisa] = dict(
+            satir.split("=", 1)
+            for satir in open(os.path.join(BP, f"texts/{kod}.lang"), encoding="utf-8")
+            .read().splitlines() if "=" in satir)
+
+    kendi = {"stnt:" + os.path.basename(x)[:-5]
+             for x in glob.glob(os.path.join(BP, "items", "*.json")) +
+                      glob.glob(os.path.join(BP, "blocks", "*.json"))}
+    gorulen = {}
+    for path in sorted(glob.glob(os.path.join(BP, "recipes", "*.json"))):
+        ad = os.path.basename(path)[:-5]
+        r = jload(path)["minecraft:recipe_shaped"]
+
+        for harf, v in r["key"].items():
+            iid = v["item"]
+            check(iid in ITEM_IDS or iid in BLOCKS or iid in kendi,
+                  f"{ad}: '{iid}' diye bir vanilla esya/blok yok")
+            check(iid in build.VANILLA or iid in kendi,
+                  f"{ad}: '{iid}' icin build.VANILLA'da ad yok — ipucu cumlesi yazilamaz")
+
+        imza = (tuple(r["pattern"]), tuple(sorted((k, v["item"]) for k, v in r["key"].items())))
+        check(imza not in gorulen, f"{ad}: {gorulen.get(imza)} ile ayni tarif — biri yutulur")
+        gorulen.setdefault(imza, ad)
+
+        # ipucu tarifi anlatiyor mu
+        sonuc = r["result"]["item"].split(":", 1)[1]
+        tarif = build.RECIPES.get(sonuc) or next(
+            (build.tnt_recipe(t) for t in build.TNTS if t['id'] == sonuc), None)
+        check(tarif is not None, f"{ad}: tarif dosyasi var ama build tarafinda tanimi yok")
+        if tarif is None:
+            continue
+        for kisa in ("tr", "en"):
+            cumle = build.recipe_text(tarif, kisa)
+            ipucu = lang[kisa].get(f"stnt.tip.{sonuc}", "")
+            check(cumle in ipucu,
+                  f"{sonuc}: {kisa} ipucunda tarif cumlesi yok ('{cumle}')")
+
+    # Tersi de tutulmali: tabloda olup dosyaya donusmeyen tarif sessizce kaybolur.
+    uretilen = {os.path.basename(x)[:-5] for x in glob.glob(os.path.join(BP, "recipes", "*.json"))}
+    for rid in build.RECIPES:
+        check(rid in uretilen, f"RECIPES['{rid}'] icin tarif dosyasi uretilmemis")
 
 
 def check_pack_integrity():
@@ -1137,6 +1197,7 @@ def main():
     check_ids(js)
     check_client_entities()
     check_pack_integrity()
+    check_recipes()
     check_tooltip_contract(js)
     check_tree(js)
     check_poses()

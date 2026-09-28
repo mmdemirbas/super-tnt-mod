@@ -79,7 +79,7 @@ RP_MOD_UUID = "c409b083-2ea1-4ceb-9aed-0168efe05c98"
 # "ayni paket" sayar ve listede ikinci bir kopya gosterebilir. Surum
 # YUKSELTILIRSE guncelleme olarak alir ve o paketi kullanan dunyalar yeni
 # surume gecer. Bu yuzden her yeni .mcaddon'da burayi artir.
-VERSION = [1, 52, 0]
+VERSION = [1, 53, 0]
 MIN_ENGINE = [1, 21, 0]
 
 # ---- Yenilikler ekrani ----------------------------------------------------
@@ -89,6 +89,11 @@ MIN_ENGINE = [1, 21, 0]
 # uretmeye izin vermez — sessizce notsuz surum cikmasin diye.
 # Tablo bu surumde basladi; oncekilerin notlari bedrock/PORT-DURUMU.md'de.
 CHANGES = {
+    "1.53.0": [
+        "Artık her şeyin tarifi var: 51 yeni tarif, çalışma masasında hepsi çıkıyor.",
+        "İpucu ne yaptığını olduğu gibi nasıl yapıldığını da yazıyor.",
+        "25 TNT aslında hiç yapılamıyormuş — hepsinin malzemesi ayrıldı, hepsi yapılıyor.",
+    ],
     "1.52.0": [
         "Her TNT'nin artık kendi işareti var — 70 TNT birbirinden ayrı görünüyor.",
         "Bütün TNT'ler gerçek TNT dokusunda: yazısı, bandı ve fitili görünüyor.",
@@ -661,27 +666,27 @@ TNTS = [
     dict(id="coklu_zeynep_tnt", tr="Çoklu Zeynep TNT", en="Multi Zeynep TNT",
          trtip="Patladığında etrafa 'Zeynep' isimli köylüler saçar.",
          entip="Scatters villagers named 'Zeynep' when it explodes.",
-         color=((160, 40, 150), (214, 96, 168), (160, 40, 150)), mat="minecraft:emerald",
+         color=((160, 40, 150), (214, 96, 168), (160, 40, 150)), mat="minecraft:book",
          effect=dict(kind="villagers", name="Zeynep", count=15, spread=7.0)),
     dict(id="abi_tnt", tr="Abi TNT", en="Abi TNT",
          trtip="Patladığında etrafa 'Abi' isimli köylüler saçar.",
          entip="Scatters villagers named 'Abi' when it explodes.",
-         color=((196, 76, 132), (196, 76, 132), (196, 76, 132)), mat="minecraft:emerald",
+         color=((196, 76, 132), (196, 76, 132), (196, 76, 132)), mat="minecraft:iron_sword",
          effect=dict(kind="villagers", name="Abi", count=12, spread=6.0)),
     dict(id="anne_tnt", tr="Anne TNT", en="Anne TNT",
          trtip="Patladığında etrafa 'Anne' isimli köylüler saçar.",
          entip="Scatters villagers named 'Anne' when it explodes.",
-         color=((224, 122, 168), (224, 122, 168), (224, 122, 168)), mat="minecraft:emerald",
+         color=((224, 122, 168), (224, 122, 168), (224, 122, 168)), mat="minecraft:cookie",
          effect=dict(kind="villagers", name="Anne", count=12, spread=6.0)),
     dict(id="baba_tnt", tr="Baba TNT", en="Baba TNT",
          trtip="Patladığında etrafa 'Baba' isimli köylüler saçar.",
          entip="Scatters villagers named 'Baba' when it explodes.",
-         color=((150, 60, 110), (150, 60, 110), (150, 60, 110)), mat="minecraft:emerald",
+         color=((150, 60, 110), (150, 60, 110), (150, 60, 110)), mat="minecraft:iron_pickaxe",
          effect=dict(kind="villagers", name="Baba", count=12, spread=6.0)),
     dict(id="bebek_tnt", tr="Bebek TNT", en="Bebek TNT",
          trtip="Patladığında etrafa 'Bebek' isimli yavru köylüler saçar.",
          entip="Scatters baby villagers named 'Bebek' when it explodes.",
-         color=((245, 178, 208), (245, 178, 208), (245, 178, 208)), mat="minecraft:emerald",
+         color=((245, 178, 208), (245, 178, 208), (245, 178, 208)), mat="minecraft:bed",
          effect=dict(kind="villagers", name="Bebek", count=15, spread=6.0, baby=True)),
     dict(id="bulut_tnt", tr="Bulut TNT", en="Cloud TNT",
          trtip="1 dakika yağmur başlatır ve gökyüzünü bulutlandırır.",
@@ -701,7 +706,7 @@ TNTS = [
     dict(id="kalp_tnt", tr="Kalp TNT", en="Heart TNT",
          trtip="Yakındaki oyunculara can yenileme + kalkan verir, efektleri ve boyutu sıfırlar.",
          entip="Heals and shields nearby players, clears effects and size changes.",
-         color=((140, 40, 46), (196, 48, 54), (92, 48, 52)), mat="minecraft:gold_ingot",
+         color=((140, 40, 46), (196, 48, 54), (92, 48, 52)), mat="minecraft:red_wool",
          effect=dict(kind="heal", radius=20)),
     dict(id="buz_tnt", tr="Buz TNT", en="Ice TNT",
          trtip="14 blok yarıçapı buzla kaplar. O alandaki herkesi (patlatan hariç) 30 sn dondurur. 30 sn yağış başlar (soğuk biyomda kar).",
@@ -721,7 +726,7 @@ TNTS = [
     dict(id="cizgi_tnt", tr="Çizgi TNT", en="Line TNT",
          trtip="Etrafa kağıt, mürekkep ve tüy saçar — kendi defterini topla!",
          entip="Scatters paper, ink and feathers around - collect your own notebook!",
-         color=((235, 232, 224), (210, 205, 195), (180, 176, 168)), mat="minecraft:paper",
+         color=((235, 232, 224), (210, 205, 195), (180, 176, 168)), mat="minecraft:string",
          effect=dict(kind="scatter", spread=6.0, power=2, drops=[
              {"item": "minecraft:paper", "count": 30, "stack": 8},
              {"item": "minecraft:ink_sac", "count": 15, "stack": 4},
@@ -729,7 +734,7 @@ TNTS = [
     dict(id="zeynep_redstone_tnt", tr="Zeynep Redstone TNT", en="Zeynep Redstone TNT",
          trtip="Dev patlama — patlatan hariç yakındaki herkesi yener! Dikkatli kullan.",
          entip="Huge blast - defeats everyone nearby except the igniter! Use with care.",
-         color=((150, 40, 90), (190, 55, 110), (120, 30, 72)), mat="minecraft:redstone_block",
+         color=((150, 40, 90), (190, 55, 110), (120, 30, 72)), mat="minecraft:repeater",
          effect=dict(kind="instakill", radius=30, power=8)),
 
     # ============ EASY: patlama / saçma / efekt / hava / zaman ============
@@ -757,7 +762,7 @@ TNTS = [
     dict(id="nuclear_tnt", tr="Nükleer TNT", en="Nuclear TNT",
          trtip="Dev patlama + radyasyon (wither) hasarı — öldürebilir!",
          entip="Huge explosion + radiation (wither) damage - can kill!",
-         color=((60, 180, 60), (90, 220, 70), (44, 140, 44)), mat="minecraft:emerald",
+         color=((60, 180, 60), (90, 220, 70), (44, 140, 44)), mat="minecraft:beacon",
          effect=dict(kind="status", target="all", radius=20, power=15, particle="minecraft:huge_explosion_emitter",
                      effects=[{"id": "poison", "seconds": 30, "amp": 3}, {"id": "slowness", "seconds": 30, "amp": 2},
                               {"id": "weakness", "seconds": 30, "amp": 2}, {"id": "blindness", "seconds": 10, "amp": 0},
@@ -765,7 +770,7 @@ TNTS = [
     dict(id="invisible_tnt", tr="Görünmez TNT", en="Invisible TNT",
          trtip="Taş kılığında — kimse fark etmez!",
          entip="Disguised as stone - nobody notices!",
-         color=((124, 124, 124), (136, 136, 136), (112, 112, 112)), mat="minecraft:stone",
+         color=((124, 124, 124), (136, 136, 136), (112, 112, 112)), mat="minecraft:tinted_glass",
          effect=dict(kind="explode", power=4)),
     dict(id="redstone_tnt", tr="Redstone TNT", en="Redstone TNT",
          trtip="Çok güçlü patlama; 20 blok yarıçapındaki oyunculara hız ve güç verir.",
@@ -799,7 +804,7 @@ TNTS = [
     dict(id="gokkusagi_tnt", tr="Gökkuşağı TNT", en="Rainbow TNT",
          trtip="Gerçeğinden bile güzel renkli yünler saçar!",
          entip="Scatters colorful wool - prettier than the real thing!",
-         color=((220, 60, 60), (80, 180, 90), (70, 110, 200)), mat="minecraft:white_wool",
+         color=((220, 60, 60), (80, 180, 90), (70, 110, 200)), mat="minecraft:magenta_dye",
          effect=dict(kind="scatter", spread=7.0, power=1.5, drops=[
              {"item": f"minecraft:{c}_wool", "count": 6, "stack": 4} for c in
              ["red", "orange", "yellow", "lime", "light_blue", "blue", "purple", "pink"]])),
@@ -811,7 +816,7 @@ TNTS = [
     dict(id="iki_yuz_tl_tnt", tr="200 TL TNT", en="200 Lira TNT",
          trtip="Patladığında etrafa bir sürü kağıt para saçar.",
          entip="Scatters a lot of paper money when it explodes.",
-         color=((110, 150, 120), (140, 180, 150), (90, 128, 100)), mat="minecraft:paper",
+         color=((110, 150, 120), (140, 180, 150), (90, 128, 100)), mat="minecraft:gold_block",
          effect=dict(kind="scatter", spread=8.0, drops=[{"item": "stnt:iki_yuz_tl", "count": 100, "stack": 4}])),
     dict(id="kurus_tnt", tr="Kuruş TNT", en="Coin TNT",
          trtip="Patladığında etrafa bir sürü madeni para saçar.",
@@ -826,12 +831,12 @@ TNTS = [
     dict(id="zebra_tnt", tr="Zebra TNT", en="Zebra TNT",
          trtip="Siyah-beyaz çizgili — kağıt saçar!",
          entip="Black and white stripes - scatters paper!",
-         color=((240, 240, 240), (30, 30, 30), (240, 240, 240)), mat="minecraft:paper",
+         color=((240, 240, 240), (30, 30, 30), (240, 240, 240)), mat="minecraft:black_wool",
          effect=dict(kind="scatter", spread=7.0, drops=[{"item": "minecraft:paper", "count": 40, "stack": 4}])),
     dict(id="harf_tnt", tr="Harf TNT", en="Letter TNT",
          trtip="Etrafa kağıt saçar.",
          entip="Scatters paper everywhere.",
-         color=((236, 232, 210), (244, 240, 220), (210, 205, 180)), mat="minecraft:paper",
+         color=((236, 232, 210), (244, 240, 220), (210, 205, 180)), mat="minecraft:writable_book",
          effect=dict(kind="scatter", spread=6.0, drops=[{"item": "minecraft:paper", "count": 30, "stack": 4}])),
     dict(id="zehir_tnt", tr="Zehir TNT", en="Poison TNT",
          trtip="Yakındaki herkese yavaşlatma ve zehir verir.",
@@ -863,14 +868,14 @@ TNTS = [
     dict(id="yagmur_tnt", tr="Yağmur TNT", en="Rain TNT",
          trtip="1 dakika yağmur başlatır.",
          entip="Starts 1 minute of rain.",
-         color=((90, 120, 150), (120, 150, 180), (74, 100, 128)), mat="minecraft:water_bucket",
+         color=((90, 120, 150), (120, 150, 180), (74, 100, 128)), mat="minecraft:blue_dye",
          effect=dict(kind="weather", weather="Rain", weatherTicks=1200)),
     dict(id="simsek_yagmur_tnt", tr="Şimşek Yağmuru TNT", en="Thunderstorm TNT",
          trtip="Yakına 30 yıldırım yağdırır ve 1 dakika fırtına başlatır. "
                "Yıldırım yakar ve canlıyı öldürebilir — uzakta dur!",
          entip="Rains 30 lightning bolts nearby and starts a 1 minute storm. "
                "Lightning burns and can kill - keep your distance!",
-         color=((60, 66, 90), (88, 96, 128), (48, 54, 74)), mat="minecraft:lightning_rod",
+         color=((60, 66, 90), (88, 96, 128), (48, 54, 74)), mat="minecraft:trident",
          effect=dict(kind="spawn", entity="minecraft:lightning_bolt", count=30, spread=10.0,
                      weather="Thunder", weatherTicks=1200)),
     dict(id="z_gunes_tnt", tr="Güneş TNT", en="Sun TNT",
@@ -881,7 +886,7 @@ TNTS = [
     dict(id="virus_tnt", tr="Virüs TNT", en="Virus TNT",
          trtip="Bir sürü virüs saçar... ama hepsi yok olur. Aslında hiçbir şey olmaz.",
          entip="Spreads a lot of viruses... but they all vanish. Nothing really happens.",
-         color=((120, 200, 120), (150, 220, 150), (100, 170, 100)), mat="minecraft:slime_ball",
+         color=((120, 200, 120), (150, 220, 150), (100, 170, 100)), mat="minecraft:fermented_spider_eye",
          effect=dict(kind="status", target="all", radius=1, effects=[], particle="minecraft:mobspell_emitter")),
 
     # ============ MEDIUM: blok yıkım / koyma / dönüştürme / özel ============
@@ -915,7 +920,7 @@ TNTS = [
     dict(id="olumcul_su_tnt", tr="Ölümcül Su TNT", en="Deadly Water TNT",
          trtip="15 blok yarıçapını suyla doldurur (30 sn sonra kurur).",
          entip="Fills a 15 block radius with water (dries after 30s).",
-         color=((30, 70, 150), (44, 92, 180), (24, 56, 120)), mat="minecraft:water_bucket",
+         color=((30, 70, 150), (44, 92, 180), (24, 56, 120)), mat="minecraft:pufferfish",
          effect=dict(kind="place", block="minecraft:water", radius=15, onlyAir=True, tempSeconds=30, perTick=700)),
     dict(id="mob_freeze_tnt", tr="Mob Dondurucu TNT", en="Mob Freeze TNT",
          trtip="14 blok yarıçapını geçici buza çevirir.",
@@ -937,7 +942,7 @@ TNTS = [
     dict(id="rainbow_tnt", tr="Gökkuşağı Yün TNT", en="Rainbow Wool TNT",
          trtip="Blokları renkli yüne dönüştürür (20 blok yarıçap).",
          entip="Turns blocks into colored wool (20 block radius).",
-         color=((220, 60, 60), (90, 190, 90), (70, 110, 210)), mat="minecraft:white_wool",
+         color=((220, 60, 60), (90, 190, 90), (70, 110, 210)), mat="minecraft:light_blue_wool",
          effect=dict(kind="transform", radius=20, perTick=1000, palette=[
              f"minecraft:{c}_wool" for c in ["red", "orange", "yellow", "lime", "green", "cyan",
              "light_blue", "blue", "purple", "magenta", "pink", "white"]])),
@@ -975,7 +980,7 @@ TNTS = [
     dict(id="magnet_tnt", tr="Mıknatıs TNT", en="Magnet TNT",
          trtip="3 saniye boyunca yakındaki her şeyi çeker, sonra BOOM!",
          entip="Pulls everything nearby for 3 seconds, then BOOM!",
-         color=((180, 60, 60), (70, 70, 78), (150, 44, 44)), mat="minecraft:iron_ingot",
+         color=((180, 60, 60), (70, 70, 78), (150, 44, 44)), mat="minecraft:iron_block",
          effect=dict(kind="magnet", radius=15, pullTicks=12, power=5)),
     dict(id="swap_tnt", tr="Takas TNT", en="Swap TNT",
          trtip="Yakındaki tüm canlıların konumlarını rastgele karıştırır!",
@@ -999,7 +1004,7 @@ TNTS = [
     dict(id="gizli_tnt", tr="Gizli TNT", en="Hidden TNT",
          trtip="Cam kılığında — 25 blok yarıçapında patlatan hariç her canlıyı anında öldürür!",
          entip="Disguised as glass - instantly kills every creature except the igniter within 25 blocks!",
-         color=((190, 220, 230), (210, 236, 244), (170, 200, 212)), mat="minecraft:glass",
+         color=((190, 220, 230), (210, 236, 244), (170, 200, 212)), mat="minecraft:glass_pane",
          effect=dict(kind="instakill", radius=25)),
     dict(id="magara_tnt", tr="Mağara TNT", en="Cave TNT",
          trtip="Yer altında mağara oyar ve korkunç yaratıklar doğurur!",
@@ -1010,7 +1015,7 @@ TNTS = [
     dict(id="kup_tnt", tr="Küp TNT", en="Cube TNT",
          trtip="Yerin içine doğru büyük bir küp şeklinde kazı yapar!",
          entip="Digs a big cube down into the ground!",
-         color=((90, 90, 96), (112, 112, 118), (72, 72, 78)), mat="minecraft:stone",
+         color=((90, 90, 96), (112, 112, 118), (72, 72, 78)), mat="minecraft:cobblestone",
          effect=dict(kind="break", radius=12, skipBedrock=True, perTick=1000, power=4, cube=True)),
     dict(id="lego_tnt", tr="Lego TNT", en="Lego TNT",
          trtip="Blokları renkli Lego tuğlalarına dönüştürür!",
@@ -1037,13 +1042,13 @@ TNTS = [
     dict(id="dag_tnt", tr="Dağ TNT", en="Mountain TNT",
          trtip="Etrafa taştan bir tepe yükseltir!",
          entip="Raises a stone hill around it!",
-         color=((100, 100, 96), (124, 124, 118), (80, 80, 76)), mat="minecraft:stone",
+         color=((100, 100, 96), (124, 124, 118), (80, 80, 76)), mat="minecraft:deepslate",
          effect=dict(kind="place", block="minecraft:stone", radius=8, onlyAir=True, perTick=800,
                      particle="minecraft:basic_smoke_particle")),
     dict(id="elmas_zirh_tnt", tr="Elmas Zırh TNT", en="Diamond Armor TNT",
          trtip="40 blok yarıçapındaki TÜM canlıları yok eder — dev patlama!",
          entip="Destroys ALL creatures within 40 blocks - massive blast!",
-         color=((80, 220, 220), (110, 236, 236), (60, 190, 190)), mat="minecraft:diamond_block",
+         color=((80, 220, 220), (110, 236, 236), (60, 190, 190)), mat="minecraft:diamond_chestplate",
          effect=dict(kind="instakill", radius=40, exceptIgniter=False, power=18)),
     dict(id="ureyen_tnt", tr="Üreyen TNT", en="Breeding TNT",
          trtip="Güçlü bir patlamayla dünyayı sarsar!",
@@ -1053,7 +1058,7 @@ TNTS = [
     dict(id="walking_tnt", tr="Yürüyen TNT", en="Walking TNT",
          trtip="Büyük bir patlama yapar!",
          entip="Makes a big explosion!",
-         color=((60, 40, 30), (90, 60, 44), (48, 32, 24)), mat="minecraft:tnt",
+         color=((60, 40, 30), (90, 60, 44), (48, 32, 24)), mat="minecraft:leather_boots",
          effect=dict(kind="explode", power=8)),
 ]
 
@@ -1150,12 +1155,11 @@ BLOCKS += [
     # ayni (KUM_POWER = 4); ipucu "TNT gibi" diyor, check_pack bunu tutuyor.
     dict(id="patlayici_kum", tr="Patlayıcı Kum", en="Explosive Sand",
          trtip="TUZAK: normal kum gibi görünür — kazan TNT gibi patlar! Blokları yıkar; yakındaki "
-               "TNT'leri ve patlayıcı kumları da zincirleme patlatır. Ortaya barut, kenarlara kum ile yapılır.",
+               "TNT'leri ve patlayıcı kumları da zincirleme patlatır.",
          entip="TRAP: looks like normal sand - dig it and it explodes like TNT! Breaks blocks; sets off "
-               "nearby TNTs and explosive sand in a chain. Crafted with gunpowder in the middle and sand around it.",
+               "nearby TNTs and explosive sand in a chain.",
          kind="explosive_sand", color=(219, 211, 160), vtex="textures/blocks/sand",
-         mat="minecraft:sand",
-         recipe=dict(pattern=["SSS", "SGS", "SSS"], key={"S": "minecraft:sand", "G": "minecraft:gunpowder"})),
+         mat="minecraft:sand"),
 ]
 
 # Mini bloklar: tam bloktan kucuk (hucre ortasinda 8x8x8 kup). Kucultme
@@ -1204,12 +1208,11 @@ BLOCKS += [
          color=(240, 190, 60), tex="gold_fire", mat="minecraft:gold_ingot"),
     dict(id="tukenmezlik_orsu", tr="Tükenmezlik Örsü", en="Unending Anvil", kind="anvil",
          trtip="Elinde bir eşyayla dokun — o eşya TÜKENMEZ olur: yığın hep dolu kalır, alet ve zırh "
-               "yıpranmaz, totem bitmez. Ok, blok, yiyecek... her eşyada çalışır. 8 elmas + örs ile yapılır.",
+               "yıpranmaz, totem bitmez. Ok, blok, yiyecek... her eşyada çalışır.",
          entip="Tap it while holding an item - that item becomes UNENDING: the stack stays full, tools "
                "and armour never wear out, totems never run out. Works on arrows, blocks, food... any "
-               "item. Crafted from 8 diamonds and an anvil.",
-         color=(70, 70, 78), mat="minecraft:anvil",
-         recipe=dict(pattern=["DDD", "DAD", "DDD"], key={"D": "minecraft:diamond", "A": "minecraft:anvil"})),
+               "item.",
+         color=(70, 70, 78), mat="minecraft:anvil"),
 ]
 
 # ---------------------------------------------------------------- item tanimlari
@@ -1598,8 +1601,6 @@ ITEMS += [
                "Nether, very rarely to an orange Nether fire. Nether fires burn! If there is "
                "nowhere to go you stay put. 64 uses.",
          color=(120, 70, 200), durability=64, enchant_slot="flintsteel",
-         recipe=dict(pattern=["EEE", "EFE", "EEE"],
-                     key={"E": "minecraft:ender_pearl", "F": "minecraft:flint_and_steel"}),
          action=dict(type="ender_fire", range=6)),
     dict(id="altin_flint", tr="Altın Flint", en="Golden Flint", kind="raycast",
          trtip="Baktığın bloğu altın bloğuna çevirir ve üstüne Altın Ateş yakar. Ateş sönmez, "
@@ -1610,10 +1611,6 @@ ITEMS += [
                "who steps in burns. Punch it to remove. Bedrock and containers are not turned "
                "to gold. 64 uses; Mending can be applied on an anvil.",
          color=(240, 190, 60), durability=64, enchant_slot="flintsteel",
-         # Cocuklarin tarifi: solda altin kulce, ortada demir kulce, sagda ham altin.
-         recipe=dict(pattern=["AIH"],
-                     key={"A": "minecraft:gold_ingot", "I": "minecraft:iron_ingot",
-                          "H": "minecraft:raw_gold"}),
          action=dict(type="gold_fire", range=6)),
 ]
 
@@ -2702,6 +2699,245 @@ TNT_GLYPH = {
     "zumrut_yagmuru_tnt": "kulce",
 }
 
+# Esya ve blok tarifleri. TNT'lerinki tnt_recipe() ile tek duzenden gelir;
+# burasi geri kalani. Tek tabloda duruyorlar ki bir cocuk "bu nasil yapiliyor"
+# diye sordugunda tek yere bakilsin ve iki tarif ayni sekle dusmesin —
+# Bedrock ayni desen+anahtari iki kez gorunce birini sessizce yutuyor.
+# Desen satirlari esit uzunlukta olmali; bosluk = bos hucre.
+RECIPES = {
+    # --- yiyecek ve iksir
+    "spicy_chips":        dict(pattern=["BPB"], key={"B": "minecraft:blaze_powder", "P": "minecraft:baked_potato"}),
+    "saglik_iksiri":      dict(pattern=["GGG", "GBG", "GGG"], key={"G": "minecraft:glistering_melon_slice", "B": "minecraft:glass_bottle"}),
+    "can_artirici":       dict(pattern=["AAA", "AHA", "AAA"], key={"A": "minecraft:golden_apple", "H": "minecraft:heart_of_the_sea"}),
+    # --- buyuler ve tek kullanimlik aletler
+    "blok_kiligi":        dict(pattern=["SSS", "SPS", "SSS"], key={"S": "minecraft:stone", "P": "minecraft:carved_pumpkin"}),
+    "isim_degistirici":   dict(pattern=["PPP", "PNP", "PPP"], key={"P": "minecraft:paper", "N": "minecraft:name_tag"}),
+    "mega_gubre":         dict(pattern=["BBB", "BEB", "BBB"], key={"B": "minecraft:bone_meal", "E": "minecraft:emerald"}),
+    "ses_saldirisi":      dict(pattern=["NNN", "NEN", "NNN"], key={"N": "minecraft:noteblock", "E": "minecraft:echo_shard"}),
+    "ejderha_nefesi":     dict(pattern=["EEE", "EDE", "EEE"], key={"E": "minecraft:end_stone", "D": "minecraft:dragon_breath"}),
+    "lightning_spell":    dict(pattern=["CCC", "CLC", "CCC"], key={"C": "minecraft:copper_ingot", "L": "minecraft:lightning_rod"}),
+    "black_hole":         dict(pattern=["OOO", "ONO", "OOO"], key={"O": "minecraft:obsidian", "N": "minecraft:nether_star"}),
+    "energy_crystal":     dict(pattern=["AAA", "ADA", "AAA"], key={"A": "minecraft:amethyst_shard", "D": "minecraft:diamond"}),
+    "dondurucu":          dict(pattern=["III", "ISI", "III"], key={"I": "minecraft:blue_ice", "S": "minecraft:snowball"}),
+    "koku_bombasi":       dict(pattern=["RRR", "RSR", "RRR"], key={"R": "minecraft:rotten_flesh", "S": "minecraft:slime_ball"}),
+    "among_us_report":    dict(pattern=["RRR", "RPR", "RRR"], key={"R": "minecraft:red_wool", "P": "minecraft:paper"}),
+    "hiz_esyasi":         dict(pattern=["SSS", "SFS", "SSS"], key={"S": "minecraft:sugar", "F": "minecraft:feather"}),
+    "lava_crystal":       dict(pattern=["MMM", "MLM", "MMM"], key={"M": "minecraft:magma", "L": "minecraft:lava_bucket"}),
+    "esya_calmaca":       dict(pattern=["SSS", "SHS", "SSS"], key={"S": "minecraft:string", "H": "minecraft:hopper"}),
+    "kontrol_kumandasi":  dict(pattern=["RRR", "RLR", "RRR"], key={"R": "minecraft:redstone", "L": "minecraft:lead"}),
+    "portal_silahi":      dict(pattern=["OOO", "OEO", "OOO"], key={"O": "minecraft:obsidian", "E": "minecraft:ender_eye"}),
+    "delici":             dict(pattern=["III", "IPI", "III"], key={"I": "minecraft:iron_ingot", "P": "minecraft:diamond_pickaxe"}),
+    # --- inciler ve firlatilanlar
+    "end_pearl":          dict(pattern=["EEE", "EPE", "EEE"], key={"E": "minecraft:end_stone", "P": "minecraft:ender_pearl"}),
+    "nether_pearl":       dict(pattern=["NNN", "NPN", "NNN"], key={"N": "minecraft:netherrack", "P": "minecraft:ender_pearl"}),
+    "tnt_frisbee":        dict(pattern=["ITI"], key={"I": "minecraft:iron_ingot", "T": "minecraft:tnt"}),
+    "kucultme_topu":      dict(pattern=["SSS", "SQS", "SSS"], key={"S": "minecraft:slime_ball", "Q": "minecraft:quartz"}),
+    "buyutme_topu":       dict(pattern=["SSS", "SGS", "SSS"], key={"S": "minecraft:slime_ball", "G": "minecraft:glowstone_dust"}),
+    "normal_boyut_topu":  dict(pattern=["SSS", "SIS", "SSS"], key={"S": "minecraft:slime_ball", "I": "minecraft:iron_ingot"}),
+    # --- silah, alet, asa
+    "laser_sword":        dict(pattern=["A", "A", "B"], key={"A": "minecraft:amethyst_block", "B": "minecraft:blaze_rod"}),
+    "blood_sword":        dict(pattern=["R", "R", "B"], key={"R": "minecraft:redstone_block", "B": "minecraft:bone"}),
+    "heart_axe":          dict(pattern=["RR", "RS", " S"], key={"R": "minecraft:redstone_block", "S": "minecraft:stick"}),
+    "craft_axe":          dict(pattern=["CC", "CS", " S"], key={"C": "minecraft:crafting_table", "S": "minecraft:stick"}),
+    "grappling_hook":     dict(pattern=["  H", " S ", "S  "], key={"H": "minecraft:tripwire_hook", "S": "minecraft:iron_chain"}),
+    "takim_asasi":        dict(pattern=["  E", " S ", "S  "], key={"E": "minecraft:emerald_block", "S": "minecraft:stick"}),
+    "donusum_asasi":      dict(pattern=["  A", " S ", "S  "], key={"A": "minecraft:amethyst_cluster", "S": "minecraft:stick"}),
+    "rainbow_boots":      dict(pattern=["D D", "L L"], key={"D": "minecraft:magenta_dye", "L": "minecraft:leather"}),
+    # --- TNT zirhi: vanilya zirh sekilleri, malzeme TNT
+    "tnt_armor_kask":     dict(pattern=["TTT", "T T"], key={"T": "minecraft:tnt"}),
+    "tnt_armor_govus":    dict(pattern=["T T", "TTT", "TTT"], key={"T": "minecraft:tnt"}),
+    "tnt_armor_pantolon": dict(pattern=["TTT", "T T", "T T"], key={"T": "minecraft:tnt"}),
+    "tnt_armor_bot":      dict(pattern=["T T", "T T"], key={"T": "minecraft:tnt"}),
+    # --- cagirma yumurtalari: hep ortada yumurta, kenarda o canavarin maddesi
+    "ender_send_yumurta":    dict(pattern=["PPP", "PEP", "PPP"], key={"P": "minecraft:ender_pearl", "E": "minecraft:egg"}),
+    "dev_zombi_yumurta":     dict(pattern=["RRR", "RER", "RRR"], key={"R": "minecraft:rotten_flesh", "E": "minecraft:egg"}),
+    "dev_creeper_yumurta":   dict(pattern=["GGG", "GEG", "GGG"], key={"G": "minecraft:gunpowder", "E": "minecraft:egg"}),
+    "mutant_warden_yumurta": dict(pattern=["SSS", "SES", "SSS"], key={"S": "minecraft:echo_shard", "E": "minecraft:egg"}),
+    # --- sahte elmas takimi: tahta aleti camgobegi boyayla "elmas" gosteriyoruz
+    "sahte_elmas_kilic":  dict(pattern=["WC"], key={"W": "minecraft:wooden_sword", "C": "minecraft:cyan_dye"}),
+    "sahte_elmas_kazma":  dict(pattern=["WC"], key={"W": "minecraft:wooden_pickaxe", "C": "minecraft:cyan_dye"}),
+    "sahte_elmas_balta":  dict(pattern=["WC"], key={"W": "minecraft:wooden_axe", "C": "minecraft:cyan_dye"}),
+    "sahte_elmas_kurek":  dict(pattern=["WC"], key={"W": "minecraft:wooden_shovel", "C": "minecraft:cyan_dye"}),
+    "sahte_elmas_capa":   dict(pattern=["WC"], key={"W": "minecraft:wooden_hoe", "C": "minecraft:cyan_dye"}),
+    # --- eskiden satir icinde duranlar; hepsi tek tabloda olsun diye buraya alindi
+    "patlayici_kum":      dict(pattern=["SSS", "SGS", "SSS"], key={"S": "minecraft:sand", "G": "minecraft:gunpowder"}),
+    "tukenmezlik_orsu":   dict(pattern=["DDD", "DAD", "DDD"], key={"D": "minecraft:diamond", "A": "minecraft:anvil"}),
+    "ender_cakmagi":      dict(pattern=["EEE", "EFE", "EEE"], key={"E": "minecraft:ender_pearl", "F": "minecraft:flint_and_steel"}),
+    "altin_flint":        dict(pattern=["AIH"], key={"A": "minecraft:gold_ingot", "I": "minecraft:iron_ingot", "H": "minecraft:raw_gold"}),
+}
+
+for _row in ITEMS + BLOCKS:
+    if _row['id'] in RECIPES:
+        _row['recipe'] = RECIPES[_row['id']]
+
+# Tarif malzemelerinin adlari. Ipucundaki "Yapilisi:" cumlesi buradan
+# URETILIR, elle yazilmaz: boylece bir tarif degisince ipucu kendiliginden
+# duzelir ve yanlis malzeme sayan bir ipucu hic yazilamaz. check_pack her
+# tarifin her malzemesinin burada karsiligi oldugunu tutar.
+VANILLA = {
+    "minecraft:beacon":              ("fener taşı", "beacon"),
+    "minecraft:bed":                 ("yatak", "bed"),
+    "minecraft:black_wool":          ("siyah yün", "black wool"),
+    "minecraft:blue_dye":            ("mavi boya", "blue dye"),
+    "minecraft:book":                ("kitap", "book"),
+    "minecraft:cobblestone":         ("kaba taş", "cobblestone"),
+    "minecraft:cookie":              ("kurabiye", "cookie"),
+    "minecraft:deepslate":           ("derin arduvaz", "deepslate"),
+    "minecraft:diamond_chestplate":  ("elmas göğüslük", "diamond chestplate"),
+    "minecraft:fermented_spider_eye": ("mayalanmış örümcek gözü", "fermented spider eye"),
+    "minecraft:glass_pane":          ("cam levha", "glass pane"),
+    "minecraft:gold_block":          ("altın blok", "block of gold"),
+    "minecraft:iron_block":          ("demir blok", "block of iron"),
+    "minecraft:iron_pickaxe":        ("demir kazma", "iron pickaxe"),
+    "minecraft:iron_sword":          ("demir kılıç", "iron sword"),
+    "minecraft:light_blue_wool":     ("açık mavi yün", "light blue wool"),
+    "minecraft:pufferfish":          ("kirpi balığı", "pufferfish"),
+    "minecraft:repeater":            ("kızıltaş tekrarlayıcı", "redstone repeater"),
+    "minecraft:tinted_glass":        ("renkli cam", "tinted glass"),
+    "minecraft:trident":             ("üç çatal", "trident"),
+    "minecraft:writable_book":       ("boş kitap", "book and quill"),
+    "minecraft:amethyst_block":    ("ametist bloğu", "block of amethyst"),
+    "minecraft:amethyst_cluster":  ("ametist kümesi", "amethyst cluster"),
+    "minecraft:amethyst_shard":    ("ametist parçası", "amethyst shard"),
+    "minecraft:anvil":             ("örs", "anvil"),
+    "minecraft:baked_potato":      ("pişmiş patates", "baked potato"),
+    "minecraft:bedrock":           ("ana kaya", "bedrock"),
+    "minecraft:blaze_powder":      ("alev tozu", "blaze powder"),
+    "minecraft:blaze_rod":         ("alev çubuğu", "blaze rod"),
+    "minecraft:blue_ice":          ("mavi buz", "blue ice"),
+    "minecraft:bone":              ("kemik", "bone"),
+    "minecraft:bone_meal":         ("kemik tozu", "bone meal"),
+    "minecraft:brick":             ("tuğla", "brick"),
+    "minecraft:brown_mushroom":    ("kahverengi mantar", "brown mushroom"),
+    "minecraft:cake":              ("pasta", "cake"),
+    "minecraft:iron_chain":             ("zincir", "chain"),
+    "minecraft:carved_pumpkin":    ("oyulmuş balkabağı", "carved pumpkin"),
+    "minecraft:command_block":     ("komut bloğu", "command block"),
+    "minecraft:copper_ingot":      ("bakır külçe", "copper ingot"),
+    "minecraft:crafting_table":    ("çalışma masası", "crafting table"),
+    "minecraft:cyan_dye":          ("camgöbeği boya", "cyan dye"),
+    "minecraft:diamond":           ("elmas", "diamond"),
+    "minecraft:diamond_block":     ("elmas bloğu", "block of diamond"),
+    "minecraft:diamond_pickaxe":   ("elmas kazma", "diamond pickaxe"),
+    "minecraft:dragon_breath":     ("ejderha nefesi", "dragon's breath"),
+    "minecraft:echo_shard":        ("yankı parçası", "echo shard"),
+    "minecraft:egg":               ("yumurta", "egg"),
+    "minecraft:emerald":           ("zümrüt", "emerald"),
+    "minecraft:emerald_block":     ("zümrüt bloğu", "block of emerald"),
+    "minecraft:end_crystal":       ("End kristali", "end crystal"),
+    "minecraft:end_stone":         ("End taşı", "end stone"),
+    "minecraft:ender_pearl":       ("ender incisi", "ender pearl"),
+    "minecraft:ender_eye":      ("ender gözü", "eye of ender"),
+    "minecraft:feather":           ("tüy", "feather"),
+    "minecraft:flint_and_steel":   ("çakmak", "flint and steel"),
+    "minecraft:glass":             ("cam", "glass"),
+    "minecraft:glass_bottle":      ("cam şişe", "glass bottle"),
+    "minecraft:glistering_melon_slice": ("parlayan karpuz dilimi", "glistering melon slice"),
+    "minecraft:glowstone":         ("ışıltaşı", "glowstone"),
+    "minecraft:glowstone_dust":    ("ışıltaşı tozu", "glowstone dust"),
+    "minecraft:gold_ingot":        ("altın külçe", "gold ingot"),
+    "minecraft:gold_nugget":       ("altın külçecik", "gold nugget"),
+    "minecraft:golden_apple":      ("altın elma", "golden apple"),
+    "minecraft:grass_block":       ("çim bloğu", "grass block"),
+    "minecraft:gravel":            ("çakıl", "gravel"),
+    "minecraft:gunpowder":         ("barut", "gunpowder"),
+    "minecraft:heart_of_the_sea":  ("denizin kalbi", "heart of the sea"),
+    "minecraft:hopper":            ("huni", "hopper"),
+    "minecraft:ice":               ("buz", "ice"),
+    "minecraft:iron_ingot":        ("demir külçe", "iron ingot"),
+    "minecraft:lava_bucket":       ("lav kovası", "lava bucket"),
+    "minecraft:lead":              ("tasma", "lead"),
+    "minecraft:leather":           ("deri", "leather"),
+    "minecraft:leather_boots":     ("deri bot", "leather boots"),
+    "minecraft:lightning_rod":     ("yıldırım çubuğu", "lightning rod"),
+    "minecraft:magenta_dye":       ("eflatun boya", "magenta dye"),
+    "minecraft:magma":       ("magma bloğu", "magma block"),
+    "minecraft:milk_bucket":       ("süt kovası", "milk bucket"),
+    "minecraft:name_tag":          ("isim etiketi", "name tag"),
+    "minecraft:nether_star":       ("Nether yıldızı", "nether star"),
+    "minecraft:netherite_scrap":   ("netherit kırıntısı", "netherite scrap"),
+    "minecraft:netherrack":        ("netherit kayası", "netherrack"),
+    "minecraft:noteblock":        ("nota bloğu", "note block"),
+    "minecraft:oak_log":           ("meşe kütüğü", "oak log"),
+    "minecraft:oak_planks":        ("meşe tahtası", "oak planks"),
+    "minecraft:obsidian":          ("obsidyen", "obsidian"),
+    "minecraft:packed_ice":        ("sıkıştırılmış buz", "packed ice"),
+    "minecraft:paper":             ("kâğıt", "paper"),
+    "minecraft:pink_wool":         ("pembe yün", "pink wool"),
+    "minecraft:pumpkin":           ("balkabağı", "pumpkin"),
+    "minecraft:quartz":            ("kuvars", "quartz"),
+    "minecraft:raw_gold":          ("ham altın", "raw gold"),
+    "minecraft:red_wool":          ("kırmızı yün", "red wool"),
+    "minecraft:redstone":          ("kızıltaş tozu", "redstone dust"),
+    "minecraft:redstone_block":    ("kızıltaş bloğu", "block of redstone"),
+    "minecraft:rotten_flesh":      ("çürük et", "rotten flesh"),
+    "minecraft:sand":              ("kum", "sand"),
+    "minecraft:slime_ball":        ("balçık topu", "slime ball"),
+    "minecraft:snowball":          ("kartopu", "snowball"),
+    "minecraft:spider_eye":        ("örümcek gözü", "spider eye"),
+    "minecraft:stick":             ("çubuk", "stick"),
+    "minecraft:stone":             ("taş", "stone"),
+    "minecraft:string":            ("ip", "string"),
+    "minecraft:sugar":             ("şeker", "sugar"),
+    "minecraft:tnt":               ("TNT", "TNT"),
+    "minecraft:tripwire_hook":     ("tel kancası", "tripwire hook"),
+    "minecraft:water_bucket":      ("su kovası", "water bucket"),
+    "minecraft:wheat":             ("buğday", "wheat"),
+    "minecraft:white_wool":        ("beyaz yün", "white wool"),
+    "minecraft:wither_skeleton_skull": ("wither iskelet kafası", "wither skeleton skull"),
+    "minecraft:wooden_axe":        ("tahta balta", "wooden axe"),
+    "minecraft:wooden_hoe":        ("tahta çapa", "wooden hoe"),
+    "minecraft:wooden_pickaxe":    ("tahta kazma", "wooden pickaxe"),
+    "minecraft:wooden_shovel":     ("tahta kürek", "wooden shovel"),
+    "minecraft:wooden_sword":      ("tahta kılıç", "wooden sword"),
+    "minecraft:yellow_dye":        ("sarı boya", "yellow dye"),
+}
+
+
+def tnt_recipe(t):
+    """Her TNT ayni duzenle yapilir: kenarlara 8 kendi malzemesi, ortaya TNT.
+    Hem tarif dosyasi hem ipucu cumlesi buradan okur, yoksa ikisi ayrisir."""
+    return dict(pattern=["MMM", "MTM", "MMM"],
+                key={"M": t['mat'], "T": "minecraft:tnt"})
+
+
+def recipe_text(recipe, lang):
+    """Tarifi tek cumleye cevirir. Elle yazilan "8 elmas ile yapilir" cumleleri
+    bir tarif degisince sessizce yanlis kaliyordu; bu cumle tarifin kendisinden
+    uretiliyor, o yuzden yanlis olamaz.
+
+    Halka duzeni (kenarda 8 ayni malzeme, ortada 1 baskasi) cocugun masaya
+    bakmadan kurabilecegi tek duzen, o yuzden ayri anlatiliyor; gerisi sayili
+    malzeme listesi — yerlesimi oyunun tarif kitabi gosteriyor.
+    """
+    sayim = {}
+    for satir in recipe['pattern']:
+        for ch in satir:
+            if ch != " ":
+                sayim[ch] = sayim.get(ch, 0) + 1
+    def ad(k):
+        iid = recipe['key'][k]
+        if iid not in VANILLA:
+            raise SystemExit(f"VANILLA'da '{iid}' icin ad yok — tarif cumlesi yazilamiyor")
+        return VANILLA[iid][0 if lang == "tr" else 1]
+
+
+    halka = (len(recipe['pattern']) == 3 and
+             all(len(r) == 3 for r in recipe['pattern']) and
+             len(sayim) == 2 and sorted(sayim.values()) == [1, 8] and
+             recipe['pattern'][1][1] != recipe['pattern'][0][0])
+    if halka:
+        kenar = max(sayim, key=sayim.get)
+        orta = min(sayim, key=sayim.get)
+        if lang == "tr":
+            return f"Yapılışı: kenarlara 8 {ad(kenar)}, ortaya 1 {ad(orta)}."
+        return f"Crafting: 8 {ad(kenar)} around 1 {ad(orta)}."
+
+    parcalar = [f"{n} {ad(k)}" for k, n in sorted(sayim.items(), key=lambda kv: -kv[1])]
+    if lang == "tr":
+        return "Yapılışı: " + " + ".join(parcalar) + "."
+    return "Crafting: " + " + ".join(parcalar) + "."
+
 
 def read_png(path):
     """Saf Python PNG okuyucu. Her bit derinligi (1/2/4/8) ve palet destekli;
@@ -3684,8 +3920,8 @@ def build():
             "minecraft:recipe_shaped": {
                 "description": {"identifier": f"stnt:{t['id']}_recipe"},
                 "tags": ["crafting_table"],
-                "pattern": ["MMM", "MTM", "MMM"],
-                "key": {"M": {"item": t['mat']}, "T": {"item": "minecraft:tnt"}},
+                "pattern": tnt_recipe(t)['pattern'],
+                "key": {k: {"item": v} for k, v in tnt_recipe(t)['key'].items()},
                 "result": {"item": f"stnt:{t['id']}", "count": 1},
             },
         })
@@ -3715,15 +3951,25 @@ def build():
             lines = [f"pack.name=Super TNT Mod",
                      f"pack.description=Super TNT Mod",
                      f"itemGroup.name.super_tnt={grp}"]
+            # Ipucunun sonuna tarif cumlesi EKLENIR (elle yazilmaz, bkz.
+            # recipe_text). Tarifi olmayanda hic cumle cikmaz; "yapilamaz"
+            # diye bir cumle de yazmiyoruz, cunku cogu blok kilikla ya da
+            # baska bir TNT'nin patlamasiyla geliyor.
+            def tip(row, tarif):
+                metin = row[tk]
+                if tarif:
+                    metin += " " + recipe_text(tarif, "tr" if lang == "tr_TR" else "en")
+                return metin
+
             for t in TNTS:
                 lines.append(f"tile.stnt:{t['id']}.name={t[nk]}")
-                lines.append(f"stnt.tip.{t['id']}={t[tk]}")
+                lines.append(f"stnt.tip.{t['id']}={tip(t, tnt_recipe(t))}")
             for blk in BLOCKS:
                 lines.append(f"tile.stnt:{blk['id']}.name={blk[nk]}")
-                lines.append(f"stnt.tip.{blk['id']}={blk[tk]}")
+                lines.append(f"stnt.tip.{blk['id']}={tip(blk, blk.get('recipe'))}")
             for it in ITEMS:
                 lines.append(f"item.stnt:{it['id']}.name={it[nk]}")
-                lines.append(f"stnt.tip.{it['id']}={it[tk]}")
+                lines.append(f"stnt.tip.{it['id']}={tip(it, it.get('recipe'))}")
             open(os.path.join(pack, f"texts/{lang}.lang"), 'w',
                  encoding='utf-8').write("\n".join(lines) + "\n")
 
