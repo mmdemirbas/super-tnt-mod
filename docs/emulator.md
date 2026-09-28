@@ -62,6 +62,21 @@ gerekir.
 **Dokunma:** `input tap` 90 ms basıyor ve Minecraft bunu görmüyor;
 `input swipe x y x y 220` (aynı noktada 220 ms) her yerde çalışıyor.
 
+**Dünya ayarlarının sol menüsü sürülemiyor.** `Dünyayı düzenle` ekranında sol
+listenin yalnızca en üstteki iki satırı (`General`, `Advanced`) dokunuşa yanıt
+veriyor; `Cheats`, `Resource packs`, `Behavior packs` hiçbir tekrarla
+açılmıyor — liste kaydırılsa da açılmıyor, `input motionevent` ve `keyevent 66`
+de açmıyor. Aynı iş **ana menü → Settings → Storage → Behavior packs →
+Manage** yolundan yapılabiliyor; oradaki liste her satırında çalışıyor. Paketi
+dünyadan değil, oradan silin (2026-09-29).
+
+**Dünyadan çıkmak:** `keyevent 4` (geri) envanteri kapatıyor ve duraklat
+menüsünü açıyor; menü ekranlarında ise çalışmıyor, sol üstteki `<` tuşuna
+dokunmak gerekiyor.
+
+**Oyun içinde bir bloğu açmak** (çalışma masası gibi) `input swipe` ile
+olmuyor, `input tap` ile oluyor — dünya dokunuşları menülerin tersi.
+
 **Klavye:** Gboard `input text` ile gelen metni yeniden sıralıyor
 (kelimeleri karıştırıyor, `/`'ı taşıyor). Bütün klavyeler kapatıldı:
 
