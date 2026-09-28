@@ -154,6 +154,57 @@ oyuncunun dinamik özelliğinde durduğu için bir daha açılmıyor. Notlar
 
 **Paket simgesi** artık 128x128 çiziliyor; yan yüz dokusunun kendisi değil.
 
+### Emülatör çözüldü: içe alma ve arayüzü sürme
+
+2026-09-28'de emülatörde paket **içe alındı ve oyunda çalıştığı görüldü**.
+Önceki bölümdeki "içe alınamıyor" tablosu artık geçerli değil; sebebi de belli.
+
+**İçe almanın tek koşulu: Minecraft KAPALI olmalı.** Açıkken gelen intent'i
+işlemiyor, hiçbir hata da vermiyor. Çalışan yol:
+
+```bash
+adb shell am force-stop com.mojang.minecraftpe
+adb shell am start -a android.intent.action.VIEW_DOWNLOADS
+# Files uygulamasında .mcaddon satırına dokun
+```
+
+Minecraft öne gelip **"Successfully imported 'Super TNT Mod v1.53.0 [RP]'"**
+yazıyor. `READ_EXTERNAL_STORAGE` izni de verilmiş olmalı
+(`adb shell pm grant com.mojang.minecraftpe android.permission.READ_EXTERNAL_STORAGE`).
+
+**Arayüzü dokunuşla sürmenin iki koşulu var; ikisi birden sağlanmazsa hiçbir
+dokunuş işlemiyor ve bu sessizce olur — düğme yanıp sönüyor ama açılmıyor.**
+
+| Koşul | Yanlışı | Doğrusu |
+|---|---|---|
+| Kare hızı | 2560x1600'de oyun 3-4 kare/sn; dokunuşlar düşüyor | `adb shell wm size 1280x720` → ~15 kare/sn |
+| Dokunuşun şekli | `input tap` (süresi sıfır) yalnız "üzerine gelme" yapıyor | `input swipe X Y X Y 250` |
+
+Ayrıca: `wm size` oyun AÇIKKEN değişirse dokunma eşlemesi eskide kalıyor,
+Minecraft yeniden başlatılmalı. Pencere uzadıkça kare hızı düşüyor, yani
+menüyü uzatarak daha çok satır göstermek dokunuşları bozuyor. Dokunuşlar
+yine de **kararsız**: aynı yere 2-3 kez dokunmak gerekebiliyor.
+
+### Eski sürüm yeni sürümü eziyor
+
+Oyunda görülen ilk şey şuydu: TNT'ler envanterde **düz renkli küpler**
+görünüyordu, amblemler ve TNT dokusu yoktu. Sebep pakette değil, dünyadaydı.
+
+Dünyanın Kaynak Paketleri listesinde **üç sürüm birden etkindi** — v1.51.0,
+v1.52.0 ve v1.53.0 — ve Minecraft'ın kendi notu şunu diyor: *"If multiple packs
+make changes to the same asset, the changes from the highest ranked pack will be
+applied."* En üstteki v1.51.0'dı; yani Pillow hatası yüzünden düz renk çıkan
+**v1.51.0 dokuları kazanıyordu**.
+
+Yani yeni sürümü içe almak eskisinin yerine GEÇMİYOR: hepsi birikiyor, dünyaya
+hepsi etkin olarak ekleniyor ve en eskisi üste çıkabiliyor. Eski sürümler
+"başka bir paketin bağımlılığı" diye silinemiyor da.
+
+**Çocukların tabletinde de aynısı olur.** Bir sürüm gönderip "değişmemiş"
+denmesinin sebebi bu olabilir. Yeni sürümü dünyaya eklerken eskilerinin
+listede olmadığından emin olmak gerekiyor; en temizi yeni bir dünya kurup
+yalnız son sürümü etkinleştirmek.
+
 ### Bilinen sınır: emülatörde paket içe alınamıyor
 
 `mc_tablet` emülatöründe `.mcaddon` **içe alınamadı**, yani bu sürüm oyunda
