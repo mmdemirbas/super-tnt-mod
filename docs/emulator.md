@@ -95,6 +95,13 @@ kendisi yapar.
 Sonrasında sohbet alanına odaklanıp kelime kelime `input text` (boşluk `%s`)
 ve `keyevent 66` (Enter) ile komut gidiyor; `shots.sh cmd` bunu yapar.
 
+**`file://` niyeti paketi İÇE ALMIYOR.**
+`am start -a android.intent.action.VIEW -d file:///sdcard/Download/X.mcaddon -n
+com.mojang.minecraftpe/.MainActivity` Minecraft'ı açıyor, hata da vermiyor, ama
+paket kurulmuyor: Ayarlar > Depolama'da paket sayısı değişmiyor (2026-09-29'da
+denendi). İçe alma hâlâ Dosyalar/İndirilenler uygulamasında dosyaya dokunmayı
+istiyor.
+
 **Paketi elle içe aktarmak** gerekirse: `.mcaddon`'u `Download/`'a `adb push`
 edip Files uygulamasında dosyaya dokunmak. `am start` ile `content://`
 niyetleri izin hatası veriyor.
