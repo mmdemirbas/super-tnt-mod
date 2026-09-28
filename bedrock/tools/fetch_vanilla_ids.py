@@ -37,6 +37,7 @@ def main():
     paths = [t["path"] for t in tree]
 
     blocks = sorted(b["name"] for b in get_json("metadata/vanilladata_modules/mojang-blocks.json")["data_items"])
+    items = sorted(i["name"] for i in get_json("metadata/vanilladata_modules/mojang-items.json")["data_items"])
     entities = sorted(e["name"] for e in get_json("metadata/vanilladata_modules/mojang-entities.json")["data_items"])
     effects = sorted(e["name"] for e in get_json("metadata/vanilladata_modules/mojang-effects.json")["data_items"])
     sounds = sorted(get_json("resource_pack/sounds/sound_definitions.json")["sound_definitions"])
@@ -84,6 +85,7 @@ def main():
         "block_textures": block_texs,
         "blocks": blocks,
         "entities": entities,
+        "items": items,
         "effects": effects,
         "sounds": sounds,
         "particles": particles,
@@ -93,7 +95,7 @@ def main():
     }
     with open(OUT, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=0, sort_keys=True)
-    print(f"{OUT}: blok {len(blocks)}, blok dokusu {len(block_texs)}, "
+    print(f"{OUT}: blok {len(blocks)}, esya {len(items)}, blok dokusu {len(block_texs)}, "
           f"varlik {len(entities)}, etki {len(effects)}, "
           f"ses {len(sounds)}, parcacik {len(particles)}, "
           f"geometry {len(geos)}, doku {len(texs)}, materyal {len(mats)}")
