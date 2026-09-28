@@ -90,9 +90,10 @@ MIN_ENGINE = [1, 21, 0]
 # Tablo bu surumde basladi; oncekilerin notlari bedrock/PORT-DURUMU.md'de.
 CHANGES = {
     "1.53.0": [
-        "Artık her şeyin tarifi var: 51 yeni tarif, çalışma masasında hepsi çıkıyor.",
+        "Artık her şeyin tarifi var: 92 yeni tarif, çalışma masasında hepsi çıkıyor.",
         "İpucu ne yaptığını olduğu gibi nasıl yapıldığını da yazıyor.",
         "25 TNT aslında hiç yapılamıyormuş — hepsinin malzemesi ayrıldı, hepsi yapılıyor.",
+        "Lego ve mini bloklar yünden yapılıyor, bir seferde 4 tane çıkıyor.",
     ],
     "1.52.0": [
         "Her TNT'nin artık kendi işareti var — 70 TNT birbirinden ayrı görünüyor.",
@@ -2759,11 +2760,68 @@ RECIPES = {
     "sahte_elmas_balta":  dict(pattern=["WC"], key={"W": "minecraft:wooden_axe", "C": "minecraft:cyan_dye"}),
     "sahte_elmas_kurek":  dict(pattern=["WC"], key={"W": "minecraft:wooden_shovel", "C": "minecraft:cyan_dye"}),
     "sahte_elmas_capa":   dict(pattern=["WC"], key={"W": "minecraft:wooden_hoe", "C": "minecraft:cyan_dye"}),
+    # --- Lego tuglalari: 4 esrengi yun -> 4 tugla (yapi icin bol lazim)
+    "lego_white":             dict(pattern=["WW", "WW"], key={"W": "minecraft:white_wool"}, count=4),
+    "lego_orange":            dict(pattern=["WW", "WW"], key={"W": "minecraft:orange_wool"}, count=4),
+    "lego_magenta":           dict(pattern=["WW", "WW"], key={"W": "minecraft:magenta_wool"}, count=4),
+    "lego_light_blue":        dict(pattern=["WW", "WW"], key={"W": "minecraft:light_blue_wool"}, count=4),
+    "lego_yellow":            dict(pattern=["WW", "WW"], key={"W": "minecraft:yellow_wool"}, count=4),
+    "lego_lime":              dict(pattern=["WW", "WW"], key={"W": "minecraft:lime_wool"}, count=4),
+    "lego_pink":              dict(pattern=["WW", "WW"], key={"W": "minecraft:pink_wool"}, count=4),
+    "lego_gray":              dict(pattern=["WW", "WW"], key={"W": "minecraft:gray_wool"}, count=4),
+    "lego_light_gray":        dict(pattern=["WW", "WW"], key={"W": "minecraft:light_gray_wool"}, count=4),
+    "lego_cyan":              dict(pattern=["WW", "WW"], key={"W": "minecraft:cyan_wool"}, count=4),
+    "lego_purple":            dict(pattern=["WW", "WW"], key={"W": "minecraft:purple_wool"}, count=4),
+    "lego_blue":              dict(pattern=["WW", "WW"], key={"W": "minecraft:blue_wool"}, count=4),
+    "lego_brown":             dict(pattern=["WW", "WW"], key={"W": "minecraft:brown_wool"}, count=4),
+    "lego_green":             dict(pattern=["WW", "WW"], key={"W": "minecraft:green_wool"}, count=4),
+    "lego_red":               dict(pattern=["WW", "WW"], key={"W": "minecraft:red_wool"}, count=4),
+    "lego_black":             dict(pattern=["WW", "WW"], key={"W": "minecraft:black_wool"}, count=4),
+    # --- Mini bloklar: ayni yun, dik dizilis — Lego ile karismasin
+    "mini_red":                dict(pattern=["W", "W"], key={"W": "minecraft:red_wool"}, count=4),
+    "mini_orange":             dict(pattern=["W", "W"], key={"W": "minecraft:orange_wool"}, count=4),
+    "mini_yellow":             dict(pattern=["W", "W"], key={"W": "minecraft:yellow_wool"}, count=4),
+    "mini_green":              dict(pattern=["W", "W"], key={"W": "minecraft:green_wool"}, count=4),
+    "mini_blue":               dict(pattern=["W", "W"], key={"W": "minecraft:blue_wool"}, count=4),
+    "mini_purple":             dict(pattern=["W", "W"], key={"W": "minecraft:purple_wool"}, count=4),
+    "mini_pink":               dict(pattern=["W", "W"], key={"W": "minecraft:pink_wool"}, count=4),
+    "mini_white":              dict(pattern=["W", "W"], key={"W": "minecraft:white_wool"}, count=4),
+    # --- Lego parcalari (esya)
+    "pink_lego_brick":    dict(pattern=["WW"], key={"W": "minecraft:pink_wool"}, count=4),
+    "green_lego_brick":   dict(pattern=["WW"], key={"W": "minecraft:green_wool"}, count=4),
+    # --- ozel bloklar
+    "ghost_block":        dict(pattern=["GGG", "GFG", "GGG"], key={"G": "minecraft:glass", "F": "minecraft:phantom_membrane"}),
+    "wooden_ghost_block": dict(pattern=["PPP", "PFP", "PPP"], key={"P": "minecraft:oak_planks", "F": "minecraft:phantom_membrane"}),
+    "mirror":             dict(pattern=["GGG", "GIG", "GGG"], key={"G": "minecraft:glass", "I": "minecraft:iron_ingot"}),
+    "right_golden_plate": dict(pattern=["GGG"], key={"G": "minecraft:gold_ingot"}),
+    "wrong_golden_plate": dict(pattern=["NNN"], key={"N": "minecraft:gold_nugget"}),
+    "light_bomb":         dict(pattern=["GGG", "GRG", "GGG"], key={"G": "minecraft:glowstone_dust", "R": "minecraft:redstone"}),
+    "zehir_toprak":       dict(pattern=["DDD", "DFD", "DDD"], key={"D": "minecraft:dirt", "F": "minecraft:fermented_spider_eye"}),
+    "soru_blogu":         dict(pattern=["GGG", "GPG", "GGG"], key={"G": "minecraft:gold_block", "P": "minecraft:paper"}),
+    "herobrine_spawner":  dict(pattern=["SSS", "SKS", "SSS"], key={"S": "minecraft:soul_sand", "K": "minecraft:wither_skeleton_skull"}),
+    "end_gate":           dict(pattern=["EEE", "EYE", "EEE"], key={"E": "minecraft:end_stone", "Y": "minecraft:ender_eye"}),
+    "sahip_kapi":         dict(pattern=["OO", "OO", "OO"], key={"O": "minecraft:obsidian"}),
+    "blocker_sandik":     dict(pattern=["PPP", "PCP", "PPP"], key={"P": "minecraft:oak_planks", "C": "minecraft:chest"}),
+    "sifreli_sandik":     dict(pattern=["PPP", "PBP", "PPP"], key={"P": "minecraft:oak_planks", "B": "minecraft:writable_book"}),
+    "fake_tnt":           dict(pattern=["RRR", "RSR", "RRR"], key={"R": "minecraft:red_wool", "S": "minecraft:sand"}),
+    "yakinlik_mayini":    dict(pattern=["SSS", "SHS", "SSS"], key={"S": "minecraft:stone", "H": "minecraft:tripwire_hook"}),
     # --- eskiden satir icinde duranlar; hepsi tek tabloda olsun diye buraya alindi
     "patlayici_kum":      dict(pattern=["SSS", "SGS", "SSS"], key={"S": "minecraft:sand", "G": "minecraft:gunpowder"}),
     "tukenmezlik_orsu":   dict(pattern=["DDD", "DAD", "DDD"], key={"D": "minecraft:diamond", "A": "minecraft:anvil"}),
     "ender_cakmagi":      dict(pattern=["EEE", "EFE", "EEE"], key={"E": "minecraft:ender_pearl", "F": "minecraft:flint_and_steel"}),
     "altin_flint":        dict(pattern=["AIH"], key={"A": "minecraft:gold_ingot", "I": "minecraft:iron_ingot", "H": "minecraft:raw_gold"}),
+}
+
+# Tarifi BILEREK olmayanlar. Liste olmadan, yeni bir esyanin tarifsiz kalmasi
+# hicbir yerde gorunmez — cocuk survival'da onu hic yapamaz ve bunu bize
+# soyleyecek bir yol da yok. check_pack ITEMS+BLOCKS'un RECIPES ile bu
+# listenin birlesimine esit olmasini tutar.
+NO_RECIPE = {
+    "kurus": "para; patlamadan dusuyor, yapilmiyor",
+    "iki_yuz_tl": "para; patlamadan dusuyor, yapilmiyor",
+    "ender_atesi": "Ender Cakmagi yakiyor, elde yapilmiyor",
+    "altin_atesi": "Altin Flint yakiyor, elde yapilmiyor",
+    **{f"portal_{i}": "Portal Silahi aciyor, elde yapilmiyor" for i in range(8)},
 }
 
 for _row in ITEMS + BLOCKS:
@@ -2775,6 +2833,20 @@ for _row in ITEMS + BLOCKS:
 # duzelir ve yanlis malzeme sayan bir ipucu hic yazilamaz. check_pack her
 # tarifin her malzemesinin burada karsiligi oldugunu tutar.
 VANILLA = {
+    "minecraft:blue_wool":           ("mavi yün", "blue wool"),
+    "minecraft:brown_wool":          ("kahverengi yün", "brown wool"),
+    "minecraft:chest":               ("sandık", "chest"),
+    "minecraft:cyan_wool":           ("camgöbeği yün", "cyan wool"),
+    "minecraft:dirt":                ("toprak", "dirt"),
+    "minecraft:gray_wool":           ("gri yün", "gray wool"),
+    "minecraft:green_wool":          ("yeşil yün", "green wool"),
+    "minecraft:light_gray_wool":     ("açık gri yün", "light gray wool"),
+    "minecraft:lime_wool":           ("fıstık yeşili yün", "lime wool"),
+    "minecraft:magenta_wool":        ("eflatun yün", "magenta wool"),
+    "minecraft:orange_wool":         ("turuncu yün", "orange wool"),
+    "minecraft:phantom_membrane":    ("hayalet zarı", "phantom membrane"),
+    "minecraft:purple_wool":         ("mor yün", "purple wool"),
+    "minecraft:soul_sand":           ("ruh kumu", "soul sand"),
     "minecraft:beacon":              ("fener taşı", "beacon"),
     "minecraft:bed":                 ("yatak", "bed"),
     "minecraft:black_wool":          ("siyah yün", "black wool"),
@@ -2890,6 +2962,7 @@ VANILLA = {
     "minecraft:wooden_pickaxe":    ("tahta kazma", "wooden pickaxe"),
     "minecraft:wooden_shovel":     ("tahta kürek", "wooden shovel"),
     "minecraft:wooden_sword":      ("tahta kılıç", "wooden sword"),
+    "minecraft:yellow_wool":       ("sarı yün", "yellow wool"),
     "minecraft:yellow_dye":        ("sarı boya", "yellow dye"),
 }
 
@@ -2945,17 +3018,20 @@ def recipe_text(recipe, lang):
              all(len(r) == 3 for r in recipe['pattern']) and
              len(sayim) == 2 and sorted(sayim.values()) == [1, 8] and
              recipe['pattern'][1][1] != recipe['pattern'][0][0])
+    kac = recipe.get('count', 1)
+    adet = "" if kac == 1 else (f" ({kac} tane çıkar)" if lang == "tr" else f" (makes {kac})")
+
     if halka:
         kenar = max(sayim, key=sayim.get)
         orta = min(sayim, key=sayim.get)
         if lang == "tr":
-            return f"Yapılışı: kenarlara 8 {ad(kenar)}, ortaya 1 {ad(orta)}."
-        return f"Crafting: 8 {ad(kenar)} around 1 {ad(orta)}."
+            return f"Yapılışı: kenarlara 8 {ad(kenar)}, ortaya 1 {ad(orta)}" + adet + "."
+        return f"Crafting: 8 {ad(kenar)} around 1 {ad(orta)}" + adet + "."
 
     parcalar = [f"{n} {ad(k)}" for k, n in sorted(sayim.items(), key=lambda kv: -kv[1])]
     if lang == "tr":
-        return "Yapılışı: " + " + ".join(parcalar) + "."
-    return "Crafting: " + " + ".join(parcalar) + "."
+        return "Yapılışı: " + " + ".join(parcalar) + adet + "."
+    return "Crafting: " + " + ".join(parcalar) + adet + "."
 
 
 def read_png(path):
@@ -3959,7 +4035,7 @@ def build():
                 "pattern": r['pattern'],
                 "key": {k: {"item": v} for k, v in r['key'].items()},
                 "unlock": recipe_unlock(r),
-                "result": {"item": f"stnt:{row['id']}", "count": 1},
+                "result": {"item": f"stnt:{row['id']}", "count": r.get('count', 1)},
             },
         })
 

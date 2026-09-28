@@ -3,16 +3,24 @@
 Son sürüm: **v1.53.0** · Mobil sürüm ana odak; Super TNT tek başına yeterli
 olacak şekilde geliştiriliyor (MorphX / mutant paketine bağımlılık yok).
 
-## v1.53.0 — Tarifler: 51 yeni tarif, ipucunda yapılışı, 25 yapılamayan TNT
+## v1.53.0 — Tarifler: 92 yeni tarif, ipucunda yapılışı, 25 yapılamayan TNT
 
 Planın ikinci turu (`docs/plan/magaza-kalitesi.md`). Ömer'in seçtiği 20 çizim
 tablet oturumunu bekliyor; tarif işi beklemiyordu, o yüzden bu tur tarifler.
 
-**51 yeni tarif.** Eşyaların ve blokların 47'si artık çalışma masasında
-yapılabiliyor (para, Lego parçaları, portallar ve ateşler bilerek dışarıda:
-onlar kılıkla, silahla ya da çakmakla geliyor). Tarifler tek tabloda,
-`build.py` içindeki `RECIPES`'te duruyor; TNT'lerinki `tnt_recipe()` ile tek
-düzenden üretiliyor.
+**92 yeni tarif — toplam 162.** Eşyaların ve blokların tamamı, 12 tanesi
+dışında, artık çalışma masasında yapılabiliyor. Lego tuğlaları ve mini bloklar
+kendi renginin yününden, bir seferde 4 tane çıkacak şekilde (`count` alanı bu
+sürümde eklendi); yapı bloğunu teker teker yapmak çocuğu yıldırıyordu.
+
+Dışarıda kalan 12 şey **bilerek** dışarıda ve artık `NO_RECIPE` tablosunda
+gerekçesiyle yazılı: iki para (patlamadan düşüyor), sekiz portal (Portal
+Silahı açıyor), iki ateş (çakmakla yakılıyor). Denetim `ITEMS + BLOCKS`'un
+`RECIPES` ile `NO_RECIPE`'in birleşimine eşit olmasını tutuyor — yoksa yeni
+bir eşyanın tarifsiz kalması hiçbir yerde görünmezdi.
+
+Tarifler tek tabloda, `build.py` içindeki `RECIPES`'te duruyor; TNT'lerinki
+`tnt_recipe()` ile tek düzenden üretiliyor.
 
 **İpucu artık yapılışı da söylüyor — ve bu cümle elle yazılmıyor.**
 `recipe_text()` cümleyi tarifin kendisinden üretiyor: "Yapılışı: kenarlara
@@ -38,7 +46,7 @@ için `vanilla_ids.json`'a eşya listesi eklendi (1623 eşya) —
 eşya/blok mu, her malzemenin `VANILLA`'da adı var mı, iki tarif aynı
 desen+anahtara düşüyor mu, tarifi olan her şeyin ipucu üretilen cümleyi
 taşıyor mu. Üç mutasyon (48, 49, 50) üçünün de yakaladığını gösteriyor.
-Statik denetim 10307'den 11457'ye çıktı.
+Statik denetim 10307'den 12313'e çıktı; mutasyon sayısı 47'den 52'ye.
 
 **Tarif kitabı: `unlock` alanı eksikti.** Planın risk tablosundaki "özel tarif
 tarif kitabında görünmüyor" maddesi doğruydu. Mojang'ın kendi paketinde

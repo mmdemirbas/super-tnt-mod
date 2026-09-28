@@ -609,6 +609,23 @@ run "tarifte unlock yok" "unlock yok"
 cp "$BAK/b51.bak" bedrock/build.py
 python3 bedrock/build.py > /dev/null 2>&1
 
+# 52) bir esyanin tarifi tablodan dussun -> survival'da hic yapilamaz,
+#     hicbir yerde hata cikmaz, cocuk da eksikligi bize soyleyemez
+cp bedrock/build.py "$BAK/b52.bak"
+python3 - <<'PYX'
+import io
+p = "bedrock/build.py"
+s = io.open(p, encoding="utf-8").read()
+old = '    "grappling_hook":     dict('
+i = s.index(old)
+j = s.index("\n", i) + 1
+io.open(p, "w", encoding="utf-8").write(s[:i] + s[j:])
+PYX
+python3 bedrock/build.py > /dev/null 2>&1
+run "bir esyanin tarifi yok" "NO_RECIPE"
+cp "$BAK/b52.bak" bedrock/build.py
+python3 bedrock/build.py > /dev/null 2>&1
+
 echo
 python3 bedrock/build.py > /dev/null && echo "paket yeniden uretildi"
 echo "yakalanan $pass / kacirilan $fail"

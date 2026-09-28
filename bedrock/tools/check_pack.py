@@ -636,6 +636,15 @@ def check_recipes():
             check(cumle in ipucu,
                   f"{sonuc}: {kisa} ipucunda tarif cumlesi yok ('{cumle}')")
 
+    # Her esya/blok ya tarifli ya da BILEREK tarifsiz olmali.
+    for row in build.ITEMS + build.BLOCKS:
+        check(row['id'] in build.RECIPES or row['id'] in build.NO_RECIPE,
+              f"{row['id']}: tarifi yok ve NO_RECIPE'te de yazmiyor — "
+              f"survival'da hic yapilamaz, kimse fark etmez")
+    for rid in build.NO_RECIPE:
+        check(rid not in build.RECIPES,
+              f"{rid}: hem RECIPES'te hem NO_RECIPE'te")
+
     # Tersi de tutulmali: tabloda olup dosyaya donusmeyen tarif sessizce kaybolur.
     uretilen = {os.path.basename(x)[:-5] for x in glob.glob(os.path.join(BP, "recipes", "*.json"))}
     for rid in build.RECIPES:
