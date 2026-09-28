@@ -28,3 +28,71 @@ jobs:
         with:
           name: SuperTNT.mcaddon
           path: bedrock/out/SuperTNT.mcaddon
+
+  # Kullanicilarin cogu gelistirici degil: depoyu klonlayip Python calistirmak
+  # yerine tek bir dosyaya dokunabilmeliler. Yukaridaki artifact buna UYGUN
+  # DEGIL - indirmek icin GitHub hesabi ister ve 90 gunde silinir. Release
+  # varligi herkese acik ve adresi sabit:
+  #   https://github.com/mmdemirbas/super-tnt-mod/releases/latest/download/SuperTNT.mcaddon
+  # Site ve README bu adrese baglaniyor.
+  #
+  # Surum bedrock/build.py icindeki VERSION'dan okunur; o surumun release'i
+  # zaten varsa hicbir sey yapilmaz. Yani yayinlamak = VERSION'i bumplayip
+  # main'e itmek. Bu is `needs: bedrock` ile dort katmanli gecide baglidir,
+  # boylece denetimden gecmemis bir paket yayinlanamaz.
+  release:
+    needs: bedrock
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          name: SuperTNT.mcaddon
+          path: dist
+      - name: surumu yayinla
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          surum=$(python3 - <<'PY'
+          import importlib.util
+          spec = importlib.util.spec_from_file_location("b", "bedrock/build.py")
+          b = importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(b)          # build() yalniz __main__'de kosar
+          print(".".join(map(str, b.VERSION)))
+          PY
+          )
+          etiket="v$surum"
+          if gh release view "$etiket" >/dev/null 2>&1; then
+            echo "$etiket zaten yayinda, atlaniyor"
+            exit 0
+          fi
+          python3 - "$surum" > notlar.md <<'PY'
+          import importlib.util, sys
+          spec = importlib.util.spec_from_file_location("b", "bedrock/build.py")
+          b = importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(b)
+          surum = sys.argv[1]
+          print("Minecraft Bedrock eklentisi. **SuperTNT.mcaddon** dosyasini indir, "
+                "tablette ya da telefonda uzerine dokun; Minecraft ice aktarir.")
+          print()
+          print("Sonra dunyanin ayarlarinda **Davranis Paketleri** ve **Kaynak Paketleri** "
+                "altinda Super TNT'yi etkinlestir - ikisi de gerekir. Eski bir surum "
+                "listede duruyorsa kaldir: en ustteki paket digerlerini ezer.")
+          notlar = b.CHANGES.get(surum)
+          if notlar:
+              print()
+              print(f"## {surum} ile gelenler")
+              print()
+              for satir in notlar:
+                  print(f"- {satir}")
+          PY
+          gh release create "$etiket" dist/SuperTNT.mcaddon \
+            --title "Super TNT $etiket" --notes-file notlar.md

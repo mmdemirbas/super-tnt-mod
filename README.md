@@ -31,6 +31,14 @@ değiştirmeye ve dev canavarlara büyüdü.
 Paket bir **Bedrock Add-On**'dur (`SuperTNT.mcaddon`); Android tabletlerde ve telefonlarda
 Minecraft'a bir dokunuşla eklenir.
 
+**[SuperTNT.mcaddon indir](https://github.com/mmdemirbas/super-tnt-mod/releases/latest/download/SuperTNT.mcaddon)**
+— hiçbir şey kurmanız gerekmez. Dosyaya tablette dokunun, Minecraft içe aktarsın; sonra
+dünyanın ayarlarında **Davranış Paketleri** ve **Kaynak Paketleri** altında Super TNT'yi
+etkinleştirin (ikisi de gerekir). Listede eski bir sürüm duruyorsa kaldırın: en üstteki
+paket diğerlerini ezer.
+
+Kendiniz derlemek isterseniz:
+
 ```bash
 python3 bedrock/build.py       # -> bedrock/out/SuperTNT.mcaddon
 ./ctl deploy tablet            # derle + bağlı tabletlere gönder (kablosuz)
