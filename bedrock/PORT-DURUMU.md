@@ -58,6 +58,44 @@ kullanılan malzeme (Zümrüt TNT zümrütle açılır, Sahte Elmas Kılıç tah
 kılıçla). Denetim ve 51 numaralı mutasyon tutuyor. **Oyunda doğrulanmadı** —
 kaynağı Mojang'ın kendi tarif dosyaları, çalıştırılmış bir ölçüm değil.
 
+### Rehber: cepte bir kitap
+
+Ömer'in "bizimkinde her şey yok" duygusunun somut karşılığı şuydu: paketteki
+174 şeyin ne yaptığını okuyabileceği bir yer yoktu. Bedrock'ta özel eşyanın
+tooltip'i yok; eylem çubuğundaki açıklama da yalnızca **eldeki** şeyi anlatıyor,
+üstelik yalnızca TNT'leri anlatıyordu.
+
+**Süper TNT Rehberi** (kitap + TNT ile yapılır) sağ tıkla açılıyor: üç kategori
+(TNT'ler 70, Eşyalar 54, Bloklar 51), her biri 24'erli sayfalar, bir kayda
+dokununca adı ve açıklaması — açıklamanın sonunda yapılışı da yazıyor, çünkü
+aynı `tooltip()` metninden geliyor.
+
+Sayfalama şart: tek formda 174 düğme Minecraft'ı zorluyor (kılık menüsü 135
+kayıtla zaten sınırda). Mutasyon 24'ü 999 yapıyor, sim yakalıyor.
+
+**Yan fayda:** `NAMES`/`TIPS` artık eşyaları ve blokları da taşıyor. Eskiden
+çocuk elinde bir eşya ya da blok tuttuğunda eylem çubuğunda **hiçbir şey**
+görmüyordu; o şeylerin açıklaması oyunda hiç okunamıyordu.
+
+**Denetim:** `check_guide()` rehberin her kaydı bir kez içerdiğini ve her
+kaydın adı ile açıklaması olduğunu tutuyor; üç sim senaryosu (29-31) ve iki sim
+mutasyonu ekranları sürüyor. Statik denetim 13052.
+
+### Yoldan çıkan iki şey
+
+**PNG yazıcıları klasörünü açmıyordu.** Rehber listenin başına eklenince build
+`FileNotFoundError` ile durdu: ilk eşyanın dokusu, klasörü açan başka bir
+yazıcıdan önce yazılıyordu. Yani çıktının sırası gizli bir bağımlılıktı.
+İki yazıcı da artık `os.makedirs` çağırıyor.
+
+**Bir sim mutasyonu aslında hiçbir şey kanıtlamıyormuş.** "Geçici blok süresi
+tick sayacına bağlansın" mutasyonu, "150 tick sonra su hâlâ duruyor mu"
+ölçümüyle dolaylı yakalanıyordu; o ölçüm süpürge aralığına ve o ana kadar
+birikmiş tick sayısına bağlıydı. Pakete **bir eşya eklemek** onu sessizce
+yakalamaz hale getirdi. Ölçüm artık doğrudan: kayıttaki sürenin dünya saatinin
+ilerisinde olduğuna bakılıyor. Aynı mutasyon yine yakalanıyor, ama bu kez
+sebebi belli.
+
 **Sim senaryosu yok, bilerek:** tarifler veri, betik değil — `main.js` onlara
 hiç dokunmuyor. Bu katmanın kapısı `check_pack` + mutasyonlar.
 
