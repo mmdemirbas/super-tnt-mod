@@ -593,6 +593,22 @@ run "ipucunda tarif cumlesi yok" "tarif cumlesi yok"
 cp "$BAK/b50.bak" bedrock/build.py
 python3 bedrock/build.py > /dev/null 2>&1
 
+# 51) tariflerden unlock dussun -> tarif kitabi onlari hic gostermez, cocuk
+#     51 tarifin varligindan haberdar olmaz. Bu alan eskiden hic yoktu.
+cp bedrock/build.py "$BAK/b51.bak"
+python3 - <<'PYX'
+import io
+p = "bedrock/build.py"
+s = io.open(p, encoding="utf-8").read()
+old = '                "unlock": recipe_unlock(r),\n'
+assert s.count(old) == 1
+io.open(p, "w", encoding="utf-8").write(s.replace(old, "", 1))
+PYX
+python3 bedrock/build.py > /dev/null 2>&1
+run "tarifte unlock yok" "unlock yok"
+cp "$BAK/b51.bak" bedrock/build.py
+python3 bedrock/build.py > /dev/null 2>&1
+
 echo
 python3 bedrock/build.py > /dev/null && echo "paket yeniden uretildi"
 echo "yakalanan $pass / kacirilan $fail"

@@ -609,6 +609,16 @@ def check_recipes():
             check(iid in build.VANILLA or iid in kendi,
                   f"{ad}: '{iid}' icin build.VANILLA'da ad yok — ipucu cumlesi yazilamaz")
 
+        # unlock olmadan tarif, tarif kitabinda hic acilmaz: survival'da cocuk
+        # tarifin varligindan haberdar olmaz. Mojang'in kendi tariflerinin
+        # hepsinde var (bkz. recipe_unlock).
+        kilit = r.get("unlock")
+        check(isinstance(kilit, list) and len(kilit) == 1 and "item" in kilit[0],
+              f"{ad}: unlock yok ya da bicimi bozuk — tarif kitabinda acilmaz")
+        if isinstance(kilit, list) and kilit and "item" in kilit[0]:
+            check(kilit[0]["item"] in {v["item"] for v in r["key"].values()},
+                  f"{ad}: unlock malzemesi tarifte kullanilmiyor")
+
         imza = (tuple(r["pattern"]), tuple(sorted((k, v["item"]) for k, v in r["key"].items())))
         check(imza not in gorulen, f"{ad}: {gorulen.get(imza)} ile ayni tarif — biri yutulur")
         gorulen.setdefault(imza, ad)

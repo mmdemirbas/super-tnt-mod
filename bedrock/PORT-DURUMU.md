@@ -40,6 +40,16 @@ desen+anahtara düşüyor mu, tarifi olan her şeyin ipucu üretilen cümleyi
 taşıyor mu. Üç mutasyon (48, 49, 50) üçünün de yakaladığını gösteriyor.
 Statik denetim 10307'den 11457'ye çıktı.
 
+**Tarif kitabı: `unlock` alanı eksikti.** Planın risk tablosundaki "özel tarif
+tarif kitabında görünmüyor" maddesi doğruydu. Mojang'ın kendi paketinde
+(bedrock-samples, aynı format 1.20.10) `tnt.json`, `diamond_sword.json`,
+`chest.json` — hepsi bir `unlock` taşıyor; bizim tariflerimizin hiçbirinde
+yoktu. `unlock` olmayan tarif survival'da tarif kitabında hiç açılmaz, yani
+çocuk tarifin varlığından haberdar olmaz. Vanilya kuralı kuruldu: en çok
+kullanılan malzeme (Zümrüt TNT zümrütle açılır, Sahte Elmas Kılıç tahta
+kılıçla). Denetim ve 51 numaralı mutasyon tutuyor. **Oyunda doğrulanmadı** —
+kaynağı Mojang'ın kendi tarif dosyaları, çalıştırılmış bir ölçüm değil.
+
 **Sim senaryosu yok, bilerek:** tarifler veri, betik değil — `main.js` onlara
 hiç dokunmuyor. Bu katmanın kapısı `check_pack` + mutasyonlar.
 

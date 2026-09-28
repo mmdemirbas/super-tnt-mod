@@ -2901,6 +2901,25 @@ def tnt_recipe(t):
                 key={"M": t['mat'], "T": "minecraft:tnt"})
 
 
+def recipe_unlock(recipe):
+    """Tarifin hangi malzemeyi ele gecirince tarif kitabinda ACILACAGI.
+
+    Mojang'in kendi paketinde (bedrock-samples, ayni format 1.20.10) HER tarif
+    bir "unlock" tasiyor: tnt barutla, elmas kilic elmasla aciliyor. Bizim
+    tariflerimizde bu alan hic yoktu — survival'da tarif kitabi onlari hic
+    gostermez, cocuk da var olduklarini bilemez. Vanilya ile ayni kurali
+    kuruyoruz: en cok kullanilan malzeme; esitlikte desendeki ilk hucre.
+    """
+    sayim = {}
+    for satir in recipe['pattern']:
+        for ch in satir:
+            if ch != " ":
+                sayim[ch] = sayim.get(ch, 0) + 1
+    ilk = next(ch for satir in recipe['pattern'] for ch in satir if ch != " ")
+    harf = max(sayim, key=lambda k: (sayim[k], k == ilk))
+    return [{"item": recipe['key'][harf]}]
+
+
 def recipe_text(recipe, lang):
     """Tarifi tek cumleye cevirir. Elle yazilan "8 elmas ile yapilir" cumleleri
     bir tarif degisince sessizce yanlis kaliyordu; bu cumle tarifin kendisinden
@@ -3922,6 +3941,7 @@ def build():
                 "tags": ["crafting_table"],
                 "pattern": tnt_recipe(t)['pattern'],
                 "key": {k: {"item": v} for k, v in tnt_recipe(t)['key'].items()},
+                "unlock": recipe_unlock(tnt_recipe(t)),
                 "result": {"item": f"stnt:{t['id']}", "count": 1},
             },
         })
@@ -3938,6 +3958,7 @@ def build():
                 "tags": ["crafting_table"],
                 "pattern": r['pattern'],
                 "key": {k: {"item": v} for k, v in r['key'].items()},
+                "unlock": recipe_unlock(r),
                 "result": {"item": f"stnt:{row['id']}", "count": 1},
             },
         })
