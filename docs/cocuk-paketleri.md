@@ -164,7 +164,7 @@ filtre yerinde duruyor, sadece iki taraf anlaşamıyor.
 ### Çözüm
 
 ```bash
-./ctl deploy tablet
+./ctl deploy android
 ```
 
 Script dosyayı gönderir ve boyutunu doğrular. **Import'u sen yaparsın** —

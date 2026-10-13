@@ -3,7 +3,7 @@
 #
 # Tek komut: build eder ve BAGLI olan her yere gonderir:
 #   - USB'yle bagli Android tabletler
-#   - KABLOSUZ (WiFi) bagli tabletler   (once: ./ctl wifi kur)
+#   - KABLOSUZ (WiFi) bagli tabletler   (once: ./ctl setup wifi kur)
 #   - Android emulatorleri              (--emu ile)
 #   - iPhone / iPad                     (--icloud ile iCloud Drive'a birakir)
 #
@@ -14,7 +14,7 @@
 #   deploy/deploy.sh --icloud        # iPhone/iPad icin iCloud Drive'a da kopyala
 #   deploy/deploy.sh R5GYC4BGJJZ     # sadece tek cihaz (seri no ya da ip:port)
 #
-# Normalde bu script dogrudan CAGRILMAZ: ./ctl deploy tablet onu surer.
+# Normalde bu script dogrudan CAGRILMAZ: ./ctl deploy android onu surer.
 #
 # NEDEN ELLE IMPORT: Minecraft'i adb ile otomatik acmak kirilgan (bkz. asagi).
 # Script dosyayi hazirlar; son adimi (Dosyalarim'dan acma) kullanici yapar.
@@ -57,7 +57,7 @@ fi
 
 if [ -z "${DEVICES// }" ]; then
   echo "== bagli Android cihaz yok =="
-  echo "   USB tak, ya da kablosuz icin: ./ctl wifi"
+  echo "   USB tak, ya da kablosuz icin: ./ctl setup wifi"
 else
   for D in $DEVICES; do
     WHO="$(adb -s "$D" shell "pm list users" 2>/dev/null \

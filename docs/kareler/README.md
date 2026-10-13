@@ -19,7 +19,7 @@ Aynı kareler kişisel sitede de kullanılır: `~/dev/mmdemirbas/mdemirbas-com`,
 kare çıkınca oraya **yeni bir dosya adıyla** konur — eski ad bir hafta
 önbellekte kalır.
 
-Yeni bir eşya ya da TNT eklenince akış: `test.sh` → `./ctl deploy android` →
+Yeni bir eşya ya da TNT eklenince akış: `test.sh` → `./ctl deploy android-emu` →
 oyunda gör → iyi bir kare çek, buraya al → tablete gönder.
 
 | Sahne | Komut | Seçilen | Not |

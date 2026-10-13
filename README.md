@@ -41,8 +41,8 @@ Kendiniz derlemek isterseniz:
 
 ```bash
 python3 bedrock/build.py       # -> bedrock/out/SuperTNT.mcaddon
-./ctl deploy tablet            # derle + bağlı tabletlere gönder (kablosuz)
-./ctl deploy tablet zeynep     # yalnız bir çocuğun tableti
+./ctl deploy android           # derle + bağlı tabletlere gönder (kablosuz)
+./ctl deploy android zeynep    # yalnız bir çocuğun tableti
 ./ctl status                   # ne bağlı
 ```
 
@@ -70,7 +70,7 @@ Oyun içi ipuçları her TNT ve eşyanın üzerinde yazar; eşyaların kullanım
 | `src/` | Modun ilk hali, Fabric (Java) modu. Artık geliştirilmiyor; özellikler yalnız Bedrock'a eklenir. |
 | `site/` | Web sitesi; GitHub Pages olduğu gibi yayımlar. |
 | `docs/KATALOG.md` | Tam katalog; `scripts/katalog.py` üretir. |
-| `docs/emulator.md` | Android emülatöründe Minecraft: `./ctl deploy android` ve `bedrock/tools/shots.sh` ile oyun içi doğrulama ve ekran görüntüsü. |
+| `docs/emulator.md` | Android emülatöründe Minecraft: `./ctl deploy android-emu` ve `bedrock/tools/shots.sh` ile oyun içi doğrulama ve ekran görüntüsü. |
 | `scripts/katalog.py`, `scripts/tnt_duvari.py` | Katalog sayfasını ve yukarıdaki TNT duvarını `build.py` listelerinden üretir. |
 
 ## Geliştirme

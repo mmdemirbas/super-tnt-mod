@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Project Overview
 
 **The Bedrock Add-On under `bedrock/` is the product.** The kids play it on
-their tablets (`./ctl deploy tablet`); every new feature goes into
+their tablets (`./ctl deploy android`); every new feature goes into
 `bedrock/build.py`. Nothing is played from the Java side any more — see
 "The Add-On" below and `bedrock/PORT-DURUMU.md` (the changelog and the
 source of truth for what the pack does).
@@ -21,8 +21,9 @@ for the kids.
 ```bash
 python3 bedrock/build.py       # the Add-On -> bedrock/out/SuperTNT.mcaddon
 bash bedrock/tools/test.sh     # build + check_pack + sim + mutations, one command
-./ctl deploy tablet            # test.sh, then send to both tablets over wifi
-./ctl deploy android           # the same, to the Android emulator (Minecraft must be installed there)
+./ctl verify                   # ./ctl --check (ajans.toml vs ctl), then test.sh
+./ctl deploy android           # build, then send to both tablets over wifi
+./ctl deploy android-emu       # the same, to the Android emulator (Minecraft must be installed there)
 ./ctl status                   # what is connected; AVD and simulator names
 ```
 
@@ -35,8 +36,8 @@ capture frames — see `docs/emulator.md` for the AVD settings that make it
 work (software GPU, keyboards disabled, vanilla TNT as the trigger).
 
 **Every new feature goes through the emulator before a tablet:** `test.sh`
-green → `./ctl deploy android` → see it work in-game (the pack loads, the
-block renders, the effect happens) → only then `./ctl deploy tablet`. Anything
+green → `./ctl deploy android-emu` → see it work in-game (the pack loads, the
+block renders, the effect happens) → only then `./ctl deploy android`. Anything
 the tests cannot see — geometry, textures, particles, "does it feel right" —
 is checked here, not on the kids' tablets. Say which parts were seen in-game
 and which were not.
@@ -80,14 +81,15 @@ Bump `VERSION` in `build.py` every time, otherwise Minecraft treats the import a
 a duplicate instead of an update.
 
 ```bash
-./ctl deploy tablet            # build + send to both tablets, over wifi
-./ctl deploy tablet zeynep     # just one child's tablet
+./ctl deploy android           # build + send to both tablets, over wifi
+./ctl deploy android zeynep    # just one child's tablet
 ```
 
-`./ctl` is the only entry point — build, deploy, wifi setup and status all live
-there. Deployment is **wireless**: it discovers the tablets over Bonjour and
+`./ctl` is the only entry point — build, the gate, deploy, wifi setup and status
+all live there; its operations are declared in `ajans.toml` and `./ctl --list`
+prints them. Deployment is **wireless**: it discovers the tablets over Bonjour and
 connects itself, and de-duplicates when a tablet is reachable on both USB and
-wifi. A brand-new tablet needs the cable once (`./ctl wifi kur`). Child code
+wifi. A brand-new tablet needs the cable once (`./ctl setup wifi kur`). Child code
 names live in `~/.config/tablet-adlari`, shared with the bilgebaykus project.
 See `docs/tablet-kablosuz-deploy.md`, and `docs/cocuk-paketleri.md` for the
 child-facing side.

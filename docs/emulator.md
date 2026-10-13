@@ -2,7 +2,7 @@
 
 Add-On'u tablete göndermeden bir Android emülatöründe açıp komutla sahne kurmak,
 TNT'yi ateşlemek ve kare kare görüntü almak için kurulan düzen. Kurulum
-2026-09-22'de yapıldı ve çalışır halde bırakıldı: `./ctl deploy android` paketi
+2026-09-22'de yapıldı ve çalışır halde bırakıldı: `./ctl deploy android-emu` paketi
 gönderir, `bedrock/tools/shots.sh` sahneyi sürer.
 
 `test.sh` betiğin çalıştığını ve paketin tutarlı olduğunu kanıtlar; bir
@@ -23,7 +23,7 @@ içinde önemli olanlar:
 | `disk.dataPartition.size` | 8G | Minecraft ~1 GB, Play güncellemeleri üstüne; daha azı denenmedi. |
 | `hw.camera.front/back` | `webcam0` | Google hesabı girişi bir adımda selfie istiyor; atlanabiliyor, ama kamera eşliyse o adım da geçilebilir. |
 
-`./ctl deploy android` bu AVD'yi varsayılan alır (`AVD=<ad>` ile değişir),
+`./ctl deploy android-emu` bu AVD'yi varsayılan alır (`AVD=<ad>` ile değişir),
 `-no-boot-anim -gpu swiftshader_indirect` ile başlatır, açılışı ve paylaşılan
 depolamanın hazır olmasını bekler.
 

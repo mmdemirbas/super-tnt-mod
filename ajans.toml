@@ -1,0 +1,36 @@
+#:schema ../ajans/schema/project-2.schema.json
+# Super TNT'nin işlemleri. Her anahtar `./ctl <anahtar>` ile çalışır ve ctl'de
+# bir op_ fonksiyonudur. Sözleşme: ajans/docs/project-contract.md.
+contract = 2
+
+[verbs]
+deploy = "Derle ve bir cihaza ya da hedefe gönder"
+setup = "Cihaz kurulumu"
+
+[operations.build]
+summary = "Yalnız SuperTNT.mcaddon'u derle (bedrock/build.py)"
+
+[operations.verify]
+summary = "Tam kapı: ajans.toml + derleme + check_pack + sim + mutasyonlar (bedrock/tools/test.sh)"
+
+[operations."deploy android"]
+summary = "Tabletlere gönder, kablosuz ya da kabloyla (adb ile dosya) — [zeynep|omer|all]"
+target = "device:android"
+
+[operations."deploy icloud"]
+summary = "iPhone için iCloud Drive'a bırak (Dosyalar > iCloud Drive > SuperTNT)"
+target = "handoff:icloud-drive"
+
+[operations."deploy android-emu"]
+summary = "Android emülatörüne gönder, Minecraft'ı aç (emülatör kapalıysa açar) — AVD=<ad>"
+target = "emulator:android"
+
+[operations."deploy ios-sim"]
+summary = "iPhone simülatörünü aç (SINIRLI: Minecraft simülatörde çalışmaz) — IOS_SIM=<ad>"
+target = "simulator:ios"
+
+[operations."setup wifi"]
+summary = "Tabletlere kablosuz bağlan; yeni tablet: ./ctl setup wifi kur (bir kerelik kablo)"
+
+[operations.status]
+summary = "Bağlı cihazlar, AVD'ler ve simülatörler"

@@ -12,9 +12,9 @@ olmasıdır.
 ## Günlük kullanım
 
 ```bash
-./ctl deploy tablet            # derle + iki tablete birden gönder
-./ctl deploy tablet zeynep     # yalnız Zeynep'in tableti
-./ctl deploy tablet omer       # yalnız Ömer'in tableti
+./ctl deploy android           # derle + iki tablete birden gönder
+./ctl deploy android zeynep    # yalnız Zeynep'in tableti
+./ctl deploy android omer      # yalnız Ömer'in tableti
 ```
 
 **Tek giriş noktası `./ctl`.** Kablosuz bağlantıyı kendisi kuruyor; ayrı bir
@@ -29,9 +29,9 @@ Ayarları'nda Davranış + Kaynak paketlerinin ikisini de etkinleştir.
 Yardımcı komutlar:
 
 ```bash
-./ctl status       # ne bağlı: kod adı — transport — kablosuz mu USB mi
-./ctl wifi         # sadece bağlan, deploy etme
-./ctl wifi kur     # YENİ tablet — bir kereliğine KABLO ister
+./ctl status           # ne bağlı: kod adı — transport — kablosuz mu USB mi
+./ctl setup wifi       # sadece bağlan, deploy etme
+./ctl setup wifi kur   # YENİ tablet — bir kereliğine KABLO ister
 ```
 
 ## Çocuk adları
@@ -150,10 +150,10 @@ transport seçiyor — varsa kablosuz olanı, çünkü asıl yol o.
 
 | Durum | Ne yapmalı |
 |---|---|
-| Yeni tablet eklendi | Bir kereliğine kabloyla: `./ctl wifi kur` |
+| Yeni tablet eklendi | Bir kereliğine kabloyla: `./ctl setup wifi kur` |
 | Tablet bulunamıyor | Ekranı aç, aynı wifi'da mı bak. Misafir ağı çalışmaz (cihaz yalıtımı) |
-| Fabrika ayarı / OS güncellemesi | `family-link-usb-debug-setup.md` adımlarını gözden geçir, sonra `./ctl wifi kur` |
-| Tablet yeniden başladı | Tabletin kilidini bir kez aç. Sonra `./ctl deploy tablet` çalışır |
+| Fabrika ayarı / OS güncellemesi | `family-link-usb-debug-setup.md` adımlarını gözden geçir, sonra `./ctl setup wifi kur` |
+| Tablet yeniden başladı | Tabletin kilidini bir kez aç. Sonra `./ctl deploy android` çalışır |
 | Router değişti / IP değişti | Bir şey yapma. Bağlantı IP ile değil `.local` adıyla kuruluyor |
 
 ## Yeniden başlatma: adb, tablet açılana kadar kapalı
@@ -184,8 +184,8 @@ katman; bu repodaki düzen onu kullanmıyor ama kapatılması da istenmedi.
 
 | Repo | Komut | Ne gönderir |
 |---|---|---|
-| Bilgebaykuş | `./ctl deploy tablet all` | kendi içeriği |
-| Bu repo | `./ctl deploy tablet` | `SuperTNT.mcaddon` |
+| Bilgebaykuş | `./ctl deploy android all` | kendi içeriği |
+| Bu repo | `./ctl deploy android` | `SuperTNT.mcaddon` |
 
 İkisi de aynı iki tablete, aynı kablosuz altyapı üzerinden bağlanıyor. Tablet
 kod adları Bilgebaykuş tarafında: `zeynep` = `R5GYC4BGAQW`, `omer` =

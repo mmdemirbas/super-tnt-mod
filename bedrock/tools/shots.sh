@@ -11,7 +11,7 @@
 #     bash bedrock/tools/shots.sh keep lego_tnt 12 14 20  # docs/kareler/lego_tnt-f12.jpg... + kontak sayfasi
 #     bash bedrock/tools/shots.sh cmd "/say merhaba"    # tek komut
 #
-# ON KOSULLAR: `./ctl deploy android` ile paket emulatore gitmis, Minecraft'ta
+# ON KOSULLAR: `./ctl deploy android-emu` ile paket emulatore gitmis, Minecraft'ta
 # hileleri acik, yaratici, DUZ bir dunya ACIK ve oyuncu dunyada olmali. Dunya
 # kurulumu bir kez elle yapilir (Play > Create New World > Creative, Cheats,
 # Flat, Behavior packs > Super TNT). Sonrasi buradan surulur.
@@ -34,7 +34,7 @@ if [ -z "${ANDROID_SERIAL:-}" ]; then
   for s in $("$ADB" devices | awk '$1 ~ /^emulator-/ && $2=="device"{print $1}'); do
     [ "$("$ADB" -s "$s" emu avd name 2>/dev/null | head -1 | tr -d '\r')" = "${AVD:-mc_tablet}" ] && { export ANDROID_SERIAL="$s"; break; }
   done
-  [ -n "${ANDROID_SERIAL:-}" ] || { echo "${AVD:-mc_tablet} emulatoru calismiyor: ./ctl deploy android" >&2; exit 1; }
+  [ -n "${ANDROID_SERIAL:-}" ] || { echo "${AVD:-mc_tablet} emulatoru calismiyor: ./ctl deploy android-emu" >&2; exit 1; }
 fi
 # Klavye acikken Gboard input text'i yeniden siralar (kelimeler karisir, "/"
 # kayar). Emulator yeniden acilinca geri gelebiliyor; her calismada kapat.

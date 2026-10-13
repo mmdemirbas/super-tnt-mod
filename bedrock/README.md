@@ -153,8 +153,8 @@ Tabletin Minecraft klasörü salt okunur (bkz. `docs/bedrock-port-fizibilite.md`
 yani her deneme:
 
 ```bash
-./ctl deploy tablet            # derler ve iki tablete birden gönderir
-./ctl deploy tablet zeynep     # yalnız bir çocuğun tableti
+./ctl deploy android           # derler ve iki tablete birden gönderir
+./ctl deploy android zeynep    # yalnız bir çocuğun tableti
 ```
 
 `./ctl` derler, kablosuz bağlanır, dosyayı gönderir, boyutunu doğrular ve

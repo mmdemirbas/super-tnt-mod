@@ -4,10 +4,10 @@
 çağırmazsın** — tek giriş noktası `./ctl`.
 
 ```bash
-./ctl deploy tablet            # derle + bağlı tabletlere gönder (kablosuz)
-./ctl deploy tablet zeynep     # yalnız bir çocuğun tableti
-./ctl deploy iphone            # iCloud Drive kanalıyla
-./ctl wifi kur                 # yeni tablet: bir kereliğine kablo
+./ctl deploy android           # derle + bağlı tabletlere gönder (kablosuz)
+./ctl deploy android zeynep    # yalnız bir çocuğun tableti
+./ctl deploy icloud            # iCloud Drive kanalıyla
+./ctl setup wifi kur           # yeni tablet: bir kereliğine kablo
 ./ctl status                   # ne bağlı
 ```
 

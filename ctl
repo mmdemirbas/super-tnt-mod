@@ -1,14 +1,37 @@
 #!/usr/bin/env bash
 # Super TNT — tek komut derleme + dagitim.
 #
-# Fiiller cihaz/hedef secer; derleme (bedrock/build.py) her seferinde bir
-# kez calisir.
+# Ne yaptigini ./ctl --list soyler; islemler ajans.toml'da tanimli, her biri
+# asagida bir op_<fiil>[_<hedef>] fonksiyonu (sozlesme:
+# ajans/docs/project-contract.md). Hedefler: ./ctl deploy --list
 #
-#   ./ctl                 fiil listesi
-#   ./ctl --list          aynisi, satir basina bir `ad<TAB>aciklama`
-#   ./ctl deploy --list   hedefler
-#   ./ctl status          bagli cihazlar, AVD'ler ve simulatorler Android tarafi mevcut deploy/deploy.sh'i (push + dogrulama +
-# Samsung MediaStore duzeltmesi) yeniden kullanir.
+# Derleme (bedrock/build.py) her gonderimde bir kez calisir. Android tarafi
+# mevcut deploy/deploy.sh'i (push + dogrulama + Samsung MediaStore duzeltmesi)
+# yeniden kullanir.
+#
+# ORNEKLER
+#   ./ctl deploy android                # iki tablete birden, kablosuz
+#   ./ctl deploy android zeynep         # yalniz Zeynep'in tableti
+#   ./ctl deploy android omer           # yalniz Omer'in tableti
+#   ./ctl setup wifi kur                # ILK kurulum (bir kereligine kablo)
+#   ./ctl deploy android-emu
+#   AVD=bb_tablet ./ctl deploy android-emu
+#   IOS_SIM='iPhone 17 Pro' ./ctl deploy ios-sim
+#   ./ctl status                        # hangi AVD ve simulator adlari var
+#
+# NOTLAR
+#   * android: kablo GEREKMEZ. Ayni wifi yeterli; baglantiyi ./ctl kendi kurar.
+#     Yeni bir tablette bir kereligine kablo gerekir: ./ctl setup wifi kur
+#   * Tablet yeniden baslarsa adb, cihaz BIR KEZ ACILANA (unlock) kadar
+#     kapali kalir — Android guvenlik davranisi, ayarla kapatilamaz. Cocuk
+#     tableti acinca kablosuz kendiliginden geri gelir.
+#   * Kod adlari: $HOME/.config/tablet-adlari  (zeynep, omer)
+#   * android / android-emu: Minecraft'in o cihazda KURULU olmasi gerekir.
+#   * icloud: App Store Minecraft'ina USB'den dogrudan dosya yazilamaz (Apple
+#     sinirlamasi). iCloud Drive senkronu tek guvenilir kanaldir; bu bir
+#     uygulama kurulumu degil, dosya birakmadir.
+#   * ios-sim: iOS Simulator App Store uygulamalarini (Minecraft dahil)
+#     CALISTIRAMAZ; komut yalnizca simulatoru acar.
 
 set -euo pipefail
 
@@ -28,70 +51,13 @@ else
 fi
 # Her seviye icin tek imge ve tek renk; buradaki butun suruculer ayni besini
 # kullanir: ▸ bir adim, ✓ oldu, ! bilinmesi gereken, ⏸ onkosul yok (cikis 75),
-# ✗ olmadi (cikis 1). Sozlesme: ajans/docs/reports/driver-scripts-2026-09-02.md.
+# ✗ olmadi (cikis 1). Sozlesme: ajans/docs/project-contract.md.
 header() { printf '%s▸%s %s\n' "$C_H" "$C_0" "$*"; }
 ok()     { printf '%s✓%s %s\n'   "$C_OK"  "$C_0" "$*"; }
 warn()   { printf '%s!%s %s\n'   "$C_WARN" "$C_0" "$*"; }
 err()    { printf '%s✗%s %s\n'   "$C_ERR" "$C_0" "$*" >&2; }
 hold()   { printf '%s⏸%s %s\n'  "$C_WARN" "$C_0" "$*" >&2; exit 75; }
 need()   { command -v "$1" >/dev/null 2>&1 || { err "$1 bulunamadi"; exit 1; }; }
-
-VERBS="build	Sadece SuperTNT.mcaddon derle
-deploy	Derle ve bir cihaza/hedefe gonder
-wifi	Tabletleri kablosuza al / kablosuz baglan
-status	Bagli cihazlar, AVD'ler ve simulatorler"
-
-qualifiers() {
-  case "$1" in
-    deploy) printf '%s\n' \
-      "tablet	Tabletlere kablosuz gonder — varsayilan; [zeynep|omer|all]" \
-      "iphone	Bagli iPhone'a, iCloud Drive kanaliyla" \
-      "android	Android emulatorunde calistir (yoksa AVD baslatir) — [AVD=<ad>]" \
-      "sim	iPhone simulatorunu ac (SINIRLI) — [IOS_SIM=<ad>]" ;;
-    *)      return 1 ;;
-  esac
-}
-
-list_for() {
-  if [ -z "$1" ]; then printf '%s\n' "$VERBS"; return 0; fi
-  qualifiers "$1" || { err "niteleyicisi yok: $1"; exit 1; }
-}
-
-usage() {
-  printf 'Super TNT — derle ve dagit\n\nKULLANIM\n  ./ctl <fiil> [hedef]\n\nFIILLER\n'
-  printf '%s\n' "$VERBS" | while IFS="$(printf '\t')" read -r name why; do
-    printf '  %-8s %s\n' "$name" "$why"
-  done
-  printf '\nHEDEFLER  (./ctl deploy --list)\n'
-  qualifiers deploy | while IFS="$(printf '\t')" read -r name why; do
-    printf '  %-8s %s\n' "$name" "$why"
-  done
-  cat <<'EOF'
-
-ORNEKLER
-  ./ctl deploy tablet                 # iki tablete birden, kablosuz
-  ./ctl deploy tablet zeynep          # yalniz Zeynep'in tableti
-  ./ctl deploy tablet omer            # yalniz Omer'in tableti
-  ./ctl wifi kur                      # ILK kurulum (bir kereligine kablo)
-  ./ctl deploy android
-  AVD=bb_tablet ./ctl deploy android
-  IOS_SIM='iPhone 17 Pro' ./ctl deploy sim
-  ./ctl status                        # hangi AVD ve simulator adlari var
-
-NOTLAR
-  * tablet: kablo GEREKMEZ. Ayni wifi yeterli; baglantiyi ./ctl kendi kurar.
-    Yeni bir tablette bir kereligine kablo gerekir: ./ctl wifi kur
-  * Tablet yeniden baslarsa adb, cihaz BIR KEZ ACILANA (unlock) kadar
-    kapali kalir — Android guvenlik davranisi, ayarla kapatilamaz. Cocuk
-    tableti acinca kablosuz kendiliginden geri gelir.
-  * Kod adlari: $HOME/.config/tablet-adlari  (zeynep, omer)
-  * tablet / android: Minecraft'in o cihazda KURULU olmasi gerekir.
-  * iphone: App Store Minecraft'ina USB'den dogrudan dosya yazilamaz (Apple
-    sinirlamasi). iCloud Drive senkronu tek guvenilir kanaldir.
-  * sim: iOS Simulator App Store uygulamalarini (Minecraft dahil) CALISTIRAMAZ;
-    komut yalnizca simulatoru acar.
-EOF
-}
 
 # ---- tabletler: kod adlari + kablosuz --------------------------------------
 # Tabletlere kablo takmadan gonderebilmek icin Android 11+ "kablosuz hata
@@ -195,15 +161,13 @@ tablet_sec() {
 }
 
 # ---- ortak adimlar --------------------------------------------------------
-build() {
+derle() {
   header "derle"
   python3 "$ROOT/bedrock/build.py" | tail -3
   [ -f "$MCADDON" ] || { err "derleme ciktisi yok: $MCADDON"; exit 1; }
   ok "hazir: $(basename "$MCADDON")"
 }
 
-# Calisan bir emulatorun seri numarasini stdout'a yazar; yoksa baslatir.
-# Tum ilerleme mesajlari stderr'e gider ki $(ensure_emulator) sadece seriyi alsin.
 # Calisan emulatorlerden AVD adi $1 olanin seri numarasi. Baska bir proje
 # (bilgebaykus) ayni anda kendi AVD'siyle calisabilir; "ilk emulator" onunki
 # olabilir ve paketi yanlis cihaza gonderir (2026-09-23).
@@ -215,6 +179,8 @@ emulator_of_avd() {
   return 1
 }
 
+# Calisan bir emulatorun seri numarasini stdout'a yazar; yoksa baslatir.
+# Tum ilerleme mesajlari stderr'e gider ki $(ensure_emulator) sadece seriyi alsin.
 ensure_emulator() {
   [ -x "$EMU_BIN" ] || { err "emulator bulunamadi: $EMU_BIN — ANDROID_HOME dogru mu?"; exit 1; }
   # Varsayilan mc_tablet: Play Store'lu imaj, Minecraft ordan kurulu (docs/emulator.md).
@@ -265,13 +231,27 @@ android_launch_mc() {
   fi
 }
 
-# ---- alt komutlar ---------------------------------------------------------
-# ./ctl deploy tablet            -> bagli tum tabletler
-# ./ctl deploy tablet zeynep     -> yalniz o cocugun tableti
-cmd_tablet() {
+# ==========================================================================
+# Islemler — ajans.toml'daki her anahtar icin bir op_ fonksiyonu.
+# ==========================================================================
+
+op_build() { derle; }
+
+# Tablete gondermeden onceki tam kapi. Once ajans.toml ile buradaki op_
+# fonksiyonlarinin uyusmasi (pano islemleri oradan okuyor), sonra paketin dort
+# katmani (bedrock/tools/test.sh; CI de onu kosar).
+op_verify() {
+  header "ajans.toml ve ctl"
+  "$ROOT/ctl" --check || { err "ajans.toml ile ctl uyusmuyor (yukari bak)"; exit 1; }
+  bash "$ROOT/bedrock/tools/test.sh"
+}
+
+# ./ctl deploy android            -> bagli tum tabletler
+# ./ctl deploy android zeynep     -> yalniz o cocugun tableti
+op_deploy_android() {
   local hedef="${1:-all}" devs
   need "$ADB"
-  build
+  derle
   # Kablosuz baglantiyi KENDI kurar; ayri bir komut calistirmak gerekmez.
   # Zaten bagliysa "already connected" doner, zararsiz.
   devs="$(tablet_sec "$hedef")"
@@ -284,7 +264,7 @@ cmd_tablet() {
     if [ "$hedef" != "all" ]; then
       hold "'$hedef' bagli degil. Bagli olanlar icin: ./ctl status"
     fi
-    hold "tablet yok. Tablet acik ve ayni wifi'da mi? Ilk kurulum: ./ctl wifi kur"
+    hold "tablet yok. Tablet acik ve ayni wifi'da mi? Ilk kurulum: ./ctl setup wifi kur"
   fi
   local d ad
   for d in $devs; do
@@ -298,44 +278,11 @@ cmd_tablet() {
   done
 }
 
-# ./ctl wifi        -> yayindaki tabletlere baglan
-# ./ctl wifi kur    -> ILK kurulum; bir kereligine KABLO ister
-cmd_wifi() {
-  need "$ADB"; need dns-sd
-  case "${1:-bagla}" in
-    kur|setup)
-      local usb; usb="$(usb_transportlar)"
-      [ -n "$usb" ] || hold "kabloyla bagli tablet yok. 'kur' bir kereligine KABLO ister: tableti USB-C data kablosuyla tak, ekrani ACIK olsun."
-      local d
-      for d in $usb; do
-        header "kablosuz hata ayiklama aciliyor: $(seri_to_ad "$(transport_seri "$d")" || true) ($d)"
-        "$ADB" -s "$d" shell settings put global adb_wifi_enabled 1 </dev/null
-      done
-      header "servisin yayina cikmasi bekleniyor"
-      sleep 4
-      wifi_bagla || hold "yayin gorunmedi. Tablette Ayarlar > Gelistirici Secenekleri > Kablosuz hata ayiklama ACIK mi?"
-      ok "kablo cikarilabilir. Bundan sonra: ./ctl deploy tablet"
-      ;;
-    bagla|connect)
-      header "Bonjour ile taraniyor (${TARAMA_SN} sn)"
-      wifi_bagla || hold "yayinda tablet yok. Tablet acik ve ayni wifi'da mi? Misafir agi cihazlari yalitir. Ilk kurulum: ./ctl wifi kur"
-      ;;
-    *) err "bilinmeyen: ./ctl wifi $1  (bagla|kur)"; exit 2 ;;
-  esac
-}
-
-cmd_android() {
-  need "$ADB"
-  build
-  local serial; serial="$(ensure_emulator)"
-  header "emulatore gonder ($serial)"
-  "$DEPLOY" --no-build "$serial"  # yalnizca bu emulator hedeflenir
-  android_launch_mc "$serial"
-}
-
-cmd_iphone() {
+# iPhone'a uygulama KURMAZ: paketi iCloud Drive'a birakir, iPhone'da Dosyalar
+# uygulamasindan Minecraft ile acilir.
+op_deploy_icloud() {
   need xcrun
-  build
+  derle
   header "iPhone'a gonder (iCloud Drive)"
   if xcrun devicectl list devices 2>/dev/null | grep -qiE 'iphone'; then
     ok "USB'de iPhone algilandi (dosya iCloud ile senkronlanir)"
@@ -356,9 +303,18 @@ cmd_iphone() {
 EOF
 }
 
-cmd_ios() {
+op_deploy_android_emu() {
+  need "$ADB"
+  derle
+  local serial; serial="$(ensure_emulator)"
+  header "emulatore gonder ($serial)"
+  "$DEPLOY" --no-build "$serial"  # yalnizca bu emulator hedeflenir
+  android_launch_mc "$serial"
+}
+
+op_deploy_ios_sim() {
   need xcrun
-  build
+  derle
   header "iPhone simulator"
   local dev="${IOS_SIM:-iPhone 17}"
   xcrun simctl boot "$dev" 2>/dev/null || true      # zaten aciksa hata verir -> yut
@@ -368,12 +324,38 @@ cmd_ios() {
   cat <<EOF
   SINIRLAMA: Minecraft Bedrock iOS Simulator'da CALISMAZ — App Store yalnizca
   gercek cihaz (arm64) surumunu dagitir, simulator surumu yoktur. Bu komut
-  simulatoru acmaktan oteye gidemez. Gercek iOS testi icin:  ./ctl deploy iphone
+  simulatoru acmaktan oteye gidemez. Gercek iOS denemesi icin: ./ctl deploy icloud
   .mcaddon: $MCADDON
 EOF
 }
 
-cmd_status() {
+# ./ctl setup wifi        -> yayindaki tabletlere baglan
+# ./ctl setup wifi kur    -> ILK kurulum; bir kereligine KABLO ister
+op_setup_wifi() {
+  need "$ADB"; need dns-sd
+  case "${1:-bagla}" in
+    kur|setup)
+      local usb; usb="$(usb_transportlar)"
+      [ -n "$usb" ] || hold "kabloyla bagli tablet yok. 'kur' bir kereligine KABLO ister: tableti USB-C data kablosuyla tak, ekrani ACIK olsun."
+      local d
+      for d in $usb; do
+        header "kablosuz hata ayiklama aciliyor: $(seri_to_ad "$(transport_seri "$d")" || true) ($d)"
+        "$ADB" -s "$d" shell settings put global adb_wifi_enabled 1 </dev/null
+      done
+      header "servisin yayina cikmasi bekleniyor"
+      sleep 4
+      wifi_bagla || hold "yayin gorunmedi. Tablette Ayarlar > Gelistirici Secenekleri > Kablosuz hata ayiklama ACIK mi?"
+      ok "kablo cikarilabilir. Bundan sonra: ./ctl deploy android"
+      ;;
+    bagla|connect)
+      header "Bonjour ile taraniyor (${TARAMA_SN} sn)"
+      wifi_bagla || hold "yayinda tablet yok. Tablet acik ve ayni wifi'da mi? Misafir agi cihazlari yalitir. Ilk kurulum: ./ctl setup wifi kur"
+      ;;
+    *) err "bilinmeyen: ./ctl setup wifi $1  (bagla|kur)"; exit 64 ;;
+  esac
+}
+
+op_status() {
   header "bagli Android cihazlar (kod adi — transport — baglanti)"
   local t seri ad var=0
   for t in $("$ADB" devices | awk 'NR>1 && $2=="device" {print $1}'); do
@@ -388,42 +370,131 @@ cmd_status() {
     esac
     var=1
   done
-  [ "$var" = 1 ] || warn "cihaz yok. Kablosuz icin: ./ctl wifi"
+  [ "$var" = 1 ] || warn "cihaz yok. Kablosuz icin: ./ctl setup wifi"
   [ -f "$ADLAR" ] || warn "kod adi dosyasi yok: $ADLAR"
-  header "AVD'ler  (AVD=<ad> ./ctl deploy android)"
+  header "AVD'ler  (AVD=<ad> ./ctl deploy android-emu)"
   if [ -x "$EMU_BIN" ]; then "$EMU_BIN" -list-avds 2>/dev/null || true
   else warn "emulator bulunamadi: $EMU_BIN"; fi
-  header "iOS simulatorleri  (IOS_SIM=<ad> ./ctl deploy sim)"
+  header "iOS simulatorleri  (IOS_SIM=<ad> ./ctl deploy ios-sim)"
   if command -v xcrun >/dev/null 2>&1; then
     xcrun simctl list devices available 2>/dev/null | grep -E '^\s+iPhone|^\s+iPad' | sed 's/ *(.*//' | sed 's/^ */  /' || true
   else warn "xcrun yok"; fi
 }
 
-main() {
-  local sub="${1:-}"; shift || true
+# >>> ajans runtime 1 >>>
+# Written by `ajans contract sync`; edits here are overwritten. The operations
+# are declared in ajans.toml and implemented above as op_<verb>[_<target>].
 
-  case "$sub" in
-    ""|help|-h|--help) usage; exit 0 ;;
-    --list)            list_for ""; exit 0 ;;
-  esac
+_ajans_root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-  [ "${1:-}" = "--list" ] && { list_for "$sub"; exit 0; }
-
-  case "$sub" in
-    build)  build ;;
-    status) cmd_status ;;
-    wifi)   cmd_wifi "$@" ;;
-    deploy)
-      case "${1:-tablet}" in
-        tablet)  shift 2>/dev/null || true; cmd_tablet  "${1:-all}" ;;
-        iphone)  shift; cmd_iphone  "$@" ;;
-        android) shift; cmd_android "$@" ;;
-        sim)     shift; cmd_ios     "$@" ;;
-        *)       err "bilinmeyen hedef: $1  (./ctl deploy --list)"; exit 2 ;;
-      esac
-      ;;
-    *) err "bilinmeyen fiil: $sub"; echo; usage; exit 2 ;;
-  esac
+_ajans_fn() {
+	local name="op_$*"
+	name="${name// /_}"
+	name="${name//-/_}"
+	printf '%s' "${name//./_}"
 }
 
-main "$@"
+# Reads ajans.toml with the first python3 that has tomllib. Modes: list [verb], keys.
+_ajans_toml() {
+	local py
+	if [[ ! -f "$_ajans_root/ajans.toml" ]]; then
+		printf '✗ no ajans.toml beside %s\n' "$_ajans_root/ctl" >&2
+		return 66
+	fi
+	for py in python3 /opt/homebrew/bin/python3 /usr/local/bin/python3; do
+		if ! command -v "$py" >/dev/null 2>&1 || ! "$py" -c 'import tomllib' 2>/dev/null; then
+			continue
+		fi
+		"$py" - "$_ajans_root/ajans.toml" "$@" <<'PY'
+import re, sys, tomllib
+try:
+    with open(sys.argv[1], 'rb') as f:
+        manifest = tomllib.load(f)
+except tomllib.TOMLDecodeError as e:
+    sys.exit(f'✗ ajans.toml: {e}')
+ops, verbs = manifest.get('operations', {}), manifest.get('verbs', {})
+mode, rest = sys.argv[2], sys.argv[3:]
+if mode == 'keys':
+    for key in ops:
+        print('op_' + re.sub(r'[ .-]', '_', key))
+elif rest:
+    for key, op in ops.items():
+        verb, _, target = key.partition(' ')
+        if verb == rest[0] and target:
+            print(f"{target}\t{op.get('summary', '')}")
+else:
+    seen = []
+    for key in ops:
+        verb = key.partition(' ')[0]
+        if verb not in seen:
+            seen.append(verb)
+            print(f"{verb}\t{ops[verb]['summary'] if verb in ops else verbs.get(verb, '')}")
+PY
+		return
+	done
+	printf '✗ reading ajans.toml needs python3 3.11 or later (tomllib)\n' >&2
+	return 69
+}
+
+_ajans_check() {
+	local declared defined missing extra fn count noun
+	declared="$(_ajans_toml keys)" || return
+	declared="$(printf '%s\n' "$declared" | sort)"
+	defined="$(declare -F | awk '$3 ~ /^op_/ { print $3 }' | sort)"
+	missing="$(comm -23 <(printf '%s\n' "$declared") <(printf '%s\n' "$defined") | sed '/^$/d')"
+	extra="$(comm -13 <(printf '%s\n' "$declared") <(printf '%s\n' "$defined") | sed '/^$/d')"
+	if [[ -z "$missing" && -z "$extra" ]]; then
+		count="$(printf '%s\n' "$declared" | grep -c .)"
+		if [[ "$count" == 1 ]]; then noun=operation; else noun=operations; fi
+		printf '✓ ajans.toml and ctl agree: %s %s\n' "$count" "$noun"
+		return 0
+	fi
+	if [[ -n "$missing" ]]; then
+		while IFS= read -r fn; do printf '✗ declared, no function: %s\n' "$fn" >&2; done <<<"$missing"
+	fi
+	if [[ -n "$extra" ]]; then
+		while IFS= read -r fn; do printf '✗ function, not declared: %s\n' "$fn" >&2; done <<<"$extra"
+	fi
+	return 1
+}
+
+_ajans_main() {
+	case "${1:-}" in
+	'' | --list | -h | --help)
+		_ajans_toml list
+		return
+		;;
+	--check)
+		_ajans_check
+		return
+		;;
+	esac
+	if [[ "${2:-}" == --list ]]; then
+		_ajans_toml list "$1"
+		return
+	fi
+	local fn
+	if [[ $# -ge 2 ]]; then
+		fn="$(_ajans_fn "$1 $2")"
+		if declare -F "$fn" >/dev/null; then
+			shift 2
+			"$fn" "$@"
+			return
+		fi
+	fi
+	fn="$(_ajans_fn "$1")"
+	if declare -F "$fn" >/dev/null; then
+		shift
+		"$fn" "$@"
+		return
+	fi
+	if declare -F | awk -v p="$fn"_ '$3 ~ "^" p { found = 1 } END { exit !found }'; then
+		printf '✗ %s needs a target: ./ctl %s --list\n' "$1" "$1" >&2
+	else
+		printf '✗ %s: not an operation of this project (./ctl --list)\n' "$*" >&2
+	fi
+	return 64
+}
+
+_ajans_main "$@"
+# <<< ajans runtime <<<
